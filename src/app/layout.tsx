@@ -3,6 +3,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import Header from '@/components/Header';
+import BottomNavBar from '@/components/BottomNavBar';
 
 export const metadata: Metadata = {
   title: 'Rhythmic Reads',
@@ -24,10 +25,13 @@ export default function RootLayout({
         <meta name="theme-color" content="#9400D3" />
       </head>
       <body className={cn('font-body antialiased min-h-screen flex flex-col')}>
-        <Header />
-        <main className="flex-grow container mx-auto px-4 py-8">
-          {children}
-        </main>
+        <div className="flex-grow flex flex-col">
+          <Header />
+          <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
+            {children}
+          </main>
+        </div>
+        <BottomNavBar />
         <Toaster />
       </body>
     </html>
