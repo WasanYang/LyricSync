@@ -242,8 +242,8 @@ export default function LyricPlayer({ song }: { song: Song }) {
   return (
     <div className="flex flex-col bg-background h-screen">
       {/* Header Info */}
-      <header className="fixed top-0 left-0 right-0 z-10 p-4 bg-gradient-to-b from-background via-background/90 to-transparent pointer-events-none h-32">
-        <div className="container mx-auto flex items-center justify-between pointer-events-auto">
+      <header className="fixed top-0 left-0 right-0 z-10 p-4 bg-background/80 backdrop-blur-sm pointer-events-auto">
+        <div className="container mx-auto flex items-center justify-between">
            <Button asChild variant="ghost" size="icon">
             <Link href="/">
               <ArrowLeft />
@@ -377,7 +377,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
 
       {/* Player Controls - Fixed at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background/90 to-transparent">
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto space-y-4">
             <Slider
               value={[currentTime]}
