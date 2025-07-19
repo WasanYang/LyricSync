@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'r
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward } from 'lucide-react';
+import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/sheet"
 
 
+type HighlightMode = 'line' | 'section' | 'none';
+
 type State = {
   isPlaying: boolean;
   currentTime: number;
@@ -28,6 +30,7 @@ type State = {
   fontSize: number;
   showChords: boolean;
   chordColor: string;
+  highlightMode: HighlightMode;
 };
 
 type Action =
@@ -39,7 +42,8 @@ type Action =
   | { type: 'FINISH' }
   | { type: 'SET_FONT_SIZE'; payload: number }
   | { type: 'TOGGLE_CHORDS' }
-  | { type: 'SET_CHORD_COLOR'; payload: string };
+  | { type: 'SET_CHORD_COLOR'; payload: string }
+  | { type: 'SET_HIGHLIGHT_MODE'; payload: HighlightMode };
 
 const initialState: State = {
   isPlaying: false,
@@ -49,6 +53,7 @@ const initialState: State = {
   fontSize: 16,
   showChords: true,
   chordColor: 'hsl(var(--chord-color))',
+  highlightMode: 'line',
 };
 
 function lyricPlayerReducer(state: State, action: Action): State {
@@ -72,6 +77,8 @@ function lyricPlayerReducer(state: State, action: Action): State {
         return { ...state, showChords: !state.showChords };
     case 'SET_CHORD_COLOR':
         return { ...state, chordColor: action.payload };
+    case 'SET_HIGHLIGHT_MODE':
+        return { ...state, highlightMode: action.payload };
     default:
       return state;
   }
@@ -155,7 +162,7 @@ const CHORD_COLOR_OPTIONS = [
 
 export default function LyricPlayer({ song }: { song: Song }) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
-  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor } = state;
+  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor, highlightMode } = state;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
   const [currentSectionIndex, setCurrentSectionIndex] = useState<number>(-1);
@@ -166,10 +173,11 @@ export default function LyricPlayer({ song }: { song: Song }) {
     return song.lyrics
       .map((line, index) => ({...line, originalIndex: index}))
       .filter(line => line.text.startsWith('(') && line.text.endsWith(')'))
-      .map(line => ({
+      .map((line, index) => ({
           name: line.text.substring(1, line.text.length - 1),
           time: line.time,
-          index: line.originalIndex
+          index: line.originalIndex,
+          uniqueKey: `${line.text.substring(1, line.text.length - 1)}-${index}`,
       }));
   }, [song.lyrics]);
 
@@ -226,24 +234,38 @@ export default function LyricPlayer({ song }: { song: Song }) {
     }
   }, [currentTime, song.lyrics, currentLineIndex, duration]);
 
-  useEffect(() => {
-    const activeLine = lineRefs.current[currentLineIndex];
-    if (activeLine) {
-        activeLine.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-        });
-
-        let sectionIdx = -1;
-        for (let i = sections.length - 1; i >= 0; i--) {
-            if (sections[i].index <= currentLineIndex) {
-                sectionIdx = i;
-                break;
-            }
+  const currentSection = useMemo(() => {
+    if (currentLineIndex < 0) return null;
+    
+    let sectionIdx = -1;
+    for (let i = sections.length - 1; i >= 0; i--) {
+        if (sections[i].index <= currentLineIndex) {
+            sectionIdx = i;
+            break;
         }
-        setCurrentSectionIndex(sectionIdx);
     }
+    
+    if (sectionIdx !== -1) {
+      return { ...sections[sectionIdx], numericIndex: sectionIdx };
+    }
+    return null;
   }, [currentLineIndex, sections]);
+
+  useEffect(() => {
+    setCurrentSectionIndex(currentSection?.numericIndex ?? -1);
+  }, [currentSection]);
+
+  useEffect(() => {
+    if (highlightMode === 'line') {
+        const activeLine = lineRefs.current[currentLineIndex];
+        if (activeLine) {
+            activeLine.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }
+    }
+  }, [currentLineIndex, highlightMode]);
 
   return (
     <div className="flex flex-col bg-background h-screen">
@@ -322,6 +344,30 @@ export default function LyricPlayer({ song }: { song: Song }) {
                             ))}
                         </RadioGroup>
                     </div>
+                     <div className="grid gap-4">
+                        <Label className="flex items-center gap-3">
+                            <Highlighter className="h-5 w-5" />
+                            <span className="font-medium">Highlight Style</span>
+                        </Label>
+                        <RadioGroup 
+                            defaultValue={highlightMode}
+                            onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })}
+                            className="grid grid-cols-3 gap-2"
+                        >
+                            <Label className="flex flex-col items-center justify-center gap-2 cursor-pointer rounded-md border p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                                <RadioGroupItem value="line" id="highlight-line" className="sr-only" />
+                                <span className="font-semibold">Line</span>
+                            </Label>
+                             <Label className="flex flex-col items-center justify-center gap-2 cursor-pointer rounded-md border p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                                <RadioGroupItem value="section" id="highlight-section" className="sr-only" />
+                                <span className="font-semibold">Section</span>
+                            </Label>
+                             <Label className="flex flex-col items-center justify-center gap-2 cursor-pointer rounded-md border p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
+                                <RadioGroupItem value="none" id="highlight-none" className="sr-only" />
+                                <span className="font-semibold">None</span>
+                            </Label>
+                        </RadioGroup>
+                    </div>
                 </div>
               </SheetContent>
             </Sheet>
@@ -335,7 +381,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
         <div className="flex flex-col gap-2">
             {sections.map((section, index) => (
                 <button
-                    key={`${section.name}-${index}`}
+                    key={section.uniqueKey}
                     onDoubleClick={() => handleSectionJump(section.time)}
                     className={cn(
                         "text-xs font-bold py-1 px-3 rounded-full shadow-lg transition-all duration-300",
@@ -365,7 +411,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
             
             if (isSectionHeader) {
                 return (
-                    <li key={index} ref={el => lineRefs.current[index] = el} className="h-4"></li>
+                    <li key={index} ref={el => lineRefs.current[index] = el} className="h-4" style={{ height: `calc(${fontSize}px * 0.5)` }}></li>
                 );
             }
 
@@ -373,6 +419,14 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 return null;
             }
             const isSectionBreak = !hasText && !hasChords && line.text.trim() === '';
+            
+            const lineSection = sections.slice().reverse().find(s => s.index <= index);
+            const isLineInCurrentSection = lineSection?.uniqueKey === currentSection?.uniqueKey;
+
+            const isHighlighted = highlightMode !== 'none' && (
+              (highlightMode === 'line' && index === currentLineIndex) ||
+              (highlightMode === 'section' && isLineInCurrentSection)
+            );
 
             return (
                 <li
@@ -381,7 +435,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 className={cn(
                     'rounded-md transition-all duration-300 text-center font-bold flex justify-center items-center',
                     isSectionBreak ? 'h-[1.2em]' : 'min-h-[2.5rem] py-2',
-                    index === currentLineIndex
+                    isHighlighted
                     ? 'text-foreground scale-105'
                     : 'text-muted-foreground/50'
                 )}
