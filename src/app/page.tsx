@@ -1,3 +1,4 @@
+
 import { getSongs, type Song } from '@/lib/songs';
 import SongCard from '@/components/SongCard';
 import Header from '@/components/Header';
@@ -32,7 +33,7 @@ function SongSection({ title, songs }: SongSectionProps) {
       >
         <CarouselContent className="-ml-4">
           {songs.map((song) => (
-            <CarouselItem key={song.id} className="basis-2/5 md:basis-1/3 pl-4">
+            <CarouselItem key={song.id} className="basis-1/3 md:basis-1/4 pl-4">
               <SongCard song={song} />
             </CarouselItem>
           ))}
