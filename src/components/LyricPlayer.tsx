@@ -391,68 +391,69 @@ export default function LyricPlayer({ song }: { song: Song }) {
   const renderSettingsContent = () => {
     return (
       <ScrollArea className="flex-grow">
-        <div className="p-4 space-y-6">
-            <div className="flex items-center justify-between">
+        <div className="p-4 space-y-4 pt-6">
+
+          <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                   <List className="h-5 w-5 text-muted-foreground" />
                   <Label htmlFor="show-section-nav" className="font-normal">Navigator</Label>
               </div>
               <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
-            </div>
+          </div>
 
-            <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                   <Guitar className="h-5 w-5 text-muted-foreground" />
                   <Label htmlFor="show-chords" className="font-normal">Chords</Label>
               </div>
               <Switch id="show-chords" checked={showChords} onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })} />
-            </div>
-            
-            <Separator />
+          </div>
+          
+          <Separator />
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-4">
-                <Palette className="h-5 w-5 text-muted-foreground" />
-                <Label className="font-normal">Color</Label>
-              </div>
-              <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex flex-wrap gap-2 pt-2">
-                {CHORD_COLOR_OPTIONS.map((option) => (
-                  <Label key={option.value} className="cursor-pointer">
-                    <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
-                    <div className={cn("w-6 h-6 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
-                  </Label>
+          <div className="space-y-2">
+            <div className="flex items-center gap-4">
+              <Palette className="h-5 w-5 text-muted-foreground" />
+              <Label className="font-normal">Color</Label>
+            </div>
+            <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex flex-wrap gap-2 pt-2">
+              {CHORD_COLOR_OPTIONS.map((option) => (
+                <Label key={option.value} className="cursor-pointer">
+                  <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
+                  <div className={cn("w-5 h-5 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
+                </Label>
+              ))}
+            </RadioGroup>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-4">
+                <Highlighter className="h-5 w-5 text-muted-foreground" />
+                <Label className="font-normal">Highlight</Label>
+            </div>
+            <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="grid grid-cols-3 gap-2 pt-2">
+                {HIGHLIGHT_OPTIONS.map(option => (
+                    <Label key={option.value} className={cn("flex h-8 items-center justify-center cursor-pointer rounded-md border p-1 text-xs font-normal hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-accent text-accent-foreground")}>
+                        <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
+                        {option.label}
+                    </Label>
                 ))}
-              </RadioGroup>
-            </div>
+            </RadioGroup>
+          </div>
 
-            <div className="space-y-2">
+          <Separator />
+          
+          <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                  <Highlighter className="h-5 w-5 text-muted-foreground" />
-                  <Label className="font-normal">Highlight</Label>
+                  <Clock className="h-5 w-5 text-muted-foreground" />
+                  <Label htmlFor="bpm-input" className="font-normal">BPM</Label>
               </div>
-              <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="grid grid-cols-3 gap-2 pt-2">
-                  {HIGHLIGHT_OPTIONS.map(option => (
-                      <Label key={option.value} className={cn("flex items-center justify-center cursor-pointer rounded-md border p-2 text-sm font-normal hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-accent text-accent-foreground")}>
-                          <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
-                          {option.label}
-                      </Label>
-                  ))}
-              </RadioGroup>
-            </div>
-
-            <Separator />
-            
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Clock className="h-5 w-5 text-muted-foreground" />
-                    <Label htmlFor="bpm-input" className="font-normal">BPM</Label>
-                </div>
-                <div className="flex items-center gap-2 max-w-[150px]">
-                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 1 })}><Minus className="h-4 w-4"/></Button>
-                    <Input id="bpm-input" type="number" value={bpm} onChange={handleBpmChange} min="40" max="240" className="text-center font-normal h-8" />
-                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 1 })}><Plus className="h-4 w-4"/></Button>
-                </div>
-            </div>
+              <div className="flex items-center gap-2 max-w-[150px]">
+                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 1 })}><Minus className="h-4 w-4"/></Button>
+                  <Input id="bpm-input" type="number" value={bpm} onChange={handleBpmChange} min="40" max="240" className="text-center font-normal h-8" />
+                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 1 })}><Plus className="h-4 w-4"/></Button>
+              </div>
+          </div>
         </div>
       </ScrollArea>
     );
@@ -493,6 +494,9 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 <Button variant="ghost" size="icon"><Settings /></Button>
               </SheetTrigger>
               <SheetContent side="bottom" className="p-0 flex flex-col max-h-[70vh] rounded-t-lg" showCloseButton={false}>
+                <SheetHeader>
+                  <SheetTitle className="sr-only">Settings</SheetTitle>
+                </SheetHeader>
                 {renderSettingsContent()}
               </SheetContent>
             </Sheet>
