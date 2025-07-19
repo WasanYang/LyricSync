@@ -204,8 +204,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
   useEffect(() => {
     // Set initial position on client-side to avoid hydration mismatch
-    const navigatorHeight = navigatorRef.current?.clientHeight ?? 300;
-    setPosition({ x: 16, y: window.innerHeight / 2 - navigatorHeight / 2 });
+    setPosition({ x: 16, y: 150 });
   }, []);
 
   const handleDragMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
