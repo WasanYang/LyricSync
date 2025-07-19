@@ -469,7 +469,10 @@ export default function LyricPlayer({ song }: { song: Song }) {
                   <Guitar className="h-5 w-5 text-muted-foreground" />
                   <Label className="font-normal cursor-pointer">Chords</Label>
                 </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                <div className="flex items-center gap-2">
+                  <span className={cn("text-sm text-muted-foreground", !showChords && "line-through")}>{showChords ? 'On' : 'Off'}</span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </div>
               </button>
               
               <div className="flex items-center justify-between py-2">
@@ -516,10 +519,9 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
             {/* Chords Settings Sub-View */}
             <div className="w-full flex-shrink-0 p-4 space-y-4">
-              <div className="flex items-center py-2">
-                <Button variant="ghost" size="sm" onClick={() => setSettingsView('main')} className="pl-0">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
+              <div className="flex items-center py-2 h-[36px]">
+                <Button variant="ghost" size="icon" onClick={() => setSettingsView('main')} className="-ml-2 h-8 w-8">
+                  <ArrowLeft className="h-4 w-4" />
                 </Button>
               </div>
               
@@ -571,8 +573,8 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
   return (
     <div className="flex flex-col bg-background h-screen overflow-hidden">
-      <header className="fixed top-0 left-0 right-0 z-10 p-4 bg-background shadow-lg shadow-black/5 dark:shadow-black/20 pointer-events-auto">
-        <div className="relative container mx-auto flex items-center justify-between h-10">
+      <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm shadow-lg shadow-black/5 dark:shadow-black/20 pointer-events-auto">
+        <div className="relative container mx-auto flex items-center justify-between h-14">
            <div className="flex-1 flex justify-start">
              <Button asChild variant="ghost" size="icon">
               <Link href="/">
@@ -692,7 +694,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
       </div>
 
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background shadow-lg shadow-black/5 dark:shadow-black/20 pointer-events-auto">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm shadow-lg shadow-black/5 dark:shadow-black/20 pointer-events-auto">
         <div className="max-w-4xl mx-auto space-y-4">
             <Slider
               value={[currentTime]}
@@ -701,11 +703,13 @@ export default function LyricPlayer({ song }: { song: Song }) {
               onValueChange={handleSeek}
             />
             <div className="relative flex justify-between items-center w-full gap-2 h-16">
-              <div className="flex-1"></div>
+              <div className="flex-1 flex justify-start">
+                  <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
+                      <Repeat />
+                  </Button>
+              </div>
               <div className="flex justify-center items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
-                    <Repeat />
-                </Button>
+                
                 <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
                     <SkipBack />
                 </Button>
@@ -715,7 +719,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
                     <SkipForward />
                 </Button>
-                 <div className="w-10"></div> {/* Placeholder for symmetry */}
+                 
               </div>
               <div className="flex-1 flex justify-end">
                  <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
@@ -729,7 +733,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                     onOpenAutoFocus={(e) => e.preventDefault()}
                     onCloseAutoFocus={() => setSettingsView('main')}
                   >
-                    <SheetHeader className="p-4 pb-2 text-left">
+                    <SheetHeader className="p-2 pb-0 text-left">
                         <SheetTitle className="sr-only">Settings</SheetTitle>
                     </SheetHeader>
                     {renderSettingsContent()}
