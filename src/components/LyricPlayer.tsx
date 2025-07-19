@@ -224,7 +224,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
-  const [currentSectionIndex, setCurrentSectionIndex] = useState<number>(-1);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isChordsSettingsOpen, setIsChordsSettingsOpen] = useState(false);
@@ -338,6 +337,23 @@ export default function LyricPlayer({ song }: { song: Song }) {
           uniqueKey: `${line.text.substring(1, line.text.length - 1)}-${index}`,
       }));
   }, [song.lyrics]);
+  
+    const { currentSection, currentSectionIndex } = useMemo(() => {
+        let sectionIdx = -1;
+        for (let i = sections.length - 1; i >= 0; i--) {
+            if (sections[i].time <= currentTime) {
+                sectionIdx = i;
+                break;
+            }
+        }
+        
+        if (sectionIdx !== -1) {
+            const section = sections[sectionIdx];
+            return { currentSection: { ...section, numericIndex: sectionIdx }, currentSectionIndex: sectionIdx };
+        }
+        return { currentSection: null, currentSectionIndex: -1 };
+    }, [currentTime, sections]);
+
 
   const handleSeek = (value: number[]) => {
     dispatch({ type: 'SET_TIME', payload: value[0] });
@@ -405,10 +421,18 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
   useEffect(() => {
     const newCurrentLineIndex = song.lyrics.findIndex(line => line.time > currentTime) - 1;
-    if (song.lyrics.length > 0 && currentTime > 0 && newCurrentLineIndex === -2) {
-      dispatch({ type: 'SET_LINE', payload: song.lyrics.length - 1 });
-    } else if (newCurrentLineIndex !== currentLineIndex) {
-      dispatch({ type: 'SET_LINE', payload: newCurrentLineIndex });
+    
+    let finalIndex;
+    if (song.lyrics.length > 0 && currentTime >= duration) {
+        finalIndex = song.lyrics.length - 1;
+    } else if (song.lyrics.length > 0 && currentTime > 0 && newCurrentLineIndex === -2 && currentTime < duration) {
+        finalIndex = song.lyrics.length - 1;
+    } else {
+        finalIndex = newCurrentLineIndex;
+    }
+    
+    if (finalIndex !== currentLineIndex) {
+      dispatch({ type: 'SET_LINE', payload: finalIndex });
     }
 
     if (currentTime >= duration) {
@@ -416,30 +440,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
     }
   }, [currentTime, song.lyrics, currentLineIndex, duration]);
 
-  const currentSection = useMemo(() => {
-    if (currentLineIndex < 0) return null;
-    
-    let sectionIdx = -1;
-    for (let i = sections.length - 1; i >= 0; i--) {
-        if (sections[i].index <= currentLineIndex) {
-            sectionIdx = i;
-            break;
-        }
-    }
-    
-    if (sectionIdx !== -1) {
-      const section = sections[sectionIdx];
-      return { ...section, numericIndex: sectionIdx };
-    }
-    return null;
-  }, [currentLineIndex, sections]);
-
-
-  useEffect(() => {
-    if(currentSection?.numericIndex !== currentSectionIndex) {
-      setCurrentSectionIndex(currentSection?.numericIndex ?? -1);
-    }
-  }, [currentSection, currentSectionIndex]);
 
   useEffect(() => {
     if (highlightMode !== 'none') {
@@ -629,7 +629,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                   </SheetTrigger>
                   <SheetContent 
                     side="bottom" 
-                    className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1 bg-background text-foreground dark:bg-background dark:text-foreground border-none" 
+                    className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1 bg-black text-white dark:bg-white dark:text-black border-none" 
                     showCloseButton={false}
                     onOpenAutoFocus={(e) => e.preventDefault()}
                   >
@@ -710,7 +710,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 <Sheet open={isChordsSettingsOpen} onOpenChange={setIsChordsSettingsOpen}>
                     <SheetContent
                         side="bottom" 
-                        className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1 bg-background text-foreground dark:bg-background dark:text-foreground border-none" 
+                        className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1 bg-black text-white dark:bg-white dark:text-black border-none" 
                         showCloseButton={false}
                         onOpenAutoFocus={(e) => e.preventDefault()}
                     >
@@ -768,7 +768,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 <Sheet open={isDisplaySettingsOpen} onOpenChange={setIsDisplaySettingsOpen}>
                     <SheetContent
                         side="bottom" 
-                        className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1 bg-background text-foreground dark:bg-background dark:text-foreground border-none" 
+                        className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1 bg-black text-white dark:bg-white dark:text-black border-none" 
                         showCloseButton={false}
                         onOpenAutoFocus={(e) => e.preventDefault()}
                     >
