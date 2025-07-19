@@ -239,7 +239,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
   };
 
   useEffect(() => {
-    setPosition({ x: 16, y: 150 });
+    setPosition({ x: 16, y: 80 });
   }, []);
 
   const handleDragMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
@@ -463,8 +463,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
                             <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
                         </div>
                         
-                        <Separator />
-
                         <button onClick={() => setSettingsView('chords')} className="w-full flex items-center justify-between py-2 text-left">
                             <div className="flex items-center gap-4">
                                 <Guitar className="h-5 w-5 text-muted-foreground" />
@@ -475,8 +473,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
                                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
                             </div>
                         </button>
-                        
-                        <Separator />
                         
                         <div className="flex items-center justify-between py-2">
                             <div className="flex items-center gap-4">
@@ -493,15 +489,13 @@ export default function LyricPlayer({ song }: { song: Song }) {
                             </RadioGroup>
                         </div>
                         
-                        <Separator />
-
                         <div className="space-y-2 py-2">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <Clock className="h-5 w-5 text-muted-foreground" />
                                     <Label htmlFor="bpm-input" className="font-normal">BPM</Label>
                                 </div>
-                                <span className="font-mono text-sm">{bpm}</span>
+                                <span className="font-mono text-sm font-normal">{bpm}</span>
                             </div>
                             <Slider
                                 value={[bpm]}
@@ -511,7 +505,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
                                 step={1}
                             />
                         </div>
-                         <Separator />
 
                         <div className="flex items-center justify-between py-2">
                             <div className="flex items-center gap-4">
