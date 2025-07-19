@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'r
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, SkipBack, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipForward } from 'lucide-react';
+import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
@@ -158,7 +158,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
   const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor } = state;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
-  const sectionIndicatorRef = useRef<HTMLDivElement>(null);
   const [currentSection, setCurrentSection] = useState<string>('');
   
   const duration = song.lyrics.length > 0 ? song.lyrics[song.lyrics.length - 1].time + 5 : 100;
@@ -232,11 +231,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
         }
         setCurrentSection(section);
     }
-
-    if (sectionIndicatorRef.current && activeLine) {
-        sectionIndicatorRef.current.style.top = `${activeLine.offsetTop + activeLine.offsetHeight / 2}px`;
-    }
-
   }, [currentLineIndex, song.lyrics]);
 
   return (
@@ -264,9 +258,10 @@ export default function LyricPlayer({ song }: { song: Song }) {
           </div>
           
           <div className="absolute right-0 flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16}><Minus className="h-4 w-4"/></Button>
-            <span className="font-mono text-xs w-6 text-center">{fontSize}</span>
-            <Button variant="ghost" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48}><Plus className="h-4 w-4"/></Button>
+            <div className="flex items-center">
+                <Button variant="ghost" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16} className="w-8 h-8"><Minus className="h-4 w-4"/></Button>
+                <Button variant="ghost" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48} className="w-8 h-8"><Plus className="h-4 w-4"/></Button>
+            </div>
             
             <Sheet>
               <SheetTrigger asChild>
@@ -327,8 +322,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
       <div className="w-full h-full relative overflow-y-auto">
         {currentSection && (
           <div
-            ref={sectionIndicatorRef}
-            className="absolute left-4 -translate-y-1/2 transition-all duration-300 ease-out z-20"
+            className="fixed left-4 top-1/2 -translate-y-1/2 transition-all duration-300 ease-out z-20 pointer-events-none"
           >
             <div className="bg-primary text-primary-foreground text-xs font-bold py-1 px-3 rounded-full shadow-lg">
               {currentSection}
@@ -363,12 +357,12 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 ref={el => lineRefs.current[index] = el}
                 className={cn(
                     'rounded-md transition-all duration-300 text-center font-bold flex justify-center items-center',
-                    isSectionBreak ? 'h-[1em]' : 'min-h-[2.5rem] py-2',
+                    isSectionBreak ? 'h-[1.2em]' : 'min-h-[2.5rem] py-2',
                     index === currentLineIndex
                     ? 'text-foreground scale-105'
                     : 'text-muted-foreground/50'
                 )}
-                style={{ minHeight: isSectionBreak ? `${fontSize * 1.2}px` : `auto`}}
+                style={{ minHeight: isSectionBreak ? 'auto' : `${fontSize * 1.5}px`}}
                 >
                 {!isSectionBreak && <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} />}
                 </li>
