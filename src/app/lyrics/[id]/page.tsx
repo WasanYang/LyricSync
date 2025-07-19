@@ -19,12 +19,7 @@ export default async function LyricPage({ params }: LyricPageProps) {
   }
 
   return (
-    <div className="relative w-full h-screen flex items-center justify-center bg-background">
-       <Button asChild variant="ghost" className="absolute top-4 left-4 z-10">
-        <Link href="/">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
-        </Link>
-      </Button>
+    <div className="relative w-full min-h-screen bg-background">
       <LyricPlayer song={song} />
     </div>
   );
