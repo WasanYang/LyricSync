@@ -164,12 +164,12 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
   const sections = useMemo(() => {
     return song.lyrics
-      .map((line, index) => ({...line, index}))
+      .map((line, index) => ({...line, originalIndex: index}))
       .filter(line => line.text.startsWith('(') && line.text.endsWith(')'))
       .map(line => ({
           name: line.text.substring(1, line.text.length - 1),
           time: line.time,
-          index: line.index
+          index: line.originalIndex
       }));
   }, [song.lyrics]);
 
@@ -334,9 +334,9 @@ export default function LyricPlayer({ song }: { song: Song }) {
       {/* Section Navigator */}
       <div className="fixed left-4 top-1/2 -translate-y-1/2 z-20 pointer-events-auto">
         <div className="flex flex-col gap-2">
-            {sections.map((section) => (
+            {sections.map((section, index) => (
                 <button
-                    key={section.name}
+                    key={`${section.name}-${index}`}
                     onDoubleClick={() => handleSectionJump(section.time)}
                     className={cn(
                         "text-xs font-bold py-1 px-3 rounded-full shadow-lg transition-all duration-300",
@@ -386,7 +386,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                     ? 'text-foreground scale-105'
                     : 'text-muted-foreground/50'
                 )}
-                style={{ minHeight: isSectionBreak ? 'auto' : `${fontSize * 1.5}px`}}
+                style={{ minHeight: isSectionBreak ? 'auto' : `calc(${fontSize}px * 1.5)`}}
                 >
                 {!isSectionBreak && <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} />}
                 </li>
