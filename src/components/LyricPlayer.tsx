@@ -158,6 +158,8 @@ export default function LyricPlayer({ song }: { song: Song }) {
   const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor } = state;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
+  const sectionIndicatorRef = useRef<HTMLDivElement>(null);
+  const [currentSection, setCurrentSection] = useState<string>('');
   
   const duration = song.lyrics.length > 0 ? song.lyrics[song.lyrics.length - 1].time + 5 : 100;
 
@@ -218,8 +220,24 @@ export default function LyricPlayer({ song }: { song: Song }) {
             behavior: 'smooth',
             block: 'center'
         });
+
+        // Update current section
+        let section = '';
+        for (let i = currentLineIndex; i >= 0; i--) {
+            const line = song.lyrics[i];
+            if (line.text.startsWith('(') && line.text.endsWith(')')) {
+                section = line.text.substring(1, line.text.length - 1);
+                break;
+            }
+        }
+        setCurrentSection(section);
     }
-  }, [currentLineIndex]);
+
+    if (sectionIndicatorRef.current && activeLine) {
+        sectionIndicatorRef.current.style.top = `${activeLine.offsetTop + activeLine.offsetHeight / 2}px`;
+    }
+
+  }, [currentLineIndex, song.lyrics]);
 
   return (
     <div className="flex flex-col bg-background h-screen">
@@ -304,38 +322,59 @@ export default function LyricPlayer({ song }: { song: Song }) {
       </header>
       
       {/* Lyrics Scroll Area */}
-      <ul
-        className="w-full px-4 pt-32 pb-56 overflow-y-auto" 
-        style={{ fontSize: `${fontSize}px` }}
-      >
-        {song.lyrics.map((line, index) => {
-          const parsedLine = parseLyrics(line.text);
-          const hasText = parsedLine.some(p => p.text.trim() !== '');
-          const hasChords = parsedLine.some(p => p.chord);
-          
-          if (!showChords && !hasText && hasChords) {
-            return null;
-          }
-          const isSectionBreak = !hasText && !hasChords && line.text.trim() === '';
+      <div className="w-full h-full relative overflow-y-auto">
+        {currentSection && (
+          <div
+            ref={sectionIndicatorRef}
+            className="absolute left-4 -translate-y-1/2 transition-all duration-300 ease-out z-20"
+          >
+            <div className="bg-primary text-primary-foreground text-xs font-bold py-1 px-3 rounded-full shadow-lg">
+              {currentSection}
+            </div>
+          </div>
+        )}
+        <ul
+            className="w-full px-12 pt-32 pb-56"
+            style={{ fontSize: `${fontSize}px` }}
+        >
+            {song.lyrics.map((line, index) => {
+            const parsedLine = parseLyrics(line.text);
+            const hasText = parsedLine.some(p => p.text.trim() !== '');
+            const hasChords = parsedLine.some(p => p.chord);
+            
+            const isSectionHeader = line.text.startsWith('(') && line.text.endsWith(')');
+            
+            if (isSectionHeader) {
+                return (
+                    <li key={index} ref={el => lineRefs.current[index] = el} className="h-4"></li>
+                );
+            }
 
-          return (
-            <li
-              key={index}
-              ref={el => lineRefs.current[index] = el}
-              className={cn(
-                'rounded-md transition-all duration-300 text-center font-bold flex justify-center items-center',
-                isSectionBreak ? 'h-[1em]' : 'min-h-[2.5rem] py-2',
-                index === currentLineIndex
-                  ? 'text-foreground scale-105'
-                  : 'text-muted-foreground/50'
-              )}
-              style={{ minHeight: isSectionBreak ? `${fontSize * 1.2}px` : `auto`}}
-            >
-               {!isSectionBreak && <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} />}
-            </li>
-          )
-        })}
-      </ul>
+            if (!showChords && !hasText && hasChords) {
+                return null;
+            }
+            const isSectionBreak = !hasText && !hasChords && line.text.trim() === '';
+
+            return (
+                <li
+                key={index}
+                ref={el => lineRefs.current[index] = el}
+                className={cn(
+                    'rounded-md transition-all duration-300 text-center font-bold flex justify-center items-center',
+                    isSectionBreak ? 'h-[1em]' : 'min-h-[2.5rem] py-2',
+                    index === currentLineIndex
+                    ? 'text-foreground scale-105'
+                    : 'text-muted-foreground/50'
+                )}
+                style={{ minHeight: isSectionBreak ? `${fontSize * 1.2}px` : `auto`}}
+                >
+                {!isSectionBreak && <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} />}
+                </li>
+            )
+            })}
+        </ul>
+      </div>
+
 
       {/* Player Controls - Fixed at bottom */}
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background/90 to-transparent">
