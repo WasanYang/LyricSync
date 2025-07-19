@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { saveSong } from '@/lib/db';
 import type { Song, LyricLine } from '@/lib/songs';
 import { ALL_NOTES } from '@/lib/chords';
+import Link from 'next/link';
 import {
   Select,
   SelectContent,
@@ -29,7 +30,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import LyricPlayer from './LyricPlayer';
-import { Eye, Save } from 'lucide-react';
+import { Eye, Save, XCircle } from 'lucide-react';
 
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
@@ -64,14 +65,12 @@ const parseLyricsFromString = (lyricString: string): LyricLine[] => {
 
 const TIME_SIGNATURES = ["4/4", "3/4", "2/4", "6/8", "2/2", "3/2", "5/4", "7/4", "12/8"];
 
-const lyricsPlaceholder = `0 | (Intro)
+const lyricsPlaceholder = `Example:
+0 | (Intro)
 2 | [Am] [G] [C] [F]
 10 | 
 11 | [Am]In the quiet of the [G]night,
-15 | A single [C]star begins to [F]glow,
-27 | 
-28 | (Chorus)
-29 | We're just [C]echoes in the [G]starlight,`;
+15 | A single [C]star begins to [F]glow,`;
 
 export default function SongCreator() {
   const { toast } = useToast();
@@ -229,20 +228,22 @@ export default function SongCreator() {
               <FormLabel>Lyrics & Chords</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder={lyricsPlaceholder}
+                  placeholder="Enter your lyrics here..."
                   className="flex-grow text-sm font-mono resize-none"
                   {...field}
                 />
               </FormControl>
                <p className="text-xs text-muted-foreground mt-2">
                 Format: <code className="bg-muted px-1 py-0.5 rounded">time_in_seconds | [Chord]Lyric text</code>. Each line is a new lyric.
+                <br />
+                Example: <code className="bg-muted px-1 py-0.5 rounded">15 | [C]This is a new [G]line.</code>
               </p>
               <FormMessage />
             </FormItem>
           )}
         />
         
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4 pt-4 border-t">
           <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
             <DialogTrigger asChild>
                 <Button type="button" variant="outline">
@@ -259,7 +260,13 @@ export default function SongCreator() {
             </DialogContent>
           </Dialog>
 
-          <Button type="submit" size="lg" className="flex-grow">
+          <Button type="button" variant="ghost" asChild>
+              <Link href="/">
+                <XCircle className="mr-2 h-4 w-4"/> Cancel
+              </Link>
+          </Button>
+
+          <Button type="submit" size="lg">
             <Save className="mr-2 h-4 w-4" /> Save Song
           </Button>
         </div>
