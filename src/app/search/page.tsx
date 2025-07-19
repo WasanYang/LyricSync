@@ -56,10 +56,6 @@ export default function SearchPage() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
         <div className="space-y-8">
-          <div>
-            <h1 className="text-4xl font-headline font-bold tracking-tight">Search Songs</h1>
-            <p className="text-muted-foreground mt-2">Find lyrics by title or artist.</p>
-          </div>
           <div className="relative">
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
@@ -76,7 +72,7 @@ export default function SearchPage() {
                 <SongListItem key={song.id} song={song} />
               ))}
             </div>
-            {filteredSongs.length === 0 && (
+            {filteredSongs.length === 0 && searchTerm && (
               <div className="text-center py-16">
                 <p className="text-muted-foreground">No songs found for &quot;{searchTerm}&quot;.</p>
               </div>
