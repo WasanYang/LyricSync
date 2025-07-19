@@ -1,33 +1,62 @@
-import { getSongs } from '@/lib/songs';
+import { getSongs, type Song } from '@/lib/songs';
 import SongCard from '@/components/SongCard';
-import Header from '@/components/Header';
-import BottomNavBar from '@/components/BottomNavBar';
-import { cn } from '@/lib/utils';
+import HomeHeader from '@/components/HomeHeader';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+
+
+// In a real app, these would come from an API
+const featuredSongs = getSongs().slice(0, 4);
+const recentReleases = getSongs().slice(2, 4).reverse();
+const popularHits = getSongs().slice(1, 4);
+
+interface SongSectionProps {
+  title: string;
+  songs: Song[];
+}
+
+function SongSection({ title, songs }: SongSectionProps) {
+  return (
+    <section>
+      <h2 className="text-2xl font-headline font-semibold mb-4">{title}</h2>
+      <Carousel
+        opts={{
+          align: "start",
+          loop: false,
+        }}
+        className="w-full"
+      >
+        <CarouselContent className="-ml-4">
+          {songs.map((song) => (
+            <CarouselItem key={song.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 pl-4">
+              <SongCard song={song} />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <div className="hidden md:block">
+            <CarouselPrevious className="absolute left-[-1.5rem] top-[calc(50%-2.5rem)]" />
+            <CarouselNext className="absolute right-[-1.5rem] top-[calc(50%-2.5rem)]" />
+        </div>
+      </Carousel>
+    </section>
+  )
+}
+
 
 export default function Home() {
-  const songs = getSongs();
-
   return (
     <div className="flex-grow flex flex-col">
-      <Header />
-      <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
-        <div className="space-y-8">
-          <div>
-            <h1 className="text-4xl font-headline font-bold tracking-tight">Welcome to Rhythmic Reads</h1>
-            <p className="text-muted-foreground mt-2">Your favorite lyrics, perfectly in sync.</p>
-          </div>
-          
-          <section>
-            <h2 className="text-2xl font-headline font-semibold mb-4">Featured Songs</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-8">
-              {songs.map((song) => (
-                <SongCard key={song.id} song={song} />
-              ))}
-            </div>
-          </section>
-        </div>
+      <HomeHeader />
+      <main className="flex-grow container mx-auto px-4 py-8 space-y-12">
+        <SongSection title="Featured Songs" songs={featuredSongs} />
+        <SongSection title="Recent Releases" songs={recentReleases} />
+        <SongSection title="Popular Hits" songs={popularHits} />
       </main>
-      <BottomNavBar />
     </div>
   );
 }
