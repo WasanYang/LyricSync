@@ -270,7 +270,8 @@ export default function SetlistPlayerPage() {
                 </div>
                 <div className="flex-1 flex justify-end items-center gap-0">
                 </div>
-            </header>
+            </div>
+        </header>
 
         <div className="flex-grow relative h-full pt-14">
             <LyricPlayer 
