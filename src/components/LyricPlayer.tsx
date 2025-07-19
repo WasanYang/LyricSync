@@ -73,7 +73,7 @@ const initialState: State = {
   isFinished: false,
   fontSize: 16,
   showChords: true,
-  chordColor: 'hsl(var(--chord-color))',
+  chordColor: 'hsl(var(--primary))',
   highlightMode: 'line',
   showSectionNavigator: true,
   bpm: 120,
@@ -191,7 +191,7 @@ const LyricLineDisplay = ({ line, showChords, chordColor, transpose }: { line: L
 };
 
 const CHORD_COLOR_OPTIONS = [
-    { name: 'Default', value: 'hsl(var(--chord-color))' },
+    { name: 'Default', value: 'hsl(var(--primary))' },
     { name: 'Blue', value: 'hsl(221.2 83.2% 53.3%)' },
     { name: 'Green', value: 'hsl(142.1 76.2% 36.3%)' },
     { name: 'Orange', value: 'hsl(24.6 95% 53.1%)' },
@@ -204,6 +204,7 @@ const HIGHLIGHT_OPTIONS: { value: HighlightMode, label: string }[] = [
 ];
 
 const DEFAULT_BPM_FOR_NORMAL_SPEED = 120;
+const ORIGINAL_SONG_KEY_NOTE = 'A'; // Assuming the original key for song ID 4 is A
 
 export default function LyricPlayer({ song }: { song: Song }) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
@@ -341,6 +342,23 @@ export default function LyricPlayer({ song }: { song: Song }) {
         dispatch({ type: 'SET_BPM', payload: value });
     }
   };
+  
+  const handleKeyChange = (selectedKey: string) => {
+    const originalKeyIndex = ALL_NOTES.indexOf(ORIGINAL_SONG_KEY_NOTE);
+    const selectedKeyIndex = ALL_NOTES.indexOf(selectedKey);
+    if (originalKeyIndex !== -1 && selectedKeyIndex !== -1) {
+      let diff = selectedKeyIndex - originalKeyIndex;
+      dispatch({ type: 'SET_TRANSPOSE', payload: diff });
+    }
+  };
+
+  const currentKey = useMemo(() => {
+    const originalKeyIndex = ALL_NOTES.indexOf(ORIGINAL_SONG_KEY_NOTE);
+    if (originalKeyIndex === -1) return ORIGINAL_SONG_KEY_NOTE;
+    const newKeyIndex = (originalKeyIndex + transpose + 12) % 12;
+    return ALL_NOTES[newKeyIndex];
+  }, [transpose]);
+
 
   useEffect(() => {
     if (isPlaying) {
@@ -413,10 +431,10 @@ export default function LyricPlayer({ song }: { song: Song }) {
   
   const renderSettingsContent = () => {
     return (
-      <ScrollArea className="flex-grow" style={{ maxHeight: 'calc(70vh)'}}>
-        <SheetTitle className="sr-only">Settings</SheetTitle>
-        <div className="p-4 space-y-6 pt-2 font-normal">
-          <div className="space-y-4">
+      <ScrollArea className="flex-grow" style={{ maxHeight: 'calc(80vh)'}}>
+         <SheetTitle className="sr-only">Settings</SheetTitle>
+        <div className="p-4 space-y-6 font-normal">
+            
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <List className="h-5 w-5 text-muted-foreground" />
@@ -432,61 +450,60 @@ export default function LyricPlayer({ song }: { song: Song }) {
               </div>
               <Switch id="show-chords" checked={showChords} onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })} />
             </div>
-          </div>
 
-          <Separator />
+            <Separator />
           
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                  <Music className="h-5 w-5 text-muted-foreground" />
-                  <Label className="font-normal">Key</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold w-12 text-center">{transpose > 0 ? `+${transpose}` : transpose}</span>
-                <Select value={String(transpose)} onValueChange={(v) => dispatch({ type: 'SET_TRANSPOSE', payload: parseInt(v) })}>
-                  <SelectTrigger className="w-[100px]">
-                    <SelectValue placeholder="Key" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ALL_NOTES.map((note, index) => (
-                      <SelectItem key={note} value={String(index - ALL_NOTES.indexOf('C'))}>{note}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'RESET_TRANSPOSE' })} disabled={transpose === 0}>
-                    <RotateCcw className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                <Palette className="h-5 w-5 text-muted-foreground" />
-                <Label className="font-normal">Color</Label>
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                      <Music className="h-5 w-5 text-muted-foreground" />
+                      <Label className="font-normal">Key</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold w-12 text-center text-sm">{transpose > 0 ? `+${transpose}` : transpose}</span>
+                    <Select value={currentKey} onValueChange={handleKeyChange}>
+                      <SelectTrigger className="w-[100px] h-8">
+                        <SelectValue placeholder="Key" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ALL_NOTES.map((note) => (
+                          <SelectItem key={note} value={note}>{note}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'RESET_TRANSPOSE' })} disabled={transpose === 0}>
+                        <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center justify-start">
-                  <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex flex-wrap gap-2 justify-start">
-                  {CHORD_COLOR_OPTIONS.map((option) => (
-                      <Label key={option.value} className="cursor-pointer">
-                      <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
-                      <div className={cn("w-5 h-5 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
-                      </Label>
-                  ))}
-                  </RadioGroup>
+                
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                    <Palette className="h-5 w-5 text-muted-foreground" />
+                    <Label className="font-normal">Color</Label>
+                    </div>
+                    <div className="flex items-center justify-start">
+                      <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex flex-wrap gap-2 justify-start">
+                      {CHORD_COLOR_OPTIONS.map((option) => (
+                          <Label key={option.value} className="cursor-pointer">
+                          <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
+                          <div className={cn("w-5 h-5 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
+                          </Label>
+                      ))}
+                      </RadioGroup>
+                    </div>
                 </div>
             </div>
-          </div>
 
-          <Separator />
+            <Separator />
 
-          <div className="space-y-4">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                       <Highlighter className="h-5 w-5 text-muted-foreground" />
                       <Label className="font-normal">Highlight</Label>
                   </div>
-                  <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="grid grid-cols-3 gap-2">
+                   <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="grid grid-cols-3 gap-2">
                       {HIGHLIGHT_OPTIONS.map(option => (
                           <Label key={option.value} className={cn("flex h-8 w-16 items-center justify-center cursor-pointer rounded-md border p-1 text-xs hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-accent text-accent-foreground")}>
                               <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
@@ -502,12 +519,12 @@ export default function LyricPlayer({ song }: { song: Song }) {
                       <Label htmlFor="bpm-input" className="font-normal">BPM</Label>
                   </div>
                   <div className="flex items-center gap-2">
-                      <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 1 })}><Minus className="h-4 w-4"/></Button>
-                      <Input id="bpm-input" type="number" value={bpm} onChange={handleBpmChange} min="40" max="240" className="text-center font-normal h-8 w-16" />
-                      <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 1 })}><Plus className="h-4 w-4"/></Button>
+                      <Button variant="outline" size="icon" className="h-8 w-8 shrink-0 rounded-full" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 1 })}><Minus className="h-4 w-4"/></Button>
+                      <Input id="bpm-input" type="number" value={bpm} onChange={handleBpmChange} min="40" max="240" className="text-center font-normal h-8 w-16 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
+                      <Button variant="outline" size="icon" className="h-8 w-8 shrink-0 rounded-full" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 1 })}><Plus className="h-4 w-4"/></Button>
                   </div>
               </div>
-          </div>
+            </div>
         </div>
       </ScrollArea>
     );
@@ -547,7 +564,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon"><Settings /></Button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="p-0 flex flex-col max-h-[70vh] rounded-t-lg" showCloseButton={false}>
+              <SheetContent side="bottom" className="p-0 flex flex-col max-h-[80vh] rounded-t-lg" showCloseButton={false}>
                 {renderSettingsContent()}
               </SheetContent>
             </Sheet>
