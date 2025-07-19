@@ -60,7 +60,7 @@ export default function SearchPage() {
             <Input
               type="search"
               placeholder="Search for songs or artists..."
-              className="pl-10 text-base bg-black text-white dark:bg-white dark:text-black focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+              className="pl-10 text-base bg-muted focus-visible:ring-0 focus-visible:ring-offset-0"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
