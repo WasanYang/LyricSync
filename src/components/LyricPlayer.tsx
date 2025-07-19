@@ -451,12 +451,11 @@ export default function LyricPlayer({ song }: { song: Song }) {
           <div
             className="flex transition-transform duration-300 ease-in-out"
             style={{
-              width: '200%',
-              transform: `translateX(${settingsView === 'main' ? '0%' : '-50%'})`,
+              transform: `translateX(${settingsView === 'main' ? '0%' : '-100%'})`,
             }}
           >
             {/* Main Settings View */}
-            <div className="w-1/2 flex-shrink-0 px-4 space-y-4">
+            <div className="w-full flex-shrink-0 px-4 space-y-4">
               <div className="flex items-center justify-between py-2">
                 <div className="flex items-center gap-4">
                   <List className="h-5 w-5 text-muted-foreground" />
@@ -519,7 +518,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
             </div>
 
             {/* Chords Settings Sub-View */}
-            <div className="w-1/2 flex-shrink-0 px-4 space-y-4">
+            <div className="w-full flex-shrink-0 px-4 space-y-4">
                 <div className="flex items-center justify-between py-2 border-b">
                 <Button variant="ghost" size="sm" onClick={() => setSettingsView('main')} className="pl-0">
                   <ArrowLeft className="h-4 w-4 mr-2" />
