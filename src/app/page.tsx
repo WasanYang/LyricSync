@@ -8,6 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import BottomNavBar from '@/components/BottomNavBar';
 
 
 // In a real app, these would come from an API
@@ -38,10 +39,6 @@ function SongSection({ title, songs }: SongSectionProps) {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <div className="hidden md:block">
-            <CarouselPrevious className="absolute left-[-1.5rem] top-[calc(50%-2.5rem)]" />
-            <CarouselNext className="absolute right-[-1.5rem] top-[calc(50%-2.5rem)]" />
-        </div>
       </Carousel>
     </section>
   )
@@ -52,11 +49,12 @@ export default function Home() {
   return (
     <div className="flex-grow flex flex-col">
       <HomeHeader />
-      <main className="flex-grow container mx-auto px-4 py-8 space-y-12">
+      <main className="flex-grow container mx-auto px-4 py-8 space-y-12 pb-24 md:pb-8">
         <SongSection title="Featured Songs" songs={featuredSongs} />
         <SongSection title="Recent Releases" songs={recentReleases} />
         <SongSection title="Popular Hits" songs={popularHits} />
       </main>
+      <BottomNavBar />
     </div>
   );
 }

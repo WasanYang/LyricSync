@@ -17,7 +17,7 @@ export default function BottomNavBar() {
 
   return (
     <footer className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
-      <nav className="flex items-center justify-around h-16">
+      <nav className="flex items-center justify-around h-16 max-w-[768px] mx-auto">
         {navLinks.map((link) => {
           const isActive = pathname === link.href;
           return (

@@ -23,7 +23,9 @@ export default function RootLayout({
         <meta name="theme-color" content="#9400D3" />
       </head>
       <body className={cn('font-body antialiased min-h-screen flex flex-col bg-background')}>
-        {children}
+        <div className="w-full max-w-[768px] mx-auto flex-grow flex flex-col">
+          {children}
+        </div>
         <Toaster />
       </body>
     </html>
