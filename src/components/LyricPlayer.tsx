@@ -162,6 +162,17 @@ export default function LyricPlayer({ song }: { song: Song }) {
   
   const duration = song.lyrics.length > 0 ? song.lyrics[song.lyrics.length - 1].time + 5 : 100;
 
+  const sections = useMemo(() => {
+    return song.lyrics
+      .map((line, index) => ({...line, index}))
+      .filter(line => line.text.startsWith('(') && line.text.endsWith(')'))
+      .map(line => ({
+          name: line.text.substring(1, line.text.length - 1),
+          time: line.time,
+          index: line.index
+      }));
+  }, [song.lyrics]);
+
   const handleSeek = (value: number[]) => {
     dispatch({ type: 'SET_TIME', payload: value[0] });
   };
@@ -181,6 +192,9 @@ export default function LyricPlayer({ song }: { song: Song }) {
     }
   };
 
+  const handleSectionJump = (time: number) => {
+    dispatch({ type: 'SET_TIME', payload: time });
+  };
 
   const changeFontSize = (amount: number) => {
     dispatch({ type: 'SET_FONT_SIZE', payload: fontSize + amount });
@@ -220,7 +234,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
             block: 'center'
         });
 
-        // Update current section
         let section = '';
         for (let i = currentLineIndex; i >= 0; i--) {
             const line = song.lyrics[i];
@@ -236,7 +249,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
   return (
     <div className="flex flex-col bg-background h-screen">
       {/* Header Info */}
-      <header className="fixed top-0 left-0 right-0 z-10 p-4 bg-background/80 backdrop-blur-sm pointer-events-auto">
+      <header className="fixed top-0 left-0 right-0 z-10 p-4 bg-gradient-to-b from-background via-background/80 to-transparent pointer-events-auto">
         <div className="relative container mx-auto flex items-center justify-center h-10">
            <div className="absolute left-0">
              <Button asChild variant="ghost" size="icon">
@@ -318,17 +331,28 @@ export default function LyricPlayer({ song }: { song: Song }) {
         </div>
       </header>
       
+      {/* Section Navigator */}
+      <div className="fixed left-4 top-1/2 -translate-y-1/2 z-20 pointer-events-auto">
+        <div className="flex flex-col gap-2">
+            {sections.map((section) => (
+                <button
+                    key={section.name}
+                    onDoubleClick={() => handleSectionJump(section.time)}
+                    className={cn(
+                        "text-xs font-bold py-1 px-3 rounded-full shadow-lg transition-all duration-300",
+                        section.name === currentSection 
+                            ? "bg-primary text-primary-foreground" 
+                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    )}
+                >
+                    {section.name}
+                </button>
+            ))}
+        </div>
+      </div>
+        
       {/* Lyrics Scroll Area */}
       <div className="w-full h-full relative overflow-y-auto">
-        {currentSection && (
-          <div
-            className="fixed left-4 top-1/2 -translate-y-1/2 transition-all duration-300 ease-out z-20 pointer-events-none"
-          >
-            <div className="bg-primary text-primary-foreground text-xs font-bold py-1 px-3 rounded-full shadow-lg">
-              {currentSection}
-            </div>
-          </div>
-        )}
         <ul
             className="w-full px-12 pt-32 pb-56"
             style={{ fontSize: `${fontSize}px` }}
@@ -373,7 +397,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
 
       {/* Player Controls - Fixed at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-auto">
         <div className="max-w-4xl mx-auto space-y-4">
             <Slider
               value={[currentTime]}
