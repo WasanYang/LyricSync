@@ -18,7 +18,6 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetClose,
 } from "@/components/ui/sheet"
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -238,9 +237,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerHeight > 0) {
         setPosition({ x: 16, y: 150 });
-      }
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -455,7 +452,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
   
   const renderSettingsContent = () => {
     return (
-        <ScrollArea className="flex-grow" style={{ maxHeight: 'calc(80vh - 4rem)' }}>
+        <ScrollArea className="flex-grow">
             <div className="p-4 pt-0 space-y-4 font-normal">
 
                 <div className="flex items-center justify-between py-2">
@@ -587,9 +584,9 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 <Button variant="ghost" size="icon"><Settings /></Button>
               </SheetTrigger>
               <SheetContent side="bottom" className="p-0 flex flex-col max-h-[80vh] rounded-t-lg" showCloseButton={false}>
-                <SheetHeader className="p-4 pb-2 text-left">
-                  <SheetTitle className="sr-only">Settings</SheetTitle>
-                </SheetHeader>
+                 <SheetHeader className="p-4 pb-2 text-left sr-only">
+                    <SheetTitle>Settings</SheetTitle>
+                 </SheetHeader>
                 {renderSettingsContent()}
               </SheetContent>
             </Sheet>
