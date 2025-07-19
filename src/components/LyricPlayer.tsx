@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useReducer, useCallback, useMemo } from 'react';
+import { useState, useEffect, useReducer, useCallback, useMemo, useRef } from 'react';
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
