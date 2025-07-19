@@ -9,6 +9,7 @@ import { saveSong } from '@/lib/db';
 import type { Song, LyricLine } from '@/lib/songs';
 import { ALL_NOTES } from '@/lib/chords';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Select,
   SelectContent,
@@ -29,6 +30,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import LyricPlayer from './LyricPlayer';
 import { Eye, Save, XCircle } from 'lucide-react';
 
@@ -63,6 +75,7 @@ const TIME_SIGNATURES = ["4/4", "3/4", "2/4", "6/8", "2/2", "3/2", "5/4", "7/4",
 
 export default function SongCreator() {
   const { toast } = useToast();
+  const router = useRouter();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const form = useForm<SongFormValues>({
@@ -76,6 +89,8 @@ export default function SongCreator() {
       timeSignature: '4/4'
     },
   });
+
+  const { formState: { isDirty } } = form;
 
   const formData = form.watch();
 
@@ -108,7 +123,8 @@ export default function SongCreator() {
         title: 'Song Saved',
         description: `"${newSong.title}" has been saved successfully.`,
       });
-      form.reset();
+      form.reset(); // This will also set isDirty to false
+      router.push('/'); // Navigate to home after successful save
     } catch (error) {
       toast({
         title: 'Error',
@@ -117,6 +133,10 @@ export default function SongCreator() {
       });
       console.error('Failed to save song:', error);
     }
+  }
+
+  const handleCancel = () => {
+      router.push('/');
   }
 
   return (
@@ -255,11 +275,34 @@ export default function SongCreator() {
 
           <div className="flex-shrink-0 sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t">
               <div className="w-full max-w-2xl mx-auto flex items-center justify-between gap-4">
-                  <Button type="button" variant="outline" asChild>
-                      <Link href="/">
-                        <XCircle className="mr-2 h-4 w-4"/> Cancel
-                      </Link>
-                  </Button>
+                  
+                  {isDirty ? (
+                       <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                             <Button type="button" variant="outline">
+                                <XCircle className="mr-2 h-4 w-4"/> Cancel
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Discard changes?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                You have unsaved changes. Are you sure you want to discard them and go back home?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Keep Editing</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleCancel} className="bg-destructive hover:bg-destructive/90">Discard</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                  ) : (
+                    <Button type="button" variant="outline" asChild>
+                        <Link href="/">
+                            <XCircle className="mr-2 h-4 w-4"/> Cancel
+                        </Link>
+                    </Button>
+                  )}
 
                   <Button type="submit" form="song-creator-form" size="lg">
                     <Save className="mr-2 h-4 w-4" /> Save Song
