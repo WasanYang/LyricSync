@@ -228,6 +228,7 @@ interface LyricPlayerProps {
     onPrevSong?: () => void;
     isNextDisabled?: boolean;
     isPrevDisabled?: boolean;
+    onClose?: () => void;
 }
 
 export default function LyricPlayer({ 
@@ -237,6 +238,7 @@ export default function LyricPlayer({
     onPrevSong,
     isNextDisabled,
     isPrevDisabled,
+    onClose
 }: LyricPlayerProps) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
   const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, fontWeight, showChords, chordColor, highlightMode, showSectionNavigator, bpm, transpose } = state;
@@ -507,22 +509,28 @@ export default function LyricPlayer({
         { !isSetlistMode && (
            <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm pointer-events-auto">
               <div className="relative container mx-auto flex items-center justify-between h-14">
-              <div className="flex-1 flex justify-start">
-                  <Button asChild variant="ghost" size="icon">
-                  <Link href="/">
-                      <ArrowLeft />
-                      <span className="sr-only">Back to Home</span>
-                  </Link>
-                  </Button>
-              </div>
+                <div className="flex-1 flex justify-start">
+                    {onClose ? (
+                      <Button variant="ghost" size="icon" onClick={onClose}>
+                          <ArrowLeft />
+                          <span className="sr-only">Close Preview</span>
+                      </Button>
+                    ) : (
+                      <Button asChild variant="ghost" size="icon">
+                        <Link href="/">
+                            <ArrowLeft />
+                            <span className="sr-only">Back to Home</span>
+                        </Link>
+                      </Button>
+                    )}
+                </div>
 
-              <div className="flex-1 text-center min-w-0">
-                  <h1 className="font-headline text-xl font-bold truncate">{song.title}</h1>
-              </div>
+                <div className="flex-1 text-center min-w-0">
+                    <h1 className="font-headline text-xl font-bold truncate">{song.title}</h1>
+                </div>
               
-              <div className="flex-1 flex justify-end items-center gap-0">
-                 
-              </div>
+                <div className="flex-1 flex justify-end items-center gap-0">
+                </div>
               </div>
           </header>
         )}
@@ -631,7 +639,7 @@ export default function LyricPlayer({
 
 
         <div className={cn("fixed bottom-0 left-0 right-0 pointer-events-none", isSetlistMode && "bottom-16")}>
-          <div className={cn("bg-background/50 backdrop-blur-sm pointer-events-auto p-2 pt-4 pb-4")}>
+          <div className={cn("bg-background/50 backdrop-blur-sm pointer-events-auto p-4")}>
               <div className="max-w-4xl mx-auto space-y-0 px-0">
                 <Slider
                   value={[currentTime]}

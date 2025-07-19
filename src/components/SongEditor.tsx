@@ -171,7 +171,7 @@ export default function SongEditor() {
                     <DialogTitle>Song Preview</DialogTitle>
                 </DialogHeader>
                 <div className="relative w-full h-full flex-grow bg-background">
-                    <LyricPlayer song={previewSong} />
+                    <LyricPlayer song={previewSong} onClose={() => setIsPreviewOpen(false)} />
                 </div>
             </DialogContent>
           </Dialog>
