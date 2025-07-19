@@ -635,36 +635,29 @@ export default function LyricPlayer({
               />
               <div className="relative flex justify-between items-center w-full gap-2 h-16 px-2">
                 <div className="flex-1 flex justify-start">
-                    {!isSetlistMode && (
-                        <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
-                            <Repeat />
-                        </Button>
-                    )}
+                    <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
+                        <Repeat />
+                    </Button>
                 </div>
                 <div className="flex justify-center items-center gap-2">
-                  {!isSetlistMode && (
                     <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
                         <SkipBack />
                     </Button>
-                  )}
                   <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-full w-16 h-16" onClick={() => dispatch({type: 'TOGGLE_PLAY'})} aria-label={isPlaying ? "Pause" : "Play"}>
                       {isFinished ? <Repeat className="w-8 h-8"/> : (isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>)}
                   </Button>
-                   {!isSetlistMode && (
                     <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
                         <SkipForward />
                     </Button>
-                   )}
                 </div>
                 <div className="flex-1 flex justify-end">
-                    {!isSetlistMode && (
                        <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                         <SheetTrigger asChild>
                           <Button variant="ghost" size="icon"><Settings /></Button>
                         </SheetTrigger>
                         <SheetContent 
                           side="bottom" 
-                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom" 
+                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm" 
                           showCloseButton={false}
                           onOpenAutoFocus={(e) => e.preventDefault()}
                         >
@@ -740,14 +733,13 @@ export default function LyricPlayer({
                           </ScrollArea>
                         </SheetContent>
                       </Sheet>
-                    )}
                   
 
                   {/* Chords Settings Sheet */}
                   <Sheet open={isChordsSettingsOpen} onOpenChange={setIsChordsSettingsOpen}>
                       <SheetContent
                           side="bottom" 
-                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom"
+                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm"
                           showCloseButton={false}
                           onOpenAutoFocus={(e) => e.preventDefault()}
                       >
@@ -805,7 +797,7 @@ export default function LyricPlayer({
                   <Sheet open={isDisplaySettingsOpen} onOpenChange={setIsDisplaySettingsOpen}>
                       <SheetContent
                           side="bottom" 
-                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom"
+                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm"
                           showCloseButton={false}
                           onOpenAutoFocus={(e) => e.preventDefault()}
                       >
@@ -850,3 +842,5 @@ export default function LyricPlayer({
     </div>
   );
 }
+
+    
