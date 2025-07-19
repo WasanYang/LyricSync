@@ -5,11 +5,13 @@ import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'r
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, SkipBack, SkipForward, Repeat, Settings, Minus, Plus, Guitar } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Repeat, Settings, Minus, Plus, Guitar, Palette } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+
 
 type State = {
   isPlaying: boolean;
@@ -18,6 +20,7 @@ type State = {
   isFinished: boolean;
   fontSize: number;
   showChords: boolean;
+  chordColor: string;
 };
 
 type Action =
@@ -28,7 +31,8 @@ type Action =
   | { type: 'SET_LINE'; payload: number }
   | { type: 'FINISH' }
   | { type: 'SET_FONT_SIZE'; payload: number }
-  | { type: 'TOGGLE_CHORDS' };
+  | { type: 'TOGGLE_CHORDS' }
+  | { type: 'SET_CHORD_COLOR'; payload: string };
 
 const initialState: State = {
   isPlaying: false,
@@ -37,6 +41,7 @@ const initialState: State = {
   isFinished: false,
   fontSize: 24,
   showChords: true,
+  chordColor: 'hsl(0 84.2% 60.2%)', // Default red
 };
 
 function lyricPlayerReducer(state: State, action: Action): State {
@@ -58,6 +63,8 @@ function lyricPlayerReducer(state: State, action: Action): State {
         return { ...state, fontSize: newSize };
     case 'TOGGLE_CHORDS':
         return { ...state, showChords: !state.showChords };
+    case 'SET_CHORD_COLOR':
+        return { ...state, chordColor: action.payload };
     default:
       return state;
   }
@@ -69,35 +76,34 @@ const parseLyrics = (line: string): Array<{ chord: string | null; text: string }
     let lastIndex = 0;
     let match;
 
-    // Handle initial text before the first chord
-    const firstChordMatch = line.match(/\[/);
-    if (firstChordMatch && firstChordMatch.index! > 0) {
-        parts.push({ chord: null, text: line.substring(0, firstChordMatch.index) });
-    } else if (!firstChordMatch) {
-      // No chords in the line at all
-      parts.push({ chord: null, text: line });
-      return parts;
-    }
-
     while ((match = regex.exec(line)) !== null) {
-        parts.push({ chord: match[1], text: match[2].trimEnd() });
-        lastIndex = match.index + match[0].length;
-        
-        // Add space if it was trimmed
-        if (match[2].length > match[2].trimEnd().length) {
-            parts.push({ chord: null, text: ' ' });
-        }
-    }
-    
-    // If there's remaining text after the last chord
-    if (lastIndex < line.length) {
-        parts.push({ chord: null, text: line.substring(lastIndex) });
+      // Text before the current chord
+      if (match.index > lastIndex) {
+        parts.push({ chord: null, text: line.substring(lastIndex, match.index) });
+      }
+      // The chord and the text immediately following it
+      parts.push({ chord: match[1], text: match[2] });
+      lastIndex = regex.lastIndex;
     }
 
-    return parts.length > 0 ? parts : [{ chord: null, text: line }];
+    // Remaining text after the last chord
+    if (lastIndex < line.length) {
+      parts.push({ chord: null, text: line.substring(lastIndex) });
+    }
+
+    // If the line was empty or only had chords, it might be empty.
+    // Ensure we have at least one part for rendering.
+    if (parts.length === 0 && line.trim().startsWith('[') && line.trim().endsWith(']')) {
+        const chordsOnly = line.replace(/\[/g, ' ').replace(/\]/g, ' ').trim();
+        parts.push({ chord: null, text: chordsOnly });
+    } else if (parts.length === 0) {
+        parts.push({chord: null, text: line});
+    }
+
+    return parts;
 };
 
-const LyricLineDisplay = ({ line, showChords }: { line: LyricLine; showChords: boolean }) => {
+const LyricLineDisplay = ({ line, showChords, chordColor }: { line: LyricLine; showChords: boolean; chordColor: string; }) => {
     const parsedLine = useMemo(() => parseLyrics(line.text), [line.text]);
     const hasChords = useMemo(() => parsedLine.some(p => p.chord), [parsedLine]);
 
@@ -105,24 +111,39 @@ const LyricLineDisplay = ({ line, showChords }: { line: LyricLine; showChords: b
         // Render text only, removing chord markers
         return <p>{line.text.replace(/\[[^\]]+\]/g, '')}</p>;
     }
-
+    
     return (
-        <div className="flex flex-wrap items-end">
-            {parsedLine.map((part, index) => (
-                <div key={index} className="flex flex-col">
-                   <span className="text-accent font-bold h-[1.2em] whitespace-pre">
-                        {part.chord || ''}
-                    </span>
-                    <span className="whitespace-pre">{part.text}</span>
-                </div>
-            ))}
+       <div className="flex flex-col items-start">
+        <div className="flex flex-wrap items-end" style={{lineHeight: '1.2em'}}>
+          {parsedLine.map((part, index) => (
+            part.chord && (
+              <span key={`chord-${index}`} className="font-bold -mb-1" style={{ color: chordColor }}>
+                {part.chord}
+              </span>
+            )
+          ))}
         </div>
+        <div className="flex flex-wrap items-end" style={{lineHeight: '1.5em'}}>
+           {parsedLine.map((part, index) => (
+             <span key={`text-${index}`} className="whitespace-pre">
+               {part.text}
+             </span>
+           ))}
+        </div>
+      </div>
     );
 };
 
+const CHORD_COLOR_OPTIONS = [
+    { name: 'Red', value: 'hsl(0 84.2% 60.2%)' },
+    { name: 'Blue', value: 'hsl(221.2 83.2% 53.3%)' },
+    { name: 'Green', value: 'hsl(142.1 76.2% 36.3%)' },
+    { name: 'Orange', value: 'hsl(24.6 95% 53.1%)' },
+];
+
 export default function LyricPlayer({ song }: { song: Song }) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
-  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords } = state;
+  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor } = state;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
   const scrollContainerRef = useRef<HTMLUListElement | null>(null);
@@ -188,9 +209,9 @@ export default function LyricPlayer({ song }: { song: Song }) {
   }, [currentLineIndex]);
 
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col bg-background">
       {/* Header Info */}
-      <div className="text-center pt-16 md:pt-4 mb-4 flex-shrink-0">
+      <div className="text-center pt-16 md:pt-4 flex-shrink-0">
         <h1 className="font-headline text-3xl font-bold">{song.title}</h1>
         <p className="font-body text-lg text-muted-foreground">{song.artist}</p>
       </div>
@@ -207,20 +228,20 @@ export default function LyricPlayer({ song }: { song: Song }) {
             ref={el => lineRefs.current[index] = el}
             className={cn(
               'rounded-md transition-all duration-300 text-center font-bold flex justify-center',
-              'min-h-[2.5em]', // Ensure consistent line height for lines with and without chords
+              'min-h-[3em]', // Ensure consistent line height for lines with and without chords
               'mb-3',
               index === currentLineIndex
                 ? 'text-foreground scale-105'
                 : 'text-muted-foreground/50'
             )}
           >
-             <LyricLineDisplay line={line} showChords={showChords} />
+             <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} />
           </li>
         ))}
       </ul>
 
       {/* Player Controls - Fixed at bottom */}
-      <div className="w-full max-w-4xl mx-auto space-y-4 p-4 flex-shrink-0">
+      <div className="w-full max-w-4xl mx-auto space-y-4 p-4 flex-shrink-0 bg-background">
         <Slider
           value={[currentTime]}
           max={duration}
@@ -257,7 +278,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                     Adjust lyric display.
                   </p>
                 </div>
-                <div className="grid gap-2">
+                <div className="grid gap-4">
                     <div className="flex items-center justify-between">
                         <Label htmlFor="show-chords" className="flex items-center gap-2">
                             <Guitar className="h-4 w-4" />
@@ -269,11 +290,32 @@ export default function LyricPlayer({ song }: { song: Song }) {
                             onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
                         />
                     </div>
-                    <Label htmlFor="font-size">Font Size</Label>
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16}><Minus className="h-4 w-4" /></Button>
-                        <span className="font-mono text-sm w-8 text-center">{fontSize}px</span>
-                        <Button variant="outline" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48}><Plus className="h-4 w-4" /></Button>
+                     <div className="grid gap-2">
+                        <Label className="flex items-center gap-2">
+                            <Palette className="h-4 w-4" />
+                            Chord Color
+                        </Label>
+                        <RadioGroup 
+                            defaultValue={chordColor}
+                            onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })}
+                            className="grid grid-cols-2 gap-2"
+                        >
+                            {CHORD_COLOR_OPTIONS.map((option) => (
+                                <Label key={option.name} className="flex items-center space-x-2 cursor-pointer text-sm">
+                                    <RadioGroupItem value={option.value} id={`color-${option.name}`} />
+                                    <span>{option.name}</span>
+                                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: option.value }}></div>
+                                </Label>
+                            ))}
+                        </RadioGroup>
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="font-size">Font Size</Label>
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16}><Minus className="h-4 w-4" /></Button>
+                            <span className="font-mono text-sm w-8 text-center">{fontSize}px</span>
+                            <Button variant="outline" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48}><Plus className="h-4 w-4" /></Button>
+                        </div>
                     </div>
                 </div>
               </div>
