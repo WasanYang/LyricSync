@@ -1,49 +1,50 @@
 // src/components/SongCard.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { formatDistanceToNow } from 'date-fns';
 import { type Song } from '@/lib/songs';
-import { saveSong, isSongSaved } from '@/lib/db';
-import { Download, Check } from 'lucide-react';
+import { saveSong, updateSong, isSongSaved } from '@/lib/db';
+import { Download, Check, ArrowUpCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Skeleton } from './ui/skeleton';
 
 interface SongCardProps {
   song: Song;
 }
 
 export default function SongCard({ song }: SongCardProps) {
-  const [saved, setSaved] = useState(false);
+  const [status, setStatus] = useState<{ saved: boolean; needsUpdate: boolean }>({ saved: false, needsUpdate: false });
   const [isChecking, setIsChecking] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    async function checkSavedStatus() {
-      try {
-        setIsChecking(true);
-        const savedStatus = await isSongSaved(song.id);
-        setSaved(savedStatus);
-      } catch (error) {
-        console.error("Failed to check song status", error);
-      } finally {
-        setIsChecking(false);
-      }
+  const checkSavedStatus = useCallback(async () => {
+    try {
+      setIsChecking(true);
+      const savedStatus = await isSongSaved(song.id);
+      setStatus(savedStatus);
+    } catch (error) {
+      console.error("Failed to check song status", error);
+    } finally {
+      setIsChecking(false);
     }
-    checkSavedStatus();
   }, [song.id]);
+
+  useEffect(() => {
+    checkSavedStatus();
+  }, [checkSavedStatus]);
 
   const handleDownload = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (saved || isChecking) return;
-
     try {
       await saveSong(song);
-      setSaved(true);
+      setStatus({ saved: true, needsUpdate: false });
       toast({
         title: "Song Saved",
         description: `"${song.title}" is now available offline.`,
@@ -56,6 +57,69 @@ export default function SongCard({ song }: SongCardProps) {
       });
       console.error("Failed to save song:", error);
     }
+  };
+
+  const handleUpdate = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await updateSong(song);
+      setStatus({ saved: true, needsUpdate: false });
+      toast({
+        title: "Song Updated",
+        description: `"${song.title}" has been updated to the latest version.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Could not update the song.",
+        variant: "destructive",
+      });
+      console.error("Failed to update song:", error);
+    }
+  };
+
+  const renderButton = () => {
+    if (isChecking) {
+      return <Skeleton className="h-8 w-8 rounded-full" />;
+    }
+    if (status.needsUpdate) {
+      return (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleUpdate}
+          className="h-8 w-8 text-blue-500 hover:text-blue-600"
+          aria-label="Update song"
+        >
+          <ArrowUpCircle />
+        </Button>
+      );
+    }
+    if (status.saved) {
+      return (
+        <Button
+          variant="ghost"
+          size="icon"
+          disabled
+          className="h-8 w-8 text-green-500 hover:text-green-500 cursor-not-allowed"
+          aria-label="Song is saved offline"
+        >
+          <Check />
+        </Button>
+      );
+    }
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleDownload}
+        className="h-8 w-8 text-muted-foreground hover:text-primary"
+        aria-label="Save song offline"
+      >
+        <Download />
+      </Button>
+    );
   };
 
   return (
@@ -76,21 +140,13 @@ export default function SongCard({ song }: SongCardProps) {
       <div className="flex justify-between items-start gap-2">
         <Link href={`/lyrics/${song.id}`} className="block flex-grow min-w-0">
           <p className="font-semibold font-headline truncate">{song.title}</p>
-          <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
+          <div className="text-sm text-muted-foreground truncate flex items-center gap-2">
+            <span>{song.artist}</span>
+            <span className="text-xs">•</span>
+            <span className="text-xs">{formatDistanceToNow(song.updatedAt, { addSuffix: true })}</span>
+          </div>
         </Link>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleDownload}
-          disabled={saved || isChecking}
-          className={cn(
-            "h-8 w-8 text-muted-foreground hover:text-primary",
-            saved && "text-green-500 hover:text-green-500 cursor-not-allowed"
-          )}
-          aria-label={saved ? 'Song is saved offline' : 'Save song offline'}
-        >
-          {saved ? <Check /> : <Download />}
-        </Button>
+        {renderButton()}
       </div>
     </div>
   );

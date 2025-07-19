@@ -8,6 +8,7 @@ export type Song = {
   title: string;
   artist: string;
   lyrics: LyricLine[];
+  updatedAt: Date;
 };
 
 const songs: Song[] = [
@@ -15,6 +16,7 @@ const songs: Song[] = [
     id: '1',
     title: 'Starlight Echoes',
     artist: 'Celestial Sound',
+    updatedAt: new Date('2023-10-26T10:00:00Z'),
     lyrics: [
       { time: 0, text: "(Intro)" },
       { time: 2, text: "[Am] [G] [C] [F]" },
@@ -54,6 +56,7 @@ const songs: Song[] = [
     id: '2',
     title: 'Ocean Drive',
     artist: 'The Midnight Bloom',
+    updatedAt: new Date('2024-01-15T14:30:00Z'),
     lyrics: [
       { time: 5, text: "Palm trees swaying in the breeze," },
       { time: 9, text: "Neon lights are calling me," },
@@ -77,6 +80,7 @@ const songs: Song[] = [
     id: '3',
     title: 'City of Dreams',
     artist: 'Urban Canvas',
+    updatedAt: new Date('2023-11-30T09:00:00Z'),
     lyrics: [
         { time: 4, text: "The rain is washing streets of chrome," },
         { time: 8, text: "Far away from what was home," },
@@ -100,6 +104,7 @@ const songs: Song[] = [
     id: '4',
     title: 'Holy Forever',
     artist: 'Chris Tomlin',
+    updatedAt: new Date('2024-02-20T11:00:00Z'),
     lyrics: [
       { time: 0, text: "(Intro)" },
       { time: 2, text: "[A] [F#m] [D] [E]" },

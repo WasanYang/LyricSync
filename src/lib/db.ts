@@ -51,15 +51,35 @@ export async function saveSong(song: Song): Promise<void> {
   await db.put(SONGS_STORE, song);
 }
 
+export async function updateSong(song: Song): Promise<void> {
+    const db = await getDb();
+    await db.put(SONGS_STORE, song);
+}
+
 export async function getSong(id: string): Promise<Song | undefined> {
   const db = await getDb();
   return db.get(SONGS_STORE, id);
 }
 
-export async function isSongSaved(id: string): Promise<boolean> {
+export async function isSongSaved(id: string): Promise<{ saved: boolean; needsUpdate: boolean }> {
   const db = await getDb();
-  const song = await db.get(SONGS_STORE, id);
-  return !!song;
+  const savedSong = await db.get(SONGS_STORE, id);
+  if (!savedSong) {
+    return { saved: false, needsUpdate: false };
+  }
+  
+  // This assumes getSongById from songs.ts gives the latest version
+  const { getSongById } = await import('./songs');
+  const latestSong = getSongById(id);
+
+  if (!latestSong) {
+     return { saved: true, needsUpdate: false }; // Should not happen if data is consistent
+  }
+
+  const savedDate = new Date(savedSong.updatedAt).getTime();
+  const latestDate = new Date(latestSong.updatedAt).getTime();
+
+  return { saved: true, needsUpdate: latestDate > savedDate };
 }
 
 export async function getAllSavedSongs(): Promise<Song[]> {
