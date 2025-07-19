@@ -224,7 +224,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
       {/* Lyrics Scroll Area */}
       <ul
         ref={scrollContainerRef}
-        className="flex-grow w-full overflow-y-auto scroll-smooth px-4"
+        className="flex-grow w-full overflow-y-auto scroll-smooth px-4 pb-40"
         style={{ fontSize: `${fontSize}px`, lineHeight: '1.5' }}
       >
         {song.lyrics.map((line, index) => {
@@ -256,7 +256,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
       </ul>
 
       {/* Player Controls - Fixed at bottom */}
-      <div className="w-full max-w-4xl mx-auto space-y-4 p-4 flex-shrink-0 bg-background">
+      <div className="absolute bottom-0 left-0 right-0 w-full max-w-4xl mx-auto space-y-4 p-4 flex-shrink-0 bg-background/80 backdrop-blur-sm border-t">
         <Slider
           value={[currentTime]}
           max={duration}
