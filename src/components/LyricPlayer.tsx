@@ -19,6 +19,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetClose,
 } from "@/components/ui/sheet"
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -398,168 +399,119 @@ export default function LyricPlayer({ song }: { song: Song }) {
   const handleOpenSettingsChange = (open: boolean) => {
     setIsSettingsOpen(open);
     if (!open) {
-      // Reset to main view when closing
       setTimeout(() => setSettingsView('main'), 300);
     }
   };
 
   const renderSettingsContent = () => {
-    const headerTitle = settingsView === 'display' ? 'Display Settings' : settingsView === 'playback' ? 'Playback Settings' : 'Player Settings';
+    const headerTitle = settingsView === 'display' ? 'Display' : settingsView === 'playback' ? 'Playback' : 'Settings';
+    const showBackButton = settingsView !== 'main';
 
     return (
-        <div className="relative overflow-x-hidden h-full">
-            <div className={cn("transition-transform duration-300", settingsView !== 'main' && "-translate-x-full")}>
-              {/* Main Settings View */}
-               <SheetHeader className={cn(settingsView !== 'main' && "invisible")}>
-                  <SheetTitle>Player Settings</SheetTitle>
-                  <SheetDescription>
-                    Customize your lyric viewing experience.
-                  </SheetDescription>
-                </SheetHeader>
-                <div className="py-6 pr-6 space-y-2">
-                    <button onClick={() => setSettingsView('display')} className="w-full flex items-center justify-between rounded-lg border p-3 text-left hover:bg-accent">
-                        <div className="flex items-start gap-3">
-                            <Highlighter className="h-5 w-5 mt-1 text-muted-foreground" />
-                            <div>
-                                <p className="font-semibold">Display</p>
-                                <p className="text-xs text-muted-foreground">Adjust visuals, chords, and highlighting.</p>
-                            </div>
-                        </div>
-                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                    </button>
-                    <button onClick={() => setSettingsView('playback')} className="w-full flex items-center justify-between rounded-lg border p-3 text-left hover:bg-accent">
-                        <div className="flex items-start gap-3">
-                            <Clock className="h-5 w-5 mt-1 text-muted-foreground" />
-                            <div>
-                                <p className="font-semibold">Playback</p>
-                                <p className="text-xs text-muted-foreground">Control playback speed.</p>
-                            </div>
-                        </div>
-                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                    </button>
-                </div>
-            </div>
-
-            <div className={cn("absolute top-0 left-0 w-full h-full transition-transform duration-300", settingsView === 'main' ? "translate-x-full" : "translate-x-0")}>
-               <SheetHeader>
-                  <div className="relative text-center">
-                    <Button variant="ghost" size="icon" className="absolute left-0 top-1/2 -translate-y-1/2" onClick={() => setSettingsView('main')}>
-                      <ArrowLeft className="h-5 w-5"/>
-                    </Button>
-                    <SheetTitle>{headerTitle}</SheetTitle>
+      <div className="relative overflow-x-hidden h-full flex flex-col">
+        <SheetHeader className="p-4 border-b">
+          <div className="relative flex items-center justify-center">
+            {showBackButton && (
+              <Button variant="ghost" size="icon" className="absolute left-0" onClick={() => setSettingsView('main')}>
+                <ArrowLeft className="h-5 w-5"/>
+              </Button>
+            )}
+            <SheetTitle>{headerTitle}</SheetTitle>
+            <SheetClose className="absolute right-0" />
+          </div>
+        </SheetHeader>
+        
+        <div className="flex-grow relative">
+          {/* Main View */}
+          <div className={cn("absolute inset-0 transition-transform duration-300", settingsView !== 'main' ? "-translate-x-full" : "translate-x-0")}>
+            <ScrollArea className="h-full">
+              <div className="p-4 space-y-2">
+                <button onClick={() => setSettingsView('display')} className="w-full flex items-center justify-between p-3 text-left hover:bg-accent rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <Highlighter className="h-5 w-5 text-muted-foreground" />
+                    <p className="font-semibold">Display</p>
                   </div>
-                </SheetHeader>
-                 {settingsView === 'display' && (
-                     <div className="space-y-6 py-6 pr-6">
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between rounded-lg border p-3">
-                             <div className="flex items-start gap-3">
-                                <List className="h-5 w-5 mt-1 text-muted-foreground" />
-                                <div>
-                                  <Label htmlFor="show-section-nav" className="font-semibold">Section Navigator</Label>
-                                  <p className="text-xs text-muted-foreground">Show the floating section shortcuts.</p>
-                                </div>
-                             </div>
-                             <Switch
-                                id="show-section-nav"
-                                checked={showSectionNavigator}
-                                onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
-                              />
-                          </div>
-                          <div className="flex items-center justify-between rounded-lg border p-3">
-                             <div className="flex items-start gap-3">
-                                <Guitar className="h-5 w-5 mt-1 text-muted-foreground" />
-                                <div>
-                                  <Label htmlFor="show-chords" className="font-semibold">Guitar Chords</Label>
-                                  <p className="text-xs text-muted-foreground">Display chords above the lyrics.</p>
-                                </div>
-                             </div>
-                             <Switch
-                                  id="show-chords"
-                                  checked={showChords}
-                                  onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
-                              />
-                          </div>
-                           <div className="rounded-lg border p-3 space-y-3">
-                             <div className="flex items-start gap-3">
-                                <Palette className="h-5 w-5 mt-1 text-muted-foreground" />
-                                <div>
-                                  <Label className="font-semibold">Chord Color</Label>
-                                  <p className="text-xs text-muted-foreground">Choose a color for the chords.</p>
-                                </div>
-                             </div>
-                             <RadioGroup 
-                                value={chordColor}
-                                onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })}
-                                className="flex space-x-2"
-                              >
-                                {CHORD_COLOR_OPTIONS.map((option) => (
-                                  <Label key={option.value} className="cursor-pointer">
-                                    <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
-                                    <div 
-                                      className={cn("w-8 h-8 rounded-full border-2", chordColor === option.value ? 'border-primary' : 'border-transparent')}
-                                      style={{ backgroundColor: option.value }}
-                                      title={option.name}
-                                    />
-                                  </Label>
-                                ))}
-                              </RadioGroup>
-                          </div>
-                          <div className="rounded-lg border p-3 space-y-3">
-                             <div className="flex items-start gap-3">
-                                <Highlighter className="h-5 w-5 mt-1 text-muted-foreground" />
-                                <div>
-                                  <Label className="font-semibold">Highlight Style</Label>
-                                  <p className="text-xs text-muted-foreground">How to highlight active lyrics.</p>
-                                </div>
-                             </div>
-                             <RadioGroup 
-                                value={highlightMode}
-                                onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })}
-                                className="grid grid-cols-3 gap-2"
-                              >
-                                  {HIGHLIGHT_OPTIONS.map(option => (
-                                      <Label key={option.value} className={cn(
-                                        "flex items-center justify-center cursor-pointer rounded-md border p-4 text-sm font-semibold hover:bg-accent hover:text-accent-foreground",
-                                        highlightMode === option.value && "border-primary ring-2 ring-primary"
-                                      )}>
-                                          <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
-                                          {option.label}
-                                      </Label>
-                                  ))}
-                              </RadioGroup>
-                          </div>
-                        </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </button>
+                <button onClick={() => setSettingsView('playback')} className="w-full flex items-center justify-between p-3 text-left hover:bg-accent rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <Clock className="h-5 w-5 text-muted-foreground" />
+                    <p className="font-semibold">Playback</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </button>
+              </div>
+            </ScrollArea>
+          </div>
+          
+          {/* Sub Views */}
+          <div className={cn("absolute inset-0 transition-transform duration-300", settingsView === 'main' ? "translate-x-full" : "translate-x-0")}>
+            <ScrollArea className="h-full">
+              {settingsView === 'display' && (
+                <div className="p-4 space-y-4">
+                    <div className="flex items-center justify-between p-3">
+                       <div className="flex items-center gap-4">
+                          <List className="h-5 w-5 text-muted-foreground" />
+                          <Label htmlFor="show-section-nav" className="font-semibold">Section Navigator</Label>
+                       </div>
+                       <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
                     </div>
-                )}
-                {settingsView === 'playback' && (
-                     <div className="py-6 pr-6">
-                        <div className="rounded-lg border p-3">
-                          <div className="flex items-start gap-3">
-                              <Clock className="h-5 w-5 mt-1 text-muted-foreground" />
-                              <div>
-                                <Label htmlFor="bpm-input" className="font-semibold">Playback BPM</Label>
-                                <p className="text-xs text-muted-foreground">Adjust the playback speed (beats per minute).</p>
-                              </div>
-                           </div>
-                           <div className="flex items-center gap-2 mt-3">
-                               <Button variant="outline" size="icon" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 1 })}><Minus className="h-4 w-4"/></Button>
-                               <Input
-                                  id="bpm-input"
-                                  type="number"
-                                  value={bpm}
-                                  onChange={handleBpmChange}
-                                  min="40"
-                                  max="240"
-                                  className="text-center"
-                              />
-                              <Button variant="outline" size="icon" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 1 })}><Plus className="h-4 w-4"/></Button>
-                           </div>
-                        </div>
-                     </div>
-                )}
-            </div>
+                    <div className="flex items-center justify-between p-3">
+                       <div className="flex items-center gap-4">
+                          <Guitar className="h-5 w-5 text-muted-foreground" />
+                          <Label htmlFor="show-chords" className="font-semibold">Guitar Chords</Label>
+                       </div>
+                       <Switch id="show-chords" checked={showChords} onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })} />
+                    </div>
+                    <div className="p-3 space-y-3">
+                      <div className="flex items-center gap-4">
+                        <Palette className="h-5 w-5 text-muted-foreground" />
+                        <Label className="font-semibold">Chord Color</Label>
+                      </div>
+                      <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex space-x-2 justify-center pt-2">
+                        {CHORD_COLOR_OPTIONS.map((option) => (
+                          <Label key={option.value} className="cursor-pointer">
+                            <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
+                            <div className={cn("w-8 h-8 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
+                          </Label>
+                        ))}
+                      </RadioGroup>
+                    </div>
+                     <div className="p-3 space-y-3">
+                       <div className="flex items-center gap-4">
+                          <Highlighter className="h-5 w-5 text-muted-foreground" />
+                          <Label className="font-semibold">Highlight Style</Label>
+                       </div>
+                       <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="grid grid-cols-3 gap-2 pt-2">
+                          {HIGHLIGHT_OPTIONS.map(option => (
+                              <Label key={option.value} className={cn("flex items-center justify-center cursor-pointer rounded-md border p-4 text-sm font-semibold hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary ring-2 ring-primary")}>
+                                  <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
+                                  {option.label}
+                              </Label>
+                          ))}
+                       </RadioGroup>
+                    </div>
+                </div>
+              )}
+              {settingsView === 'playback' && (
+                <div className="p-4">
+                    <div className="p-3 space-y-3">
+                      <div className="flex items-center gap-4">
+                          <Clock className="h-5 w-5 text-muted-foreground" />
+                          <Label htmlFor="bpm-input" className="font-semibold">Playback BPM</Label>
+                       </div>
+                       <div className="flex items-center gap-2 pt-2">
+                           <Button variant="outline" size="icon" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 1 })}><Minus className="h-4 w-4"/></Button>
+                           <Input id="bpm-input" type="number" value={bpm} onChange={handleBpmChange} min="40" max="240" className="text-center" />
+                          <Button variant="outline" size="icon" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 1 })}><Plus className="h-4 w-4"/></Button>
+                       </div>
+                    </div>
+                </div>
+              )}
+            </ScrollArea>
+          </div>
         </div>
+      </div>
     );
   }
 
@@ -597,10 +549,8 @@ export default function LyricPlayer({ song }: { song: Song }) {
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon"><Settings /></Button>
               </SheetTrigger>
-              <SheetContent className="w-[380px] sm:w-[540px] flex flex-col p-0">
-                  <ScrollArea className="flex-grow p-6">
-                    {renderSettingsContent()}
-                  </ScrollArea>
+              <SheetContent side="bottom" className="p-0 flex flex-col max-h-[80vh] rounded-t-lg">
+                {renderSettingsContent()}
               </SheetContent>
             </Sheet>
 
