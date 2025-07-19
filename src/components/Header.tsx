@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Music, Menu, LogIn, Home, Search, PlusSquare, Sun, Moon } from 'lucide-react';
+import { Music, Menu, LogIn, Home, Search, PlusSquare, Sun, Moon, ListMusic, Library } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,6 +23,11 @@ const navLinks = [
   { href: '/search', label: 'Search', icon: Search },
   { href: '/create', label: 'Creator', icon: PlusSquare },
 ];
+
+const mobileOnlyLinks = [
+    { href: '/setlists', label: 'My Lists', icon: ListMusic },
+    { href: '/downloaded', label: 'Downloaded', icon: Library },
+]
 
 export default function Header() {
   const pathname = usePathname();
@@ -110,6 +115,23 @@ export default function Header() {
                   <div className="p-4 space-y-4">
                      <nav className="flex flex-col space-y-2">
                         {navLinks.map((link) => (
+                          <SheetClose asChild key={link.href}>
+                             <Link
+                              href={link.href}
+                              className={cn(
+                                'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:bg-accent',
+                                pathname === link.href ? 'bg-accent text-primary' : 'text-muted-foreground'
+                              )}
+                            >
+                              <link.icon className="h-5 w-5" />
+                              <span>{link.label}</span>
+                            </Link>
+                          </SheetClose>
+                        ))}
+                      </nav>
+                      <Separator />
+                       <nav className="flex flex-col space-y-2">
+                        {mobileOnlyLinks.map((link) => (
                           <SheetClose asChild key={link.href}>
                              <Link
                               href={link.href}

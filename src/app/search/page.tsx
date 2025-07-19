@@ -10,6 +10,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import SongStatusButton from '@/components/SongStatusButton';
+import Header from '@/components/Header';
 
 function SongListItem({ song }: { song: Song }) {
   return (
@@ -56,6 +57,7 @@ export default function SearchPage() {
 
   return (
     <div className="flex-grow flex flex-col">
+       <Header />
       <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
         <div className="space-y-8">
           <h1 className="text-4xl font-headline font-bold tracking-tight">Search</h1>
