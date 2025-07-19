@@ -627,7 +627,7 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
           "fixed bottom-0 left-0 right-0 pointer-events-none",
           isSetlistMode && "bottom-16" // Pushed up by SetlistControls
           )}>
-        <div className="bg-background/80 backdrop-blur-sm pt-4 pointer-events-auto">
+        <div className="bg-background/60 backdrop-blur-sm pt-4 pointer-events-auto">
             <div className="max-w-4xl mx-auto space-y-4 px-4">
               <Slider
                 value={[currentTime]}
@@ -688,13 +688,15 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
                                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                                 </div>
                             </button>
-                            <div className="flex items-center justify-between py-2">
-                                <div className="flex items-center gap-4">
-                                    <List className="h-5 w-5 text-muted-foreground" />
-                                    <Label htmlFor="show-section-nav">Navigator</Label>
+                            {!isSetlistMode && (
+                                <div className="flex items-center justify-between py-2">
+                                    <div className="flex items-center gap-4">
+                                        <List className="h-5 w-5 text-muted-foreground" />
+                                        <Label htmlFor="show-section-nav">Navigator</Label>
+                                    </div>
+                                    <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
                                 </div>
-                                <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
-                            </div>
+                            )}
                             <div className="flex items-center justify-between py-2">
                                 <div className="flex items-center gap-4">
                                     <Highlighter className="h-5 w-5 text-muted-foreground" />
