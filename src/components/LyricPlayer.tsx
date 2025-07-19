@@ -15,13 +15,11 @@ import { Input } from '@/components/ui/input';
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet"
-import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 
@@ -206,7 +204,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
   useEffect(() => {
     // Set initial position on client-side to avoid hydration mismatch
-    setPosition({ x: 16, y: window.innerHeight / 2 - 100 });
+    setPosition({ x: 16, y: window.innerHeight / 2 - 150 });
   }, []);
 
   const handleDragMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
@@ -422,7 +420,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
         </SheetHeader>
         
         <div className="flex-grow relative">
-          {/* Main View */}
           <div className={cn("absolute inset-0 transition-transform duration-300", settingsView !== 'main' ? "-translate-x-full" : "translate-x-0")}>
             <ScrollArea className="h-full">
               <div className="p-4 space-y-2">
@@ -444,7 +441,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
             </ScrollArea>
           </div>
           
-          {/* Sub Views */}
           <div className={cn("absolute inset-0 transition-transform duration-300", settingsView === 'main' ? "translate-x-full" : "translate-x-0")}>
             <ScrollArea className="h-full">
               {settingsView === 'display' && (
