@@ -34,7 +34,7 @@ function SongSection({ title, songs }: SongSectionProps) {
       >
         <CarouselContent className="-ml-4">
           {songs.map((song) => (
-            <CarouselItem key={song.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 pl-4">
+            <CarouselItem key={song.id} className="basis-2/5 sm:basis-1/3 pl-4">
               <SongCard song={song} />
             </CarouselItem>
           ))}
