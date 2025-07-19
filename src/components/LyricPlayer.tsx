@@ -448,13 +448,13 @@ export default function LyricPlayer({ song }: { song: Song }) {
   const renderSettingsContent = () => {
     return (
         <ScrollArea className="flex-grow">
-            <div className="relative overflow-x-hidden">
+            <div className="relative overflow-x-hidden px-4">
                 <div 
                     className="flex transition-transform duration-300 ease-in-out w-[200%]"
                     style={{ transform: `translateX(${settingsView === 'main' ? '0%' : '-50%'})` }}
                 >
                     {/* Main Settings View */}
-                    <div className="w-1/2 p-4 pt-0 space-y-4">
+                    <div className="w-1/2 pr-4 space-y-4">
                         <div className="flex items-center justify-between py-2">
                             <div className="flex items-center gap-4">
                                 <List className="h-5 w-5 text-muted-foreground" />
@@ -516,7 +516,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                     </div>
 
                     {/* Chords Settings Sub-View */}
-                    <div className="w-1/2 p-4 pt-0 space-y-4">
+                    <div className="w-1/2 pl-4 space-y-4">
                          <div className="flex items-center justify-between py-2 border-b">
                             <Button variant="ghost" size="sm" onClick={() => setSettingsView('main')} className="pl-0">
                                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -595,25 +595,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 <Button variant="ghost" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16} className="w-8 h-8"><Minus className="h-4 w-4"/></Button>
                 <Button variant="ghost" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48} className="w-8 h-8"><Plus className="h-4 w-4"/></Button>
             </div>
-            
-            <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon"><Settings /></Button>
-              </SheetTrigger>
-              <SheetContent 
-                side="bottom" 
-                className="p-0 flex flex-col max-h-[80vh] rounded-t-lg" 
-                showCloseButton={false}
-                onOpenAutoFocus={(e) => e.preventDefault()} // Prevents focus on first element
-                onCloseAutoFocus={() => setSettingsView('main')}
-              >
-                <SheetHeader className="p-4 pb-2 text-left sr-only">
-                    <SheetTitle>Settings</SheetTitle>
-                </SheetHeader>
-                {renderSettingsContent()}
-              </SheetContent>
-            </Sheet>
-
           </div>
         </div>
       </header>
@@ -736,7 +717,23 @@ export default function LyricPlayer({ song }: { song: Song }) {
               <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
                   <SkipForward />
               </Button>
-               <div className="w-10 h-10"></div>
+               <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="absolute right-0 bottom-0"><Settings /></Button>
+                </SheetTrigger>
+                <SheetContent 
+                  side="bottom" 
+                  className="p-0 flex flex-col max-h-[80vh] rounded-t-lg" 
+                  showCloseButton={false}
+                  onOpenAutoFocus={(e) => e.preventDefault()}
+                  onCloseAutoFocus={() => setSettingsView('main')}
+                >
+                  <SheetHeader className="p-4 pb-2 text-left">
+                      <SheetTitle className="sr-only">Settings</SheetTitle>
+                  </SheetHeader>
+                  {renderSettingsContent()}
+                </SheetContent>
+              </Sheet>
             </div>
         </div>
       </div>
