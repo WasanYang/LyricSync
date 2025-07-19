@@ -25,13 +25,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#9400D3" />
       </head>
       <body className={cn('font-body antialiased min-h-screen flex flex-col')}>
-        <div className="flex-grow flex flex-col">
-          <Header />
-          <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
-            {children}
-          </main>
-        </div>
-        <BottomNavBar />
+        {children}
         <Toaster />
       </body>
     </html>
