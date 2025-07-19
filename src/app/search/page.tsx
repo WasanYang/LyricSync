@@ -1,12 +1,40 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
 import { getSongs, type Song } from '@/lib/songs';
 import { Input } from '@/components/ui/input';
-import SongCard from '@/components/SongCard';
 import { SearchIcon } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
+import Image from 'next/image';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
+
+function SongListItem({ song }: { song: Song }) {
+  return (
+    <Link href={`/lyrics/${song.id}`} className="block w-full">
+      <div className={cn(
+        "flex items-center space-x-4 p-2 rounded-lg transition-colors",
+        "hover:bg-accent hover:text-accent-foreground"
+      )}>
+        <Image
+          src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
+          alt={`${song.title} album art`}
+          width={40}
+          height={40}
+          className="rounded-md aspect-square object-cover"
+          data-ai-hint="album cover"
+        />
+        <div className="min-w-0">
+          <p className="font-semibold font-headline truncate">{song.title}</p>
+          <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -43,9 +71,9 @@ export default function SearchPage() {
             />
           </div>
           <section>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-8">
+            <div className="flex flex-col gap-2">
               {filteredSongs.map((song) => (
-                <SongCard key={song.id} song={song} />
+                <SongListItem key={song.id} song={song} />
               ))}
             </div>
             {filteredSongs.length === 0 && (
