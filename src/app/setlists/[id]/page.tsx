@@ -14,7 +14,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { Music } from 'lucide-react';
+import { Music, Move, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 function LoadingSkeleton() {
     return (
@@ -79,6 +80,116 @@ function QueueItem({ song, index, isActive, isPlayed, onSelect }: { song: Song, 
     )
 }
 
+function FloatingQueue({
+  setlist,
+  songs,
+  currentIndex,
+  handleSelectSong,
+  isVisible,
+  onClose
+}: {
+  setlist: Setlist;
+  songs: Song[];
+  currentIndex: number;
+  handleSelectSong: (index: number) => void;
+  isVisible: boolean;
+  onClose: () => void;
+}) {
+  const queueRef = React.useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    // Center the panel initially on desktop
+    const screenWidth = window.innerWidth;
+    const panelWidth = 350; // Corresponds to w-[350px]
+    setPosition({ x: screenWidth - panelWidth - 20, y: 60 });
+  }, []);
+
+  const handleDragMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    if (queueRef.current) {
+      setIsDragging(true);
+      const rect = queueRef.current.getBoundingClientRect();
+      setDragOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+      e.preventDefault();
+    }
+  }, []);
+
+  const handleDragMouseMove = useCallback((e: MouseEvent) => {
+    if (isDragging) {
+      setPosition({ x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y });
+    }
+  }, [isDragging, dragOffset]);
+
+  const handleDragMouseUp = useCallback(() => setIsDragging(false), []);
+  
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleDragMouseMove);
+      window.addEventListener('mouseup', handleDragMouseUp);
+    } else {
+      window.removeEventListener('mousemove', handleDragMouseMove);
+      window.removeEventListener('mouseup', handleDragMouseUp);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleDragMouseMove);
+      window.removeEventListener('mouseup', handleDragMouseUp);
+    };
+  }, [isDragging, handleDragMouseMove, handleDragMouseUp]);
+
+  if (!isVisible) return null;
+
+  return (
+    <div
+      ref={queueRef}
+      className="fixed z-20 hidden md:flex flex-col w-[350px] h-[70vh] max-h-[600px] rounded-xl border bg-background/80 backdrop-blur-sm shadow-2xl"
+      style={{ top: `${position.y}px`, left: `${position.x}px` }}
+    >
+      <div className="p-4 border-b flex items-center justify-between">
+        <div>
+            <h2 className="text-lg font-headline font-semibold truncate">Up Next</h2>
+            <p className="text-sm text-muted-foreground">From: {setlist.title}</p>
+        </div>
+        <div className="flex items-center gap-1">
+            <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 cursor-grab active:cursor-grabbing text-muted-foreground"
+                onMouseDown={handleDragMouseDown}
+                aria-label="Drag queue"
+            >
+                <Move className="h-4 w-4" />
+            </Button>
+            <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground"
+                onClick={onClose}
+                aria-label="Close queue"
+            >
+                <X className="h-4 w-4" />
+            </Button>
+        </div>
+      </div>
+      <ScrollArea className="flex-grow">
+           <div className="p-2 space-y-1">
+              {songs.map((song, index) => (
+                  <QueueItem 
+                      key={`${song.id}-${index}`}
+                      song={song}
+                      index={index}
+                      isActive={index === currentIndex}
+                      isPlayed={index < currentIndex}
+                      onSelect={handleSelectSong}
+                  />
+              ))}
+          </div>
+      </ScrollArea>
+    </div>
+  );
+}
+
 
 export default function SetlistPlayerPage() {
     const params = useParams();
@@ -88,8 +199,7 @@ export default function SetlistPlayerPage() {
     const [songs, setSongs] = useState<Song[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
-
-    const queueItemRefs = useMemo(() => Array(songs.length).fill(0).map(() => React.createRef<HTMLDivElement>()), [songs.length]);
+    const [isQueueVisible, setIsQueueVisible] = useState(true);
 
     useEffect(() => {
         async function loadSetlist() {
@@ -127,6 +237,10 @@ export default function SetlistPlayerPage() {
             setCurrentIndex(index);
         }
     }, [songs.length]);
+    
+    const toggleQueueVisibility = useCallback(() => {
+        setIsQueueVisible(prev => !prev);
+    }, []);
 
     if (isLoading) {
         return <LoadingSkeleton />;
@@ -139,7 +253,7 @@ export default function SetlistPlayerPage() {
     const currentSong = songs[currentIndex];
 
     return (
-      <div className="h-screen w-full flex flex-col md:flex-row bg-background overflow-hidden">
+      <div className="h-screen w-full flex flex-col bg-background overflow-hidden">
         {/* Main Lyric Player Area */}
         <div className="flex-grow relative h-full">
             <LyricPlayer 
@@ -149,28 +263,16 @@ export default function SetlistPlayerPage() {
             />
         </div>
         
-        {/* Desktop Queue Sidebar */}
-        <aside className="hidden md:flex flex-col w-[350px] xl:w-[400px] border-l bg-muted/30 h-full">
-            <div className="p-4 border-b">
-                <h2 className="text-lg font-headline font-semibold truncate">Up Next</h2>
-                <p className="text-sm text-muted-foreground">From: {setlist.title}</p>
-            </div>
-            <ScrollArea className="flex-grow">
-                 <div className="p-2 space-y-1">
-                    {songs.map((song, index) => (
-                        <QueueItem 
-                            key={song.id}
-                            song={song}
-                            index={index}
-                            isActive={index === currentIndex}
-                            isPlayed={index < currentIndex}
-                            onSelect={handleSelectSong}
-                        />
-                    ))}
-                </div>
-            </ScrollArea>
-        </aside>
-
+        {/* Floating Queue for Desktop */}
+        <FloatingQueue
+            setlist={setlist}
+            songs={songs}
+            currentIndex={currentIndex}
+            handleSelectSong={handleSelectSong}
+            isVisible={isQueueVisible}
+            onClose={() => setIsQueueVisible(false)}
+        />
+        
         {/* Unified Control Bar for both mobile and desktop */}
         <SetlistControls
             setlistTitle={setlist.title}
@@ -179,6 +281,7 @@ export default function SetlistPlayerPage() {
             onNext={handleNextSong}
             onPrev={handlePrevSong}
             onSelectSong={handleSelectSong}
+            onToggleQueue={toggleQueueVisibility}
         />
       </div>
     );

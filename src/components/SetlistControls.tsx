@@ -9,12 +9,14 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetClose,
 } from "@/components/ui/sheet";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { SkipBack, SkipForward, ListMusic, Music, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useState } from 'react';
 
 interface SetlistControlsProps {
   setlistTitle: string;
@@ -23,6 +25,7 @@ interface SetlistControlsProps {
   onNext: () => void;
   onPrev: () => void;
   onSelectSong: (index: number) => void;
+  onToggleQueue?: () => void;
 }
 
 export default function SetlistControls({
@@ -32,8 +35,10 @@ export default function SetlistControls({
   onNext,
   onPrev,
   onSelectSong,
+  onToggleQueue,
 }: SetlistControlsProps) {
   const currentSong = songs[currentIndex];
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-auto md:pointer-events-none">
@@ -69,7 +74,8 @@ export default function SetlistControls({
                     <Button variant="ghost" size="icon" onClick={onNext} disabled={currentIndex === songs.length - 1}>
                         <SkipForward />
                     </Button>
-                    <Sheet>
+                    {/* Mobile Queue Sheet */}
+                    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                         <SheetTrigger asChild>
                             <Button variant="ghost" size="icon" className="md:hidden">
                                 <ListMusic />
@@ -82,12 +88,9 @@ export default function SetlistControls({
                             <ScrollArea className="flex-grow">
                                 <div className="p-2">
                                     {songs.map((song, index) => (
+                                      <SheetClose asChild key={`${song.id}-${index}`}>
                                         <button
-                                            key={song.id}
-                                            onClick={() => {
-                                                onSelectSong(index)
-                                                // Consider closing sheet on select?
-                                            }}
+                                            onClick={() => onSelectSong(index)}
                                             className={cn(
                                                 "w-full flex items-center gap-4 p-3 rounded-lg text-left transition-colors",
                                                 currentIndex === index ? "bg-primary/10" : "hover:bg-accent"
@@ -113,11 +116,18 @@ export default function SetlistControls({
                                                 <p className="text-sm text-muted-foreground">{song.artist}</p>
                                             </div>
                                         </button>
+                                       </SheetClose>
                                     ))}
                                 </div>
                             </ScrollArea>
                         </SheetContent>
                     </Sheet>
+                    {/* Desktop Queue Toggle */}
+                    {onToggleQueue && (
+                      <Button variant="ghost" size="icon" className="hidden md:inline-flex" onClick={onToggleQueue}>
+                        <ListMusic />
+                      </Button>
+                    )}
                 </div>
                 </div>
             </div>
