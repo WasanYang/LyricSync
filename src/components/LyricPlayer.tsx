@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'r
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, Clock, X, GripVertical } from 'lucide-react';
+import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, Clock, X, Move } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
@@ -524,46 +524,44 @@ export default function LyricPlayer({ song }: { song: Song }) {
       {showSectionNavigator && (
         <div 
           ref={navigatorRef}
-          className="fixed z-20 pointer-events-auto"
+          className="fixed z-20 pointer-events-auto flex flex-col items-center gap-2"
           style={{ top: `${position.y}px`, left: `${position.x}px` }}
         >
-          <div className="relative flex flex-col gap-2 bg-background/20 backdrop-blur-sm p-2 rounded-lg shadow-lg">
-               <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-center gap-1">
-                 <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 bg-background/50 rounded-full cursor-grab active:cursor-grabbing"
-                    onMouseDown={handleDragMouseDown}
-                    onTouchStart={handleDragTouchStart}
-                  >
-                    <GripVertical className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-6 w-6 bg-background/50 rounded-full"
-                    onClick={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
-                  >
-                      <X className="h-4 w-4"/>
-                  </Button>
-              </div>
+          <div className="flex items-center gap-1">
+             <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 cursor-grab active:cursor-grabbing"
+                onMouseDown={handleDragMouseDown}
+                onTouchStart={handleDragTouchStart}
+              >
+                <Move className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6"
+                onClick={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
+              >
+                  <X className="h-3 w-3"/>
+              </Button>
+          </div>
 
-              <div className="mt-4 flex flex-col gap-2">
-                {sections.map((section, index) => (
-                    <button
-                        key={section.uniqueKey}
-                        onDoubleClick={() => handleSectionJump(section.time)}
-                        className={cn(
-                            "text-xs font-bold py-1 px-3 rounded-full shadow-lg transition-all duration-300",
-                            index === currentSectionIndex
-                                ? "bg-primary text-primary-foreground" 
-                                : "bg-background/40 text-muted-foreground/60 hover:bg-muted/80 hover:text-muted-foreground"
-                        )}
-                    >
-                        {section.name}
-                    </button>
-                ))}
-              </div>
+          <div className="flex flex-col gap-2">
+            {sections.map((section, index) => (
+                <button
+                    key={section.uniqueKey}
+                    onDoubleClick={() => handleSectionJump(section.time)}
+                    className={cn(
+                        "text-xs font-bold py-1 px-3 rounded-full shadow-md transition-all duration-300",
+                        index === currentSectionIndex
+                            ? "bg-primary text-primary-foreground" 
+                            : "bg-background/40 text-muted-foreground/60 hover:bg-muted/80 hover:text-muted-foreground"
+                    )}
+                >
+                    {section.name}
+                </button>
+            ))}
           </div>
         </div>
       )}
