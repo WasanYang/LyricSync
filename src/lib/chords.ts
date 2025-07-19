@@ -1,6 +1,9 @@
 
-const NOTES_SHARP = ['A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#'];
-const NOTES_FLAT = ['A', 'Bb', 'B', 'C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab'];
+const NOTES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const NOTES_FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+
+export const ALL_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
 
 const getNoteIndex = (note: string): number => {
     let index = NOTES_SHARP.indexOf(note);
@@ -9,12 +12,22 @@ const getNoteIndex = (note: string): number => {
     return index;
 };
 
-const getTransposedNote = (note: string, amount: number, useSharps: boolean): string => {
+const getTransposedNote = (note: string, amount: number): string => {
     const noteIndex = getNoteIndex(note);
     if (noteIndex === -1) return note;
 
     const newIndex = (noteIndex + amount + 12) % 12;
-    return useSharps ? NOTES_SHARP[newIndex] : NOTES_FLAT[newIndex];
+
+    const useSharpsForOriginal = !note.includes('b');
+    const transposedNoteSharp = NOTES_SHARP[newIndex];
+    const transposedNoteFlat = NOTES_FLAT[newIndex];
+
+    if (transposedNoteSharp === transposedNoteFlat) {
+        return transposedNoteSharp;
+    }
+    
+    // Prefer sharp or flat based on original chord notation
+    return useSharpsForOriginal ? transposedNoteSharp : transposedNoteFlat;
 };
 
 export const transposeChord = (chord: string, amount: number): string => {
@@ -28,9 +41,7 @@ export const transposeChord = (chord: string, amount: number): string => {
     const rootNote = match[1];
     const restOfChord = match[2];
 
-    const useSharps = !rootNote.includes('b') || rootNote.length === 1;
-
-    const newRoot = getTransposedNote(rootNote, amount, useSharps);
+    const newRoot = getTransposedNote(rootNote, amount);
 
     return newRoot + restOfChord;
 };

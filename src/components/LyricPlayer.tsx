@@ -18,10 +18,18 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetClose,
 } from "@/components/ui/sheet"
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { transposeChord } from '@/lib/chords';
+import { transposeChord, ALL_NOTES } from '@/lib/chords';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 
 type HighlightMode = 'line' | 'section' | 'none';
@@ -53,6 +61,7 @@ type Action =
   | { type: 'SET_HIGHLIGHT_MODE'; payload: HighlightMode }
   | { type: 'TOGGLE_SECTION_NAVIGATOR' }
   | { type: 'SET_BPM'; payload: number }
+  | { type: 'SET_TRANSPOSE'; payload: number }
   | { type: 'TRANSPOSE_UP' }
   | { type: 'TRANSPOSE_DOWN' }
   | { type: 'RESET_TRANSPOSE' };
@@ -99,6 +108,8 @@ function lyricPlayerReducer(state: State, action: Action): State {
     case 'SET_BPM':
         const newBpm = Math.max(40, Math.min(240, action.payload));
         return { ...state, bpm: newBpm };
+    case 'SET_TRANSPOSE':
+        return { ...state, transpose: action.payload };
     case 'TRANSPOSE_UP':
         return { ...state, transpose: state.transpose + 1 };
     case 'TRANSPOSE_DOWN':
@@ -402,103 +413,103 @@ export default function LyricPlayer({ song }: { song: Song }) {
   
   const renderSettingsContent = () => {
     return (
-      <>
-        <SheetHeader className="p-4 pb-0">
-            <SheetTitle className="sr-only">Settings</SheetTitle>
-        </SheetHeader>
-        <ScrollArea className="flex-grow" style={{ maxHeight: 'calc(70vh - 4rem)'}}>
-          <div className="p-4 space-y-6 pt-2">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <List className="h-5 w-5 text-muted-foreground" />
-                  <Label htmlFor="show-section-nav" className="font-normal">Navigator</Label>
-                </div>
-                <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
+      <ScrollArea className="flex-grow" style={{ maxHeight: 'calc(70vh)'}}>
+        <SheetTitle className="sr-only">Settings</SheetTitle>
+        <div className="p-4 space-y-6 pt-2 font-normal">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <List className="h-5 w-5 text-muted-foreground" />
+                <Label htmlFor="show-section-nav" className="font-normal">Navigator</Label>
               </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <Guitar className="h-5 w-5 text-muted-foreground" />
-                  <Label htmlFor="show-chords" className="font-normal">Chords</Label>
-                </div>
-                <Switch id="show-chords" checked={showChords} onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })} />
-              </div>
+              <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
             </div>
 
-            <Separator />
-            
-            <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Music className="h-5 w-5 text-muted-foreground" />
-                        <Label className="font-normal">Key</Label>
-                    </div>
-                     <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'TRANSPOSE_DOWN' })}>
-                            <Minus className="h-4 w-4" />
-                        </Button>
-                        <span className="text-center font-bold w-10 text-base">
-                            {transpose > 0 ? `+${transpose}` : transpose}
-                        </span>
-                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'TRANSPOSE_UP' })}>
-                            <Plus className="h-4 w-4" />
-                        </Button>
-                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'RESET_TRANSPOSE' })} disabled={transpose === 0}>
-                            <RotateCcw className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Guitar className="h-5 w-5 text-muted-foreground" />
+                <Label htmlFor="show-chords" className="font-normal">Chords</Label>
+              </div>
+              <Switch id="show-chords" checked={showChords} onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })} />
+            </div>
+          </div>
 
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                    <Palette className="h-5 w-5 text-muted-foreground" />
-                    <Label className="font-normal">Color</Label>
-                    </div>
-                    <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex flex-wrap gap-2 justify-start">
-                    {CHORD_COLOR_OPTIONS.map((option) => (
-                        <Label key={option.value} className="cursor-pointer">
-                        <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
-                        <div className={cn("w-5 h-5 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
-                        </Label>
+          <Separator />
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                  <Music className="h-5 w-5 text-muted-foreground" />
+                  <Label className="font-normal">Key</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold w-12 text-center">{transpose > 0 ? `+${transpose}` : transpose}</span>
+                <Select value={String(transpose)} onValueChange={(v) => dispatch({ type: 'SET_TRANSPOSE', payload: parseInt(v) })}>
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue placeholder="Key" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ALL_NOTES.map((note, index) => (
+                      <SelectItem key={note} value={String(index - ALL_NOTES.indexOf('C'))}>{note}</SelectItem>
                     ))}
-                    </RadioGroup>
-                </div>
+                  </SelectContent>
+                </Select>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'RESET_TRANSPOSE' })} disabled={transpose === 0}>
+                    <RotateCcw className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-
-            <Separator />
-
-            <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Highlighter className="h-5 w-5 text-muted-foreground" />
-                        <Label className="font-normal">Highlight</Label>
-                    </div>
-                    <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="grid grid-cols-3 gap-2">
-                        {HIGHLIGHT_OPTIONS.map(option => (
-                            <Label key={option.value} className={cn("flex h-8 items-center justify-center cursor-pointer rounded-md border p-1 text-xs hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-accent text-accent-foreground")}>
-                                <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
-                                {option.label}
-                            </Label>
-                        ))}
-                    </RadioGroup>
+            
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                <Palette className="h-5 w-5 text-muted-foreground" />
+                <Label className="font-normal">Color</Label>
                 </div>
-                
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Clock className="h-5 w-5 text-muted-foreground" />
-                        <Label htmlFor="bpm-input" className="font-normal">BPM</Label>
-                    </div>
-                    <div className="flex items-center gap-2 max-w-[180px]">
-                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 1 })}><Minus className="h-4 w-4"/></Button>
-                        <Input id="bpm-input" type="number" value={bpm} onChange={handleBpmChange} min="40" max="240" className="text-center font-normal h-8 w-16" />
-                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 1 })}><Plus className="h-4 w-4"/></Button>
-                    </div>
+                <div className="flex items-center justify-start">
+                  <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex flex-wrap gap-2 justify-start">
+                  {CHORD_COLOR_OPTIONS.map((option) => (
+                      <Label key={option.value} className="cursor-pointer">
+                      <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
+                      <div className={cn("w-5 h-5 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
+                      </Label>
+                  ))}
+                  </RadioGroup>
                 </div>
             </div>
           </div>
-        </ScrollArea>
-      </>
+
+          <Separator />
+
+          <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                      <Highlighter className="h-5 w-5 text-muted-foreground" />
+                      <Label className="font-normal">Highlight</Label>
+                  </div>
+                  <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="grid grid-cols-3 gap-2">
+                      {HIGHLIGHT_OPTIONS.map(option => (
+                          <Label key={option.value} className={cn("flex h-8 w-16 items-center justify-center cursor-pointer rounded-md border p-1 text-xs hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-accent text-accent-foreground")}>
+                              <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
+                              {option.label}
+                          </Label>
+                      ))}
+                  </RadioGroup>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                      <Clock className="h-5 w-5 text-muted-foreground" />
+                      <Label htmlFor="bpm-input" className="font-normal">BPM</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                      <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 1 })}><Minus className="h-4 w-4"/></Button>
+                      <Input id="bpm-input" type="number" value={bpm} onChange={handleBpmChange} min="40" max="240" className="text-center font-normal h-8 w-16" />
+                      <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 1 })}><Plus className="h-4 w-4"/></Button>
+                  </div>
+              </div>
+          </div>
+        </div>
+      </ScrollArea>
     );
   }
 
