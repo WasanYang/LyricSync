@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import type { Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
@@ -123,16 +123,20 @@ export default function SetlistPlayerPage() {
                     </div>
                     
                     <div className="flex items-center gap-1 sm:gap-2 pl-2 sm:pl-4 bg-muted/50 p-1 sm:p-2 rounded-lg">
-                        <div className="min-w-0 text-right">
+                        <div className="min-w-0 flex-grow text-right">
                             <p className="text-[10px] text-muted-foreground font-semibold leading-tight hidden xs:block">UP NEXT</p>
-                            <p className="font-bold truncate leading-tight text-xs sm:text-sm max-w-[100px] sm:max-w-none">{nextSong ? nextSong.title : 'End of list'}</p>
-                        </div>
-                        {nextSong && (
-                            <div className="flex-shrink-0 bg-background text-foreground rounded-md p-1 text-center shadow">
-                                <p className="text-[10px] font-bold leading-tight opacity-70">KEY</p>
-                                <p className="text-sm sm:text-base font-bold leading-tight">{getTransposedKey(transpose)}</p>
+                             <div className="flex items-center justify-end gap-2">
+                                <div className="min-w-0">
+                                    <p className="font-bold truncate leading-tight text-xs sm:text-sm max-w-[100px] sm:max-w-none">{nextSong ? nextSong.title : 'End of list'}</p>
+                                    {nextSong && <p className="text-xs text-muted-foreground truncate hidden sm:block">{nextSong.artist}</p>}
+                                </div>
+                                {nextSong && (
+                                    <div className="flex-shrink-0 text-center">
+                                        <p className="font-bold leading-tight text-xs sm:text-sm">({getTransposedKey(transpose)})</p>
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
                         <ChevronRight className={cn("h-5 w-5 text-muted-foreground flex-shrink-0", !nextSong && "opacity-0")}/>
                     </div>
                    
@@ -143,7 +147,7 @@ export default function SetlistPlayerPage() {
             </div>
         </header>
 
-        <div className="flex-grow relative h-full pt-[88px] pb-16">
+        <div className="flex-grow relative h-full pt-[88px] pb-32">
             <LyricPlayer 
                 song={currentSong} 
                 isSetlistMode={true}
