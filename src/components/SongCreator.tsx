@@ -27,6 +27,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog"
 import LyricPlayer from './LyricPlayer';
 import { Eye, Save, XCircle } from 'lucide-react';
@@ -64,11 +65,7 @@ const parseLyricsFromString = (lyricString: string): LyricLine[] => {
 
 const TIME_SIGNATURES = ["4/4", "3/4", "2/4", "6/8", "2/2", "3/2", "5/4", "7/4", "12/8"];
 
-const lyricsPlaceholder = `0 | (Intro)
-2 | [Am] [G] [C] [F]
-10 | 
-11 | [Am]In the quiet of the [G]night,
-15 | A single [C]star begins to [F]glow,`;
+const lyricsPlaceholder = `Enter your lyrics here...`;
 
 export default function SongCreator() {
   const { toast } = useToast();
@@ -245,7 +242,7 @@ export default function SongCreator() {
                         <FormLabel>Lyrics & Chords</FormLabel>
                         <FormControl>
                             <Textarea
-                            placeholder="Enter your lyrics here..."
+                            placeholder={lyricsPlaceholder}
                             className="flex-grow text-sm font-mono resize-none h-64"
                             {...field}
                             />
