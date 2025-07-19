@@ -1,7 +1,6 @@
 export type LyricLine = {
   time: number; // in seconds
-  text: string;
-  chords?: string;
+  text: string; // Chords can be embedded like [Am]this.
 };
 
 export type Song = {
@@ -17,23 +16,23 @@ const songs: Song[] = [
     title: 'Starlight Echoes',
     artist: 'Celestial Sound',
     lyrics: [
-      { time: 3, text: "In the quiet of the night,", chords: "Am" },
-      { time: 6, text: "A single star begins to glow,", chords: "G" },
-      { time: 9, text: "Casting shadows in the light,", chords: "C" },
-      { time: 12, text: "A silent, cosmic show.", chords: "F" },
-      { time: 16, text: "We're just echoes in the starlight,", chords: "C" },
-      { time: 20, text: "Fading in and out of view,", chords: "G" },
-      { time: 24, text: "Dancing in the pale moonlight,", chords: "Am" },
-      { time: 28, text: "Me and you.", chords: "F" },
-      { time: 32, text: "(Instrumental)", chords: "C G Am F" },
-      { time: 38, text: "Across the void, a signal sent,", chords: "Am" },
-      { time: 42, text: "A whispered word, a fleeting thought,", chords: "G" },
-      { time: 46, text: "On waves of ether, we're content,", chords: "C" },
-      { time: 50, text: "In this vastness we are caught.", chords: "F" },
-      { time: 54, text: "We're just echoes in the starlight,", chords: "C" },
-      { time: 58, text: "Fading in and out of view,", chords: "G" },
-      { time: 62, text: "Dancing in the pale moonlight,", chords: "Am" },
-      { time: 66, text: "Me and you.", chords: "F" },
+      { time: 3, text: "[Am]In the quiet of the [G]night," },
+      { time: 6, text: "A single [C]star begins to [F]glow," },
+      { time: 9, text: "[C]Casting shadows in the [G]light," },
+      { time: 12, text: "A silent, [Am]cosmic [F]show." },
+      { time: 16, text: "We're just [C]echoes in the [G]starlight," },
+      { time: 20, text: "Fading [Am]in and out of [F]view," },
+      { time: 24, text: "[C]Dancing in the pale [G]moonlight," },
+      { time: 28, text: "[Am]Me and [F]you." },
+      { time: 32, text: "(Instrumental) [C] [G] [Am] [F]" },
+      { time: 38, text: "Across the [Am]void, a signal [G]sent," },
+      { time: 42, text: "A whispered [C]word, a fleeting [F]thought," },
+      { time: 46, text: "On [C]waves of ether, [G]we're content," },
+      { time: 50, text: "In this [Am]vastness we are [F]caught." },
+      { time: 54, text: "We're just [C]echoes in the [G]starlight," },
+      { time: 58, text: "Fading [Am]in and out of [F]view," },
+      { time: 62, text: "[C]Dancing in the pale [G]moonlight," },
+      { time: 66, text: "[Am]Me and [F]you." },
     ],
   },
   {

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef, useReducer, useCallback } from 'react';
-import type { Song } from '@/lib/songs';
+import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'react';
+import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Play, Pause, SkipBack, SkipForward, Repeat, Settings, Minus, Plus, Guitar } from 'lucide-react';
@@ -61,6 +61,67 @@ function lyricPlayerReducer(state: State, action: Action): State {
       return state;
   }
 }
+
+const parseLyrics = (line: string) => {
+    const regex = /\[([^\]]+)\]([^\[]*)/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(line)) !== null) {
+        if (match.index > lastIndex) {
+            parts.push({ type: 'lyric', content: line.substring(lastIndex, match.index) });
+        }
+        parts.push({ type: 'chord', content: match[1] });
+        if (match[2]) {
+            parts.push({ type: 'lyric', content: match[2] });
+        }
+        lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < line.length) {
+        parts.push({ type: 'lyric', content: line.substring(lastIndex) });
+    }
+    
+    // If the line doesn't contain any chords, return the whole line as a lyric.
+    if (parts.length === 0) {
+        return [{ type: 'lyric', content: line }];
+    }
+
+    return parts;
+};
+
+
+const LyricLineDisplay = ({ line, showChords }: { line: LyricLine; showChords: boolean }) => {
+    const parsedLine = useMemo(() => parseLyrics(line.text), [line.text]);
+
+    if (!showChords || !parsedLine.some(p => p.type === 'chord')) {
+        return <p>{line.text.replace(/\[[^\]]+\]/g, '')}</p>;
+    }
+    
+    const chordsLine = parsedLine.map((part, index) => {
+        if (part.type === 'chord') {
+            return <span key={`c-${index}`} className="inline-block min-w-[2ch] font-bold text-accent">{part.content}</span>;
+        }
+        return <span key={`c-space-${index}`} className="opacity-0">{part.content}</span>;
+    });
+
+    const lyricsLine = parsedLine.map((part, index) => {
+        if (part.type === 'lyric') {
+            return <span key={`l-${index}`}>{part.content}</span>;
+        }
+        // Add phantom chord to preserve spacing
+        return <span key={`l-space-${index}`} className="inline-block min-w-[2ch] opacity-0">{part.content}</span>;
+    });
+
+    return (
+        <div>
+            <div className="whitespace-pre text-sm -mb-1">{chordsLine}</div>
+            <div className="whitespace-pre">{lyricsLine}</div>
+        </div>
+    );
+};
+
 
 export default function LyricPlayer({ song }: { song: Song }) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
@@ -154,10 +215,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 : 'text-muted-foreground/50'
             )}
           >
-            {showChords && line.chords && (
-              <p className="text-accent font-bold text-sm mb-1">{line.chords}</p>
-            )}
-            {line.text}
+             <LyricLineDisplay line={line} showChords={showChords} />
           </li>
         ))}
       </ul>
