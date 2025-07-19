@@ -495,7 +495,7 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
 
 
   return (
-    <div className="flex flex-col bg-background h-screen overflow-hidden">
+    <div className="flex flex-col bg-background h-full overflow-hidden">
       { !isSetlistMode && (
          <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm shadow-sm pointer-events-auto">
             <div className="relative container mx-auto flex items-center justify-between h-14">
@@ -519,7 +519,7 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
         </header>
       )}
       
-      {showSectionNavigator && (
+      {showSectionNavigator && !isSetlistMode && (
         <div 
           ref={navigatorRef}
           className="fixed z-20 pointer-events-auto flex flex-col items-center gap-2"
@@ -567,8 +567,9 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
       <div ref={scrollContainerRef} className="w-full h-full relative overflow-y-auto">
         <ul
             className={cn(
-                "w-full px-4 md:px-12 pt-20 pb-48 md:pb-56",
-                 isSetlistMode && "pt-12"
+                "w-full px-4 md:px-12 pb-48 md:pb-56",
+                !isSetlistMode && "pt-20",
+                isSetlistMode && "pt-8"
             )}
             style={{ fontSize: `${fontSize}px` }}
         >
@@ -624,7 +625,7 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
 
       <div className={cn(
           "fixed bottom-0 left-0 right-0 p-4 bg-transparent pointer-events-none",
-          isSetlistMode && "bottom-24 md:bottom-0"
+          isSetlistMode && "bottom-16" // Pushed up by SetlistControls
           )}>
         <div className="max-w-4xl mx-auto space-y-4 pointer-events-auto">
             <Slider

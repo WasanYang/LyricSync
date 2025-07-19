@@ -1,44 +1,41 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, notFound, useRouter } from 'next/navigation';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useParams, notFound } from 'next/navigation';
 import type { Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import { getSetlist as getSetlistFromDb } from '@/lib/db';
 import { getSongById } from '@/lib/songs';
+import { ALL_NOTES } from '@/lib/chords';
 
 import LyricPlayer from '@/components/LyricPlayer';
 import SetlistControls from '@/components/SetlistControls';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
-import Image from 'next/image';
-import { Music, Move, X, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { ArrowLeft, Music, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const ORIGINAL_SONG_KEY_NOTE = 'A'; // This should ideally be part of song data
 
 function LoadingSkeleton() {
     return (
-        <div className="flex bg-background h-screen overflow-hidden">
-            <div className="flex-grow p-4 pt-20">
+        <div className="flex flex-col bg-background h-screen overflow-hidden">
+             <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm border-b">
+                 <div className="container mx-auto p-2 h-20 flex items-center justify-between">
+                     <Skeleton className="h-8 w-24" />
+                     <Skeleton className="h-8 w-8" />
+                 </div>
+             </header>
+            <div className="flex-grow p-4 pt-28">
                 <div className="space-y-4 max-w-lg mx-auto w-full">
-                    <Skeleton className="h-8 w-3/4 mx-auto" />
-                    <Skeleton className="h-4 w-1/2 mx-auto" />
-                    <div className="pt-12 space-y-6">
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-5/6" />
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-3/4" />
-                        <Skeleton className="h-6 w-5/6" />
-                    </div>
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-5/6" />
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-6 w-5/6" />
                 </div>
-            </div>
-            <div className="hidden md:block w-80 border-l p-4 space-y-4">
-                 <Skeleton className="h-10 w-full" />
-                 <Skeleton className="h-16 w-full" />
-                 <Skeleton className="h-16 w-full opacity-60" />
-                 <Skeleton className="h-16 w-full opacity-40" />
             </div>
              <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80">
                  <Skeleton className="h-12 w-full max-w-lg mx-auto rounded-lg" />
@@ -47,148 +44,12 @@ function LoadingSkeleton() {
     )
 }
 
-function QueueItem({ song, index, isActive, isPlayed, onSelect }: { song: Song, index: number, isActive: boolean, isPlayed: boolean, onSelect: (index: number) => void }) {
-    return (
-        <button
-            onClick={() => onSelect(index)}
-            className={cn(
-                "w-full flex items-center gap-4 p-3 rounded-lg text-left transition-all duration-200",
-                isActive && "bg-primary/10",
-                !isActive && !isPlayed && "hover:bg-accent",
-                isPlayed && "opacity-50 hover:opacity-75"
-            )}
-        >
-            <div className="flex-shrink-0 w-8 text-center">
-                {isActive ? (
-                    <Music className="h-5 w-5 mx-auto text-primary animate-pulse" />
-                ) : (
-                    <span className="font-mono text-muted-foreground">{index + 1}</span>
-                )}
-            </div>
-             <Image
-                src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
-                alt={`${song.title} album art`}
-                width={48}
-                height={48}
-                className="rounded-md aspect-square object-cover"
-                data-ai-hint="album cover"
-             />
-            <div className="min-w-0">
-                <p className={cn("font-semibold truncate", isActive ? "text-primary" : "text-foreground")}>{song.title}</p>
-                <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
-            </div>
-        </button>
-    )
-}
-
-function FloatingQueue({
-  setlist,
-  songs,
-  currentIndex,
-  handleSelectSong,
-  isVisible,
-  onClose
-}: {
-  setlist: Setlist;
-  songs: Song[];
-  currentIndex: number;
-  handleSelectSong: (index: number) => void;
-  isVisible: boolean;
-  onClose: () => void;
-}) {
-  const queueRef = React.useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const screenWidth = window.innerWidth;
-    const panelWidth = 350; 
-    setPosition({ x: screenWidth - panelWidth - 20, y: 80 });
-  }, []);
-
-  const handleDragMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    if (queueRef.current) {
-      setIsDragging(true);
-      const rect = queueRef.current.getBoundingClientRect();
-      setDragOffset({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-      e.preventDefault();
-    }
-  }, []);
-
-  const handleDragMouseMove = useCallback((e: MouseEvent) => {
-    if (isDragging) {
-      setPosition({ x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y });
-    }
-  }, [isDragging, dragOffset]);
-
-  const handleDragMouseUp = useCallback(() => setIsDragging(false), []);
-  
-  useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleDragMouseMove);
-      window.addEventListener('mouseup', handleDragMouseUp);
-    } else {
-      window.removeEventListener('mousemove', handleDragMouseMove);
-      window.removeEventListener('mouseup', handleDragMouseUp);
-    }
-    return () => {
-      window.removeEventListener('mousemove', handleDragMouseMove);
-      window.removeEventListener('mouseup', handleDragMouseUp);
-    };
-  }, [isDragging, handleDragMouseMove, handleDragMouseUp]);
-
-  if (!isVisible) return null;
-
-  return (
-    <div
-      ref={queueRef}
-      className="fixed z-20 hidden md:flex flex-col w-[350px] h-[70vh] max-h-[600px] rounded-xl border bg-background/80 backdrop-blur-sm shadow-2xl"
-      style={{ top: `${position.y}px`, left: `${position.x}px` }}
-    >
-      <div className="p-4 border-b flex items-center justify-between">
-        <div>
-            <h2 className="text-lg font-headline font-semibold truncate">{setlist.title}</h2>
-            <p className="text-sm text-muted-foreground">{songs.length} songs</p>
-        </div>
-        <div className="flex items-center gap-1">
-            <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 cursor-grab active:cursor-grabbing text-muted-foreground"
-                onMouseDown={handleDragMouseDown}
-                aria-label="Drag queue"
-            >
-                <Move className="h-4 w-4" />
-            </Button>
-            <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground"
-                onClick={onClose}
-                aria-label="Close queue"
-            >
-                <X className="h-4 w-4" />
-            </Button>
-        </div>
-      </div>
-      <ScrollArea className="flex-grow">
-           <div className="p-2 space-y-1">
-              {songs.map((song, index) => (
-                  <QueueItem 
-                      key={`${song.id}-${index}`}
-                      song={song}
-                      index={index}
-                      isActive={index === currentIndex}
-                      isPlayed={index < currentIndex}
-                      onSelect={handleSelectSong}
-                  />
-              ))}
-          </div>
-      </ScrollArea>
-    </div>
-  );
-}
+const getTransposedKey = (transpose: number): string => {
+    const originalKeyIndex = ALL_NOTES.indexOf(ORIGINAL_SONG_KEY_NOTE);
+    if (originalKeyIndex === -1) return ORIGINAL_SONG_KEY_NOTE;
+    const newKeyIndex = (originalKeyIndex + transpose + 12 * 10) % 12;
+    return ALL_NOTES[newKeyIndex];
+};
 
 
 export default function SetlistPlayerPage() {
@@ -198,8 +59,8 @@ export default function SetlistPlayerPage() {
     const [setlist, setSetlist] = useState<Setlist | null>(null);
     const [songs, setSongs] = useState<Song[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [transpose, setTranspose] = useState(0); // Assuming a global transpose for the setlist for now
     const [isLoading, setIsLoading] = useState(true);
-    const [isQueueVisible, setIsQueueVisible] = useState(true);
 
     useEffect(() => {
         async function loadSetlist() {
@@ -231,17 +92,7 @@ export default function SetlistPlayerPage() {
     const handlePrevSong = useCallback(() => {
         setCurrentIndex(prev => (prev - 1 >= 0 ? prev - 1 : prev));
     }, []);
-
-    const handleSelectSong = useCallback((index: number) => {
-        if(index >= 0 && index < songs.length) {
-            setCurrentIndex(index);
-        }
-    }, [songs.length]);
     
-    const toggleQueueVisibility = useCallback(() => {
-        setIsQueueVisible(prev => !prev);
-    }, []);
-
     if (isLoading) {
         return <LoadingSkeleton />;
     }
@@ -251,29 +102,45 @@ export default function SetlistPlayerPage() {
     }
     
     const currentSong = songs[currentIndex];
+    const nextSong = currentIndex + 1 < songs.length ? songs[currentIndex + 1] : null;
 
     return (
       <div className="h-screen w-full flex flex-col bg-background overflow-hidden">
-        <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm shadow-sm pointer-events-auto">
-            <div className="relative container mx-auto flex items-center justify-between h-14 max-w-4xl">
-                <div className="flex-1 flex justify-start">
-                    <Button asChild variant="ghost" size="icon">
-                    <Link href="/create">
-                        <ArrowLeft />
-                        <span className="sr-only">Back to Creator</span>
-                    </Link>
-                    </Button>
+        <header className="fixed top-0 left-0 right-0 z-10 bg-background/90 backdrop-blur-sm border-b">
+            <div className="container mx-auto px-4 h-[88px] flex flex-col justify-center">
+                <div className="flex items-center justify-between w-full">
+                     <div className="flex items-center gap-2 min-w-0">
+                        <Button asChild variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -ml-2">
+                            <Link href="/create">
+                                <ArrowLeft className="h-5 w-5" />
+                                <span className="sr-only">Back to Creator</span>
+                            </Link>
+                        </Button>
+                        <div className="min-w-0">
+                            <h1 className="font-headline text-lg font-bold truncate leading-tight">{setlist.title}</h1>
+                            <p className="text-sm text-muted-foreground">{`Song ${currentIndex + 1} of ${songs.length}`}</p>
+                        </div>
+                    </div>
+                    {nextSong && (
+                        <div className="hidden sm:flex items-center gap-3 text-right pl-4">
+                            <div className="min-w-0">
+                                <p className="text-xs text-muted-foreground leading-tight">Up Next</p>
+                                <p className="font-semibold truncate leading-tight">{nextSong.title}</p>
+                            </div>
+                            <div className="flex-shrink-0 bg-muted text-muted-foreground rounded-md px-2 py-1 text-center">
+                                <p className="text-xs font-bold leading-tight">KEY</p>
+                                <p className="text-lg font-bold leading-tight">{getTransposedKey(transpose)}</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
-                <div className="flex-1 text-center min-w-0">
-                    <h1 className="font-headline text-lg font-bold truncate">{currentSong.title}</h1>
-                    <p className="text-sm text-muted-foreground truncate">{currentSong.artist}</p>
-                </div>
-                <div className="flex-1 flex justify-end items-center gap-0">
-                </div>
+                 <div className="w-full text-center mt-2">
+                     <p className="text-sm font-semibold truncate">{currentSong.title}</p>
+                 </div>
             </div>
         </header>
 
-        <div className="flex-grow relative h-full pt-14">
+        <div className="flex-grow relative h-full pt-[88px]">
             <LyricPlayer 
                 song={currentSong} 
                 isSetlistMode={true}
@@ -281,22 +148,11 @@ export default function SetlistPlayerPage() {
             />
         </div>
         
-        <FloatingQueue
-            setlist={setlist}
-            songs={songs}
-            currentIndex={currentIndex}
-            handleSelectSong={handleSelectSong}
-            isVisible={isQueueVisible}
-            onClose={() => setIsQueueVisible(false)}
-        />
-        
         <SetlistControls
-            songs={songs}
-            currentIndex={currentIndex}
             onNext={handleNextSong}
             onPrev={handlePrevSong}
-            onSelectSong={handleSelectSong}
-            onToggleQueue={toggleQueueVisibility}
+            isNextDisabled={currentIndex === songs.length - 1}
+            isPrevDisabled={currentIndex === 0}
         />
       </div>
     );
