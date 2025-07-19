@@ -124,9 +124,9 @@ export default function LyricPlayer({ song }: { song: Song }) {
   }, [currentLineIndex]);
 
   return (
-    <div className="w-full h-full flex flex-col p-4 pt-16 md:pt-4">
+    <div className="w-full h-full flex flex-col">
       {/* Header Info */}
-      <div className="text-center mb-4">
+      <div className="text-center pt-16 md:pt-4 mb-4 flex-shrink-0">
         <h1 className="font-headline text-3xl font-bold">{song.title}</h1>
         <p className="font-body text-lg text-muted-foreground">{song.artist}</p>
       </div>
@@ -134,7 +134,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
       {/* Lyrics Scroll Area */}
       <ul
         ref={scrollContainerRef}
-        className="flex-grow w-full overflow-y-auto scroll-smooth py-8"
+        className="flex-grow w-full overflow-y-auto scroll-smooth px-4"
         style={{ fontSize: `${fontSize}px` }}
       >
         {song.lyrics.map((line, index) => (
@@ -154,7 +154,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
       </ul>
 
       {/* Player Controls - Fixed at bottom */}
-      <div className="w-full max-w-4xl mx-auto space-y-4 pt-4">
+      <div className="w-full max-w-4xl mx-auto space-y-4 p-4 flex-shrink-0">
         <Slider
           value={[currentTime]}
           max={duration}
