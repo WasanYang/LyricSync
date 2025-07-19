@@ -229,7 +229,7 @@ export default function LyricPlayer({
 
   const navigatorRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 16, y: 100 });
+  const [position, setPosition] = useState({ x: 16, y: 150 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   const [theme, setThemeState] = useState<'light' | 'dark'>('light');
@@ -239,8 +239,8 @@ export default function LyricPlayer({
   }, [song.id]);
   
   useEffect(() => {
-    // Set initial position of navigator to be vertically centered
-    setPosition(pos => ({ ...pos, y: window.innerHeight / 2 }));
+    // Set initial position of navigator
+    setPosition(pos => ({ ...pos, y: 150 }));
     
     const isDarkMode = document.documentElement.classList.contains('dark')
     setThemeState(isDarkMode ? 'dark' : 'light')
