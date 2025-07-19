@@ -13,7 +13,7 @@ import LyricPlayer from '@/components/LyricPlayer';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, ChevronRight, SkipBack, SkipForward } from 'lucide-react';
+import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import SetlistControls from '@/components/SetlistControls';
 
@@ -59,7 +59,7 @@ export default function SetlistPlayerPage() {
     const [setlist, setSetlist] = useState<Setlist | null>(null);
     const [songs, setSongs] = useState<Song[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [transpose, setTranspose] = useState(0); // Assuming a global transpose for the setlist for now
+    const [transpose, setTranspose] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -150,6 +150,10 @@ export default function SetlistPlayerPage() {
             <LyricPlayer 
                 song={currentSong} 
                 isSetlistMode={true}
+                onNextSong={handleNextSong}
+                onPrevSong={handlePrevSong}
+                isNextDisabled={currentIndex >= songs.length - 1}
+                isPrevDisabled={currentIndex <= 0}
             />
         </div>
         <SetlistControls

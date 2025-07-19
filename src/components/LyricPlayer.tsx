@@ -219,16 +219,24 @@ const FONT_WEIGHT_OPTIONS: { value: FontWeight; label: string; style: React.CSSP
 
 
 const DEFAULT_BPM_FOR_NORMAL_SPEED = 120;
-const ORIGINAL_SONG_KEY_NOTE = 'A'; // Assuming the original key for song ID 4 is A
+const ORIGINAL_SONG_KEY_NOTE = 'A';
 
 interface LyricPlayerProps {
     song: Song;
     isSetlistMode?: boolean;
+    onNextSong?: () => void;
+    onPrevSong?: () => void;
+    isNextDisabled?: boolean;
+    isPrevDisabled?: boolean;
 }
 
 export default function LyricPlayer({ 
     song, 
     isSetlistMode = false,
+    onNextSong,
+    onPrevSong,
+    isNextDisabled,
+    isPrevDisabled,
 }: LyricPlayerProps) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
   const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, fontWeight, showChords, chordColor, highlightMode, showSectionNavigator, bpm, transpose } = state;
@@ -266,7 +274,7 @@ export default function LyricPlayer({
   };
 
   useEffect(() => {
-    setPosition({ x: 16, y: 80 });
+    setPosition({ x: 16, y: (window.innerHeight / 2) });
   }, []);
 
   const handleDragMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
@@ -494,353 +502,348 @@ export default function LyricPlayer({
 
 
   return (
-    <div className="flex flex-col bg-background h-full overflow-hidden">
-      { !isSetlistMode && (
-         <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm pointer-events-auto">
-            <div className="relative container mx-auto flex items-center justify-between h-14">
-            <div className="flex-1 flex justify-start">
-                <Button asChild variant="ghost" size="icon">
-                <Link href="/">
-                    <ArrowLeft />
-                    <span className="sr-only">Back to Home</span>
-                </Link>
+    <>
+      <div className="flex flex-col bg-background h-full overflow-hidden">
+        { !isSetlistMode && (
+           <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm pointer-events-auto">
+              <div className="relative container mx-auto flex items-center justify-between h-14">
+              <div className="flex-1 flex justify-start">
+                  <Button asChild variant="ghost" size="icon">
+                  <Link href="/">
+                      <ArrowLeft />
+                      <span className="sr-only">Back to Home</span>
+                  </Link>
+                  </Button>
+              </div>
+
+              <div className="flex-1 text-center min-w-0">
+                  <h1 className="font-headline text-xl font-bold truncate">{song.title}</h1>
+              </div>
+              
+              <div className="flex-1 flex justify-end items-center gap-0">
+                 
+              </div>
+              </div>
+          </header>
+        )}
+        
+        {showSectionNavigator && (
+          <div 
+            ref={navigatorRef}
+            className="fixed z-20 pointer-events-auto flex flex-col items-center gap-2"
+            style={{ top: `${position.y}px`, left: `${position.x}px` }}
+          >
+            <div className="flex items-center gap-1">
+               <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 cursor-grab active:cursor-grabbing bg-transparent text-muted-foreground/60"
+                  onMouseDown={handleDragMouseDown}
+                  onTouchStart={handleDragTouchStart}
+                >
+                  <Move className="h-3 w-3" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6 bg-transparent text-muted-foreground/60"
+                  onClick={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
+                >
+                    <X className="h-3 w-3"/>
                 </Button>
             </div>
 
-            <div className="flex-1 text-center min-w-0">
-                <h1 className="font-headline text-xl font-bold truncate">{song.title}</h1>
+            <div className="flex flex-col gap-2">
+              {sections.map((section, index) => (
+                  <button
+                      key={section.uniqueKey}
+                      onClick={() => handleSectionJump(section.time)}
+                      className={cn(
+                          "text-xs font-bold py-1 px-3 rounded-full shadow-md transition-all duration-300",
+                          index === currentSectionIndex
+                              ? "bg-primary text-primary-foreground" 
+                              : "bg-background/40 text-muted-foreground/60 hover:bg-muted/80 hover:text-muted-foreground"
+                      )}
+                  >
+                      {section.name}
+                  </button>
+              ))}
             </div>
-            
-            <div className="flex-1 flex justify-end items-center gap-0">
-               {/* Placeholder for actions */}
-            </div>
-            </div>
-        </header>
-      )}
-      
-      {showSectionNavigator && (
-        <div 
-          ref={navigatorRef}
-          className="fixed z-20 pointer-events-auto flex flex-col items-center gap-2"
-          style={{ top: `${position.y}px`, left: `${position.x}px` }}
-        >
-          <div className="flex items-center gap-1">
-             <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 cursor-grab active:cursor-grabbing bg-transparent text-muted-foreground/60"
-                onMouseDown={handleDragMouseDown}
-                onTouchStart={handleDragTouchStart}
-              >
-                <Move className="h-3 w-3" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-6 w-6 bg-transparent text-muted-foreground/60"
-                onClick={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
-              >
-                  <X className="h-3 w-3"/>
-              </Button>
           </div>
+        )}
+          
+        <div ref={scrollContainerRef} className="w-full h-full relative overflow-y-auto">
+          <ul
+              className={cn(
+                  "w-full px-4 md:px-12",
+                  isSetlistMode ? "pt-8 pb-32" : "pt-20 pb-48 md:pb-56"
+              )}
+              style={{ fontSize: `${fontSize}px` }}
+          >
+              {song.lyrics.map((line, index) => {
+              const parsedLine = parseLyrics(line.text);
+              const hasText = parsedLine.some(p => p.text.trim() !== '');
+              const hasChords = parsedLine.some(p => p.chord);
+              
+              const isSectionHeader = line.text.startsWith('(') && line.text.endsWith(')');
+              
+              if (isSectionHeader) {
+                  return (
+                      <li key={index} ref={el => lineRefs.current[index] = el} style={{ height: `calc(${fontSize}px * 0.5)` }}></li>
+                  );
+              }
 
-          <div className="flex flex-col gap-2">
-            {sections.map((section, index) => (
-                <button
-                    key={section.uniqueKey}
-                    onClick={() => handleSectionJump(section.time)}
-                    className={cn(
-                        "text-xs font-bold py-1 px-3 rounded-full shadow-md transition-all duration-300",
-                        index === currentSectionIndex
-                            ? "bg-primary text-primary-foreground" 
-                            : "bg-background/40 text-muted-foreground/60 hover:bg-muted/80 hover:text-muted-foreground"
-                    )}
-                >
-                    {section.name}
-                </button>
-            ))}
-          </div>
+              if (!showChords && !hasText && hasChords) {
+                  return null;
+              }
+              const isSectionBreak = !hasText && !hasChords && line.text.trim() === '';
+              
+              const lineSection = sections.slice().reverse().find(s => s.index <= index);
+              const isLineInCurrentSection = lineSection?.uniqueKey === currentSection?.uniqueKey;
+
+              const isHighlighted = highlightMode !== 'none' && (
+                (highlightMode === 'line' && index === currentLineIndex) ||
+                (highlightMode === 'section' && isLineInCurrentSection)
+              );
+
+              return (
+                  <li
+                  key={`${song.id}-${index}`}
+                  ref={el => lineRefs.current[index] = el}
+                  className={cn(
+                      'rounded-md transition-all duration-300 text-center flex justify-center items-center',
+                      isSectionBreak ? 'h-[1.2em]' : 'min-h-[2.5rem] py-2',
+                      isHighlighted
+                      ? 'text-foreground scale-105'
+                      : 'text-muted-foreground/40',
+                      fontWeight === 400 && 'font-normal',
+                      fontWeight === 600 && 'font-semibold',
+                      fontWeight === 700 && 'font-bold'
+                  )}
+                  style={{ minHeight: isSectionBreak ? 'auto' : `calc(${fontSize}px * 1.5)`}}
+                  >
+                  {!isSectionBreak && <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} transpose={transpose} fontWeight={fontWeight} />}
+                  </li>
+              )
+              })}
+          </ul>
         </div>
-      )}
-        
-      <div ref={scrollContainerRef} className="w-full h-full relative overflow-y-auto">
-        <ul
-            className={cn(
-                "w-full px-4 md:px-12",
-                isSetlistMode ? "pt-8 pb-32" : "pt-20 pb-48 md:pb-56"
-            )}
-            style={{ fontSize: `${fontSize}px` }}
-        >
-            {song.lyrics.map((line, index) => {
-            const parsedLine = parseLyrics(line.text);
-            const hasText = parsedLine.some(p => p.text.trim() !== '');
-            const hasChords = parsedLine.some(p => p.chord);
-            
-            const isSectionHeader = line.text.startsWith('(') && line.text.endsWith(')');
-            
-            if (isSectionHeader) {
-                return (
-                    <li key={index} ref={el => lineRefs.current[index] = el} style={{ height: `calc(${fontSize}px * 0.5)` }}></li>
-                );
-            }
-
-            if (!showChords && !hasText && hasChords) {
-                return null;
-            }
-            const isSectionBreak = !hasText && !hasChords && line.text.trim() === '';
-            
-            const lineSection = sections.slice().reverse().find(s => s.index <= index);
-            const isLineInCurrentSection = lineSection?.uniqueKey === currentSection?.uniqueKey;
-
-            const isHighlighted = highlightMode !== 'none' && (
-              (highlightMode === 'line' && index === currentLineIndex) ||
-              (highlightMode === 'section' && isLineInCurrentSection)
-            );
-
-            return (
-                <li
-                key={`${song.id}-${index}`}
-                ref={el => lineRefs.current[index] = el}
-                className={cn(
-                    'rounded-md transition-all duration-300 text-center flex justify-center items-center',
-                    isSectionBreak ? 'h-[1.2em]' : 'min-h-[2.5rem] py-2',
-                    isHighlighted
-                    ? 'text-foreground scale-105'
-                    : 'text-muted-foreground/40',
-                    fontWeight === 400 && 'font-normal',
-                    fontWeight === 600 && 'font-semibold',
-                    fontWeight === 700 && 'font-bold'
-                )}
-                style={{ minHeight: isSectionBreak ? 'auto' : `calc(${fontSize}px * 1.5)`}}
-                >
-                {!isSectionBreak && <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} transpose={transpose} fontWeight={fontWeight} />}
-                </li>
-            )
-            })}
-        </ul>
-      </div>
 
 
-      <div className={cn(
-          "fixed bottom-0 left-0 right-0 pointer-events-none",
-          isSetlistMode && "bottom-16"
-      )}>
-        <div className="bg-background/50 backdrop-blur-sm pointer-events-auto p-2">
-            <div className="max-w-4xl mx-auto space-y-0 px-0">
-              <Slider
-                value={[currentTime]}
-                max={duration}
-                step={0.1}
-                onValueChange={handleSeek}
-              />
-              <div className="relative flex justify-between items-center w-full gap-2 h-16 px-2">
-                <div className="flex-1 flex justify-start">
-                    <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
-                        <Repeat />
+        <div className={cn("fixed bottom-0 left-0 right-0 pointer-events-none", isSetlistMode && "bottom-16")}>
+          <div className={cn("bg-background/50 backdrop-blur-sm pointer-events-auto p-2 pt-4 pb-4")}>
+              <div className="max-w-4xl mx-auto space-y-0 px-0">
+                <Slider
+                  value={[currentTime]}
+                  max={duration}
+                  step={0.1}
+                  onValueChange={handleSeek}
+                />
+                <div className="relative flex justify-between items-center w-full gap-2 h-16 px-2">
+                   <div className="flex-1 flex justify-start">
+                      <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
+                          <Repeat />
+                      </Button>
+                  </div>
+                  <div className="flex justify-center items-center gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => onPrevSong ? onPrevSong() : handleSkip('backward')} disabled={isSetlistMode && isPrevDisabled} aria-label="Skip Backward">
+                          <SkipBack />
+                      </Button>
+                    <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-full w-16 h-16" onClick={() => dispatch({type: 'TOGGLE_PLAY'})} aria-label={isPlaying ? "Pause" : "Play"}>
+                        {isFinished ? <Repeat className="w-8 h-8"/> : (isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>)}
                     </Button>
-                </div>
-                <div className="flex justify-center items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
-                        <SkipBack />
-                    </Button>
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-full w-16 h-16" onClick={() => dispatch({type: 'TOGGLE_PLAY'})} aria-label={isPlaying ? "Pause" : "Play"}>
-                      {isFinished ? <Repeat className="w-8 h-8"/> : (isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>)}
-                  </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
-                        <SkipForward />
-                    </Button>
-                </div>
-                <div className="flex-1 flex justify-end">
-                    <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                    <SheetTrigger asChild>
-                        <Button variant="ghost" size="icon"><Settings /></Button>
-                    </SheetTrigger>
-                    <SheetContent 
-                        side="bottom" 
-                        className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm" 
-                        showCloseButton={false}
-                        onOpenAutoFocus={(e) => e.preventDefault()}
-                    >
-                        <SheetHeader className="p-2 pb-0 text-left">
-                            <SheetTitle className="sr-only">Settings</SheetTitle>
-                        </SheetHeader>
-                        <ScrollArea className="flex-grow">
-                        <div className="p-4 space-y-4">
-                            <button onClick={() => handleOpenSubmenu(setIsDisplaySettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
-                                <div className="flex items-center gap-4">
-                                    <Text className="h-5 w-5 text-muted-foreground" />
-                                    <Label className="cursor-pointer">Display</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                </div>
-                            </button>
-                            <button onClick={() => handleOpenSubmenu(setIsChordsSettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
-                                <div className="flex items-center gap-4">
-                                    <Guitar className="h-5 w-5 text-muted-foreground" />
-                                    <Label className="cursor-pointer">Chords</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                </div>
-                            </button>
-                            <div className="flex items-center justify-between py-2">
-                                <div className="flex items-center gap-4">
-                                    <ListMusic className="h-5 w-5 text-muted-foreground" />
-                                    <Label htmlFor="show-section-nav">Navigator</Label>
-                                </div>
-                                <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
-                            </div>
-                            <div className="flex items-center justify-between py-2">
-                                <div className="flex items-center gap-4">
-                                    <Highlighter className="h-5 w-5 text-muted-foreground" />
-                                    <Label>Highlight</Label>
-                                </div>
-                                <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="flex items-center gap-1">
-                                    {HIGHLIGHT_OPTIONS.map(option => (
-                                        <Label key={option.value} className={cn("flex h-7 w-14 items-center justify-center cursor-pointer rounded-md border text-xs hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-primary/10 text-primary")}>
-                                            <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
-                                            {option.label}
-                                        </Label>
-                                    ))}
-                                </RadioGroup>
-                            </div>
-                            <div className="space-y-2 py-2">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <Clock className="h-5 w-5 text-muted-foreground" />
-                                        <Label htmlFor="bpm-slider">BPM</Label>
-                                    </div>
-                                    <span className="font-mono text-sm font-semibold">{bpm}</span>
-                                </div>
-                                <Slider
-                                    id="bpm-slider"
-                                    value={[bpm]}
-                                    onValueChange={handleBpmChange}
-                                    max={240}
-                                    min={40}
-                                    step={1}
-                                />
-                            </div>
-                            <div className="flex items-center justify-between py-2">
-                                <div className="flex items-center gap-4">
-                                    {theme === 'dark' ? <Moon className="h-5 w-5 text-muted-foreground" /> : <Sun className="h-5 w-5 text-muted-foreground" />}
-                                    <Label htmlFor="dark-mode">Theme</Label>
-                                </div>
-                                <Switch id="dark-mode" checked={theme === 'dark'} onCheckedChange={toggleTheme} />
-                            </div>
-                        </div>
-                        </ScrollArea>
-                    </SheetContent>
-                    </Sheet>
-                
+                      <Button variant="ghost" size="icon" onClick={() => onNextSong ? onNextSong() : handleSkip('forward')} disabled={isSetlistMode && isNextDisabled} aria-label="Skip Forward">
+                          <SkipForward />
+                      </Button>
+                  </div>
+                  <div className="flex-1 flex justify-end">
+                      <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                      <SheetTrigger asChild>
+                          <Button variant="ghost" size="icon"><Settings /></Button>
+                      </SheetTrigger>
+                      <SheetContent 
+                          side="bottom" 
+                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm" 
+                          showCloseButton={false}
+                          onOpenAutoFocus={(e) => e.preventDefault()}
+                      >
+                          <SheetHeader className="p-2 pb-0 text-left">
+                              <SheetTitle className="sr-only">Settings</SheetTitle>
+                          </SheetHeader>
+                          <ScrollArea className="flex-grow">
+                          <div className="p-4 space-y-4">
+                              <button onClick={() => handleOpenSubmenu(setIsDisplaySettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
+                                  <div className="flex items-center gap-4">
+                                      <Text className="h-5 w-5 text-muted-foreground" />
+                                      <Label className="cursor-pointer">Display</Label>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                  </div>
+                              </button>
+                              <button onClick={() => handleOpenSubmenu(setIsChordsSettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
+                                  <div className="flex items-center gap-4">
+                                      <Guitar className="h-5 w-5 text-muted-foreground" />
+                                      <Label className="cursor-pointer">Chords</Label>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                  </div>
+                              </button>
+                              <div className="flex items-center justify-between py-2">
+                                  <div className="flex items-center gap-4">
+                                      <ListMusic className="h-5 w-5 text-muted-foreground" />
+                                      <Label htmlFor="show-section-nav">Navigator</Label>
+                                  </div>
+                                  <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
+                              </div>
+                              <div className="flex items-center justify-between py-2">
+                                  <div className="flex items-center gap-4">
+                                      <Highlighter className="h-5 w-5 text-muted-foreground" />
+                                      <Label>Highlight</Label>
+                                  </div>
+                                  <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="flex items-center gap-1">
+                                      {HIGHLIGHT_OPTIONS.map(option => (
+                                          <Label key={option.value} className={cn("flex h-7 w-14 items-center justify-center cursor-pointer rounded-md border text-xs hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-primary/10 text-primary")}>
+                                              <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
+                                              {option.label}
+                                          </Label>
+                                      ))}
+                                  </RadioGroup>
+                              </div>
+                              <div className="space-y-2 py-2">
+                                  <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-4">
+                                          <Clock className="h-5 w-5 text-muted-foreground" />
+                                          <Label htmlFor="bpm-slider">BPM</Label>
+                                      </div>
+                                      <span className="font-mono text-sm font-semibold">{bpm}</span>
+                                  </div>
+                                  <Slider
+                                      id="bpm-slider"
+                                      value={[bpm]}
+                                      onValueChange={handleBpmChange}
+                                      max={240}
+                                      min={40}
+                                      step={1}
+                                  />
+                              </div>
+                              <div className="flex items-center justify-between py-2">
+                                  <div className="flex items-center gap-4">
+                                      {theme === 'dark' ? <Moon className="h-5 w-5 text-muted-foreground" /> : <Sun className="h-5 w-5 text-muted-foreground" />}
+                                      <Label htmlFor="dark-mode">Theme</Label>
+                                  </div>
+                                  <Switch id="dark-mode" checked={theme === 'dark'} onCheckedChange={toggleTheme} />
+                              </div>
+                          </div>
+                          </ScrollArea>
+                      </SheetContent>
+                      </Sheet>
+                  </div>
 
-                {/* Chords Settings Sheet */}
-                <Sheet open={isChordsSettingsOpen} onOpenChange={setIsChordsSettingsOpen}>
-                    <SheetContent
-                        side="bottom" 
-                        className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm"
-                        showCloseButton={false}
-                        onOpenAutoFocus={(e) => e.preventDefault()}
-                    >
-                        <SheetHeader className="p-2 pb-0 text-left">
-                            <SheetTitle className="sr-only">Chord Settings</SheetTitle>
-                            <div className="flex items-center h-[36px]">
-                                <Button variant="ghost" size="icon" onClick={() => handleCloseSubmenu(setIsChordsSettingsOpen)} className="h-8 w-8">
-                                    <ArrowLeft className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </SheetHeader>
-                        <ScrollArea className="flex-grow">
-                            <div className="p-4 space-y-4">
-                                <div className="flex items-center justify-between py-2">
-                                    <Label htmlFor="show-chords">Show Chords</Label>
-                                    <Switch id="show-chords" checked={showChords} onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })} />
-                                </div>
-                                <div className="space-y-4 pl-0">
-                                    <div className="flex items-center justify-between">
-                                        <Label className="text-muted-foreground">Key</Label>
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-bold w-12 text-center text-sm">{transpose !== 0 ? `${transpose > 0 ? '+' : ''}${transpose}` : 'Original'}</span>
-                                            <Select value={currentKey} onValueChange={handleKeyChange}>
-                                                <SelectTrigger className="w-[80px] h-8 text-xs">
-                                                    <SelectValue placeholder="Key" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {ALL_NOTES.map((note) => (
-                                                        <SelectItem key={note} value={note} className="text-xs">{note}</SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'RESET_TRANSPOSE' })} disabled={transpose === 0}>
-                                                <RotateCcw className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <Label className="text-muted-foreground">Color</Label>
-                                        <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex flex-wrap gap-2 justify-start">
-                                            {CHORD_COLOR_OPTIONS.map((option) => (
-                                                <Label key={option.value} className="cursor-pointer">
-                                                    <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
-                                                    <div className={cn("w-5 h-5 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
-                                                </Label>
-                                            ))}
-                                        </RadioGroup>
-                                    </div>
-                                </div>
-                            </div>
-                        </ScrollArea>
-                    </SheetContent>
-                </Sheet>
-                    {/* Display Settings Sheet */}
-                <Sheet open={isDisplaySettingsOpen} onOpenChange={setIsDisplaySettingsOpen}>
-                    <SheetContent
-                        side="bottom" 
-                        className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm"
-                        showCloseButton={false}
-                        onOpenAutoFocus={(e) => e.preventDefault()}
-                    >
-                        <SheetHeader className="p-2 pb-0 text-left">
-                            <SheetTitle className="sr-only">Display Settings</SheetTitle>
-                            <div className="flex items-center h-[36px]">
-                                <Button variant="ghost" size="icon" onClick={() => handleCloseSubmenu(setIsDisplaySettingsOpen)} className="h-8 w-8">
-                                    <ArrowLeft className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </SheetHeader>
-                        <ScrollArea className="flex-grow">
-                            <div className="p-4 space-y-6">
-                                <div className="space-y-2">
-                                    <Label>Font Size</Label>
-                                        <div className="flex items-center gap-2">
-                                        <Button variant="outline" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16} className="w-10 h-10"><Minus className="h-4 w-4"/></Button>
-                                        <div className="flex-grow text-center font-mono text-lg">{fontSize}px</div>
-                                        <Button variant="outline" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48} className="w-10 h-10"><Plus className="h-4 w-4"/></Button>
-                                    </div>
-                                </div>
-                                    <div className="space-y-2">
-                                    <Label>Font Weight</Label>
-                                        <RadioGroup value={fontWeight.toString()} onValueChange={(value) => dispatch({ type: 'SET_FONT_WEIGHT', payload: parseInt(value) as FontWeight })} className="grid grid-cols-3 gap-2">
-                                        {FONT_WEIGHT_OPTIONS.map(option => (
-                                            <Label key={option.value} className={cn("flex h-10 items-center justify-center cursor-pointer rounded-md border text-lg hover:bg-accent hover:text-accent-foreground", fontWeight === option.value && "border-primary bg-primary/10 text-primary")}>
-                                                <RadioGroupItem value={option.value.toString()} id={`weight-${option.value}`} className="sr-only" />
-                                                <span style={option.style}>{option.label}</span>
-                                            </Label>
-                                        ))}
-                                    </RadioGroup>
-                                </div>
-                            </div>
-                        </ScrollArea>
-                    </SheetContent>
-                </Sheet>
+              <Sheet open={isChordsSettingsOpen} onOpenChange={setIsChordsSettingsOpen}>
+                  <SheetContent
+                      side="bottom" 
+                      className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm"
+                      showCloseButton={false}
+                      onOpenAutoFocus={(e) => e.preventDefault()}
+                  >
+                      <SheetHeader className="p-2 pb-0 text-left">
+                          <SheetTitle className="sr-only">Chord Settings</SheetTitle>
+                          <div className="flex items-center h-[36px]">
+                              <Button variant="ghost" size="icon" onClick={() => handleCloseSubmenu(setIsChordsSettingsOpen)} className="h-8 w-8">
+                                  <ArrowLeft className="h-4 w-4" />
+                              </Button>
+                          </div>
+                      </SheetHeader>
+                      <ScrollArea className="flex-grow">
+                          <div className="p-4 space-y-4">
+                              <div className="flex items-center justify-between py-2">
+                                  <Label htmlFor="show-chords">Show Chords</Label>
+                                  <Switch id="show-chords" checked={showChords} onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })} />
+                              </div>
+                              <div className="space-y-4 pl-0">
+                                  <div className="flex items-center justify-between">
+                                      <Label className="text-muted-foreground">Key</Label>
+                                      <div className="flex items-center gap-2">
+                                          <span className="font-bold w-12 text-center text-sm">{transpose !== 0 ? `${transpose > 0 ? '+' : ''}${transpose}` : 'Original'}</span>
+                                          <Select value={currentKey} onValueChange={handleKeyChange}>
+                                              <SelectTrigger className="w-[80px] h-8 text-xs">
+                                                  <SelectValue placeholder="Key" />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                  {ALL_NOTES.map((note) => (
+                                                      <SelectItem key={note} value={note} className="text-xs">{note}</SelectItem>
+                                                  ))}
+                                              </SelectContent>
+                                          </Select>
+                                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'RESET_TRANSPOSE' })} disabled={transpose === 0}>
+                                              <RotateCcw className="h-4 w-4" />
+                                          </Button>
+                                      </div>
+                                  </div>
+                                  <div className="flex items-center justify-between">
+                                      <Label className="text-muted-foreground">Color</Label>
+                                      <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex flex-wrap gap-2 justify-start">
+                                          {CHORD_COLOR_OPTIONS.map((option) => (
+                                              <Label key={option.value} className="cursor-pointer">
+                                                  <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
+                                                  <div className={cn("w-5 h-5 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
+                                              </Label>
+                                          ))}
+                                      </RadioGroup>
+                                  </div>
+                              </div>
+                          </div>
+                      </ScrollArea>
+                  </SheetContent>
+              </Sheet>
+              
+              <Sheet open={isDisplaySettingsOpen} onOpenChange={setIsDisplaySettingsOpen}>
+                  <SheetContent
+                      side="bottom" 
+                      className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm"
+                      showCloseButton={false}
+                      onOpenAutoFocus={(e) => e.preventDefault()}
+                  >
+                      <SheetHeader className="p-2 pb-0 text-left">
+                          <SheetTitle className="sr-only">Display Settings</SheetTitle>
+                          <div className="flex items-center h-[36px]">
+                              <Button variant="ghost" size="icon" onClick={() => handleCloseSubmenu(setIsDisplaySettingsOpen)} className="h-8 w-8">
+                                  <ArrowLeft className="h-4 w-4" />
+                              </Button>
+                          </div>
+                      </SheetHeader>
+                      <ScrollArea className="flex-grow">
+                          <div className="p-4 space-y-6">
+                              <div className="space-y-2">
+                                  <Label>Font Size</Label>
+                                      <div className="flex items-center gap-2">
+                                      <Button variant="outline" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16} className="w-10 h-10"><Minus className="h-4 w-4"/></Button>
+                                      <div className="flex-grow text-center font-mono text-lg">{fontSize}px</div>
+                                      <Button variant="outline" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48} className="w-10 h-10"><Plus className="h-4 w-4"/></Button>
+                                  </div>
+                              </div>
+                                  <div className="space-y-2">
+                                  <Label>Font Weight</Label>
+                                      <RadioGroup value={fontWeight.toString()} onValueChange={(value) => dispatch({ type: 'SET_FONT_WEIGHT', payload: parseInt(value) as FontWeight })} className="grid grid-cols-3 gap-2">
+                                      {FONT_WEIGHT_OPTIONS.map(option => (
+                                          <Label key={option.value} className={cn("flex h-10 items-center justify-center cursor-pointer rounded-md border text-lg hover:bg-accent hover:text-accent-foreground", fontWeight === option.value && "border-primary bg-primary/10 text-primary")}>
+                                              <RadioGroupItem value={option.value.toString()} id={`weight-${option.value}`} className="sr-only" />
+                                              <span style={option.style}>{option.label}</span>
+                                          </Label>
+                                      ))}
+                                  </RadioGroup>
+                              </div>
+                          </div>
+                      </ScrollArea>
+                  </SheetContent>
+              </Sheet>
                 </div>
               </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+    </>
   );
 }
-
-    
