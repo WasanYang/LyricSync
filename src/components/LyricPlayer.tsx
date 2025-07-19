@@ -158,7 +158,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
   const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor } = state;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
-  const [currentSection, setCurrentSection] = useState<string>('');
+  const [currentSectionIndex, setCurrentSectionIndex] = useState<number>(-1);
   
   const duration = song.lyrics.length > 0 ? song.lyrics[song.lyrics.length - 1].time + 5 : 100;
 
@@ -234,17 +234,16 @@ export default function LyricPlayer({ song }: { song: Song }) {
             block: 'center'
         });
 
-        let section = '';
-        for (let i = currentLineIndex; i >= 0; i--) {
-            const line = song.lyrics[i];
-            if (line.text.startsWith('(') && line.text.endsWith(')')) {
-                section = line.text.substring(1, line.text.length - 1);
+        let sectionIdx = -1;
+        for (let i = sections.length - 1; i >= 0; i--) {
+            if (sections[i].index <= currentLineIndex) {
+                sectionIdx = i;
                 break;
             }
         }
-        setCurrentSection(section);
+        setCurrentSectionIndex(sectionIdx);
     }
-  }, [currentLineIndex, song.lyrics]);
+  }, [currentLineIndex, sections]);
 
   return (
     <div className="flex flex-col bg-background h-screen">
@@ -340,7 +339,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                     onDoubleClick={() => handleSectionJump(section.time)}
                     className={cn(
                         "text-xs font-bold py-1 px-3 rounded-full shadow-lg transition-all duration-300",
-                        section.name === currentSection 
+                        index === currentSectionIndex
                             ? "bg-primary text-primary-foreground" 
                             : "bg-muted text-muted-foreground hover:bg-muted/80"
                     )}
