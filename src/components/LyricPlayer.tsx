@@ -224,19 +224,11 @@ const ORIGINAL_SONG_KEY_NOTE = 'A'; // Assuming the original key for song ID 4 i
 interface LyricPlayerProps {
     song: Song;
     isSetlistMode?: boolean;
-    onNextSong?: () => void;
-    onPrevSong?: () => void;
-    isNextDisabled?: boolean;
-    isPrevDisabled?: boolean;
 }
 
 export default function LyricPlayer({ 
     song, 
-    isSetlistMode = false, 
-    onNextSong,
-    onPrevSong,
-    isNextDisabled,
-    isPrevDisabled,
+    isSetlistMode = false
 }: LyricPlayerProps) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
   const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, fontWeight, showChords, chordColor, highlightMode, showSectionNavigator, bpm, transpose } = state;
@@ -465,11 +457,8 @@ export default function LyricPlayer({
 
     if (currentTime >= duration && isPlaying) {
       dispatch({ type: 'FINISH' });
-      if (isSetlistMode && onNextSong) {
-          setTimeout(() => onNextSong(), 2000); // Wait 2s before going to next song
-      }
     }
-  }, [currentTime, song.lyrics, currentLineIndex, duration, isSetlistMode, onNextSong, isPlaying]);
+  }, [currentTime, song.lyrics, currentLineIndex, duration, isPlaying]);
 
 
   useEffect(() => {
@@ -577,9 +566,8 @@ export default function LyricPlayer({
       <div ref={scrollContainerRef} className="w-full h-full relative overflow-y-auto">
         <ul
             className={cn(
-                "w-full px-4 md:px-12 pb-48 md:pb-56",
-                !isSetlistMode && "pt-20",
-                isSetlistMode && "pt-8"
+                "w-full px-4 md:px-12",
+                isSetlistMode ? "pt-8 pb-32" : "pt-20 pb-48 md:pb-56"
             )}
             style={{ fontSize: `${fontSize}px` }}
         >
@@ -633,9 +621,12 @@ export default function LyricPlayer({
       </div>
 
 
-      <div className="fixed bottom-0 left-0 right-0 pointer-events-none">
+      <div className={cn(
+          "fixed bottom-0 left-0 right-0 pointer-events-none",
+          isSetlistMode && "bottom-16"
+      )}>
         <div className="bg-background/50 backdrop-blur-sm pointer-events-auto">
-            <div className="max-w-4xl mx-auto space-y-4 px-4">
+            <div className="max-w-4xl mx-auto space-y-0 px-0">
               <Slider
                 value={[currentTime]}
                 max={duration}
@@ -643,16 +634,10 @@ export default function LyricPlayer({
                 onValueChange={handleSeek}
               />
               <div className="relative flex justify-between items-center w-full gap-2 h-16">
-                <div className="flex-1 flex justify-start">
-                    {isSetlistMode ? (
-                         <Button variant="ghost" size="icon" onClick={onPrevSong} disabled={isPrevDisabled} aria-label="Previous Song">
-                            <SkipBack />
-                        </Button>
-                    ) : (
-                        <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
-                            <Repeat />
-                        </Button>
-                    )}
+                <div className="flex-1 flex justify-start pl-2">
+                    <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
+                        <Repeat />
+                    </Button>
                 </div>
                 <div className="flex justify-center items-center gap-2">
                   {!isSetlistMode && (
@@ -669,19 +654,14 @@ export default function LyricPlayer({
                     </Button>
                    )}
                 </div>
-                <div className="flex-1 flex justify-end">
-                   {isSetlistMode ? (
-                        <Button variant="ghost" size="icon" onClick={onNextSong} disabled={isNextDisabled} aria-label="Next Song">
-                            <SkipForward />
-                        </Button>
-                   ) : (
+                <div className="flex-1 flex justify-end pr-2">
                        <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                         <SheetTrigger asChild>
                           <Button variant="ghost" size="icon"><Settings /></Button>
                         </SheetTrigger>
                         <SheetContent 
                           side="bottom" 
-                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-slide-in-from-bottom data-[state=closed]:animate-slide-out-to-bottom" 
+                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" 
                           showCloseButton={false}
                           onOpenAutoFocus={(e) => e.preventDefault()}
                         >
@@ -759,14 +739,13 @@ export default function LyricPlayer({
                           </ScrollArea>
                         </SheetContent>
                       </Sheet>
-                   )}
                   
 
                   {/* Chords Settings Sheet */}
                   <Sheet open={isChordsSettingsOpen} onOpenChange={setIsChordsSettingsOpen}>
                       <SheetContent
                           side="bottom" 
-                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-slide-in-from-bottom data-[state=closed]:animate-slide-out-to-bottom"
+                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
                           showCloseButton={false}
                           onOpenAutoFocus={(e) => e.preventDefault()}
                       >
@@ -824,7 +803,7 @@ export default function LyricPlayer({
                   <Sheet open={isDisplaySettingsOpen} onOpenChange={setIsDisplaySettingsOpen}>
                       <SheetContent
                           side="bottom" 
-                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-slide-in-from-bottom data-[state=closed]:animate-slide-out-to-bottom"
+                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
                           showCloseButton={false}
                           onOpenAutoFocus={(e) => e.preventDefault()}
                       >
