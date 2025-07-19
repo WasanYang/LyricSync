@@ -453,13 +453,13 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
       dispatch({ type: 'SET_LINE', payload: finalIndex });
     }
 
-    if (currentTime >= duration) {
+    if (currentTime >= duration && isPlaying) {
       dispatch({ type: 'FINISH' });
       if (isSetlistMode && onNextSong) {
-          onNextSong();
+          setTimeout(() => onNextSong(), 2000); // Wait 2s before going to next song
       }
     }
-  }, [currentTime, song.lyrics, currentLineIndex, duration, isSetlistMode, onNextSong]);
+  }, [currentTime, song.lyrics, currentLineIndex, duration, isSetlistMode, onNextSong, isPlaying]);
 
 
   useEffect(() => {
@@ -497,7 +497,7 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
   return (
     <div className="flex flex-col bg-background h-screen overflow-hidden">
       { !isSetlistMode && (
-         <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm shadow-lg shadow-black/5 dark:shadow-black/20 pointer-events-auto">
+         <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm shadow-sm pointer-events-auto">
             <div className="relative container mx-auto flex items-center justify-between h-14">
             <div className="flex-1 flex justify-start">
                 <Button asChild variant="ghost" size="icon">
@@ -513,6 +513,7 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
             </div>
             
             <div className="flex-1 flex justify-end items-center gap-0">
+               {/* Placeholder for actions */}
             </div>
             </div>
         </header>
@@ -566,8 +567,8 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
       <div ref={scrollContainerRef} className="w-full h-full relative overflow-y-auto">
         <ul
             className={cn(
-                "w-full px-12 pt-32 pb-48",
-                 isSetlistMode && "pt-12 pb-56"
+                "w-full px-4 md:px-12 pt-20 pb-48 md:pb-56",
+                 isSetlistMode && "pt-12"
             )}
             style={{ fontSize: `${fontSize}px` }}
         >
@@ -622,10 +623,10 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
 
 
       <div className={cn(
-          "fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm shadow-lg shadow-black/5 dark:shadow-black/20 pointer-events-auto",
-          isSetlistMode && "bottom-[88px] xl:bottom-[96px]"
+          "fixed bottom-0 left-0 right-0 p-4 bg-transparent pointer-events-none",
+          isSetlistMode && "bottom-24 md:bottom-0"
           )}>
-        <div className="max-w-4xl mx-auto space-y-4">
+        <div className="max-w-4xl mx-auto space-y-4 pointer-events-auto">
             <Slider
               value={[currentTime]}
               max={duration}
@@ -644,7 +645,7 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
                     <SkipBack />
                 </Button>
                 <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-full w-16 h-16" onClick={() => dispatch({type: 'TOGGLE_PLAY'})} aria-label={isPlaying ? "Pause" : "Play"}>
-                    {isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>}
+                    {isFinished ? <Repeat className="w-8 h-8"/> : (isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>)}
                 </Button>
                 <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
                     <SkipForward />
@@ -658,7 +659,7 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
                   </SheetTrigger>
                   <SheetContent 
                     side="bottom" 
-                    className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1 bg-black text-white dark:bg-white dark:text-black border-none" 
+                    className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm" 
                     showCloseButton={false}
                     onOpenAutoFocus={(e) => e.preventDefault()}
                   >
@@ -739,7 +740,7 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
                 <Sheet open={isChordsSettingsOpen} onOpenChange={setIsChordsSettingsOpen}>
                     <SheetContent
                         side="bottom" 
-                        className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1 bg-black text-white dark:bg-white dark:text-black border-none" 
+                        className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm" 
                         showCloseButton={false}
                         onOpenAutoFocus={(e) => e.preventDefault()}
                     >
@@ -797,7 +798,7 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
                 <Sheet open={isDisplaySettingsOpen} onOpenChange={setIsDisplaySettingsOpen}>
                     <SheetContent
                         side="bottom" 
-                        className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1 bg-black text-white dark:bg-white dark:text-black border-none" 
+                        className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm"
                         showCloseButton={false}
                         onOpenAutoFocus={(e) => e.preventDefault()}
                     >
