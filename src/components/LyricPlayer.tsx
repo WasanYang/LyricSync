@@ -516,7 +516,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
             {/* Chords Settings Sub-View */}
             <div className="w-full flex-shrink-0 px-1 space-y-4">
-              <div className="flex items-center justify-between py-2 border-b">
+              <div className="flex items-center py-2">
                 <Button variant="ghost" size="sm" onClick={() => setSettingsView('main')} className="pl-0">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
@@ -724,7 +724,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                   </SheetTrigger>
                   <SheetContent 
                     side="bottom" 
-                    className="p-0 flex flex-col max-h-[80vh] rounded-t-lg" 
+                    className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1" 
                     showCloseButton={false}
                     onOpenAutoFocus={(e) => e.preventDefault()}
                     onCloseAutoFocus={() => setSettingsView('main')}
