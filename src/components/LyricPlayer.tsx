@@ -199,12 +199,13 @@ export default function LyricPlayer({ song }: { song: Song }) {
   // Drag and drop state for section navigator
   const navigatorRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [position, setPosition] = useState({ x: 16, y: 150 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     // Set initial position on client-side to avoid hydration mismatch
-    setPosition({ x: 16, y: window.innerHeight / 2 - 150 });
+    const navigatorHeight = navigatorRef.current?.clientHeight ?? 300;
+    setPosition({ x: 16, y: window.innerHeight / 2 - navigatorHeight / 2 });
   }, []);
 
   const handleDragMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
@@ -420,7 +421,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
         </SheetHeader>
         
         <div className="flex-grow relative">
-          <div className={cn("absolute inset-0 transition-transform duration-300", settingsView !== 'main' ? "-translate-x-full" : "translate-x-0")}>
+          <div className={cn("absolute inset-0 transition-transform duration-300 transform-gpu", settingsView !== 'main' ? "-translate-x-full" : "translate-x-0")}>
             <ScrollArea className="h-full">
               <div className="p-4 space-y-2">
                 <button onClick={() => setSettingsView('display')} className="w-full flex items-center justify-between p-3 text-left hover:bg-accent rounded-lg">
@@ -441,7 +442,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
             </ScrollArea>
           </div>
           
-          <div className={cn("absolute inset-0 transition-transform duration-300", settingsView === 'main' ? "translate-x-full" : "translate-x-0")}>
+          <div className={cn("absolute inset-0 transition-transform duration-300 transform-gpu", settingsView === 'main' ? "translate-x-full" : "translate-x-0")}>
             <ScrollArea className="h-full">
               {settingsView === 'display' && (
                 <div className="p-4 space-y-4">
