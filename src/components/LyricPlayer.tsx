@@ -469,10 +469,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                   <Guitar className="h-5 w-5 text-muted-foreground" />
                   <Label className="font-normal cursor-pointer">Chords</Label>
                 </div>
-                  <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">{showChords ? 'On' : 'Off'}</span>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </button>
               
               <div className="flex items-center justify-between py-2">
@@ -491,13 +488,13 @@ export default function LyricPlayer({ song }: { song: Song }) {
               </div>
               
               <div className="space-y-2 py-2">
-                    <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Clock className="h-5 w-5 text-muted-foreground" />
-                        <Label htmlFor="bpm-slider" className="font-normal">BPM</Label>
-                    </div>
-                    <span className="font-mono text-sm font-semibold">{bpm}</span>
-                    </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <Clock className="h-5 w-5 text-muted-foreground" />
+                    <Label htmlFor="bpm-slider" className="font-normal">BPM</Label>
+                  </div>
+                  <span className="font-mono text-sm font-semibold">{bpm}</span>
+                </div>
                 <Slider
                   id="bpm-slider"
                   value={[bpm]}
@@ -519,14 +516,12 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
             {/* Chords Settings Sub-View */}
             <div className="w-full flex-shrink-0 px-4 space-y-4">
-                <div className="flex items-center justify-between py-2 border-b">
+              <div className="flex items-center justify-between py-2 border-b">
                 <Button variant="ghost" size="sm" onClick={() => setSettingsView('main')} className="pl-0">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
-                <h3 className="font-medium">Chords</h3>
-                <div className="w-16"></div>
-                </div>
+              </div>
               
               <div className="flex items-center justify-between py-2">
                 <Label htmlFor="show-chords" className="font-normal">Show Chords</Label>
@@ -538,7 +533,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                   <Label className="font-normal text-muted-foreground">Key</Label>
                   <div className="flex items-center gap-2">
                     <span className="font-bold w-12 text-center text-sm">{transpose !== 0 ? `${transpose > 0 ? '+' : ''}${transpose}` : 'Original'}</span>
-                      <Select value={currentKey} onValueChange={handleKeyChange}>
+                    <Select value={currentKey} onValueChange={handleKeyChange}>
                       <SelectTrigger className="w-[80px] h-8 text-xs">
                         <SelectValue placeholder="Key" />
                       </SelectTrigger>
