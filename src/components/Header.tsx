@@ -46,57 +46,19 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center justify-between px-4">
-        {/* Title & Desktop Menu */}
+        {/* Title */}
         <div className="flex items-center">
-            {/* Desktop Menu */}
-            <div className="hidden lg:flex items-center">
-                <Link href="/" className="mr-6 flex items-center space-x-2">
-                  <Music className="h-6 w-6 text-primary" />
-                  <span className="font-bold font-headline text-lg">Rhythmic Reads</span>
-                </Link>
-                <nav className="flex items-center space-x-4 lg:space-x-6">
-                  {navLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className={cn(
-                        'text-sm font-medium transition-colors hover:text-primary',
-                        pathname === link.href ? 'text-primary' : 'text-muted-foreground'
-                      )}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                </nav>
-            </div>
-
-            {/* Mobile & Tablet Title */}
-             <div className="lg:hidden">
-                 <Link href="/" className="flex items-center space-x-2">
-                    <Music className="h-6 w-6 text-primary" />
-                    <span className="font-bold font-headline text-lg">Rhythmic Reads</span>
-                </Link>
-            </div>
+             <Link href="/" className="flex items-center space-x-2">
+                <Music className="h-6 w-6 text-primary" />
+                <span className="font-bold font-headline text-lg">Rhythmic Reads</span>
+            </Link>
         </div>
 
 
         {/* Right side actions */}
         <div className="flex items-center justify-end space-x-2">
-           <div className="hidden lg:block">
-             <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                aria-label="Toggle theme"
-              >
-                <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                <span className="sr-only">Toggle theme</span>
-              </Button>
-           </div>
-
            {/* Mobile & Tablet Menu */}
-           <div className="lg:hidden">
+           <div>
              <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon">
