@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { getSongs, type Song } from '@/lib/songs';
+import { saveSetlist } from '@/lib/db';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -80,7 +81,7 @@ export default function SetlistCreator() {
   };
 
 
-  function onSubmit(data: SetlistFormValues) {
+  async function handleSaveSetlist(data: SetlistFormValues) {
     if (selectedSongs.length === 0) {
       toast({
         title: 'Empty Setlist',
@@ -90,20 +91,35 @@ export default function SetlistCreator() {
       return;
     }
     
-    console.log({
-      title: data.title,
-      songs: selectedSongs.map(s => s.id),
-    });
-    
-    toast({
-      title: 'Setlist Saved (Simulated)',
-      description: `"${data.title}" with ${selectedSongs.length} songs has been saved.`,
-    });
+    try {
+      await saveSetlist({
+        id: Date.now().toString(),
+        title: data.title,
+        songIds: selectedSongs.map(s => s.id),
+      });
+      
+      toast({
+        title: 'Setlist Saved',
+        description: `"${data.title}" has been saved successfully.`,
+      });
+
+      // Reset form and state
+      form.reset();
+      setSelectedSongs([]);
+
+    } catch (error) {
+       toast({
+        title: 'Error',
+        description: 'Could not save the setlist.',
+        variant: 'destructive',
+      });
+      console.error('Failed to save setlist:', error);
+    }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-2xl mx-auto h-full flex flex-col">
+      <form onSubmit={form.handleSubmit(handleSaveSetlist)} className="space-y-8 max-w-2xl mx-auto h-full flex flex-col">
         
         <div className="space-y-2">
             <FormField
@@ -113,7 +129,7 @@ export default function SetlistCreator() {
                 <FormItem>
                   <FormLabel className="sr-only">Setlist Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="Setlist Name (e.g. Acoustic Evening)" {...field} className="text-2xl font-bold p-0 h-auto border-0 focus-visible:ring-0 focus-visible:ring-offset-0" />
+                    <Input placeholder="Setlist Name" {...field} className="text-2xl font-bold p-0 h-auto border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
