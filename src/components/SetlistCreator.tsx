@@ -107,11 +107,7 @@ export default function SetlistCreator() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-2xl mx-auto">
         
         <Card>
-          <CardHeader>
-            <CardTitle className="font-headline">Setlist Name</CardTitle>
-            <CardDescription>Give your setlist a unique name.</CardDescription>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="p-4">
             <FormField
               control={form.control}
               name="title"
@@ -119,7 +115,7 @@ export default function SetlistCreator() {
                 <FormItem>
                   <FormLabel className="sr-only">Setlist Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Acoustic Evening, Rock Anthems..." {...field} />
+                    <Input placeholder="Setlist Name (e.g. Acoustic Evening)" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -137,9 +133,8 @@ export default function SetlistCreator() {
                   </div>
                   <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add
+                      <Button variant="outline" size="icon">
+                        <PlusCircle className="h-4 w-4" />
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[300px] p-0" align="end">
