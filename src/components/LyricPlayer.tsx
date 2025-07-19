@@ -242,6 +242,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
           const parsedLine = parseLyrics(line.text);
           const hasText = parsedLine.some(p => p.text.trim() !== '');
           const hasChords = parsedLine.some(p => p.chord);
+          const isSectionBreak = !hasText && !hasChords;
 
           if (!showChords && !hasText && hasChords) {
             return null;
@@ -253,14 +254,13 @@ export default function LyricPlayer({ song }: { song: Song }) {
               ref={el => lineRefs.current[index] = el}
               className={cn(
                 'rounded-md transition-all duration-300 text-center font-bold flex justify-center items-center',
-                'min-h-[2.5rem]',
-                'py-2', 
+                isSectionBreak ? 'h-[1em]' : 'min-h-[2.5rem] py-2',
                 index === currentLineIndex
                   ? 'text-foreground scale-105'
                   : 'text-muted-foreground/50'
               )}
             >
-               <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} />
+               {!isSectionBreak && <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} />}
             </li>
           )
         })}
