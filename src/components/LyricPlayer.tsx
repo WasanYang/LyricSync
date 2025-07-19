@@ -225,9 +225,19 @@ interface LyricPlayerProps {
     song: Song;
     isSetlistMode?: boolean;
     onNextSong?: () => void;
+    onPrevSong?: () => void;
+    isNextDisabled?: boolean;
+    isPrevDisabled?: boolean;
 }
 
-export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }: LyricPlayerProps) {
+export default function LyricPlayer({ 
+    song, 
+    isSetlistMode = false, 
+    onNextSong,
+    onPrevSong,
+    isNextDisabled,
+    isPrevDisabled,
+}: LyricPlayerProps) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
   const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, fontWeight, showChords, chordColor, highlightMode, showSectionNavigator, bpm, transpose } = state;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -623,11 +633,8 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
       </div>
 
 
-      <div className={cn(
-          "fixed bottom-0 left-0 right-0 pointer-events-none",
-          isSetlistMode && "bottom-16" // Pushed up by SetlistControls
-          )}>
-        <div className="bg-background/50 backdrop-blur-sm pt-4 pointer-events-auto">
+      <div className="fixed bottom-0 left-0 right-0 pointer-events-none">
+        <div className="bg-background/50 backdrop-blur-sm pointer-events-auto">
             <div className="max-w-4xl mx-auto space-y-4 px-4">
               <Slider
                 value={[currentTime]}
@@ -637,114 +644,129 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
               />
               <div className="relative flex justify-between items-center w-full gap-2 h-16">
                 <div className="flex-1 flex justify-start">
-                    <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
-                        <Repeat />
-                    </Button>
+                    {isSetlistMode ? (
+                         <Button variant="ghost" size="icon" onClick={onPrevSong} disabled={isPrevDisabled} aria-label="Previous Song">
+                            <SkipBack />
+                        </Button>
+                    ) : (
+                        <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
+                            <Repeat />
+                        </Button>
+                    )}
                 </div>
                 <div className="flex justify-center items-center gap-2">
-                  
-                  <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
-                      <SkipBack />
-                  </Button>
+                  {!isSetlistMode && (
+                    <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
+                        <SkipBack />
+                    </Button>
+                  )}
                   <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-full w-16 h-16" onClick={() => dispatch({type: 'TOGGLE_PLAY'})} aria-label={isPlaying ? "Pause" : "Play"}>
                       {isFinished ? <Repeat className="w-8 h-8"/> : (isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>)}
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
-                      <SkipForward />
-                  </Button>
-                   
+                   {!isSetlistMode && (
+                    <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
+                        <SkipForward />
+                    </Button>
+                   )}
                 </div>
                 <div className="flex-1 flex justify-end">
-                   <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                    <SheetTrigger asChild>
-                      <Button variant="ghost" size="icon"><Settings /></Button>
-                    </SheetTrigger>
-                    <SheetContent 
-                      side="bottom" 
-                      className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm" 
-                      showCloseButton={false}
-                      onOpenAutoFocus={(e) => e.preventDefault()}
-                    >
-                      <SheetHeader className="p-2 pb-0 text-left">
-                          <SheetTitle className="sr-only">Settings</SheetTitle>
-                      </SheetHeader>
-                      <ScrollArea className="flex-grow">
-                        <div className="p-4 space-y-4">
-                            <button onClick={() => handleOpenSubmenu(setIsDisplaySettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
-                                <div className="flex items-center gap-4">
-                                    <Text className="h-5 w-5 text-muted-foreground" />
-                                    <Label className="cursor-pointer">Display</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                </div>
-                            </button>
-                            <button onClick={() => handleOpenSubmenu(setIsChordsSettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
-                                <div className="flex items-center gap-4">
-                                    <Guitar className="h-5 w-5 text-muted-foreground" />
-                                    <Label className="cursor-pointer">Chords</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                </div>
-                            </button>
-                            {!isSetlistMode && (
+                   {isSetlistMode ? (
+                        <Button variant="ghost" size="icon" onClick={onNextSong} disabled={isNextDisabled} aria-label="Next Song">
+                            <SkipForward />
+                        </Button>
+                   ) : (
+                       <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                        <SheetTrigger asChild>
+                          <Button variant="ghost" size="icon"><Settings /></Button>
+                        </SheetTrigger>
+                        <SheetContent 
+                          side="bottom" 
+                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-slide-in-from-bottom data-[state=closed]:animate-slide-out-to-bottom" 
+                          showCloseButton={false}
+                          onOpenAutoFocus={(e) => e.preventDefault()}
+                        >
+                          <SheetHeader className="p-2 pb-0 text-left">
+                              <SheetTitle className="sr-only">Settings</SheetTitle>
+                          </SheetHeader>
+                          <ScrollArea className="flex-grow">
+                            <div className="p-4 space-y-4">
+                                <button onClick={() => handleOpenSubmenu(setIsDisplaySettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
+                                    <div className="flex items-center gap-4">
+                                        <Text className="h-5 w-5 text-muted-foreground" />
+                                        <Label className="cursor-pointer">Display</Label>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                </button>
+                                <button onClick={() => handleOpenSubmenu(setIsChordsSettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
+                                    <div className="flex items-center gap-4">
+                                        <Guitar className="h-5 w-5 text-muted-foreground" />
+                                        <Label className="cursor-pointer">Chords</Label>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                </button>
+                                {!isSetlistMode && (
+                                    <div className="flex items-center justify-between py-2">
+                                        <div className="flex items-center gap-4">
+                                            <ListMusic className="h-5 w-5 text-muted-foreground" />
+                                            <Label htmlFor="show-section-nav">Navigator</Label>
+                                        </div>
+                                        <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
+                                    </div>
+                                )}
                                 <div className="flex items-center justify-between py-2">
                                     <div className="flex items-center gap-4">
-                                        <ListMusic className="h-5 w-5 text-muted-foreground" />
-                                        <Label htmlFor="show-section-nav">Navigator</Label>
+                                        <Highlighter className="h-5 w-5 text-muted-foreground" />
+                                        <Label>Highlight</Label>
                                     </div>
-                                    <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
+                                    <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="flex items-center gap-1">
+                                        {HIGHLIGHT_OPTIONS.map(option => (
+                                            <Label key={option.value} className={cn("flex h-7 w-14 items-center justify-center cursor-pointer rounded-md border text-xs hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-primary/10 text-primary")}>
+                                                <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
+                                                {option.label}
+                                            </Label>
+                                        ))}
+                                    </RadioGroup>
                                 </div>
-                            )}
-                            <div className="flex items-center justify-between py-2">
-                                <div className="flex items-center gap-4">
-                                    <Highlighter className="h-5 w-5 text-muted-foreground" />
-                                    <Label>Highlight</Label>
+                                <div className="space-y-2 py-2">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <Clock className="h-5 w-5 text-muted-foreground" />
+                                            <Label htmlFor="bpm-slider">BPM</Label>
+                                        </div>
+                                        <span className="font-mono text-sm font-semibold">{bpm}</span>
+                                    </div>
+                                    <Slider
+                                        id="bpm-slider"
+                                        value={[bpm]}
+                                        onValueChange={handleBpmChange}
+                                        max={240}
+                                        min={40}
+                                        step={1}
+                                    />
                                 </div>
-                                <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="flex items-center gap-1">
-                                    {HIGHLIGHT_OPTIONS.map(option => (
-                                        <Label key={option.value} className={cn("flex h-7 w-14 items-center justify-center cursor-pointer rounded-md border text-xs hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-primary/10 text-primary")}>
-                                            <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
-                                            {option.label}
-                                        </Label>
-                                    ))}
-                                </RadioGroup>
-                            </div>
-                            <div className="space-y-2 py-2">
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between py-2">
                                     <div className="flex items-center gap-4">
-                                        <Clock className="h-5 w-5 text-muted-foreground" />
-                                        <Label htmlFor="bpm-slider">BPM</Label>
+                                        {theme === 'dark' ? <Moon className="h-5 w-5 text-muted-foreground" /> : <Sun className="h-5 w-5 text-muted-foreground" />}
+                                        <Label htmlFor="dark-mode">Theme</Label>
                                     </div>
-                                    <span className="font-mono text-sm font-semibold">{bpm}</span>
+                                    <Switch id="dark-mode" checked={theme === 'dark'} onCheckedChange={toggleTheme} />
                                 </div>
-                                <Slider
-                                    id="bpm-slider"
-                                    value={[bpm]}
-                                    onValueChange={handleBpmChange}
-                                    max={240}
-                                    min={40}
-                                    step={1}
-                                />
                             </div>
-                            <div className="flex items-center justify-between py-2">
-                                <div className="flex items-center gap-4">
-                                    {theme === 'dark' ? <Moon className="h-5 w-5 text-muted-foreground" /> : <Sun className="h-5 w-5 text-muted-foreground" />}
-                                    <Label htmlFor="dark-mode">Theme</Label>
-                                </div>
-                                <Switch id="dark-mode" checked={theme === 'dark'} onCheckedChange={toggleTheme} />
-                            </div>
-                        </div>
-                      </ScrollArea>
-                    </SheetContent>
-                  </Sheet>
+                          </ScrollArea>
+                        </SheetContent>
+                      </Sheet>
+                   )}
+                  
 
                   {/* Chords Settings Sheet */}
                   <Sheet open={isChordsSettingsOpen} onOpenChange={setIsChordsSettingsOpen}>
                       <SheetContent
                           side="bottom" 
-                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm" 
+                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-slide-in-from-bottom data-[state=closed]:animate-slide-out-to-bottom"
                           showCloseButton={false}
                           onOpenAutoFocus={(e) => e.preventDefault()}
                       >
@@ -802,7 +824,7 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
                   <Sheet open={isDisplaySettingsOpen} onOpenChange={setIsDisplaySettingsOpen}>
                       <SheetContent
                           side="bottom" 
-                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm"
+                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-slide-in-from-bottom data-[state=closed]:animate-slide-out-to-bottom"
                           showCloseButton={false}
                           onOpenAutoFocus={(e) => e.preventDefault()}
                       >

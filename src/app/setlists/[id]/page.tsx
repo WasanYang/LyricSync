@@ -10,11 +10,10 @@ import { getSongById } from '@/lib/songs';
 import { ALL_NOTES } from '@/lib/chords';
 
 import LyricPlayer from '@/components/LyricPlayer';
-import SetlistControls from '@/components/SetlistControls';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, Music, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const ORIGINAL_SONG_KEY_NOTE = 'A'; // This should ideally be part of song data
@@ -121,19 +120,21 @@ export default function SetlistPlayerPage() {
                             <p className="text-xs sm:text-sm text-muted-foreground">{`Song ${currentIndex + 1} of ${songs.length}`}</p>
                         </div>
                     </div>
-                    {nextSong && (
-                        <div className="flex items-center gap-1 sm:gap-2 pl-2 sm:pl-4 bg-muted/50 p-1 sm:p-2 rounded-lg">
-                            <div className="min-w-0 text-right">
-                                <p className="hidden xs:block text-xs text-muted-foreground font-semibold leading-tight">UP NEXT</p>
-                                <p className="font-bold truncate leading-tight text-xs sm:text-sm max-w-[100px] sm:max-w-none">{nextSong.title}</p>
-                            </div>
+                    
+                    <div className="flex items-center gap-1 sm:gap-2 pl-2 sm:pl-4 bg-muted/50 p-1 sm:p-2 rounded-lg">
+                        <div className="min-w-0 text-right">
+                            <p className="hidden xs:block text-xs text-muted-foreground font-semibold leading-tight">UP NEXT</p>
+                            <p className="font-bold truncate leading-tight text-xs sm:text-sm max-w-[100px] sm:max-w-none">{nextSong ? nextSong.title : 'End of list'}</p>
+                        </div>
+                        {nextSong && (
                             <div className="flex-shrink-0 bg-background text-foreground rounded-md p-1 text-center shadow">
                                 <p className="text-[10px] font-bold leading-tight opacity-70">KEY</p>
                                 <p className="text-sm sm:text-base font-bold leading-tight">{getTransposedKey(transpose)}</p>
                             </div>
-                            <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0"/>
-                        </div>
-                    )}
+                        )}
+                        <ChevronRight className={cn("h-5 w-5 text-muted-foreground flex-shrink-0", !nextSong && "opacity-0")}/>
+                    </div>
+                   
                 </div>
                  <div className="w-full text-center mt-2">
                      <p className="text-sm font-semibold truncate">{currentSong.title}</p>
@@ -146,15 +147,12 @@ export default function SetlistPlayerPage() {
                 song={currentSong} 
                 isSetlistMode={true}
                 onNextSong={handleNextSong}
+                onPrevSong={handlePrevSong}
+                isNextDisabled={currentIndex === songs.length - 1}
+                isPrevDisabled={currentIndex === 0}
             />
         </div>
         
-        <SetlistControls
-            onNext={handleNextSong}
-            onPrev={handlePrevSong}
-            isNextDisabled={currentIndex === songs.length - 1}
-            isPrevDisabled={currentIndex === 0}
-        />
       </div>
     );
 }
