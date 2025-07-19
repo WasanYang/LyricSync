@@ -164,6 +164,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
   const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor, highlightMode } = state;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
   const [currentSectionIndex, setCurrentSectionIndex] = useState<number>(-1);
   
@@ -258,10 +259,16 @@ export default function LyricPlayer({ song }: { song: Song }) {
   useEffect(() => {
     if (highlightMode !== 'none') {
         const activeLine = lineRefs.current[currentLineIndex];
-        if (activeLine) {
-            activeLine.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
+        const container = scrollContainerRef.current;
+        if (activeLine && container) {
+            const containerRect = container.getBoundingClientRect();
+            const lineRect = activeLine.getBoundingClientRect();
+            
+            const desiredScrollTop = activeLine.offsetTop - (container.clientHeight / 2) + (activeLine.clientHeight / 2);
+
+            container.scrollTo({
+                top: desiredScrollTop,
+                behavior: 'smooth'
             });
         }
     }
@@ -397,7 +404,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
       </div>
         
       {/* Lyrics Scroll Area */}
-      <div className="w-full h-full relative overflow-y-auto">
+      <div ref={scrollContainerRef} className="w-full h-full relative overflow-y-auto">
         <ul
             className="w-full px-12 pt-32 pb-56"
             style={{ fontSize: `${fontSize}px` }}
