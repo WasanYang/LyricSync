@@ -1,4 +1,3 @@
-
 // src/components/SongCreator.tsx
 'use client';
 
@@ -47,8 +46,11 @@ const parseLyricsFromString = (lyricString: string): LyricLine[] => {
   return lyricString
     .split('\n')
     .map(line => line.trim())
-    .filter(line => line)
+    // .filter(line => line) // Allow empty lines for spacing
     .map(line => {
+      if (line === '') {
+          return { time: 0, text: '' };
+      }
       const parts = line.split('|');
       if (parts.length < 2) {
         return { time: 0, text: line };
@@ -61,6 +63,15 @@ const parseLyricsFromString = (lyricString: string): LyricLine[] => {
 };
 
 const TIME_SIGNATURES = ["4/4", "3/4", "2/4", "6/8", "2/2", "3/2", "5/4", "7/4", "12/8"];
+
+const lyricsPlaceholder = `0 | (Intro)
+2 | [Am] [G] [C] [F]
+10 | 
+11 | [Am]In the quiet of the [G]night,
+15 | A single [C]star begins to [F]glow,
+27 | 
+28 | (Chorus)
+29 | We're just [C]echoes in the [G]starlight,`;
 
 export default function SongCreator() {
   const { toast } = useToast();
@@ -218,7 +229,7 @@ export default function SongCreator() {
               <FormLabel>Lyrics & Chords</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Enter lyrics with timestamps and chords..."
+                  placeholder={lyricsPlaceholder}
                   className="flex-grow text-sm font-mono resize-none"
                   {...field}
                 />
