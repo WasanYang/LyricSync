@@ -629,7 +629,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                   </SheetTrigger>
                   <SheetContent 
                     side="bottom" 
-                    className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1 bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground" 
+                    className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1 bg-background text-foreground dark:bg-background dark:text-foreground border-none" 
                     showCloseButton={false}
                     onOpenAutoFocus={(e) => e.preventDefault()}
                   >
@@ -710,7 +710,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 <Sheet open={isChordsSettingsOpen} onOpenChange={setIsChordsSettingsOpen}>
                     <SheetContent
                         side="bottom" 
-                        className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1 bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground" 
+                        className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1 bg-background text-foreground dark:bg-background dark:text-foreground border-none" 
                         showCloseButton={false}
                         onOpenAutoFocus={(e) => e.preventDefault()}
                     >
@@ -768,7 +768,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 <Sheet open={isDisplaySettingsOpen} onOpenChange={setIsDisplaySettingsOpen}>
                     <SheetContent
                         side="bottom" 
-                        className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1 bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground" 
+                        className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1 bg-background text-foreground dark:bg-background dark:text-foreground border-none" 
                         showCloseButton={false}
                         onOpenAutoFocus={(e) => e.preventDefault()}
                     >
