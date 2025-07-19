@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 export const metadata: Metadata = {
   title: 'Rhythmic Reads',
@@ -23,10 +24,17 @@ export default function RootLayout({
         <meta name="theme-color" content="#9400D3" />
       </head>
       <body className={cn('font-body antialiased min-h-screen flex flex-col bg-background')}>
-        <div className="w-full max-w-[768px] mx-auto flex-grow flex flex-col">
-          {children}
-        </div>
-        <Toaster />
+         <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <div className="w-full max-w-[768px] mx-auto flex-grow flex flex-col">
+              {children}
+            </div>
+            <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Music, Menu, LogIn, Home, Search, PlusSquare } from 'lucide-react';
+import { Music, Menu, LogIn, Home, Search, PlusSquare, Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,8 @@ import {
   SheetClose,
 } from '@/components/ui/sheet';
 import { Separator } from './ui/separator';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 
 const navLinks = [
   { href: '/', label: 'Home', icon: Home },
@@ -24,6 +26,17 @@ const navLinks = [
 
 export default function Header() {
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -106,7 +119,15 @@ export default function Header() {
                        </a>
                        <div className="flex items-center justify-between rounded-md px-3 py-2 text-base font-medium text-muted-foreground">
                            <span>Theme</span>
-                           <ThemeToggle />
+                           {mounted && (
+                            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
+                              {theme === 'light' ? (
+                                <Sun className="h-[1.2rem] w-[1.2rem] transition-all" />
+                              ) : (
+                                <Moon className="h-[1.2rem] w-[1.2rem] transition-all" />
+                              )}
+                            </Button>
+                           )}
                         </div>
                   </div>
                 </SheetContent>
