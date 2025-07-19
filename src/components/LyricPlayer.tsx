@@ -46,7 +46,7 @@ const initialState: State = {
   currentTime: 0,
   currentLineIndex: -1,
   isFinished: false,
-  fontSize: 24,
+  fontSize: 16,
   showChords: true,
   chordColor: 'hsl(var(--chord-color))',
 };
@@ -243,13 +243,15 @@ export default function LyricPlayer({ song }: { song: Song }) {
     <div className="flex flex-col bg-background h-screen">
       {/* Header Info */}
       <header className="fixed top-0 left-0 right-0 z-10 p-4 bg-background/80 backdrop-blur-sm pointer-events-auto">
-        <div className="container mx-auto flex items-center justify-between">
-           <Button asChild variant="ghost" size="icon">
-            <Link href="/">
-              <ArrowLeft />
-              <span className="sr-only">Back to Home</span>
-            </Link>
-          </Button>
+        <div className="relative container mx-auto flex items-center justify-center h-10">
+           <div className="absolute left-0">
+             <Button asChild variant="ghost" size="icon">
+              <Link href="/">
+                <ArrowLeft />
+                <span className="sr-only">Back to Home</span>
+              </Link>
+            </Button>
+           </div>
 
           <div className="text-center">
               <h1 className="font-headline text-xl font-bold truncate">{song.title}</h1>
@@ -261,7 +263,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
               </p>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="absolute right-0 flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16}><Minus className="h-4 w-4"/></Button>
             <span className="font-mono text-xs w-6 text-center">{fontSize}</span>
             <Button variant="ghost" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48}><Plus className="h-4 w-4"/></Button>
