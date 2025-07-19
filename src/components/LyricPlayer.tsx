@@ -411,7 +411,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                           "text-xs font-bold py-1 px-3 rounded-full shadow-lg transition-all duration-300",
                           index === currentSectionIndex
                               ? "bg-primary text-primary-foreground" 
-                              : "bg-muted text-muted-foreground/50 hover:bg-muted/80 hover:text-muted-foreground"
+                              : "bg-background/40 backdrop-blur-sm text-muted-foreground/60 hover:bg-muted/80 hover:text-muted-foreground"
                       )}
                   >
                       {section.name}
