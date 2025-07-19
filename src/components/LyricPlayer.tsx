@@ -239,12 +239,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
   };
 
   useEffect(() => {
-    const handleResize = () => {
-        setPosition({ x: 16, y: 150 });
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    setPosition({ x: 16, y: 150 });
   }, []);
 
   const handleDragMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
@@ -459,7 +454,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                     style={{ transform: `translateX(${settingsView === 'main' ? '0%' : '-50%'})` }}
                 >
                     {/* Main Settings View */}
-                    <div className="w-1/2 p-4 pt-0 space-y-4 font-normal">
+                    <div className="w-1/2 p-4 pt-0 space-y-4">
                         <div className="flex items-center justify-between py-2">
                             <div className="flex items-center gap-4">
                                 <List className="h-5 w-5 text-muted-foreground" />
@@ -528,7 +523,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                     </div>
 
                     {/* Chords Settings Sub-View */}
-                    <div className="w-1/2 p-4 pt-0 space-y-4 font-normal">
+                    <div className="w-1/2 p-4 pt-0 space-y-4">
                          <div className="flex items-center justify-between py-2 border-b">
                             <Button variant="ghost" size="sm" onClick={() => setSettingsView('main')} className="pl-0">
                                 <ArrowLeft className="h-4 w-4 mr-2" />
