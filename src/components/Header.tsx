@@ -40,35 +40,38 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        {/* Desktop Menu */}
-        <div className="hidden md:flex items-center">
-            <Link href="/" className="mr-6 flex items-center space-x-2">
-              <Music className="h-6 w-6 text-primary" />
-              <span className="font-bold font-headline text-lg">Rhythmic Reads</span>
-            </Link>
-            <nav className="flex items-center space-x-4 lg:space-x-6">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    'text-sm font-medium transition-colors hover:text-primary',
-                    pathname === link.href ? 'text-primary' : 'text-muted-foreground'
-                  )}
-                >
-                  {link.label}
+      <div className="flex h-16 items-center justify-between px-4">
+        {/* Mobile Title & Desktop Menu */}
+        <div className="flex items-center">
+            {/* Desktop Menu */}
+            <div className="hidden md:flex items-center">
+                <Link href="/" className="mr-6 flex items-center space-x-2">
+                  <Music className="h-6 w-6 text-primary" />
+                  <span className="font-bold font-headline text-lg">Rhythmic Reads</span>
                 </Link>
-              ))}
-            </nav>
-        </div>
+                <nav className="flex items-center space-x-4 lg:space-x-6">
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={cn(
+                        'text-sm font-medium transition-colors hover:text-primary',
+                        pathname === link.href ? 'text-primary' : 'text-muted-foreground'
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </nav>
+            </div>
 
-        {/* Mobile Title */}
-         <div className="md:hidden">
-             <Link href="/" className="flex items-center space-x-2">
-                <Music className="h-6 w-6 text-primary" />
-                <span className="font-bold font-headline text-lg">Rhythmic Reads</span>
-            </Link>
+            {/* Mobile Title */}
+             <div className="md:hidden">
+                 <Link href="/" className="flex items-center space-x-2">
+                    <Music className="h-6 w-6 text-primary" />
+                    <span className="font-bold font-headline text-lg">Rhythmic Reads</span>
+                </Link>
+            </div>
         </div>
 
 
