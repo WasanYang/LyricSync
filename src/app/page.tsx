@@ -1,12 +1,10 @@
 import { getSongs, type Song } from '@/lib/songs';
 import SongCard from '@/components/SongCard';
-import HomeHeader from '@/components/HomeHeader';
+import Header from '@/components/Header';
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
 } from "@/components/ui/carousel"
 import BottomNavBar from '@/components/BottomNavBar';
 
@@ -48,7 +46,7 @@ function SongSection({ title, songs }: SongSectionProps) {
 export default function Home() {
   return (
     <div className="flex-grow flex flex-col">
-      <HomeHeader />
+      <Header />
       <main className="flex-grow container mx-auto px-4 py-8 space-y-12 pb-24 md:pb-8">
         <SongSection title="Featured Songs" songs={featuredSongs} />
         <SongSection title="Recent Releases" songs={recentReleases} />
