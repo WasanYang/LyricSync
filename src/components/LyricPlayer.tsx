@@ -69,20 +69,10 @@ const parseLyrics = (line: string): Array<{ chord: string | null; text: string }
     let lastIndex = 0;
     let match;
 
-    if (line.trim().startsWith('[') && line.trim().endsWith(']')) {
-        const chordsOnly = line.replace(/\[/g, ' ').replace(/\]/g, '  ').trim();
-        if (!chordsOnly.includes(' ')) {
-             parts.push({ chord: chordsOnly, text: '' });
-             return parts;
-        }
-    }
-
-
     // Handle initial text before the first chord
     const firstChordMatch = line.match(/\[/);
     if (firstChordMatch && firstChordMatch.index! > 0) {
         parts.push({ chord: null, text: line.substring(0, firstChordMatch.index) });
-        lastIndex = firstChordMatch.index!;
     } else if (!firstChordMatch) {
       // No chords in the line at all
       parts.push({ chord: null, text: line });
@@ -90,8 +80,13 @@ const parseLyrics = (line: string): Array<{ chord: string | null; text: string }
     }
 
     while ((match = regex.exec(line)) !== null) {
-        parts.push({ chord: match[1], text: match[2] });
+        parts.push({ chord: match[1], text: match[2].trimEnd() });
         lastIndex = match.index + match[0].length;
+        
+        // Add space if it was trimmed
+        if (match[2].length > match[2].trimEnd().length) {
+            parts.push({ chord: null, text: ' ' });
+        }
     }
     
     // If there's remaining text after the last chord
@@ -99,7 +94,6 @@ const parseLyrics = (line: string): Array<{ chord: string | null; text: string }
         parts.push({ chord: null, text: line.substring(lastIndex) });
     }
 
-    // If the line had no chords at all, the above logic results in one part with the whole line.
     return parts.length > 0 ? parts : [{ chord: null, text: line }];
 };
 
@@ -108,17 +102,18 @@ const LyricLineDisplay = ({ line, showChords }: { line: LyricLine; showChords: b
     const hasChords = useMemo(() => parsedLine.some(p => p.chord), [parsedLine]);
 
     if (!showChords || !hasChords) {
+        // Render text only, removing chord markers
         return <p>{line.text.replace(/\[[^\]]+\]/g, '')}</p>;
     }
 
     return (
-        <div className="whitespace-pre-wrap">
+        <div className="flex flex-wrap items-end">
             {parsedLine.map((part, index) => (
-                <div key={index} className="relative inline-block leading-tight align-bottom mb-4">
-                   <span className="absolute bottom-full left-0 text-accent font-bold whitespace-pre">
-                        {part.chord}
+                <div key={index} className="flex flex-col">
+                   <span className="text-accent font-bold h-[1.2em] whitespace-pre">
+                        {part.chord || ''}
                     </span>
-                    <span>{part.text}</span>
+                    <span className="whitespace-pre">{part.text}</span>
                 </div>
             ))}
         </div>
@@ -211,16 +206,13 @@ export default function LyricPlayer({ song }: { song: Song }) {
             key={index}
             ref={el => lineRefs.current[index] = el}
             className={cn(
-              'rounded-md transition-all duration-300 text-center font-bold',
-               'min-h-[1.5em]', // Ensure consistent line height even for empty lines
+              'rounded-md transition-all duration-300 text-center font-bold flex justify-center',
+              'min-h-[2.5em]', // Ensure consistent line height for lines with and without chords
+              'mb-3',
               index === currentLineIndex
                 ? 'text-foreground scale-105'
                 : 'text-muted-foreground/50'
             )}
-            style={{
-                paddingTop: showChords && line.text.includes('[') ? '1em' : '0',
-                marginBottom: '0.8rem',
-            }}
           >
              <LyricLineDisplay line={line} showChords={showChords} />
           </li>
@@ -292,5 +284,3 @@ export default function LyricPlayer({ song }: { song: Song }) {
     </div>
   );
 }
-
-    
