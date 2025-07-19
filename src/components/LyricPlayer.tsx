@@ -531,16 +531,16 @@ export default function LyricPlayer({ song }: { song: Song }) {
              <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 cursor-grab active:cursor-grabbing"
+                className="h-6 w-6 cursor-grab active:cursor-grabbing text-muted-foreground/60"
                 onMouseDown={handleDragMouseDown}
                 onTouchStart={handleDragTouchStart}
               >
-                <Move className="h-4 w-4" />
+                <Move className="h-3 w-3" />
               </Button>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-6 w-6"
+                className="h-6 w-6 text-muted-foreground/60"
                 onClick={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
               >
                   <X className="h-3 w-3"/>
