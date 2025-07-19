@@ -1,9 +1,6 @@
 import { getSongById } from '@/lib/songs';
 import { notFound } from 'next/navigation';
 import LyricPlayer from '@/components/LyricPlayer';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
 
 interface LyricPageProps {
   params: {
@@ -12,7 +9,8 @@ interface LyricPageProps {
 }
 
 export default async function LyricPage({ params }: LyricPageProps) {
-  const song = await getSongById(params.id);
+  const { id } = params;
+  const song = await getSongById(id);
 
   if (!song) {
     notFound();
