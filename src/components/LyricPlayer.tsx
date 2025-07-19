@@ -256,91 +256,93 @@ export default function LyricPlayer({ song }: { song: Song }) {
       </ul>
 
       {/* Player Controls - Fixed at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 w-full max-w-4xl mx-auto space-y-4 p-4 flex-shrink-0 bg-background/80 backdrop-blur-sm border-t">
-        <Slider
-          value={[currentTime]}
-          max={duration}
-          step={0.1}
-          onValueChange={handleSeek}
-        />
-        <div className="flex justify-between items-center w-full">
-          <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
-                  <SkipBack />
-              </Button>
-              <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-full w-16 h-16" onClick={() => dispatch({type: 'TOGGLE_PLAY'})} aria-label={isPlaying ? "Pause" : "Play"}>
-                  {isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>}
-              </Button>
-               <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
-                  <SkipForward />
-              </Button>
-               <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
-                  <Repeat />
-              </Button>
-          </div>
-          
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Settings">
-                <Settings />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-60" side="top" align="end">
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <h4 className="font-medium font-headline leading-none">Settings</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Adjust lyric display.
-                  </p>
-                </div>
-                <div className="grid gap-4">
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="show-chords" className="flex items-center gap-2">
-                            <Guitar className="h-4 w-4" />
-                            Show Chords
-                        </Label>
-                        <Switch
-                            id="show-chords"
-                            checked={showChords}
-                            onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
-                        />
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm border-t">
+        <div className="max-w-4xl mx-auto space-y-4">
+            <Slider
+              value={[currentTime]}
+              max={duration}
+              step={0.1}
+              onValueChange={handleSeek}
+            />
+            <div className="flex justify-between items-center w-full">
+              <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
+                      <SkipBack />
+                  </Button>
+                  <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-full w-16 h-16" onClick={() => dispatch({type: 'TOGGLE_PLAY'})} aria-label={isPlaying ? "Pause" : "Play"}>
+                      {isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>}
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
+                      <SkipForward />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
+                      <Repeat />
+                  </Button>
+              </div>
+              
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" aria-label="Settings">
+                    <Settings />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-60" side="top" align="end">
+                  <div className="grid gap-4">
+                    <div className="space-y-2">
+                      <h4 className="font-medium font-headline leading-none">Settings</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Adjust lyric display.
+                      </p>
                     </div>
-                     <div className="grid gap-2">
-                        <Label className="flex items-center gap-2">
-                            <Palette className="h-4 w-4" />
-                            Chord Color
-                        </Label>
-                        <RadioGroup 
-                            defaultValue={chordColor}
-                            onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })}
-                            className="flex space-x-2"
-                        >
-                            {CHORD_COLOR_OPTIONS.map((option) => (
-                                <Label key={option.value} className="cursor-pointer">
-                                    <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
-                                    <div 
-                                        className="w-6 h-6 rounded-full border-2"
-                                        style={{ 
-                                            backgroundColor: option.value,
-                                            borderColor: chordColor === option.value ? 'hsl(var(--primary))' : 'transparent'
-                                        }}>
-                                    </div>
-                                </Label>
-                            ))}
-                        </RadioGroup>
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="font-size">Font Size</Label>
-                        <div className="flex items-center gap-2">
-                            <Button variant="outline" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16}><Minus className="h-4 w-4" /></Button>
-                            <span className="font-mono text-sm w-8 text-center">{fontSize}px</span>
-                            <Button variant="outline" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48}><Plus className="h-4 w-4" /></Button>
+                    <div className="grid gap-4">
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="show-chords" className="flex items-center gap-2">
+                                <Guitar className="h-4 w-4" />
+                                Show Chords
+                            </Label>
+                            <Switch
+                                id="show-chords"
+                                checked={showChords}
+                                onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label className="flex items-center gap-2">
+                                <Palette className="h-4 w-4" />
+                                Chord Color
+                            </Label>
+                            <RadioGroup 
+                                defaultValue={chordColor}
+                                onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })}
+                                className="flex space-x-2"
+                            >
+                                {CHORD_COLOR_OPTIONS.map((option) => (
+                                    <Label key={option.value} className="cursor-pointer">
+                                        <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
+                                        <div 
+                                            className="w-6 h-6 rounded-full border-2"
+                                            style={{ 
+                                                backgroundColor: option.value,
+                                                borderColor: chordColor === option.value ? 'hsl(var(--primary))' : 'transparent'
+                                            }}>
+                                        </div>
+                                    </Label>
+                                ))}
+                            </RadioGroup>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="font-size">Font Size</Label>
+                            <div className="flex items-center gap-2">
+                                <Button variant="outline" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16}><Minus className="h-4 w-4" /></Button>
+                                <span className="font-mono text-sm w-8 text-center">{fontSize}px</span>
+                                <Button variant="outline" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48}><Plus className="h-4 w-4" /></Button>
+                            </div>
                         </div>
                     </div>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
         </div>
       </div>
     </div>
