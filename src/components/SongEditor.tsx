@@ -167,6 +167,9 @@ export default function SongEditor() {
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-w-full w-full h-screen max-h-screen p-0 m-0 border-0 flex flex-col">
+                <DialogHeader className="sr-only">
+                    <DialogTitle>Song Preview</DialogTitle>
+                </DialogHeader>
                 <div className="relative w-full h-full flex-grow bg-background">
                     <LyricPlayer song={previewSong} />
                 </div>
