@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'r
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List } from 'lucide-react';
+import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, Clock } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
@@ -32,6 +32,7 @@ type State = {
   chordColor: string;
   highlightMode: HighlightMode;
   showSectionNavigator: boolean;
+  playbackRate: number;
 };
 
 type Action =
@@ -45,7 +46,8 @@ type Action =
   | { type: 'TOGGLE_CHORDS' }
   | { type: 'SET_CHORD_COLOR'; payload: string }
   | { type: 'SET_HIGHLIGHT_MODE'; payload: HighlightMode }
-  | { type: 'TOGGLE_SECTION_NAVIGATOR' };
+  | { type: 'TOGGLE_SECTION_NAVIGATOR' }
+  | { type: 'SET_PLAYBACK_RATE'; payload: number };
 
 const initialState: State = {
   isPlaying: false,
@@ -57,6 +59,7 @@ const initialState: State = {
   chordColor: 'hsl(var(--chord-color))',
   highlightMode: 'line',
   showSectionNavigator: true,
+  playbackRate: 1,
 };
 
 function lyricPlayerReducer(state: State, action: Action): State {
@@ -84,6 +87,8 @@ function lyricPlayerReducer(state: State, action: Action): State {
         return { ...state, highlightMode: action.payload };
     case 'TOGGLE_SECTION_NAVIGATOR':
         return { ...state, showSectionNavigator: !state.showSectionNavigator };
+    case 'SET_PLAYBACK_RATE':
+        return { ...state, playbackRate: action.payload };
     default:
       return state;
   }
@@ -167,7 +172,7 @@ const CHORD_COLOR_OPTIONS = [
 
 export default function LyricPlayer({ song }: { song: Song }) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
-  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor, highlightMode, showSectionNavigator } = state;
+  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor, highlightMode, showSectionNavigator, playbackRate } = state;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
@@ -216,16 +221,17 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
   useEffect(() => {
     if (isPlaying) {
+      const intervalTime = 100 / playbackRate;
       intervalRef.current = setInterval(() => {
         dispatch({ type: 'TICK', payload: 0.1 });
-      }, 100);
+      }, intervalTime);
     } else {
       if (intervalRef.current) clearInterval(intervalRef.current);
     }
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isPlaying]);
+  }, [isPlaying, playbackRate]);
 
   useEffect(() => {
     const newCurrentLineIndex = song.lyrics.findIndex(line => line.time > currentTime) - 1;
@@ -258,17 +264,16 @@ export default function LyricPlayer({ song }: { song: Song }) {
   }, [currentLineIndex, sections]);
 
   useEffect(() => {
-    setCurrentSectionIndex(currentSection?.numericIndex ?? -1);
-  }, [currentSection]);
+    if(currentSection?.numericIndex !== currentSectionIndex) {
+      setCurrentSectionIndex(currentSection?.numericIndex ?? -1);
+    }
+  }, [currentSection, currentSectionIndex]);
 
   useEffect(() => {
     if (highlightMode !== 'none') {
         const activeLine = lineRefs.current[currentLineIndex];
         const container = scrollContainerRef.current;
         if (activeLine && container) {
-            const containerRect = container.getBoundingClientRect();
-            const lineRect = activeLine.getBoundingClientRect();
-            
             const desiredScrollTop = activeLine.offsetTop - (container.clientHeight / 2) + (activeLine.clientHeight / 2);
 
             container.scrollTo({
@@ -390,6 +395,23 @@ export default function LyricPlayer({ song }: { song: Song }) {
                                 <span className="font-semibold">None</span>
                             </Label>
                         </RadioGroup>
+                    </div>
+                    <div className="grid gap-4">
+                        <Label htmlFor="playback-speed" className="flex items-center gap-3">
+                            <Clock className="h-5 w-5" />
+                            <span className="font-medium">Playback Speed</span>
+                        </Label>
+                         <div className="flex items-center gap-4">
+                            <Slider
+                                id="playback-speed"
+                                min={0.5}
+                                max={1.5}
+                                step={0.1}
+                                value={[playbackRate]}
+                                onValueChange={(value) => dispatch({ type: 'SET_PLAYBACK_RATE', payload: value[0] })}
+                            />
+                            <span className="text-sm font-semibold w-12 text-center">{playbackRate.toFixed(1)}x</span>
+                         </div>
                     </div>
                 </div>
               </SheetContent>
