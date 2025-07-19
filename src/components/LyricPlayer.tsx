@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'react';
@@ -19,6 +20,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { Separator } from '@/components/ui/separator';
 
 
 type HighlightMode = 'line' | 'section' | 'none';
@@ -166,10 +168,16 @@ const LyricLineDisplay = ({ line, showChords, chordColor }: { line: LyricLine; s
 };
 
 const CHORD_COLOR_OPTIONS = [
-    { value: 'hsl(var(--chord-color))' },
-    { value: 'hsl(221.2 83.2% 53.3%)' },
-    { value: 'hsl(142.1 76.2% 36.3%)' },
-    { value: 'hsl(24.6 95% 53.1%)' },
+    { name: 'Default', value: 'hsl(var(--chord-color))' },
+    { name: 'Blue', value: 'hsl(221.2 83.2% 53.3%)' },
+    { name: 'Green', value: 'hsl(142.1 76.2% 36.3%)' },
+    { name: 'Orange', value: 'hsl(24.6 95% 53.1%)' },
+];
+
+const HIGHLIGHT_OPTIONS: { value: HighlightMode, label: string }[] = [
+    { value: 'line', label: 'Line' },
+    { value: 'section', label: 'Section' },
+    { value: 'none', label: 'None' },
 ];
 
 // Assuming a "standard" or "default" BPM for normal playback speed (1.0x)
@@ -415,90 +423,112 @@ export default function LyricPlayer({ song }: { song: Song }) {
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon"><Settings /></Button>
               </SheetTrigger>
-              <SheetContent>
+              <SheetContent className="w-[380px] sm:w-[540px]">
                 <SheetHeader>
-                  <SheetTitle>Display Settings</SheetTitle>
+                  <SheetTitle>Player Settings</SheetTitle>
                   <SheetDescription>
-                    Adjust how lyrics are displayed on your screen.
+                    Customize your lyric viewing experience.
                   </SheetDescription>
                 </SheetHeader>
-                <div className="grid gap-6 py-6">
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="show-section-nav" className="flex items-center gap-3">
-                            <List className="h-5 w-5" />
-                            <span className="font-medium">Show Section Nav</span>
-                        </Label>
-                        <Switch
-                            id="show-section-nav"
-                            checked={showSectionNavigator}
-                            onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
-                        />
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="show-chords" className="flex items-center gap-3">
-                            <Guitar className="h-5 w-5" />
-                            <span className="font-medium">Show Chords</span>
-                        </Label>
-                        <Switch
-                            id="show-chords"
-                            checked={showChords}
-                            onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
-                        />
-                    </div>
-                    <div className="grid gap-4">
-                        <Label className="flex items-center gap-3">
-                            <Palette className="h-5 w-5" />
-                            <span className="font-medium">Chord Color</span>
-                        </Label>
-                        <RadioGroup 
-                            defaultValue={chordColor}
-                            onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })}
-                            className="flex space-x-2"
-                        >
-                            {CHORD_COLOR_OPTIONS.map((option) => (
+                <div className="space-y-6 py-6">
+                    <div>
+                      <h3 className="text-lg font-medium mb-3">Display</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between rounded-lg border p-3">
+                           <div className="flex items-start gap-3">
+                              <List className="h-5 w-5 mt-1 text-muted-foreground" />
+                              <div>
+                                <Label htmlFor="show-section-nav" className="font-semibold">Section Navigator</Label>
+                                <p className="text-xs text-muted-foreground">Show the floating section shortcuts.</p>
+                              </div>
+                           </div>
+                           <Switch
+                              id="show-section-nav"
+                              checked={showSectionNavigator}
+                              onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
+                            />
+                        </div>
+                        <div className="flex items-center justify-between rounded-lg border p-3">
+                           <div className="flex items-start gap-3">
+                              <Guitar className="h-5 w-5 mt-1 text-muted-foreground" />
+                              <div>
+                                <Label htmlFor="show-chords" className="font-semibold">Guitar Chords</Label>
+                                <p className="text-xs text-muted-foreground">Display chords above the lyrics.</p>
+                              </div>
+                           </div>
+                           <Switch
+                                id="show-chords"
+                                checked={showChords}
+                                onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
+                            />
+                        </div>
+
+                         <div className="rounded-lg border p-3 space-y-3">
+                           <div className="flex items-start gap-3">
+                              <Palette className="h-5 w-5 mt-1 text-muted-foreground" />
+                              <div>
+                                <Label className="font-semibold">Chord Color</Label>
+                                <p className="text-xs text-muted-foreground">Choose a color for the chords.</p>
+                              </div>
+                           </div>
+                           <RadioGroup 
+                              value={chordColor}
+                              onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })}
+                              className="flex space-x-2"
+                            >
+                              {CHORD_COLOR_OPTIONS.map((option) => (
                                 <Label key={option.value} className="cursor-pointer">
-                                    <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
-                                    <div 
-                                        className="w-8 h-8 rounded-full border-2"
-                                        style={{ 
-                                            backgroundColor: option.value,
-                                            borderColor: chordColor === option.value ? 'hsl(var(--primary))' : 'transparent'
-                                        }}>
-                                    </div>
+                                  <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
+                                  <div 
+                                    className={cn("w-8 h-8 rounded-full border-2", chordColor === option.value ? 'border-primary' : 'border-transparent')}
+                                    style={{ backgroundColor: option.value }}
+                                    title={option.name}
+                                  />
                                 </Label>
-                            ))}
-                        </RadioGroup>
+                              ))}
+                            </RadioGroup>
+                        </div>
+                        
+                        <div className="rounded-lg border p-3 space-y-3">
+                           <div className="flex items-start gap-3">
+                              <Highlighter className="h-5 w-5 mt-1 text-muted-foreground" />
+                              <div>
+                                <Label className="font-semibold">Highlight Style</Label>
+                                <p className="text-xs text-muted-foreground">How to highlight active lyrics.</p>
+                              </div>
+                           </div>
+                           <RadioGroup 
+                              value={highlightMode}
+                              onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })}
+                              className="grid grid-cols-3 gap-2"
+                            >
+                                {HIGHLIGHT_OPTIONS.map(option => (
+                                    <Label key={option.value} className={cn(
+                                      "flex items-center justify-center cursor-pointer rounded-md border p-4 text-sm font-semibold hover:bg-accent hover:text-accent-foreground",
+                                      highlightMode === option.value && "border-primary ring-2 ring-primary"
+                                    )}>
+                                        <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
+                                        {option.label}
+                                    </Label>
+                                ))}
+                            </RadioGroup>
+                        </div>
+                      </div>
                     </div>
-                     <div className="grid gap-4">
-                        <Label className="flex items-center gap-3">
-                            <Highlighter className="h-5 w-5" />
-                            <span className="font-medium">Highlight Style</span>
-                        </Label>
-                        <RadioGroup 
-                            defaultValue={highlightMode}
-                            onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })}
-                            className="grid grid-cols-3 gap-2"
-                        >
-                            <Label className="flex flex-col items-center justify-center gap-2 cursor-pointer rounded-md border p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                                <RadioGroupItem value="line" id="highlight-line" className="sr-only" />
-                                <span className="font-semibold">Line</span>
-                            </Label>
-                             <Label className="flex flex-col items-center justify-center gap-2 cursor-pointer rounded-md border p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                                <RadioGroupItem value="section" id="highlight-section" className="sr-only" />
-                                <span className="font-semibold">Section</span>
-                            </Label>
-                             <Label className="flex flex-col items-center justify-center gap-2 cursor-pointer rounded-md border p-4 hover:bg-accent hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                                <RadioGroupItem value="none" id="highlight-none" className="sr-only" />
-                                <span className="font-semibold">None</span>
-                            </Label>
-                        </RadioGroup>
-                    </div>
-                    <div className="grid gap-4">
-                        <Label htmlFor="bpm-input" className="flex items-center gap-3">
-                            <Clock className="h-5 w-5" />
-                            <span className="font-medium">Playback BPM</span>
-                        </Label>
-                         <div className="flex items-center gap-2">
+
+                    <Separator />
+
+                    <div>
+                      <h3 className="text-lg font-medium mb-3">Playback</h3>
+                      <div className="rounded-lg border p-3">
+                        <div className="flex items-start gap-3">
+                            <Clock className="h-5 w-5 mt-1 text-muted-foreground" />
+                            <div>
+                              <Label htmlFor="bpm-input" className="font-semibold">Playback BPM</Label>
+                              <p className="text-xs text-muted-foreground">Adjust the playback speed (beats per minute).</p>
+                            </div>
+                         </div>
+                         <div className="flex items-center gap-2 mt-3">
                              <Button variant="outline" size="icon" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 1 })}><Minus className="h-4 w-4"/></Button>
                              <Input
                                 id="bpm-input"
@@ -511,6 +541,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                             />
                             <Button variant="outline" size="icon" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 1 })}><Plus className="h-4 w-4"/></Button>
                          </div>
+                      </div>
                     </div>
                 </div>
               </SheetContent>
@@ -531,7 +562,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
              <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 cursor-grab active:cursor-grabbing text-muted-foreground/60"
+                className="h-6 w-6 cursor-grab active:cursor-grabbing bg-transparent text-muted-foreground/60"
                 onMouseDown={handleDragMouseDown}
                 onTouchStart={handleDragTouchStart}
               >
@@ -540,7 +571,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-6 w-6 text-muted-foreground/60"
+                className="h-6 w-6 bg-transparent text-muted-foreground/60"
                 onClick={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
               >
                   <X className="h-3 w-3"/>
