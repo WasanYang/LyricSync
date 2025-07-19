@@ -1,13 +1,21 @@
 
-// src/components/SongEditor.tsx
+// src/components/SongCreator.tsx
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { saveSong } from '@/lib/db';
 import type { Song, LyricLine } from '@/lib/songs';
+import { ALL_NOTES } from '@/lib/chords';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -24,15 +32,13 @@ import {
 import LyricPlayer from './LyricPlayer';
 import { Eye, Save } from 'lucide-react';
 
-const lyricLineSchema = z.object({
-  time: z.number().min(0),
-  text: z.string(),
-});
-
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
   artist: z.string().min(1, 'Artist is required.'),
   lyrics: z.string().min(1, 'Lyrics are required.'),
+  originalKey: z.string().min(1, "Key is required"),
+  bpm: z.coerce.number().min(20, "BPM must be at least 20").max(300, "BPM must be at most 300").optional(),
+  timeSignature: z.string().optional(),
 });
 
 type SongFormValues = z.infer<typeof songFormSchema>;
@@ -45,7 +51,6 @@ const parseLyricsFromString = (lyricString: string): LyricLine[] => {
     .map(line => {
       const parts = line.split('|');
       if (parts.length < 2) {
-        // Assume it's a line without a timestamp for simplicity
         return { time: 0, text: line };
       }
       const time = parseFloat(parts[0].trim());
@@ -55,7 +60,9 @@ const parseLyricsFromString = (lyricString: string): LyricLine[] => {
     .sort((a, b) => a.time - b.time);
 };
 
-export default function SongEditor() {
+const TIME_SIGNATURES = ["4/4", "3/4", "2/4", "6/8", "2/2", "3/2", "5/4", "7/4", "12/8"];
+
+export default function SongCreator() {
   const { toast } = useToast();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
@@ -65,6 +72,9 @@ export default function SongEditor() {
       title: '',
       artist: '',
       lyrics: '',
+      originalKey: 'C',
+      bpm: 120,
+      timeSignature: '4/4'
     },
   });
 
@@ -76,6 +86,9 @@ export default function SongEditor() {
     artist: formData.artist || 'Unknown Artist',
     updatedAt: new Date(),
     lyrics: parseLyricsFromString(formData.lyrics || ''),
+    originalKey: formData.originalKey,
+    bpm: formData.bpm,
+    timeSignature: formData.timeSignature,
   }), [formData]);
 
   async function handleSaveSong(data: SongFormValues) {
@@ -85,6 +98,9 @@ export default function SongEditor() {
       artist: data.artist,
       updatedAt: new Date(),
       lyrics: parseLyricsFromString(data.lyrics),
+      originalKey: data.originalKey,
+      bpm: data.bpm,
+      timeSignature: data.timeSignature,
     };
 
     try {
@@ -107,7 +123,7 @@ export default function SongEditor() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSaveSong)} className="w-full max-w-2xl mx-auto h-full flex flex-col space-y-6">
-        <h1 className="text-3xl font-bold font-headline">Song Editor</h1>
+        <h1 className="text-3xl font-bold font-headline">Song Creator</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
@@ -135,6 +151,62 @@ export default function SongEditor() {
                   <FormMessage />
                 </FormItem>
               )}
+            />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormField
+                control={form.control}
+                name="originalKey"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Original Key</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a key" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {ALL_NOTES.map(note => <SelectItem key={note} value={note}>{note}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+            <FormField
+              control={form.control}
+              name="bpm"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>BPM</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="120" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))}/>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+                control={form.control}
+                name="timeSignature"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Time Signature</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a time signature" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                 {TIME_SIGNATURES.map(sig => <SelectItem key={sig} value={sig}>{sig}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                )}
             />
         </div>
 

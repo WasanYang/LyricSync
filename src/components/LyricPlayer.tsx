@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'react';
+import { useState, useEffect, useReducer, useCallback, useMemo } from 'react';
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -349,7 +349,7 @@ export default function LyricPlayer({
   
   const duration = song.lyrics.length > 0 ? song.lyrics[song.lyrics.length - 1].time + 5 : 100;
 
-  const playbackRate = useMemo(() => bpm / DEFAULT_BPM_FOR_NORMAL_SPEED, [bpm]);
+  const playbackRate = useMemo(() => bpm / (song.bpm || DEFAULT_BPM_FOR_NORMAL_SPEED), [bpm, song.bpm]);
 
   const sections = useMemo(() => {
     return song.lyrics
@@ -417,7 +417,7 @@ export default function LyricPlayer({
   };
   
   const handleKeyChange = (selectedKey: string) => {
-    const originalKeyIndex = ALL_NOTES.indexOf(ORIGINAL_SONG_KEY_NOTE);
+    const originalKeyIndex = ALL_NOTES.indexOf(song.originalKey || ORIGINAL_SONG_KEY_NOTE);
     const selectedKeyIndex = ALL_NOTES.indexOf(selectedKey);
     if (originalKeyIndex !== -1 && selectedKeyIndex !== -1) {
       let diff = selectedKeyIndex - originalKeyIndex;
@@ -428,11 +428,11 @@ export default function LyricPlayer({
   };
 
   const currentKey = useMemo(() => {
-    const originalKeyIndex = ALL_NOTES.indexOf(ORIGINAL_SONG_KEY_NOTE);
-    if (originalKeyIndex === -1) return ORIGINAL_SONG_KEY_NOTE;
+    const originalKeyIndex = ALL_NOTES.indexOf(song.originalKey || ORIGINAL_SONG_KEY_NOTE);
+    if (originalKeyIndex === -1) return song.originalKey || ORIGINAL_SONG_KEY_NOTE;
     const newKeyIndex = (originalKeyIndex + transpose + 12*10) % 12;
     return ALL_NOTES[newKeyIndex];
-  }, [transpose]);
+  }, [transpose, song.originalKey]);
 
 
   useEffect(() => {
@@ -639,15 +639,15 @@ export default function LyricPlayer({
 
 
         <div className={cn("fixed bottom-0 left-0 right-0 pointer-events-none", isSetlistMode && "bottom-16")}>
-          <div className={cn("bg-background/50 backdrop-blur-sm pointer-events-auto p-4")}>
-              <div className="max-w-4xl mx-auto space-y-0 px-0">
+          <div className={cn("bg-background/50 backdrop-blur-sm pointer-events-auto py-4")}>
+              <div className="max-w-4xl mx-auto space-y-0 px-4">
                 <Slider
                   value={[currentTime]}
                   max={duration}
                   step={0.1}
                   onValueChange={handleSeek}
                 />
-                <div className="relative flex justify-between items-center w-full gap-2 h-16 px-2">
+                <div className="relative flex justify-between items-center w-full gap-2 h-16 px-0">
                    <div className="flex-1 flex justify-start">
                       <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
                           <Repeat />

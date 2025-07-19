@@ -27,7 +27,7 @@ const navLinks = [
 const mobileOnlyLinks = [
     { href: '/setlists', label: 'My Lists', icon: ListMusic },
     { href: '/downloaded', label: 'Downloaded', icon: Library },
-    { href: '/song-editor', label: 'Song Editor', icon: Edit },
+    { href: '/song-editor', label: 'Song Creator', icon: Edit },
 ]
 
 export default function Header() {
