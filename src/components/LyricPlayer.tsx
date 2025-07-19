@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'r
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, Clock, X, Move, Music, RotateCcw, Sun, Moon, ChevronRight } from 'lucide-react';
+import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, Clock, X, Move, Music, RotateCcw, Sun, Moon, ChevronRight, Text, CaseSensitive } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
@@ -31,6 +31,8 @@ import {
 
 
 type HighlightMode = 'line' | 'section' | 'none';
+type FontWeight = 400 | 600 | 700;
+
 
 type State = {
   isPlaying: boolean;
@@ -38,6 +40,7 @@ type State = {
   currentLineIndex: number;
   isFinished: boolean;
   fontSize: number;
+  fontWeight: FontWeight;
   showChords: boolean;
   chordColor: string;
   highlightMode: HighlightMode;
@@ -54,6 +57,7 @@ type Action =
   | { type: 'SET_LINE'; payload: number }
   | { type: 'FINISH' }
   | { type: 'SET_FONT_SIZE'; payload: number }
+  | { type: 'SET_FONT_WEIGHT'; payload: FontWeight }
   | { type: 'TOGGLE_CHORDS' }
   | { type: 'SET_CHORD_COLOR'; payload: string }
   | { type: 'SET_HIGHLIGHT_MODE'; payload: HighlightMode }
@@ -70,6 +74,7 @@ const initialState: State = {
   currentLineIndex: -1,
   isFinished: false,
   fontSize: 16,
+  fontWeight: 400,
   showChords: true,
   chordColor: 'hsl(var(--primary))',
   highlightMode: 'line',
@@ -95,6 +100,8 @@ function lyricPlayerReducer(state: State, action: Action): State {
     case 'SET_FONT_SIZE':
         const newSize = Math.max(16, Math.min(48, action.payload));
         return { ...state, fontSize: newSize };
+    case 'SET_FONT_WEIGHT':
+        return { ...state, fontWeight: action.payload };
     case 'TOGGLE_CHORDS':
         return { ...state, showChords: !state.showChords };
     case 'SET_CHORD_COLOR':
@@ -153,7 +160,7 @@ const parseLyrics = (line: string): Array<{ chord: string | null; text: string }
     return parts;
 };
 
-const LyricLineDisplay = ({ line, showChords, chordColor, transpose }: { line: LyricLine; showChords: boolean; chordColor: string; transpose: number; }) => {
+const LyricLineDisplay = ({ line, showChords, chordColor, transpose, fontWeight }: { line: LyricLine; showChords: boolean; chordColor: string; transpose: number; fontWeight: FontWeight; }) => {
     const parsedLine = useMemo(() => parseLyrics(line.text), [line.text]);
     const hasChords = useMemo(() => parsedLine.some(p => p.chord), [parsedLine]);
     const hasText = useMemo(() => parsedLine.some(p => p.text.trim() !== ''), [parsedLine]);
@@ -163,7 +170,7 @@ const LyricLineDisplay = ({ line, showChords, chordColor, transpose }: { line: L
     }
     
     if (!showChords || !hasChords) {
-        return <p>{line.text.replace(/\[[^\]]+\]/g, '')}</p>;
+        return <p style={{ fontWeight }}>{line.text.replace(/\[[^\]]+\]/g, '')}</p>;
     }
     
     return (
@@ -172,7 +179,7 @@ const LyricLineDisplay = ({ line, showChords, chordColor, transpose }: { line: L
           {parsedLine.map((part, index) => (
             <div key={`chord-container-${index}`} className="flex-shrink-0 relative" style={{paddingRight: part.text ? '0.25em' : '0.5em'}}>
                 <span className="font-bold whitespace-pre">{part.chord ? transposeChord(part.chord, transpose) : ''}</span>
-                <span className="text-transparent whitespace-pre">{part.text}</span>
+                <span className="text-transparent whitespace-pre" style={{ fontWeight }}>{part.text}</span>
             </div>
           ))}
         </div>
@@ -180,7 +187,7 @@ const LyricLineDisplay = ({ line, showChords, chordColor, transpose }: { line: L
           {parsedLine.map((part, index) => (
             <div key={`text-container-${index}`} className="flex-shrink-0 relative" style={{paddingRight: part.text ? '0.25em' : '0.5em'}}>
               <span className="text-transparent font-bold whitespace-pre">{part.chord ? transposeChord(part.chord, transpose) : ''}</span>
-              <span className="whitespace-pre">{part.text}</span>
+              <span className="whitespace-pre" style={{ fontWeight }}>{part.text}</span>
             </div>
           ))}
         </div>
@@ -201,12 +208,19 @@ const HIGHLIGHT_OPTIONS: { value: HighlightMode, label: string }[] = [
     { value: 'none', label: 'None' },
 ];
 
+const FONT_WEIGHT_OPTIONS: { value: FontWeight; label: string; style: React.CSSProperties }[] = [
+    { value: 400, label: 'A', style: { fontWeight: 400 } },
+    { value: 600, label: 'A', style: { fontWeight: 600 } },
+    { value: 700, label: 'A', style: { fontWeight: 700 } },
+];
+
+
 const DEFAULT_BPM_FOR_NORMAL_SPEED = 120;
 const ORIGINAL_SONG_KEY_NOTE = 'A'; // Assuming the original key for song ID 4 is A
 
 export default function LyricPlayer({ song }: { song: Song }) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
-  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor, highlightMode, showSectionNavigator, bpm, transpose } = state;
+  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, fontWeight, showChords, chordColor, highlightMode, showSectionNavigator, bpm, transpose } = state;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
@@ -214,6 +228,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isChordsSettingsOpen, setIsChordsSettingsOpen] = useState(false);
+  const [isDisplaySettingsOpen, setIsDisplaySettingsOpen] = useState(false);
 
 
   const navigatorRef = useRef<HTMLDivElement>(null);
@@ -443,17 +458,15 @@ export default function LyricPlayer({ song }: { song: Song }) {
     }
   }, [currentLineIndex, highlightMode]);
   
-  const handleOpenChordsSettings = () => {
+  const handleOpenSubmenu = (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
     setIsSettingsOpen(false);
-    // Use a timeout to ensure the first sheet has time to start closing
-    // before the second one starts opening, preventing visual glitches.
     setTimeout(() => {
-      setIsChordsSettingsOpen(true);
+      setter(true);
     }, 150);
   };
   
-  const handleCloseChordsSettings = () => {
-    setIsChordsSettingsOpen(false);
+  const handleCloseSubmenu = (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setter(false);
     setTimeout(() => {
       setIsSettingsOpen(true);
     }, 150);
@@ -478,10 +491,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
           </div>
           
           <div className="flex-1 flex justify-end items-center gap-0">
-            <div className="flex items-center">
-                <Button variant="ghost" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16} className="w-8 h-8"><Minus className="h-4 w-4"/></Button>
-                <Button variant="ghost" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48} className="w-8 h-8"><Plus className="h-4 w-4"/></Button>
-            </div>
           </div>
         </div>
       </header>
@@ -567,15 +576,18 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 key={index}
                 ref={el => lineRefs.current[index] = el}
                 className={cn(
-                    'rounded-md transition-all duration-300 text-center font-bold flex justify-center items-center',
+                    'rounded-md transition-all duration-300 text-center flex justify-center items-center',
                     isSectionBreak ? 'h-[1.2em]' : 'min-h-[2.5rem] py-2',
                     isHighlighted
                     ? 'text-foreground scale-105'
-                    : 'text-muted-foreground/50'
+                    : 'text-muted-foreground/50',
+                    fontWeight === 400 && 'font-normal',
+                    fontWeight === 600 && 'font-semibold',
+                    fontWeight === 700 && 'font-bold'
                 )}
                 style={{ minHeight: isSectionBreak ? 'auto' : `calc(${fontSize}px * 1.5)`}}
                 >
-                {!isSectionBreak && <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} transpose={transpose} />}
+                {!isSectionBreak && <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} transpose={transpose} fontWeight={fontWeight} />}
                 </li>
             )
             })}
@@ -626,14 +638,16 @@ export default function LyricPlayer({ song }: { song: Song }) {
                     </SheetHeader>
                     <ScrollArea className="flex-grow">
                       <div className="p-4 space-y-4">
-                          <div className="flex items-center justify-between py-2">
+                          <button onClick={() => handleOpenSubmenu(setIsDisplaySettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
                               <div className="flex items-center gap-4">
-                                  <List className="h-5 w-5 text-muted-foreground" />
-                                  <Label htmlFor="show-section-nav">Navigator</Label>
+                                  <Text className="h-5 w-5 text-muted-foreground" />
+                                  <Label className="cursor-pointer">Display</Label>
                               </div>
-                              <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
-                          </div>
-                          <button onClick={handleOpenChordsSettings} className="w-full flex items-center justify-between py-2 text-left">
+                              <div className="flex items-center gap-2">
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                          </button>
+                          <button onClick={() => handleOpenSubmenu(setIsChordsSettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
                               <div className="flex items-center gap-4">
                                   <Guitar className="h-5 w-5 text-muted-foreground" />
                                   <Label className="cursor-pointer">Chords</Label>
@@ -642,6 +656,13 @@ export default function LyricPlayer({ song }: { song: Song }) {
                                   <ChevronRight className="h-4 w-4 text-muted-foreground" />
                               </div>
                           </button>
+                          <div className="flex items-center justify-between py-2">
+                              <div className="flex items-center gap-4">
+                                  <List className="h-5 w-5 text-muted-foreground" />
+                                  <Label htmlFor="show-section-nav">Navigator</Label>
+                              </div>
+                              <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
+                          </div>
                           <div className="flex items-center justify-between py-2">
                               <div className="flex items-center gap-4">
                                   <Highlighter className="h-5 w-5 text-muted-foreground" />
@@ -695,8 +716,8 @@ export default function LyricPlayer({ song }: { song: Song }) {
                     >
                         <SheetHeader className="p-2 pb-0 text-left">
                             <SheetTitle className="sr-only">Chord Settings</SheetTitle>
-                           <div className="flex items-center py-2 h-[36px]">
-                                <Button variant="ghost" size="icon" onClick={handleCloseChordsSettings} className="h-8 w-8">
+                           <div className="flex items-center h-[36px]">
+                                <Button variant="ghost" size="icon" onClick={() => handleCloseSubmenu(setIsChordsSettingsOpen)} className="h-8 w-8">
                                     <ArrowLeft className="h-4 w-4" />
                                 </Button>
                             </div>
@@ -738,6 +759,47 @@ export default function LyricPlayer({ song }: { song: Song }) {
                                             ))}
                                         </RadioGroup>
                                     </div>
+                                </div>
+                            </div>
+                        </ScrollArea>
+                    </SheetContent>
+                </Sheet>
+                 {/* Display Settings Sheet */}
+                <Sheet open={isDisplaySettingsOpen} onOpenChange={setIsDisplaySettingsOpen}>
+                    <SheetContent
+                        side="bottom" 
+                        className="p-0 flex flex-col max-h-[80vh] rounded-lg bottom-1 left-1 right-1" 
+                        showCloseButton={false}
+                        onOpenAutoFocus={(e) => e.preventDefault()}
+                    >
+                        <SheetHeader className="p-2 pb-0 text-left">
+                            <SheetTitle className="sr-only">Display Settings</SheetTitle>
+                           <div className="flex items-center h-[36px]">
+                                <Button variant="ghost" size="icon" onClick={() => handleCloseSubmenu(setIsDisplaySettingsOpen)} className="h-8 w-8">
+                                    <ArrowLeft className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </SheetHeader>
+                        <ScrollArea className="flex-grow">
+                            <div className="p-4 space-y-6">
+                                <div className="space-y-2">
+                                    <Label>Font Size</Label>
+                                     <div className="flex items-center gap-2">
+                                        <Button variant="outline" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16} className="w-10 h-10"><Minus className="h-4 w-4"/></Button>
+                                        <div className="flex-grow text-center font-mono text-lg">{fontSize}px</div>
+                                        <Button variant="outline" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48} className="w-10 h-10"><Plus className="h-4 w-4"/></Button>
+                                    </div>
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label>Font Weight</Label>
+                                     <RadioGroup value={fontWeight.toString()} onValueChange={(value) => dispatch({ type: 'SET_FONT_WEIGHT', payload: parseInt(value) as FontWeight })} className="grid grid-cols-3 gap-2">
+                                        {FONT_WEIGHT_OPTIONS.map(option => (
+                                            <Label key={option.value} className={cn("flex h-10 items-center justify-center cursor-pointer rounded-md border text-lg hover:bg-accent hover:text-accent-foreground", fontWeight === option.value && "border-primary bg-primary/10 text-primary")}>
+                                                <RadioGroupItem value={option.value.toString()} id={`weight-${option.value}`} className="sr-only" />
+                                                <span style={option.style}>{option.label}</span>
+                                            </Label>
+                                        ))}
+                                    </RadioGroup>
                                 </div>
                             </div>
                         </ScrollArea>
