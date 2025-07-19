@@ -77,27 +77,29 @@ const parseLyrics = (line: string): Array<{ chord: string | null; text: string }
     let match;
 
     while ((match = regex.exec(line)) !== null) {
-      // Text before the current chord
       if (match.index > lastIndex) {
         parts.push({ chord: null, text: line.substring(lastIndex, match.index) });
       }
-      // The chord and the text immediately following it
       parts.push({ chord: match[1], text: match[2] });
       lastIndex = regex.lastIndex;
     }
 
-    // Remaining text after the last chord
     if (lastIndex < line.length) {
       parts.push({ chord: null, text: line.substring(lastIndex) });
     }
 
-    // If the line was empty or only had chords, it might be empty.
-    // Ensure we have at least one part for rendering.
-    if (parts.length === 0 && line.trim().startsWith('[') && line.trim().endsWith(']')) {
-        const chordsOnly = line.replace(/\[/g, ' ').replace(/\]/g, ' ').trim();
-        parts.push({ chord: null, text: chordsOnly });
-    } else if (parts.length === 0) {
-        parts.push({chord: null, text: line});
+    if (parts.length === 0) {
+        if(line.trim().startsWith('[')){
+             // Handle lines with only chords e.g., [Am] [G] [C]
+            const chordOnlyRegex = /\[([^\]]+)\]/g;
+            let chordMatch;
+            while((chordMatch = chordOnlyRegex.exec(line)) !== null) {
+                parts.push({ chord: chordMatch[1], text: '' });
+            }
+        }
+        if(parts.length === 0){
+             parts.push({chord: null, text: line});
+        }
     }
 
     return parts;
@@ -108,27 +110,26 @@ const LyricLineDisplay = ({ line, showChords, chordColor }: { line: LyricLine; s
     const hasChords = useMemo(() => parsedLine.some(p => p.chord), [parsedLine]);
 
     if (!showChords || !hasChords) {
-        // Render text only, removing chord markers
         return <p>{line.text.replace(/\[[^\]]+\]/g, '')}</p>;
     }
     
     return (
-       <div className="flex flex-col items-start">
-        <div className="flex flex-wrap items-end" style={{lineHeight: '1.2em'}}>
+      <div className="inline-flex flex-col items-start">
+        <div className="flex" style={{ color: chordColor }}>
           {parsedLine.map((part, index) => (
-            part.chord && (
-              <span key={`chord-${index}`} className="font-bold -mb-1" style={{ color: chordColor }}>
-                {part.chord}
-              </span>
-            )
+            <div key={`chord-${index}`} className="flex-shrink-0 font-bold whitespace-pre">
+              {part.chord ? part.chord : ''}
+              <span className="text-transparent">{part.text}</span>
+            </div>
           ))}
         </div>
-        <div className="flex flex-wrap items-end" style={{lineHeight: '1.5em'}}>
-           {parsedLine.map((part, index) => (
-             <span key={`text-${index}`} className="whitespace-pre">
-               {part.text}
-             </span>
-           ))}
+        <div className="flex">
+          {parsedLine.map((part, index) => (
+            <div key={`text-${index}`} className="flex-shrink-0 whitespace-pre">
+              <span className="text-transparent font-bold">{part.chord}</span>
+              <span>{part.text}</span>
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -211,7 +212,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
   return (
     <div className="w-full h-full flex flex-col bg-background">
       {/* Header Info */}
-      <div className="text-center pt-16 md:pt-4 flex-shrink-0">
+      <div className="text-center pt-16 md:pt-4 pb-4 flex-shrink-0">
         <h1 className="font-headline text-3xl font-bold">{song.title}</h1>
         <p className="font-body text-lg text-muted-foreground">{song.artist}</p>
       </div>
@@ -220,16 +221,16 @@ export default function LyricPlayer({ song }: { song: Song }) {
       <ul
         ref={scrollContainerRef}
         className="flex-grow w-full overflow-y-auto scroll-smooth px-4"
-        style={{ fontSize: `${fontSize}px`}}
+        style={{ fontSize: `${fontSize}px`, lineHeight: '1.2' }}
       >
         {song.lyrics.map((line, index) => (
           <li
             key={index}
             ref={el => lineRefs.current[index] = el}
             className={cn(
-              'rounded-md transition-all duration-300 text-center font-bold flex justify-center',
-              'min-h-[3em]', // Ensure consistent line height for lines with and without chords
-              'mb-3',
+              'rounded-md transition-all duration-300 text-center font-bold flex justify-center items-center',
+              'min-h-[2.5em]',
+              'py-2', 
               index === currentLineIndex
                 ? 'text-foreground scale-105'
                 : 'text-muted-foreground/50'
@@ -298,13 +299,18 @@ export default function LyricPlayer({ song }: { song: Song }) {
                         <RadioGroup 
                             defaultValue={chordColor}
                             onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })}
-                            className="grid grid-cols-2 gap-2"
+                            className="flex space-x-2"
                         >
                             {CHORD_COLOR_OPTIONS.map((option) => (
-                                <Label key={option.name} className="flex items-center space-x-2 cursor-pointer text-sm">
-                                    <RadioGroupItem value={option.value} id={`color-${option.name}`} />
-                                    <span>{option.name}</span>
-                                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: option.value }}></div>
+                                <Label key={option.name} className="flex items-center space-x-1 cursor-pointer text-sm">
+                                    <RadioGroupItem value={option.value} id={`color-${option.name}`} className="sr-only" />
+                                    <div 
+                                        className="w-6 h-6 rounded-full border-2"
+                                        style={{ 
+                                            backgroundColor: option.value,
+                                            borderColor: chordColor === option.value ? 'hsl(var(--primary))' : 'transparent'
+                                        }}>
+                                    </div>
                                 </Label>
                             ))}
                         </RadioGroup>
