@@ -60,7 +60,7 @@ export default function SearchPage() {
             <Input
               type="search"
               placeholder="e.g., Starlight Echoes or Celestial Sound"
-              className="pl-10 text-base bg-card"
+              className="pl-10 text-base bg-card focus-visible:ring-0 focus-visible:ring-offset-0"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
