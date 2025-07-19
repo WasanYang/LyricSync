@@ -147,19 +147,15 @@ export default function SetlistPlayerPage() {
             </div>
         </header>
 
-        <div className="flex-grow relative h-full pt-[88px] pb-32">
+        <div className="flex-grow relative h-full pt-[88px] pb-16">
             <LyricPlayer 
                 song={currentSong} 
                 isSetlistMode={true}
+                onNextSong={handleNextSong}
+                onPrevSong={handlePrevSong}
             />
         </div>
         
-        <SetlistControls 
-            onNextSong={handleNextSong}
-            onPrevSong={handlePrevSong}
-            isNextDisabled={currentIndex === songs.length - 1}
-            isPrevDisabled={currentIndex === 0}
-        />
       </div>
     );
 }

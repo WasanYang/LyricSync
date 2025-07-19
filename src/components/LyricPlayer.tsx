@@ -224,11 +224,15 @@ const ORIGINAL_SONG_KEY_NOTE = 'A'; // Assuming the original key for song ID 4 i
 interface LyricPlayerProps {
     song: Song;
     isSetlistMode?: boolean;
+    onNextSong?: () => void;
+    onPrevSong?: () => void;
 }
 
 export default function LyricPlayer({ 
     song, 
     isSetlistMode = false,
+    onNextSong,
+    onPrevSong,
 }: LyricPlayerProps) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
   const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, fontWeight, showChords, chordColor, highlightMode, showSectionNavigator, bpm, transpose } = state;
@@ -518,7 +522,7 @@ export default function LyricPlayer({
         </header>
       )}
       
-      {showSectionNavigator && !isSetlistMode && (
+      {showSectionNavigator && (
         <div 
           ref={navigatorRef}
           className="fixed z-20 pointer-events-auto flex flex-col items-center gap-2"
@@ -634,23 +638,42 @@ export default function LyricPlayer({
                 onValueChange={handleSeek}
               />
               <div className="relative flex justify-between items-center w-full gap-2 h-16 px-2">
-                <div className="flex-1 flex justify-start">
-                    <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
-                        <Repeat />
-                    </Button>
-                </div>
+                 {isSetlistMode && onPrevSong ? (
+                     <div className="flex-1 flex justify-start">
+                        <Button variant="ghost" size="icon" onClick={onPrevSong} aria-label="Previous Song">
+                            <SkipBack />
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="flex-1 flex justify-start">
+                        <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
+                            <Repeat />
+                        </Button>
+                    </div>
+                )}
                 <div className="flex justify-center items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
-                        <SkipBack />
-                    </Button>
+                    {!isSetlistMode && (
+                        <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
+                            <SkipBack />
+                        </Button>
+                    )}
                   <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-full w-16 h-16" onClick={() => dispatch({type: 'TOGGLE_PLAY'})} aria-label={isPlaying ? "Pause" : "Play"}>
                       {isFinished ? <Repeat className="w-8 h-8"/> : (isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>)}
                   </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
-                        <SkipForward />
-                    </Button>
+                    {!isSetlistMode && (
+                        <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
+                            <SkipForward />
+                        </Button>
+                    )}
                 </div>
-                <div className="flex-1 flex justify-end">
+                 {isSetlistMode && onNextSong ? (
+                     <div className="flex-1 flex justify-end">
+                        <Button variant="ghost" size="icon" onClick={onNextSong} aria-label="Next Song">
+                            <SkipForward />
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="flex-1 flex justify-end">
                        <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                         <SheetTrigger asChild>
                           <Button variant="ghost" size="icon"><Settings /></Button>
@@ -834,7 +857,8 @@ export default function LyricPlayer({
                           </ScrollArea>
                       </SheetContent>
                   </Sheet>
-                </div>
+                    </div>
+                )}
               </div>
           </div>
         </div>
@@ -842,5 +866,3 @@ export default function LyricPlayer({
     </div>
   );
 }
-
-    
