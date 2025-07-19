@@ -625,7 +625,7 @@ export default function LyricPlayer({
           "fixed bottom-0 left-0 right-0 pointer-events-none",
           isSetlistMode && "bottom-16"
       )}>
-        <div className="bg-background/50 backdrop-blur-sm pointer-events-auto py-2">
+        <div className="bg-background/50 backdrop-blur-sm pointer-events-auto p-2">
             <div className="max-w-4xl mx-auto space-y-0 px-0">
               <Slider
                 value={[currentTime]}
@@ -842,3 +842,5 @@ export default function LyricPlayer({
     </div>
   );
 }
+
+    
