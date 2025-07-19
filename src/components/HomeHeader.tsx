@@ -1,9 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { Music, Menu } from 'lucide-react';
+import { Music, Menu, LogIn } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 
 export default function HomeHeader() {
 
@@ -21,10 +28,27 @@ export default function HomeHeader() {
            <div className="hidden md:block">
              <ThemeToggle />
            </div>
-            <Button variant="ghost" size="icon">
-                <Menu />
-                <span className="sr-only">Open Menu</span>
-            </Button>
+           <div className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu />
+                  <span className="sr-only">Open Menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <LogIn className="mr-2 h-4 w-4" />
+                  <span>Login</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <div className="flex items-center justify-between px-2 py-1.5">
+                   <span>Theme</span>
+                   <ThemeToggle />
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+           </div>
         </div>
       </div>
     </header>

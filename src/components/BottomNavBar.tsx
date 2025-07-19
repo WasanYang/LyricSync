@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Search, PlusSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ThemeToggle } from './ThemeToggle';
 
 const navLinks = [
   { href: '/', label: 'Home', icon: Home },
@@ -34,7 +33,6 @@ export default function BottomNavBar() {
             </Link>
           );
         })}
-        <ThemeToggle />
       </nav>
     </footer>
   );
