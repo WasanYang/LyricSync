@@ -11,7 +11,7 @@ interface LyricPageProps {
   };
 }
 
-export default function LyricPage({ params }: LyricPageProps) {
+export default async function LyricPage({ params }: LyricPageProps) {
   const song = getSongById(params.id);
 
   if (!song) {
