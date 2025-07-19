@@ -576,8 +576,8 @@ export default function LyricPlayer({ song }: { song: Song }) {
   return (
     <div className="flex flex-col bg-background h-screen overflow-hidden">
       <header className="fixed top-0 left-0 right-0 z-10 p-4 bg-background shadow-lg shadow-black/5 dark:shadow-black/20 pointer-events-auto">
-        <div className="relative container mx-auto flex items-center justify-center h-10">
-           <div className="absolute left-0">
+        <div className="relative container mx-auto flex items-center justify-between h-10">
+           <div className="flex-1 flex justify-start">
              <Button asChild variant="ghost" size="icon">
               <Link href="/">
                 <ArrowLeft />
@@ -586,11 +586,11 @@ export default function LyricPlayer({ song }: { song: Song }) {
             </Button>
            </div>
 
-          <div className="text-center">
+          <div className="flex-1 text-center">
               <h1 className="font-headline text-xl font-bold truncate">{song.title}</h1>
           </div>
           
-          <div className="absolute right-0 flex items-center gap-0">
+          <div className="flex-1 flex justify-end items-center gap-0">
             <div className="flex items-center">
                 <Button variant="ghost" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16} className="w-8 h-8"><Minus className="h-4 w-4"/></Button>
                 <Button variant="ghost" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48} className="w-8 h-8"><Plus className="h-4 w-4"/></Button>
@@ -696,7 +696,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
       </div>
 
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background shadow-[0_-4px_12px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_12px_rgba(0,0,0,0.2)] pointer-events-auto">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background shadow-lg shadow-black/5 dark:shadow-black/20 pointer-events-auto">
         <div className="max-w-4xl mx-auto space-y-4">
             <Slider
               value={[currentTime]}
@@ -704,36 +704,41 @@ export default function LyricPlayer({ song }: { song: Song }) {
               step={0.1}
               onValueChange={handleSeek}
             />
-            <div className="flex justify-center items-center w-full gap-2">
-              <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
-                  <Repeat />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
-                  <SkipBack />
-              </Button>
-              <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-full w-16 h-16" onClick={() => dispatch({type: 'TOGGLE_PLAY'})} aria-label={isPlaying ? "Pause" : "Play"}>
-                  {isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>}
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
-                  <SkipForward />
-              </Button>
-               <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="absolute right-0 bottom-0"><Settings /></Button>
-                </SheetTrigger>
-                <SheetContent 
-                  side="bottom" 
-                  className="p-0 flex flex-col max-h-[80vh] rounded-t-lg" 
-                  showCloseButton={false}
-                  onOpenAutoFocus={(e) => e.preventDefault()}
-                  onCloseAutoFocus={() => setSettingsView('main')}
-                >
-                  <SheetHeader className="p-4 pb-2 text-left">
-                      <SheetTitle className="sr-only">Settings</SheetTitle>
-                  </SheetHeader>
-                  {renderSettingsContent()}
-                </SheetContent>
-              </Sheet>
+            <div className="relative flex justify-center items-center w-full gap-2 h-16">
+              <div className="flex-1 flex justify-center items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
+                    <Repeat />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
+                    <SkipBack />
+                </Button>
+                <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-full w-16 h-16" onClick={() => dispatch({type: 'TOGGLE_PLAY'})} aria-label={isPlaying ? "Pause" : "Play"}>
+                    {isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>}
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
+                    <SkipForward />
+                </Button>
+                 <div className="w-10"></div> {/* Placeholder for symmetry */}
+              </div>
+              <div className="absolute right-0 bottom-3">
+                 <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon"><Settings /></Button>
+                  </SheetTrigger>
+                  <SheetContent 
+                    side="bottom" 
+                    className="p-0 flex flex-col max-h-[80vh] rounded-t-lg" 
+                    showCloseButton={false}
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                    onCloseAutoFocus={() => setSettingsView('main')}
+                  >
+                    <SheetHeader className="p-4 pb-2 text-left">
+                        <SheetTitle className="sr-only">Settings</SheetTitle>
+                    </SheetHeader>
+                    {renderSettingsContent()}
+                  </SheetContent>
+                </Sheet>
+              </div>
             </div>
         </div>
       </div>
