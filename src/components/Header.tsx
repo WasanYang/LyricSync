@@ -46,10 +46,10 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center justify-between px-4">
-        {/* Mobile Title & Desktop Menu */}
+        {/* Title & Desktop Menu */}
         <div className="flex items-center">
             {/* Desktop Menu */}
-            <div className="hidden md:flex items-center">
+            <div className="hidden lg:flex items-center">
                 <Link href="/" className="mr-6 flex items-center space-x-2">
                   <Music className="h-6 w-6 text-primary" />
                   <span className="font-bold font-headline text-lg">Rhythmic Reads</span>
@@ -70,8 +70,8 @@ export default function Header() {
                 </nav>
             </div>
 
-            {/* Mobile Title */}
-             <div className="md:hidden">
+            {/* Mobile & Tablet Title */}
+             <div className="lg:hidden">
                  <Link href="/" className="flex items-center space-x-2">
                     <Music className="h-6 w-6 text-primary" />
                     <span className="font-bold font-headline text-lg">Rhythmic Reads</span>
@@ -82,7 +82,7 @@ export default function Header() {
 
         {/* Right side actions */}
         <div className="flex items-center justify-end space-x-2">
-           <div className="hidden md:block">
+           <div className="hidden lg:block">
              <Button
                 variant="ghost"
                 size="icon"
@@ -95,8 +95,8 @@ export default function Header() {
               </Button>
            </div>
 
-           {/* Mobile Menu */}
-           <div className="md:hidden">
+           {/* Mobile & Tablet Menu */}
+           <div className="lg:hidden">
              <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon">
