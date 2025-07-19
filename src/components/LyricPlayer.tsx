@@ -66,7 +66,8 @@ type Action =
   | { type: 'SET_TRANSPOSE'; payload: number }
   | { type: 'TRANSPOSE_UP' }
   | { type: 'TRANSPOSE_DOWN' }
-  | { type: 'RESET_TRANSPOSE' };
+  | { type: 'RESET_TRANSPOSE' }
+  | { type: 'RESET_PLAYER_STATE' };
 
 const initialState: State = {
   isPlaying: false,
@@ -121,6 +122,8 @@ function lyricPlayerReducer(state: State, action: Action): State {
         return { ...state, transpose: state.transpose - 1 };
     case 'RESET_TRANSPOSE':
         return { ...state, transpose: 0 };
+    case 'RESET_PLAYER_STATE':
+        return {...state, currentTime: 0, currentLineIndex: -1, isPlaying: state.isPlaying, isFinished: false };
     default:
       return state;
   }
@@ -218,7 +221,13 @@ const FONT_WEIGHT_OPTIONS: { value: FontWeight; label: string; style: React.CSSP
 const DEFAULT_BPM_FOR_NORMAL_SPEED = 120;
 const ORIGINAL_SONG_KEY_NOTE = 'A'; // Assuming the original key for song ID 4 is A
 
-export default function LyricPlayer({ song }: { song: Song }) {
+interface LyricPlayerProps {
+    song: Song;
+    isSetlistMode?: boolean;
+    onNextSong?: () => void;
+}
+
+export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }: LyricPlayerProps) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
   const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, fontWeight, showChords, chordColor, highlightMode, showSectionNavigator, bpm, transpose } = state;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -237,6 +246,10 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
   const [theme, setThemeState] = useState<'light' | 'dark'>('light');
 
+  useEffect(() => {
+    dispatch({ type: 'RESET_PLAYER_STATE' });
+  }, [song.id]);
+  
   useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains('dark')
     setThemeState(isDarkMode ? 'dark' : 'light')
@@ -442,8 +455,11 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
     if (currentTime >= duration) {
       dispatch({ type: 'FINISH' });
+      if (isSetlistMode && onNextSong) {
+          onNextSong();
+      }
     }
-  }, [currentTime, song.lyrics, currentLineIndex, duration]);
+  }, [currentTime, song.lyrics, currentLineIndex, duration, isSetlistMode, onNextSong]);
 
 
   useEffect(() => {
@@ -480,25 +496,27 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
   return (
     <div className="flex flex-col bg-background h-screen overflow-hidden">
-      <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm shadow-lg shadow-black/5 dark:shadow-black/20 pointer-events-auto">
-        <div className="relative container mx-auto flex items-center justify-between h-14">
-           <div className="flex-1 flex justify-start">
-             <Button asChild variant="ghost" size="icon">
-              <Link href="/">
-                <ArrowLeft />
-                <span className="sr-only">Back to Home</span>
-              </Link>
-            </Button>
-           </div>
+      { !isSetlistMode && (
+         <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm shadow-lg shadow-black/5 dark:shadow-black/20 pointer-events-auto">
+            <div className="relative container mx-auto flex items-center justify-between h-14">
+            <div className="flex-1 flex justify-start">
+                <Button asChild variant="ghost" size="icon">
+                <Link href="/">
+                    <ArrowLeft />
+                    <span className="sr-only">Back to Home</span>
+                </Link>
+                </Button>
+            </div>
 
-          <div className="flex-1 text-center min-w-0">
-              <h1 className="font-headline text-xl font-bold truncate">{song.title}</h1>
-          </div>
-          
-          <div className="flex-1 flex justify-end items-center gap-0">
-          </div>
-        </div>
-      </header>
+            <div className="flex-1 text-center min-w-0">
+                <h1 className="font-headline text-xl font-bold truncate">{song.title}</h1>
+            </div>
+            
+            <div className="flex-1 flex justify-end items-center gap-0">
+            </div>
+            </div>
+        </header>
+      )}
       
       {showSectionNavigator && (
         <div 
@@ -547,7 +565,10 @@ export default function LyricPlayer({ song }: { song: Song }) {
         
       <div ref={scrollContainerRef} className="w-full h-full relative overflow-y-auto">
         <ul
-            className="w-full px-12 pt-32 pb-48"
+            className={cn(
+                "w-full px-12 pt-32 pb-48",
+                 isSetlistMode && "pt-12 pb-56"
+            )}
             style={{ fontSize: `${fontSize}px` }}
         >
             {song.lyrics.map((line, index) => {
@@ -578,7 +599,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
             return (
                 <li
-                key={index}
+                key={`${song.id}-${index}`}
                 ref={el => lineRefs.current[index] = el}
                 className={cn(
                     'rounded-md transition-all duration-300 text-center flex justify-center items-center',
@@ -600,7 +621,10 @@ export default function LyricPlayer({ song }: { song: Song }) {
       </div>
 
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm shadow-lg shadow-black/5 dark:shadow-black/20 pointer-events-auto">
+      <div className={cn(
+          "fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm shadow-lg shadow-black/5 dark:shadow-black/20 pointer-events-auto",
+          isSetlistMode && "bottom-[88px] xl:bottom-[96px]"
+          )}>
         <div className="max-w-4xl mx-auto space-y-4">
             <Slider
               value={[currentTime]}
