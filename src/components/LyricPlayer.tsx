@@ -694,6 +694,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                         onOpenAutoFocus={(e) => e.preventDefault()}
                     >
                         <SheetHeader className="p-2 pb-0 text-left">
+                            <SheetTitle className="sr-only">Chord Settings</SheetTitle>
                            <div className="flex items-center py-2 h-[36px]">
                                 <Button variant="ghost" size="icon" onClick={handleCloseChordsSettings} className="h-8 w-8">
                                     <ArrowLeft className="h-4 w-4" />
