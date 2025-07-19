@@ -224,15 +224,11 @@ const ORIGINAL_SONG_KEY_NOTE = 'A'; // Assuming the original key for song ID 4 i
 interface LyricPlayerProps {
     song: Song;
     isSetlistMode?: boolean;
-    onNextSong?: () => void;
-    onPrevSong?: () => void;
 }
 
 export default function LyricPlayer({ 
     song, 
     isSetlistMode = false,
-    onNextSong,
-    onPrevSong,
 }: LyricPlayerProps) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
   const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, fontWeight, showChords, chordColor, highlightMode, showSectionNavigator, bpm, transpose } = state;
@@ -629,7 +625,7 @@ export default function LyricPlayer({
           "fixed bottom-0 left-0 right-0 pointer-events-none",
           isSetlistMode && "bottom-16"
       )}>
-        <div className="bg-background/50 backdrop-blur-sm pointer-events-auto pb-4">
+        <div className="bg-background/50 backdrop-blur-sm pointer-events-auto py-2">
             <div className="max-w-4xl mx-auto space-y-0 px-0">
               <Slider
                 value={[currentTime]}
@@ -638,227 +634,207 @@ export default function LyricPlayer({
                 onValueChange={handleSeek}
               />
               <div className="relative flex justify-between items-center w-full gap-2 h-16 px-2">
-                 {isSetlistMode && onPrevSong ? (
-                     <div className="flex-1 flex justify-start">
-                        <Button variant="ghost" size="icon" onClick={onPrevSong} aria-label="Previous Song">
-                            <SkipBack />
-                        </Button>
-                    </div>
-                ) : (
-                    <div className="flex-1 flex justify-start">
-                        <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
-                            <Repeat />
-                        </Button>
-                    </div>
-                )}
+                <div className="flex-1 flex justify-start">
+                    <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
+                        <Repeat />
+                    </Button>
+                </div>
                 <div className="flex justify-center items-center gap-2">
-                    {!isSetlistMode && (
-                        <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
-                            <SkipBack />
-                        </Button>
-                    )}
+                    <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
+                        <SkipBack />
+                    </Button>
                   <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-full w-16 h-16" onClick={() => dispatch({type: 'TOGGLE_PLAY'})} aria-label={isPlaying ? "Pause" : "Play"}>
                       {isFinished ? <Repeat className="w-8 h-8"/> : (isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>)}
                   </Button>
-                    {!isSetlistMode && (
-                        <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
-                            <SkipForward />
-                        </Button>
-                    )}
+                    <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
+                        <SkipForward />
+                    </Button>
                 </div>
-                 {isSetlistMode && onNextSong ? (
-                     <div className="flex-1 flex justify-end">
-                        <Button variant="ghost" size="icon" onClick={onNextSong} aria-label="Next Song">
-                            <SkipForward />
-                        </Button>
-                    </div>
-                ) : (
-                    <div className="flex-1 flex justify-end">
-                       <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                        <SheetTrigger asChild>
-                          <Button variant="ghost" size="icon"><Settings /></Button>
-                        </SheetTrigger>
-                        <SheetContent 
-                          side="bottom" 
-                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm" 
-                          showCloseButton={false}
-                          onOpenAutoFocus={(e) => e.preventDefault()}
-                        >
-                          <SheetHeader className="p-2 pb-0 text-left">
-                              <SheetTitle className="sr-only">Settings</SheetTitle>
-                          </SheetHeader>
-                          <ScrollArea className="flex-grow">
-                            <div className="p-4 space-y-4">
-                                <button onClick={() => handleOpenSubmenu(setIsDisplaySettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
-                                    <div className="flex items-center gap-4">
-                                        <Text className="h-5 w-5 text-muted-foreground" />
-                                        <Label className="cursor-pointer">Display</Label>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                    </div>
-                                </button>
-                                <button onClick={() => handleOpenSubmenu(setIsChordsSettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
-                                    <div className="flex items-center gap-4">
-                                        <Guitar className="h-5 w-5 text-muted-foreground" />
-                                        <Label className="cursor-pointer">Chords</Label>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                    </div>
-                                </button>
-                                <div className="flex items-center justify-between py-2">
-                                    <div className="flex items-center gap-4">
-                                        <ListMusic className="h-5 w-5 text-muted-foreground" />
-                                        <Label htmlFor="show-section-nav">Navigator</Label>
-                                    </div>
-                                    <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
+                <div className="flex-1 flex justify-end">
+                    <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                    <SheetTrigger asChild>
+                        <Button variant="ghost" size="icon"><Settings /></Button>
+                    </SheetTrigger>
+                    <SheetContent 
+                        side="bottom" 
+                        className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm" 
+                        showCloseButton={false}
+                        onOpenAutoFocus={(e) => e.preventDefault()}
+                    >
+                        <SheetHeader className="p-2 pb-0 text-left">
+                            <SheetTitle className="sr-only">Settings</SheetTitle>
+                        </SheetHeader>
+                        <ScrollArea className="flex-grow">
+                        <div className="p-4 space-y-4">
+                            <button onClick={() => handleOpenSubmenu(setIsDisplaySettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
+                                <div className="flex items-center gap-4">
+                                    <Text className="h-5 w-5 text-muted-foreground" />
+                                    <Label className="cursor-pointer">Display</Label>
                                 </div>
-                                <div className="flex items-center justify-between py-2">
+                                <div className="flex items-center gap-2">
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                            </button>
+                            <button onClick={() => handleOpenSubmenu(setIsChordsSettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
+                                <div className="flex items-center gap-4">
+                                    <Guitar className="h-5 w-5 text-muted-foreground" />
+                                    <Label className="cursor-pointer">Chords</Label>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                            </button>
+                            <div className="flex items-center justify-between py-2">
+                                <div className="flex items-center gap-4">
+                                    <ListMusic className="h-5 w-5 text-muted-foreground" />
+                                    <Label htmlFor="show-section-nav">Navigator</Label>
+                                </div>
+                                <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
+                            </div>
+                            <div className="flex items-center justify-between py-2">
+                                <div className="flex items-center gap-4">
+                                    <Highlighter className="h-5 w-5 text-muted-foreground" />
+                                    <Label>Highlight</Label>
+                                </div>
+                                <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="flex items-center gap-1">
+                                    {HIGHLIGHT_OPTIONS.map(option => (
+                                        <Label key={option.value} className={cn("flex h-7 w-14 items-center justify-center cursor-pointer rounded-md border text-xs hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-primary/10 text-primary")}>
+                                            <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
+                                            {option.label}
+                                        </Label>
+                                    ))}
+                                </RadioGroup>
+                            </div>
+                            <div className="space-y-2 py-2">
+                                <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <Highlighter className="h-5 w-5 text-muted-foreground" />
-                                        <Label>Highlight</Label>
+                                        <Clock className="h-5 w-5 text-muted-foreground" />
+                                        <Label htmlFor="bpm-slider">BPM</Label>
                                     </div>
-                                    <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="flex items-center gap-1">
-                                        {HIGHLIGHT_OPTIONS.map(option => (
-                                            <Label key={option.value} className={cn("flex h-7 w-14 items-center justify-center cursor-pointer rounded-md border text-xs hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-primary/10 text-primary")}>
-                                                <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
-                                                {option.label}
+                                    <span className="font-mono text-sm font-semibold">{bpm}</span>
+                                </div>
+                                <Slider
+                                    id="bpm-slider"
+                                    value={[bpm]}
+                                    onValueChange={handleBpmChange}
+                                    max={240}
+                                    min={40}
+                                    step={1}
+                                />
+                            </div>
+                            <div className="flex items-center justify-between py-2">
+                                <div className="flex items-center gap-4">
+                                    {theme === 'dark' ? <Moon className="h-5 w-5 text-muted-foreground" /> : <Sun className="h-5 w-5 text-muted-foreground" />}
+                                    <Label htmlFor="dark-mode">Theme</Label>
+                                </div>
+                                <Switch id="dark-mode" checked={theme === 'dark'} onCheckedChange={toggleTheme} />
+                            </div>
+                        </div>
+                        </ScrollArea>
+                    </SheetContent>
+                    </Sheet>
+                
+
+                {/* Chords Settings Sheet */}
+                <Sheet open={isChordsSettingsOpen} onOpenChange={setIsChordsSettingsOpen}>
+                    <SheetContent
+                        side="bottom" 
+                        className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm"
+                        showCloseButton={false}
+                        onOpenAutoFocus={(e) => e.preventDefault()}
+                    >
+                        <SheetHeader className="p-2 pb-0 text-left">
+                            <SheetTitle className="sr-only">Chord Settings</SheetTitle>
+                            <div className="flex items-center h-[36px]">
+                                <Button variant="ghost" size="icon" onClick={() => handleCloseSubmenu(setIsChordsSettingsOpen)} className="h-8 w-8">
+                                    <ArrowLeft className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </SheetHeader>
+                        <ScrollArea className="flex-grow">
+                            <div className="p-4 space-y-4">
+                                <div className="flex items-center justify-between py-2">
+                                    <Label htmlFor="show-chords">Show Chords</Label>
+                                    <Switch id="show-chords" checked={showChords} onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })} />
+                                </div>
+                                <div className="space-y-4 pl-0">
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-muted-foreground">Key</Label>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-bold w-12 text-center text-sm">{transpose !== 0 ? `${transpose > 0 ? '+' : ''}${transpose}` : 'Original'}</span>
+                                            <Select value={currentKey} onValueChange={handleKeyChange}>
+                                                <SelectTrigger className="w-[80px] h-8 text-xs">
+                                                    <SelectValue placeholder="Key" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {ALL_NOTES.map((note) => (
+                                                        <SelectItem key={note} value={note} className="text-xs">{note}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'RESET_TRANSPOSE' })} disabled={transpose === 0}>
+                                                <RotateCcw className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-muted-foreground">Color</Label>
+                                        <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex flex-wrap gap-2 justify-start">
+                                            {CHORD_COLOR_OPTIONS.map((option) => (
+                                                <Label key={option.value} className="cursor-pointer">
+                                                    <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
+                                                    <div className={cn("w-5 h-5 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
+                                                </Label>
+                                            ))}
+                                        </RadioGroup>
+                                    </div>
+                                </div>
+                            </div>
+                        </ScrollArea>
+                    </SheetContent>
+                </Sheet>
+                    {/* Display Settings Sheet */}
+                <Sheet open={isDisplaySettingsOpen} onOpenChange={setIsDisplaySettingsOpen}>
+                    <SheetContent
+                        side="bottom" 
+                        className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm"
+                        showCloseButton={false}
+                        onOpenAutoFocus={(e) => e.preventDefault()}
+                    >
+                        <SheetHeader className="p-2 pb-0 text-left">
+                            <SheetTitle className="sr-only">Display Settings</SheetTitle>
+                            <div className="flex items-center h-[36px]">
+                                <Button variant="ghost" size="icon" onClick={() => handleCloseSubmenu(setIsDisplaySettingsOpen)} className="h-8 w-8">
+                                    <ArrowLeft className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </SheetHeader>
+                        <ScrollArea className="flex-grow">
+                            <div className="p-4 space-y-6">
+                                <div className="space-y-2">
+                                    <Label>Font Size</Label>
+                                        <div className="flex items-center gap-2">
+                                        <Button variant="outline" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16} className="w-10 h-10"><Minus className="h-4 w-4"/></Button>
+                                        <div className="flex-grow text-center font-mono text-lg">{fontSize}px</div>
+                                        <Button variant="outline" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48} className="w-10 h-10"><Plus className="h-4 w-4"/></Button>
+                                    </div>
+                                </div>
+                                    <div className="space-y-2">
+                                    <Label>Font Weight</Label>
+                                        <RadioGroup value={fontWeight.toString()} onValueChange={(value) => dispatch({ type: 'SET_FONT_WEIGHT', payload: parseInt(value) as FontWeight })} className="grid grid-cols-3 gap-2">
+                                        {FONT_WEIGHT_OPTIONS.map(option => (
+                                            <Label key={option.value} className={cn("flex h-10 items-center justify-center cursor-pointer rounded-md border text-lg hover:bg-accent hover:text-accent-foreground", fontWeight === option.value && "border-primary bg-primary/10 text-primary")}>
+                                                <RadioGroupItem value={option.value.toString()} id={`weight-${option.value}`} className="sr-only" />
+                                                <span style={option.style}>{option.label}</span>
                                             </Label>
                                         ))}
                                     </RadioGroup>
                                 </div>
-                                <div className="space-y-2 py-2">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <Clock className="h-5 w-5 text-muted-foreground" />
-                                            <Label htmlFor="bpm-slider">BPM</Label>
-                                        </div>
-                                        <span className="font-mono text-sm font-semibold">{bpm}</span>
-                                    </div>
-                                    <Slider
-                                        id="bpm-slider"
-                                        value={[bpm]}
-                                        onValueChange={handleBpmChange}
-                                        max={240}
-                                        min={40}
-                                        step={1}
-                                    />
-                                </div>
-                                <div className="flex items-center justify-between py-2">
-                                    <div className="flex items-center gap-4">
-                                        {theme === 'dark' ? <Moon className="h-5 w-5 text-muted-foreground" /> : <Sun className="h-5 w-5 text-muted-foreground" />}
-                                        <Label htmlFor="dark-mode">Theme</Label>
-                                    </div>
-                                    <Switch id="dark-mode" checked={theme === 'dark'} onCheckedChange={toggleTheme} />
-                                </div>
                             </div>
-                          </ScrollArea>
-                        </SheetContent>
-                      </Sheet>
-                  
-
-                  {/* Chords Settings Sheet */}
-                  <Sheet open={isChordsSettingsOpen} onOpenChange={setIsChordsSettingsOpen}>
-                      <SheetContent
-                          side="bottom" 
-                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm"
-                          showCloseButton={false}
-                          onOpenAutoFocus={(e) => e.preventDefault()}
-                      >
-                          <SheetHeader className="p-2 pb-0 text-left">
-                              <SheetTitle className="sr-only">Chord Settings</SheetTitle>
-                             <div className="flex items-center h-[36px]">
-                                  <Button variant="ghost" size="icon" onClick={() => handleCloseSubmenu(setIsChordsSettingsOpen)} className="h-8 w-8">
-                                      <ArrowLeft className="h-4 w-4" />
-                                  </Button>
-                              </div>
-                          </SheetHeader>
-                          <ScrollArea className="flex-grow">
-                              <div className="p-4 space-y-4">
-                                  <div className="flex items-center justify-between py-2">
-                                      <Label htmlFor="show-chords">Show Chords</Label>
-                                      <Switch id="show-chords" checked={showChords} onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })} />
-                                  </div>
-                                  <div className="space-y-4 pl-0">
-                                      <div className="flex items-center justify-between">
-                                          <Label className="text-muted-foreground">Key</Label>
-                                          <div className="flex items-center gap-2">
-                                              <span className="font-bold w-12 text-center text-sm">{transpose !== 0 ? `${transpose > 0 ? '+' : ''}${transpose}` : 'Original'}</span>
-                                              <Select value={currentKey} onValueChange={handleKeyChange}>
-                                                  <SelectTrigger className="w-[80px] h-8 text-xs">
-                                                      <SelectValue placeholder="Key" />
-                                                  </SelectTrigger>
-                                                  <SelectContent>
-                                                      {ALL_NOTES.map((note) => (
-                                                          <SelectItem key={note} value={note} className="text-xs">{note}</SelectItem>
-                                                      ))}
-                                                  </SelectContent>
-                                              </Select>
-                                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'RESET_TRANSPOSE' })} disabled={transpose === 0}>
-                                                  <RotateCcw className="h-4 w-4" />
-                                              </Button>
-                                          </div>
-                                      </div>
-                                      <div className="flex items-center justify-between">
-                                          <Label className="text-muted-foreground">Color</Label>
-                                          <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex flex-wrap gap-2 justify-start">
-                                              {CHORD_COLOR_OPTIONS.map((option) => (
-                                                  <Label key={option.value} className="cursor-pointer">
-                                                      <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
-                                                      <div className={cn("w-5 h-5 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
-                                                  </Label>
-                                              ))}
-                                          </RadioGroup>
-                                      </div>
-                                  </div>
-                              </div>
-                          </ScrollArea>
-                      </SheetContent>
-                  </Sheet>
-                   {/* Display Settings Sheet */}
-                  <Sheet open={isDisplaySettingsOpen} onOpenChange={setIsDisplaySettingsOpen}>
-                      <SheetContent
-                          side="bottom" 
-                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm"
-                          showCloseButton={false}
-                          onOpenAutoFocus={(e) => e.preventDefault()}
-                      >
-                          <SheetHeader className="p-2 pb-0 text-left">
-                              <SheetTitle className="sr-only">Display Settings</SheetTitle>
-                             <div className="flex items-center h-[36px]">
-                                  <Button variant="ghost" size="icon" onClick={() => handleCloseSubmenu(setIsDisplaySettingsOpen)} className="h-8 w-8">
-                                      <ArrowLeft className="h-4 w-4" />
-                                  </Button>
-                              </div>
-                          </SheetHeader>
-                          <ScrollArea className="flex-grow">
-                              <div className="p-4 space-y-6">
-                                  <div className="space-y-2">
-                                      <Label>Font Size</Label>
-                                       <div className="flex items-center gap-2">
-                                          <Button variant="outline" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16} className="w-10 h-10"><Minus className="h-4 w-4"/></Button>
-                                          <div className="flex-grow text-center font-mono text-lg">{fontSize}px</div>
-                                          <Button variant="outline" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48} className="w-10 h-10"><Plus className="h-4 w-4"/></Button>
-                                      </div>
-                                  </div>
-                                   <div className="space-y-2">
-                                      <Label>Font Weight</Label>
-                                       <RadioGroup value={fontWeight.toString()} onValueChange={(value) => dispatch({ type: 'SET_FONT_WEIGHT', payload: parseInt(value) as FontWeight })} className="grid grid-cols-3 gap-2">
-                                          {FONT_WEIGHT_OPTIONS.map(option => (
-                                              <Label key={option.value} className={cn("flex h-10 items-center justify-center cursor-pointer rounded-md border text-lg hover:bg-accent hover:text-accent-foreground", fontWeight === option.value && "border-primary bg-primary/10 text-primary")}>
-                                                  <RadioGroupItem value={option.value.toString()} id={`weight-${option.value}`} className="sr-only" />
-                                                  <span style={option.style}>{option.label}</span>
-                                              </Label>
-                                          ))}
-                                      </RadioGroup>
-                                  </div>
-                              </div>
-                          </ScrollArea>
-                      </SheetContent>
-                  </Sheet>
-                    </div>
-                )}
+                        </ScrollArea>
+                    </SheetContent>
+                </Sheet>
+                </div>
               </div>
           </div>
         </div>
