@@ -21,7 +21,7 @@ import { useEffect, useState } from 'react';
 const navLinks = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/search', label: 'Search', icon: Search },
-  { href: '/create', label: 'Create', icon: PlusSquare },
+  { href: '/create', label: 'Creator', icon: PlusSquare },
 ];
 
 export default function Header() {

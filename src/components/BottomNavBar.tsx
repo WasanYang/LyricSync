@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 const navLinks = [
   { href: '/', label: 'Home', icon: HomeIcon },
   { href: '/search', label: 'Search', icon: SearchIcon },
-  { href: '/create', label: 'Create', icon: CreateIcon },
+  { href: '/create', label: 'Creator', icon: CreateIcon },
 ];
 
 export default function BottomNavBar() {
