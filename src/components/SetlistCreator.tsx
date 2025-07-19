@@ -10,7 +10,6 @@ import { getSongs, type Song } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { GripVertical, PlusCircle, Search, Trash2 } from 'lucide-react';
@@ -104,10 +103,9 @@ export default function SetlistCreator() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-2xl mx-auto">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 max-w-2xl mx-auto h-full flex flex-col">
         
-        <Card>
-          <CardContent className="p-4">
+        <div className="space-y-2">
             <FormField
               control={form.control}
               name="title"
@@ -115,69 +113,64 @@ export default function SetlistCreator() {
                 <FormItem>
                   <FormLabel className="sr-only">Setlist Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="Setlist Name (e.g. Acoustic Evening)" {...field} />
+                    <Input placeholder="Setlist Name (e.g. Acoustic Evening)" {...field} className="text-2xl font-bold p-0 h-auto border-0 focus-visible:ring-0 focus-visible:ring-offset-0" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </CardContent>
-        </Card>
+        </div>
 
-        <Card>
-          <CardHeader>
-              <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle className="font-headline">Songs</CardTitle>
-                    <CardDescription>Add songs and drag to reorder.</CardDescription>
+        <div className="flex-grow space-y-4 flex flex-col">
+          <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold font-headline">Songs</h2>
+              <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <PlusCircle className="h-5 w-5" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[300px] p-0" align="end">
+                  <div className="p-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search songs..."
+                        className="pl-9"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
                   </div>
-                  <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="icon">
-                        <PlusCircle className="h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0" align="end">
-                      <div className="p-4">
-                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            placeholder="Search songs..."
-                            className="pl-9"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      <ScrollArea className="h-[300px]">
-                        <div className="p-4 pt-0">
-                        {availableSongs.length > 0 ? (
-                          availableSongs.map(song => (
-                            <button
-                              key={song.id}
-                              onClick={() => {
-                                addSong(song);
-                                setSearchTerm('');
-                                setIsPopoverOpen(false);
-                              }}
-                              className="w-full text-left p-2 rounded-md hover:bg-accent flex items-start"
-                            >
-                              <div>
-                                <p className="font-semibold text-sm">{song.title}</p>
-                                <p className="text-xs text-muted-foreground">{song.artist}</p>
-                              </div>
-                            </button>
-                          ))
-                        ) : (
-                          <p className="text-sm text-center text-muted-foreground py-4">No songs found.</p>
-                        )}
-                        </div>
-                      </ScrollArea>
-                    </PopoverContent>
-                  </Popover>
-              </div>
-          </CardHeader>
-          <CardContent>
+                  <ScrollArea className="h-[300px]">
+                    <div className="p-4 pt-0">
+                    {availableSongs.length > 0 ? (
+                      availableSongs.map(song => (
+                        <button
+                          key={song.id}
+                          onClick={() => {
+                            addSong(song);
+                            setSearchTerm('');
+                            setIsPopoverOpen(false);
+                          }}
+                          className="w-full text-left p-2 rounded-md hover:bg-accent flex items-start"
+                        >
+                          <div>
+                            <p className="font-semibold text-sm">{song.title}</p>
+                            <p className="text-xs text-muted-foreground">{song.artist}</p>
+                          </div>
+                        </button>
+                      ))
+                    ) : (
+                      <p className="text-sm text-center text-muted-foreground py-4">No songs found.</p>
+                    )}
+                    </div>
+                  </ScrollArea>
+                </PopoverContent>
+              </Popover>
+          </div>
+          
+          <div className="flex-grow">
             {selectedSongs.length > 0 ? (
               <ul className="space-y-2">
                 {selectedSongs.map((song, index) => (
@@ -202,13 +195,13 @@ export default function SetlistCreator() {
                 ))}
               </ul>
             ) : (
-              <div className="text-center py-10 border-2 border-dashed rounded-lg">
+              <div className="text-center py-10 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full">
                 <p className="text-muted-foreground">Your setlist is empty.</p>
                 <p className="text-sm text-muted-foreground">Add songs to get started.</p>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         <Button type="submit" size="lg" className="w-full">Save Setlist</Button>
         
