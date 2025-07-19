@@ -56,11 +56,11 @@ export default function SearchPage() {
         <div className="space-y-8">
           <h1 className="text-4xl font-headline font-bold tracking-tight">Search</h1>
           <div className="relative">
-            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
             <Input
               type="search"
               placeholder="e.g., Starlight Echoes or Celestial Sound"
-              className="pl-10 text-base bg-white dark:bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="pl-10 text-base bg-black text-white dark:bg-white dark:text-black focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
