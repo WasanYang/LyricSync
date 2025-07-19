@@ -339,19 +339,24 @@ export default function LyricPlayer({ song }: { song: Song }) {
   }, [song.lyrics]);
   
     const { currentSection, currentSectionIndex } = useMemo(() => {
-        let sectionIdx = -1;
-        for (let i = sections.length - 1; i >= 0; i--) {
-            if (sections[i].time <= currentTime) {
-                sectionIdx = i;
-                break;
-            }
-        }
-        
-        if (sectionIdx !== -1) {
-            const section = sections[sectionIdx];
-            return { currentSection: { ...section, numericIndex: sectionIdx }, currentSectionIndex: sectionIdx };
-        }
+      if (!sections || sections.length === 0) {
         return { currentSection: null, currentSectionIndex: -1 };
+      }
+
+      let sectionIdx = -1;
+      for (let i = sections.length - 1; i >= 0; i--) {
+        if (currentTime >= sections[i].time) {
+          sectionIdx = i;
+          break;
+        }
+      }
+
+      if (sectionIdx !== -1) {
+        const section = sections[sectionIdx];
+        return { currentSection: { ...section, numericIndex: sectionIdx }, currentSectionIndex: sectionIdx };
+      }
+
+      return { currentSection: null, currentSectionIndex: -1 };
     }, [currentTime, sections]);
 
 
