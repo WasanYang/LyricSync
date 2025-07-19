@@ -214,7 +214,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
   }, [currentLineIndex]);
 
   return (
-    <div className="w-full h-full flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background">
       {/* Header Info */}
       <div className="text-center pt-16 md:pt-4 pb-4 flex-shrink-0">
         <h1 className="font-headline text-3xl font-bold">{song.title}</h1>
@@ -227,22 +227,32 @@ export default function LyricPlayer({ song }: { song: Song }) {
         className="flex-grow w-full overflow-y-auto scroll-smooth px-4"
         style={{ fontSize: `${fontSize}px`, lineHeight: '1.2' }}
       >
-        {song.lyrics.map((line, index) => (
-          <li
-            key={index}
-            ref={el => lineRefs.current[index] = el}
-            className={cn(
-              'rounded-md transition-all duration-300 text-center font-bold flex justify-center items-center',
-              'min-h-[2.5em]',
-              'py-2', 
-              index === currentLineIndex
-                ? 'text-foreground scale-105'
-                : 'text-muted-foreground/50'
-            )}
-          >
-             <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} />
-          </li>
-        ))}
+        {song.lyrics.map((line, index) => {
+          const parsedLine = parseLyrics(line.text);
+          const hasText = parsedLine.some(p => p.text.trim() !== '');
+          const hasChords = parsedLine.some(p => p.chord);
+
+          if (!showChords && !hasText && hasChords) {
+            return null;
+          }
+
+          return (
+            <li
+              key={index}
+              ref={el => lineRefs.current[index] = el}
+              className={cn(
+                'rounded-md transition-all duration-300 text-center font-bold flex justify-center items-center',
+                'min-h-[2.5em]',
+                'py-2', 
+                index === currentLineIndex
+                  ? 'text-foreground scale-105'
+                  : 'text-muted-foreground/50'
+              )}
+            >
+               <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} />
+            </li>
+          )
+        })}
       </ul>
 
       {/* Player Controls - Fixed at bottom */}
@@ -306,7 +316,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                             className="flex space-x-2"
                         >
                             {CHORD_COLOR_OPTIONS.map((option) => (
-                                <Label key={option.value} className="flex items-center space-x-1 cursor-pointer text-sm">
+                                <Label key={option.value} className="cursor-pointer">
                                     <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
                                     <div 
                                         className="w-6 h-6 rounded-full border-2"
@@ -336,3 +346,5 @@ export default function LyricPlayer({ song }: { song: Song }) {
     </div>
   );
 }
+
+    
