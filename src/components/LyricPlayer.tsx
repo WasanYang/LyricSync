@@ -4,8 +4,7 @@ import { useState, useEffect, useRef, useReducer, useCallback } from 'react';
 import type { Song } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Play, Pause, SkipBack, SkipForward, Repeat, TextQuote, Settings, Minus, Plus } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Repeat, Settings, Minus, Plus } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -32,7 +31,7 @@ const initialState: State = {
   currentTime: 0,
   currentLineIndex: -1,
   isFinished: false,
-  fontSize: 18,
+  fontSize: 24, // Increased default font size for better readability
 };
 
 function lyricPlayerReducer(state: State, action: Action): State {
@@ -50,7 +49,7 @@ function lyricPlayerReducer(state: State, action: Action): State {
     case 'FINISH':
       return { ...state, isPlaying: false, isFinished: true };
     case 'SET_FONT_SIZE':
-        const newSize = Math.max(12, Math.min(32, action.payload));
+        const newSize = Math.max(16, Math.min(48, action.payload));
         return { ...state, fontSize: newSize };
     default:
       return state;
@@ -125,84 +124,86 @@ export default function LyricPlayer({ song }: { song: Song }) {
   }, [currentLineIndex]);
 
   return (
-    <Card className="w-full max-w-4xl mx-auto overflow-hidden">
-      <CardHeader className="text-center">
-        <CardTitle className="font-headline text-3xl">{song.title}</CardTitle>
-        <CardDescription className="font-body text-lg">{song.artist}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center">
-        <ul
-          ref={scrollContainerRef}
-          className="w-full h-80 overflow-y-auto scroll-smooth mb-6 p-4 border rounded-md"
-          style={{ fontSize: `${fontSize}px` }}
-        >
-          {song.lyrics.map((line, index) => (
-            <li
-              key={index}
-              ref={el => lineRefs.current[index] = el}
-              className={cn(
-                'p-2 rounded-md transition-all duration-300 text-center font-body',
-                index === currentLineIndex
-                  ? 'text-primary font-bold scale-105'
-                  : 'text-muted-foreground'
-              )}
-            >
-              {line.text}
-            </li>
-          ))}
-        </ul>
+    <div className="w-full h-full flex flex-col p-4 pt-16 md:pt-4">
+      {/* Header Info */}
+      <div className="text-center mb-4">
+        <h1 className="font-headline text-3xl font-bold">{song.title}</h1>
+        <p className="font-body text-lg text-muted-foreground">{song.artist}</p>
+      </div>
 
-        <div className="w-full space-y-4">
-          <Slider
-            value={[currentTime]}
-            max={duration}
-            step={0.1}
-            onValueChange={handleSeek}
-          />
-          <div className="flex justify-between items-center w-full">
-            <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
-                    <SkipBack />
-                </Button>
-                <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-full w-16 h-16" onClick={() => dispatch({type: 'TOGGLE_PLAY'})} aria-label={isPlaying ? "Pause" : "Play"}>
-                    {isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>}
-                </Button>
-                 <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
-                    <SkipForward />
-                </Button>
-                 <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
-                    <Repeat />
-                </Button>
-            </div>
-            
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Settings">
-                  <Settings />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-60">
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <h4 className="font-medium font-headline leading-none">Settings</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Adjust lyric display.
-                    </p>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="font-size">Font Size</Label>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="icon" onClick={() => changeFontSize(-1)} disabled={fontSize <= 12}><Minus className="h-4 w-4" /></Button>
-                      <span className="font-mono text-sm w-8 text-center">{fontSize}px</span>
-                      <Button variant="outline" size="icon" onClick={() => changeFontSize(1)} disabled={fontSize >= 32}><Plus className="h-4 w-4" /></Button>
-                    </div>
+      {/* Lyrics Scroll Area */}
+      <ul
+        ref={scrollContainerRef}
+        className="flex-grow w-full overflow-y-auto scroll-smooth py-8"
+        style={{ fontSize: `${fontSize}px` }}
+      >
+        {song.lyrics.map((line, index) => (
+          <li
+            key={index}
+            ref={el => lineRefs.current[index] = el}
+            className={cn(
+              'p-2 rounded-md transition-all duration-300 text-center font-bold leading-relaxed',
+              index === currentLineIndex
+                ? 'text-foreground scale-105'
+                : 'text-muted-foreground/50'
+            )}
+          >
+            {line.text}
+          </li>
+        ))}
+      </ul>
+
+      {/* Player Controls - Fixed at bottom */}
+      <div className="w-full max-w-4xl mx-auto space-y-4 pt-4">
+        <Slider
+          value={[currentTime]}
+          max={duration}
+          step={0.1}
+          onValueChange={handleSeek}
+        />
+        <div className="flex justify-between items-center w-full">
+          <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
+                  <SkipBack />
+              </Button>
+              <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-full w-16 h-16" onClick={() => dispatch({type: 'TOGGLE_PLAY'})} aria-label={isPlaying ? "Pause" : "Play"}>
+                  {isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>}
+              </Button>
+               <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
+                  <SkipForward />
+              </Button>
+               <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
+                  <Repeat />
+              </Button>
+          </div>
+          
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Settings">
+                <Settings />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-60" side="top" align="end">
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <h4 className="font-medium font-headline leading-none">Settings</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Adjust lyric display.
+                  </p>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="font-size">Font Size</Label>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16}><Minus className="h-4 w-4" /></Button>
+                    <span className="font-mono text-sm w-8 text-center">{fontSize}px</span>
+                    <Button variant="outline" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48}><Plus className="h-4 w-4" /></Button>
                   </div>
                 </div>
-              </PopoverContent>
-            </Popover>
-          </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
