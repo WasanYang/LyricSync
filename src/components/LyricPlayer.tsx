@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Link from 'next/link';
+import { Input } from '@/components/ui/input';
 import {
   Sheet,
   SheetContent,
@@ -32,7 +33,7 @@ type State = {
   chordColor: string;
   highlightMode: HighlightMode;
   showSectionNavigator: boolean;
-  playbackRate: number;
+  bpm: number;
 };
 
 type Action =
@@ -47,7 +48,7 @@ type Action =
   | { type: 'SET_CHORD_COLOR'; payload: string }
   | { type: 'SET_HIGHLIGHT_MODE'; payload: HighlightMode }
   | { type: 'TOGGLE_SECTION_NAVIGATOR' }
-  | { type: 'SET_PLAYBACK_RATE'; payload: number };
+  | { type: 'SET_BPM'; payload: number };
 
 const initialState: State = {
   isPlaying: false,
@@ -59,7 +60,7 @@ const initialState: State = {
   chordColor: 'hsl(var(--chord-color))',
   highlightMode: 'line',
   showSectionNavigator: true,
-  playbackRate: 1,
+  bpm: 120,
 };
 
 function lyricPlayerReducer(state: State, action: Action): State {
@@ -87,8 +88,9 @@ function lyricPlayerReducer(state: State, action: Action): State {
         return { ...state, highlightMode: action.payload };
     case 'TOGGLE_SECTION_NAVIGATOR':
         return { ...state, showSectionNavigator: !state.showSectionNavigator };
-    case 'SET_PLAYBACK_RATE':
-        return { ...state, playbackRate: action.payload };
+    case 'SET_BPM':
+        const newBpm = Math.max(40, Math.min(240, action.payload));
+        return { ...state, bpm: newBpm };
     default:
       return state;
   }
@@ -170,15 +172,20 @@ const CHORD_COLOR_OPTIONS = [
     { value: 'hsl(24.6 95% 53.1%)' },
 ];
 
+// Assuming a "standard" or "default" BPM for normal playback speed (1.0x)
+const DEFAULT_BPM_FOR_NORMAL_SPEED = 120;
+
 export default function LyricPlayer({ song }: { song: Song }) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
-  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor, highlightMode, showSectionNavigator, playbackRate } = state;
+  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor, highlightMode, showSectionNavigator, bpm } = state;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
   const [currentSectionIndex, setCurrentSectionIndex] = useState<number>(-1);
   
   const duration = song.lyrics.length > 0 ? song.lyrics[song.lyrics.length - 1].time + 5 : 100;
+
+  const playbackRate = useMemo(() => bpm / DEFAULT_BPM_FOR_NORMAL_SPEED, [bpm]);
 
   const sections = useMemo(() => {
     return song.lyrics
@@ -219,6 +226,13 @@ export default function LyricPlayer({ song }: { song: Song }) {
     dispatch({ type: 'SET_FONT_SIZE', payload: fontSize + amount });
   }
 
+  const handleBpmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value, 10);
+    if (!isNaN(value)) {
+        dispatch({ type: 'SET_BPM', payload: value });
+    }
+  };
+
   useEffect(() => {
     if (isPlaying) {
       const intervalTime = 100 / playbackRate;
@@ -258,10 +272,12 @@ export default function LyricPlayer({ song }: { song: Song }) {
     }
     
     if (sectionIdx !== -1) {
-      return { ...sections[sectionIdx], numericIndex: sectionIdx };
+      const section = sections[sectionIdx];
+      return { ...section, numericIndex: sectionIdx };
     }
     return null;
   }, [currentLineIndex, sections]);
+
 
   useEffect(() => {
     if(currentSection?.numericIndex !== currentSectionIndex) {
@@ -274,7 +290,9 @@ export default function LyricPlayer({ song }: { song: Song }) {
         const activeLine = lineRefs.current[currentLineIndex];
         const container = scrollContainerRef.current;
         if (activeLine && container) {
-            const desiredScrollTop = activeLine.offsetTop - (container.clientHeight / 2) + (activeLine.clientHeight / 2);
+            const containerRect = container.getBoundingClientRect();
+            const lineRect = activeLine.getBoundingClientRect();
+            const desiredScrollTop = container.scrollTop + (lineRect.top - containerRect.top) - (containerRect.height / 2) + (lineRect.height / 2);
 
             container.scrollTo({
                 top: desiredScrollTop,
@@ -397,20 +415,22 @@ export default function LyricPlayer({ song }: { song: Song }) {
                         </RadioGroup>
                     </div>
                     <div className="grid gap-4">
-                        <Label htmlFor="playback-speed" className="flex items-center gap-3">
+                        <Label htmlFor="bpm-input" className="flex items-center gap-3">
                             <Clock className="h-5 w-5" />
-                            <span className="font-medium">Playback Speed</span>
+                            <span className="font-medium">Playback BPM</span>
                         </Label>
-                         <div className="flex items-center gap-4">
-                            <Slider
-                                id="playback-speed"
-                                min={0.5}
-                                max={1.5}
-                                step={0.1}
-                                value={[playbackRate]}
-                                onValueChange={(value) => dispatch({ type: 'SET_PLAYBACK_RATE', payload: value[0] })}
+                         <div className="flex items-center gap-2">
+                             <Button variant="outline" size="icon" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 1 })}><Minus className="h-4 w-4"/></Button>
+                             <Input
+                                id="bpm-input"
+                                type="number"
+                                value={bpm}
+                                onChange={handleBpmChange}
+                                min="40"
+                                max="240"
+                                className="text-center"
                             />
-                            <span className="text-sm font-semibold w-12 text-center">{playbackRate.toFixed(1)}x</span>
+                            <Button variant="outline" size="icon" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 1 })}><Plus className="h-4 w-4"/></Button>
                          </div>
                     </div>
                 </div>
