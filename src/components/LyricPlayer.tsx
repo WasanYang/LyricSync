@@ -448,13 +448,13 @@ export default function LyricPlayer({ song }: { song: Song }) {
   const renderSettingsContent = () => {
     return (
         <ScrollArea className="flex-grow">
-            <div className="relative overflow-x-hidden px-4">
+            <div className="relative overflow-x-hidden">
                 <div 
                     className="flex transition-transform duration-300 ease-in-out w-[200%]"
                     style={{ transform: `translateX(${settingsView === 'main' ? '0%' : '-50%'})` }}
                 >
                     {/* Main Settings View */}
-                    <div className="w-1/2 pr-4 space-y-4">
+                    <div className="w-1/2 px-4 space-y-4">
                         <div className="flex items-center justify-between py-2">
                             <div className="flex items-center gap-4">
                                 <List className="h-5 w-5 text-muted-foreground" />
@@ -490,14 +490,15 @@ export default function LyricPlayer({ song }: { song: Song }) {
                         </div>
                         
                         <div className="space-y-2 py-2">
-                            <div className="flex items-center justify-between">
+                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <Clock className="h-5 w-5 text-muted-foreground" />
-                                    <Label htmlFor="bpm-input" className="font-normal">BPM</Label>
+                                    <Label htmlFor="bpm-slider" className="font-normal">BPM</Label>
                                 </div>
                                 <span className="font-mono text-sm font-normal">{bpm}</span>
                             </div>
                             <Slider
+                                id="bpm-slider"
                                 value={[bpm]}
                                 onValueChange={handleBpmChange}
                                 max={240}
@@ -516,7 +517,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                     </div>
 
                     {/* Chords Settings Sub-View */}
-                    <div className="w-1/2 pl-4 space-y-4">
+                    <div className="w-1/2 px-4 space-y-4">
                          <div className="flex items-center justify-between py-2 border-b">
                             <Button variant="ghost" size="sm" onClick={() => setSettingsView('main')} className="pl-0">
                                 <ArrowLeft className="h-4 w-4 mr-2" />
@@ -564,7 +565,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
                                 </RadioGroup>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -586,7 +586,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
             </Button>
            </div>
 
-          <div className="flex-1 text-center">
+          <div className="flex-1 text-center min-w-0">
               <h1 className="font-headline text-xl font-bold truncate">{song.title}</h1>
           </div>
           
@@ -704,8 +704,9 @@ export default function LyricPlayer({ song }: { song: Song }) {
               step={0.1}
               onValueChange={handleSeek}
             />
-            <div className="relative flex justify-center items-center w-full gap-2 h-16">
-              <div className="flex-1 flex justify-center items-center gap-2">
+            <div className="relative flex justify-between items-center w-full gap-2 h-16">
+              <div className="flex-1"></div>
+              <div className="flex justify-center items-center gap-2">
                 <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
                     <Repeat />
                 </Button>
@@ -720,7 +721,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 </Button>
                  <div className="w-10"></div> {/* Placeholder for symmetry */}
               </div>
-              <div className="absolute right-0 bottom-3">
+              <div className="flex-1 flex justify-end">
                  <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                   <SheetTrigger asChild>
                     <Button variant="ghost" size="icon"><Settings /></Button>
