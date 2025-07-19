@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'r
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, Clock, X } from 'lucide-react';
+import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, Clock, X, GripVertical } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
@@ -182,6 +182,85 @@ export default function LyricPlayer({ song }: { song: Song }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
   const [currentSectionIndex, setCurrentSectionIndex] = useState<number>(-1);
+
+  // Drag and drop state for section navigator
+  const navigatorRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    // Set initial position on client-side to avoid hydration mismatch
+    setPosition({ x: 16, y: window.innerHeight / 2 - 100 });
+  }, []);
+
+  const handleDragMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    if (navigatorRef.current) {
+      setIsDragging(true);
+      const rect = navigatorRef.current.getBoundingClientRect();
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      });
+    }
+  }, []);
+
+  const handleDragTouchStart = useCallback((e: React.TouchEvent<HTMLButtonElement>) => {
+    if (navigatorRef.current) {
+      setIsDragging(true);
+      const touch = e.touches[0];
+      const rect = navigatorRef.current.getBoundingClientRect();
+      setDragOffset({
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top,
+      });
+    }
+  }, []);
+
+  const handleDragMouseUp = useCallback(() => setIsDragging(false), []);
+  const handleDragTouchEnd = useCallback(() => setIsDragging(false), []);
+
+
+  const handleDragMouseMove = useCallback((e: MouseEvent) => {
+    if (isDragging) {
+      setPosition({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y,
+      });
+    }
+  }, [isDragging, dragOffset]);
+
+  const handleDragTouchMove = useCallback((e: TouchEvent) => {
+    if (isDragging) {
+      const touch = e.touches[0];
+      setPosition({
+        x: touch.clientX - dragOffset.x,
+        y: touch.clientY - dragOffset.y,
+      });
+    }
+  }, [isDragging, dragOffset]);
+  
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleDragMouseMove);
+      window.addEventListener('mouseup', handleDragMouseUp);
+      window.addEventListener('touchmove', handleDragTouchMove);
+      window.addEventListener('touchend', handleDragTouchEnd);
+    } else {
+      window.removeEventListener('mousemove', handleDragMouseMove);
+      window.removeEventListener('mouseup', handleDragMouseUp);
+      window.removeEventListener('touchmove', handleDragTouchMove);
+      window.removeEventListener('touchend', handleDragTouchEnd);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleDragMouseMove);
+      window.removeEventListener('mouseup', handleDragMouseUp);
+      window.removeEventListener('touchmove', handleDragTouchMove);
+      window.removeEventListener('touchend', handleDragTouchEnd);
+    };
+  }, [isDragging, handleDragMouseMove, handleDragMouseUp, handleDragTouchMove, handleDragTouchEnd]);
+
   
   const duration = song.lyrics.length > 0 ? song.lyrics[song.lyrics.length - 1].time + 5 : 100;
 
@@ -303,7 +382,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
   }, [currentLineIndex, highlightMode]);
 
   return (
-    <div className="flex flex-col bg-background h-screen">
+    <div className="flex flex-col bg-background h-screen overflow-hidden">
       {/* Header Info */}
       <header className="fixed top-0 left-0 right-0 z-10 p-4 bg-background/80 backdrop-blur-sm pointer-events-auto">
         <div className="relative container mx-auto flex items-center justify-center h-10">
@@ -443,30 +522,48 @@ export default function LyricPlayer({ song }: { song: Song }) {
       
       {/* Section Navigator */}
       {showSectionNavigator && (
-        <div className="fixed left-4 top-1/2 -translate-y-1/2 z-20 pointer-events-auto">
-          <div className="relative flex flex-col gap-2 bg-background/20 backdrop-blur-sm p-2 rounded-lg">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="absolute -top-3 -right-3 h-6 w-6 bg-background/50 rounded-full"
-                onClick={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
-              >
-                  <X className="h-4 w-4"/>
-              </Button>
-              {sections.map((section, index) => (
-                  <button
-                      key={section.uniqueKey}
-                      onDoubleClick={() => handleSectionJump(section.time)}
-                      className={cn(
-                          "text-xs font-bold py-1 px-3 rounded-full shadow-lg transition-all duration-300",
-                          index === currentSectionIndex
-                              ? "bg-primary text-primary-foreground" 
-                              : "bg-background/40 text-muted-foreground/60 hover:bg-muted/80 hover:text-muted-foreground"
-                      )}
+        <div 
+          ref={navigatorRef}
+          className="fixed z-20 pointer-events-auto"
+          style={{ top: `${position.y}px`, left: `${position.x}px` }}
+        >
+          <div className="relative flex flex-col gap-2 bg-background/20 backdrop-blur-sm p-2 rounded-lg shadow-lg">
+               <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-center gap-1">
+                 <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 bg-background/50 rounded-full cursor-grab active:cursor-grabbing"
+                    onMouseDown={handleDragMouseDown}
+                    onTouchStart={handleDragTouchStart}
                   >
-                      {section.name}
-                  </button>
-              ))}
+                    <GripVertical className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 bg-background/50 rounded-full"
+                    onClick={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
+                  >
+                      <X className="h-4 w-4"/>
+                  </Button>
+              </div>
+
+              <div className="mt-4 flex flex-col gap-2">
+                {sections.map((section, index) => (
+                    <button
+                        key={section.uniqueKey}
+                        onDoubleClick={() => handleSectionJump(section.time)}
+                        className={cn(
+                            "text-xs font-bold py-1 px-3 rounded-full shadow-lg transition-all duration-300",
+                            index === currentSectionIndex
+                                ? "bg-primary text-primary-foreground" 
+                                : "bg-background/40 text-muted-foreground/60 hover:bg-muted/80 hover:text-muted-foreground"
+                        )}
+                    >
+                        {section.name}
+                    </button>
+                ))}
+              </div>
           </div>
         </div>
       )}
