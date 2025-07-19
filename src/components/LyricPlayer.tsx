@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'r
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, Clock, X, Move, Music, RotateCcw, Sun, Moon, ChevronRight, Text, CaseSensitive } from 'lucide-react';
+import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, Clock, X, Move, Music, RotateCcw, Sun, Moon, ChevronRight, Text, CaseSensitive, ListMusic } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
@@ -627,7 +627,7 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
           "fixed bottom-0 left-0 right-0 pointer-events-none",
           isSetlistMode && "bottom-16" // Pushed up by SetlistControls
           )}>
-        <div className="bg-background/60 backdrop-blur-sm pt-4 pointer-events-auto">
+        <div className="bg-background/50 backdrop-blur-sm pt-4 pointer-events-auto">
             <div className="max-w-4xl mx-auto space-y-4 px-4">
               <Slider
                 value={[currentTime]}
@@ -691,7 +691,7 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
                             {!isSetlistMode && (
                                 <div className="flex items-center justify-between py-2">
                                     <div className="flex items-center gap-4">
-                                        <List className="h-5 w-5 text-muted-foreground" />
+                                        <ListMusic className="h-5 w-5 text-muted-foreground" />
                                         <Label htmlFor="show-section-nav">Navigator</Label>
                                     </div>
                                     <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
