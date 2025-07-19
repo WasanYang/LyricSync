@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'r
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, Clock } from 'lucide-react';
+import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, Clock, X } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
@@ -444,7 +444,15 @@ export default function LyricPlayer({ song }: { song: Song }) {
       {/* Section Navigator */}
       {showSectionNavigator && (
         <div className="fixed left-4 top-1/2 -translate-y-1/2 z-20 pointer-events-auto">
-          <div className="flex flex-col gap-2">
+          <div className="relative flex flex-col gap-2 bg-background/20 backdrop-blur-sm p-2 rounded-lg">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="absolute -top-3 -right-3 h-6 w-6 bg-background/50 rounded-full"
+                onClick={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
+              >
+                  <X className="h-4 w-4"/>
+              </Button>
               {sections.map((section, index) => (
                   <button
                       key={section.uniqueKey}
@@ -453,7 +461,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                           "text-xs font-bold py-1 px-3 rounded-full shadow-lg transition-all duration-300",
                           index === currentSectionIndex
                               ? "bg-primary text-primary-foreground" 
-                              : "bg-background/40 backdrop-blur-sm text-muted-foreground/60 hover:bg-muted/80 hover:text-muted-foreground"
+                              : "bg-background/40 text-muted-foreground/60 hover:bg-muted/80 hover:text-muted-foreground"
                       )}
                   >
                       {section.name}
