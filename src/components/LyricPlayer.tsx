@@ -4,13 +4,20 @@ import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'r
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, SkipBack, SkipForward, Repeat, Settings, Minus, Plus, Guitar, Palette, ArrowLeft } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Play, Pause, SkipBack, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Link from 'next/link';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 
 
 type State = {
@@ -159,13 +166,20 @@ export default function LyricPlayer({ song }: { song: Song }) {
   };
   
   const handleSkip = (direction: 'forward' | 'backward') => {
-    const nextIndex = direction === 'forward' ? currentLineIndex + 1 : currentLineIndex - 1;
-    if (nextIndex >= 0 && nextIndex < song.lyrics.length) {
+    let nextIndex = -1;
+    if (direction === 'forward') {
+      nextIndex = song.lyrics.findIndex(line => line.time > currentTime);
+    } else {
+      const prevLineTime = song.lyrics.slice(0, currentLineIndex).reverse().find(line => line.time < currentTime)?.time ?? 0;
+      dispatch({ type: 'SET_TIME', payload: prevLineTime });
+      return;
+    }
+    
+    if (nextIndex !== -1) {
         dispatch({ type: 'SET_TIME', payload: song.lyrics[nextIndex].time });
-    } else if (direction === 'backward' && nextIndex < 0) {
-        dispatch({ type: 'SET_TIME', payload: 0 });
     }
   };
+
 
   const changeFontSize = (amount: number) => {
     dispatch({ type: 'SET_FONT_SIZE', payload: fontSize + amount });
@@ -211,40 +225,96 @@ export default function LyricPlayer({ song }: { song: Song }) {
     <div className="flex flex-col bg-background h-screen">
       {/* Header Info */}
       <header className="fixed top-0 left-0 right-0 z-10 p-4 bg-gradient-to-b from-background via-background/90 to-transparent pointer-events-none h-32">
-        <div className="container mx-auto flex items-start justify-between">
-           <Button asChild variant="ghost" size="icon" className="pointer-events-auto">
+        <div className="container mx-auto flex items-center justify-between pointer-events-auto">
+           <Button asChild variant="ghost" size="icon">
             <Link href="/">
               <ArrowLeft />
               <span className="sr-only">Back to Home</span>
             </Link>
           </Button>
 
-          <div className="text-center pointer-events-auto">
-              <h1 className="font-headline text-2xl font-bold">{song.title}</h1>
+          <div className="text-center">
+              <h1 className="font-headline text-xl font-bold truncate">{song.title}</h1>
               <p className={cn(
-                  "font-body text-md text-muted-foreground transition-opacity duration-300",
+                  "font-body text-sm text-muted-foreground transition-opacity duration-300",
                   isPlaying ? 'opacity-0' : 'opacity-100'
               )}>
                   {song.artist}
               </p>
           </div>
           
-          <div className="w-10"></div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16}><Minus className="h-4 w-4"/></Button>
+            <span className="font-mono text-xs w-6 text-center">{fontSize}</span>
+            <Button variant="ghost" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48}><Plus className="h-4 w-4"/></Button>
+            
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon"><Settings /></Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Display Settings</SheetTitle>
+                  <SheetDescription>
+                    Adjust how lyrics are displayed on your screen.
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="grid gap-6 py-6">
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="show-chords" className="flex items-center gap-3">
+                            <Guitar className="h-5 w-5" />
+                            <span className="font-medium">Show Chords</span>
+                        </Label>
+                        <Switch
+                            id="show-chords"
+                            checked={showChords}
+                            onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
+                        />
+                    </div>
+                    <div className="grid gap-4">
+                        <Label className="flex items-center gap-3">
+                            <Palette className="h-5 w-5" />
+                            <span className="font-medium">Chord Color</span>
+                        </Label>
+                        <RadioGroup 
+                            defaultValue={chordColor}
+                            onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })}
+                            className="flex space-x-2"
+                        >
+                            {CHORD_COLOR_OPTIONS.map((option) => (
+                                <Label key={option.value} className="cursor-pointer">
+                                    <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
+                                    <div 
+                                        className="w-8 h-8 rounded-full border-2"
+                                        style={{ 
+                                            backgroundColor: option.value,
+                                            borderColor: chordColor === option.value ? 'hsl(var(--primary))' : 'transparent'
+                                        }}>
+                                    </div>
+                                </Label>
+                            ))}
+                        </RadioGroup>
+                    </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+
+          </div>
         </div>
       </header>
       
       {/* Lyrics Scroll Area */}
       <ul
         className="w-full px-4 pt-32 pb-56 overflow-y-auto" 
-        style={{ fontSize: `${fontSize}px`, lineHeight: '1.5' }}
+        style={{ fontSize: `${fontSize}px` }}
       >
         {song.lyrics.map((line, index) => {
           const parsedLine = parseLyrics(line.text);
           const hasText = parsedLine.some(p => p.text.trim() !== '');
           const hasChords = parsedLine.some(p => p.chord);
-          const isSectionBreak = !hasText && !hasChords;
+          const isSectionBreak = !hasText && !hasChords && line.text.trim() === '';
 
-          if (!showChords && !hasText && hasChords) {
+           if (!showChords && !hasText && hasChords) {
             return null;
           }
 
@@ -259,6 +329,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                   ? 'text-foreground scale-105'
                   : 'text-muted-foreground/50'
               )}
+              style={{ minHeight: isSectionBreak ? `${fontSize * 1.2}px` : `${fontSize * 1.5}px`}}
             >
                {!isSectionBreak && <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} />}
             </li>
@@ -275,86 +346,20 @@ export default function LyricPlayer({ song }: { song: Song }) {
               step={0.1}
               onValueChange={handleSeek}
             />
-            <div className="flex justify-between items-center w-full gap-4">
-
-              {/* Font Size Controls */}
-              <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16}><Minus /></Button>
-                  <span className="font-mono text-sm w-8 text-center">{fontSize}px</span>
-                  <Button variant="ghost" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48}><Plus /></Button>
-              </div>
-
-              {/* Main Playback Controls */}
-              <div className="flex items-center justify-center gap-2">
-                  <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
-                      <SkipBack />
-                  </Button>
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-full w-16 h-16" onClick={() => dispatch({type: 'TOGGLE_PLAY'})} aria-label={isPlaying ? "Pause" : "Play"}>
-                      {isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>}
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
-                      <SkipForward />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
-                      <Repeat />
-                  </Button>
-              </div>
-              
-              {/* Settings Popover */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" aria-label="Settings">
-                    <Settings />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-60" side="top" align="end">
-                  <div className="grid gap-4">
-                    <div className="space-y-2">
-                      <h4 className="font-medium font-headline leading-none">Settings</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Adjust lyric display.
-                      </p>
-                    </div>
-                    <div className="grid gap-4">
-                        <div className="flex items-center justify-between">
-                            <Label htmlFor="show-chords" className="flex items-center gap-2">
-                                <Guitar className="h-4 w-4" />
-                                Show Chords
-                            </Label>
-                            <Switch
-                                id="show-chords"
-                                checked={showChords}
-                                onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label className="flex items-center gap-2">
-                                <Palette className="h-4 w-4" />
-                                Chord Color
-                            </Label>
-                            <RadioGroup 
-                                defaultValue={chordColor}
-                                onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })}
-                                className="flex space-x-2"
-                            >
-                                {CHORD_COLOR_OPTIONS.map((option) => (
-                                    <Label key={option.value} className="cursor-pointer">
-                                        <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
-                                        <div 
-                                            className="w-6 h-6 rounded-full border-2"
-                                            style={{ 
-                                                backgroundColor: option.value,
-                                                borderColor: chordColor === option.value ? 'hsl(var(--primary))' : 'transparent'
-                                            }}>
-                                        </div>
-                                    </Label>
-                                ))}
-                            </RadioGroup>
-                        </div>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
+            <div className="flex justify-center items-center w-full gap-2">
+              <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
+                  <Repeat />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => handleSkip('backward')} aria-label="Skip Backward">
+                  <SkipBack />
+              </Button>
+              <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-full w-16 h-16" onClick={() => dispatch({type: 'TOGGLE_PLAY'})} aria-label={isPlaying ? "Pause" : "Play"}>
+                  {isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>}
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => handleSkip('forward')} aria-label="Skip Forward">
+                  <SkipForward />
+              </Button>
+               <div className="w-10 h-10"></div>
             </div>
         </div>
       </div>
