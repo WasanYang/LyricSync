@@ -224,15 +224,11 @@ const ORIGINAL_SONG_KEY_NOTE = 'A'; // Assuming the original key for song ID 4 i
 interface LyricPlayerProps {
     song: Song;
     isSetlistMode?: boolean;
-    onNextSong?: () => void;
-    onPrevSong?: () => void;
 }
 
 export default function LyricPlayer({ 
     song, 
     isSetlistMode = false,
-    onNextSong,
-    onPrevSong
 }: LyricPlayerProps) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
   const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, fontWeight, showChords, chordColor, highlightMode, showSectionNavigator, bpm, transpose } = state;
@@ -626,7 +622,8 @@ export default function LyricPlayer({
 
 
       <div className={cn(
-          "fixed bottom-0 left-0 right-0 pointer-events-none"
+          "fixed bottom-0 left-0 right-0 pointer-events-none",
+          isSetlistMode && "bottom-16"
       )}>
         <div className="bg-background/50 backdrop-blur-sm pointer-events-auto pb-4">
             <div className="max-w-4xl mx-auto space-y-0 px-0">
@@ -636,13 +633,9 @@ export default function LyricPlayer({
                 step={0.1}
                 onValueChange={handleSeek}
               />
-              <div className="relative flex justify-between items-center w-full gap-2 h-16">
-                <div className="flex-1 flex justify-start pl-2">
-                    {isSetlistMode ? (
-                        <Button variant="ghost" size="icon" onClick={onPrevSong} aria-label="Previous Song">
-                            <SkipBack />
-                        </Button>
-                    ) : (
+              <div className="relative flex justify-between items-center w-full gap-2 h-16 px-2">
+                <div className="flex-1 flex justify-start">
+                    {!isSetlistMode && (
                         <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
                             <Repeat />
                         </Button>
@@ -663,12 +656,8 @@ export default function LyricPlayer({
                     </Button>
                    )}
                 </div>
-                <div className="flex-1 flex justify-end pr-2">
-                    {isSetlistMode ? (
-                         <Button variant="ghost" size="icon" onClick={onNextSong} aria-label="Next Song">
-                            <SkipForward />
-                        </Button>
-                    ) : (
+                <div className="flex-1 flex justify-end">
+                    {!isSetlistMode && (
                        <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                         <SheetTrigger asChild>
                           <Button variant="ghost" size="icon"><Settings /></Button>
