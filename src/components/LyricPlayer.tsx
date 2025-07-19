@@ -224,11 +224,15 @@ const ORIGINAL_SONG_KEY_NOTE = 'A'; // Assuming the original key for song ID 4 i
 interface LyricPlayerProps {
     song: Song;
     isSetlistMode?: boolean;
+    onNextSong?: () => void;
+    onPrevSong?: () => void;
 }
 
 export default function LyricPlayer({ 
     song, 
-    isSetlistMode = false
+    isSetlistMode = false,
+    onNextSong,
+    onPrevSong
 }: LyricPlayerProps) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
   const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, fontWeight, showChords, chordColor, highlightMode, showSectionNavigator, bpm, transpose } = state;
@@ -622,10 +626,9 @@ export default function LyricPlayer({
 
 
       <div className={cn(
-          "fixed bottom-0 left-0 right-0 pointer-events-none",
-          isSetlistMode && "pb-16"
+          "fixed bottom-0 left-0 right-0 pointer-events-none"
       )}>
-        <div className="bg-background/50 backdrop-blur-sm pointer-events-auto">
+        <div className="bg-background/50 backdrop-blur-sm pointer-events-auto pb-4">
             <div className="max-w-4xl mx-auto space-y-0 px-0">
               <Slider
                 value={[currentTime]}
@@ -635,9 +638,15 @@ export default function LyricPlayer({
               />
               <div className="relative flex justify-between items-center w-full gap-2 h-16">
                 <div className="flex-1 flex justify-start pl-2">
-                    <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
-                        <Repeat />
-                    </Button>
+                    {isSetlistMode ? (
+                        <Button variant="ghost" size="icon" onClick={onPrevSong} aria-label="Previous Song">
+                            <SkipBack />
+                        </Button>
+                    ) : (
+                        <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
+                            <Repeat />
+                        </Button>
+                    )}
                 </div>
                 <div className="flex justify-center items-center gap-2">
                   {!isSetlistMode && (
@@ -655,6 +664,11 @@ export default function LyricPlayer({
                    )}
                 </div>
                 <div className="flex-1 flex justify-end pr-2">
+                    {isSetlistMode ? (
+                         <Button variant="ghost" size="icon" onClick={onNextSong} aria-label="Next Song">
+                            <SkipForward />
+                        </Button>
+                    ) : (
                        <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                         <SheetTrigger asChild>
                           <Button variant="ghost" size="icon"><Settings /></Button>
@@ -688,15 +702,13 @@ export default function LyricPlayer({
                                         <ChevronRight className="h-4 w-4 text-muted-foreground" />
                                     </div>
                                 </button>
-                                {!isSetlistMode && (
-                                    <div className="flex items-center justify-between py-2">
-                                        <div className="flex items-center gap-4">
-                                            <ListMusic className="h-5 w-5 text-muted-foreground" />
-                                            <Label htmlFor="show-section-nav">Navigator</Label>
-                                        </div>
-                                        <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
+                                <div className="flex items-center justify-between py-2">
+                                    <div className="flex items-center gap-4">
+                                        <ListMusic className="h-5 w-5 text-muted-foreground" />
+                                        <Label htmlFor="show-section-nav">Navigator</Label>
                                     </div>
-                                )}
+                                    <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
+                                </div>
                                 <div className="flex items-center justify-between py-2">
                                     <div className="flex items-center gap-4">
                                         <Highlighter className="h-5 w-5 text-muted-foreground" />
@@ -739,6 +751,7 @@ export default function LyricPlayer({
                           </ScrollArea>
                         </SheetContent>
                       </Sheet>
+                    )}
                   
 
                   {/* Chords Settings Sheet */}
