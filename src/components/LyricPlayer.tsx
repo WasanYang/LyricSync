@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'r
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, Clock, X, Move } from 'lucide-react';
+import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, Clock, X, Move, Music, RotateCcw } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/sheet"
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { transposeChord } from '@/lib/chords';
 
 
 type HighlightMode = 'line' | 'section' | 'none';
@@ -36,6 +37,7 @@ type State = {
   highlightMode: HighlightMode;
   showSectionNavigator: boolean;
   bpm: number;
+  transpose: number;
 };
 
 type Action =
@@ -50,7 +52,10 @@ type Action =
   | { type: 'SET_CHORD_COLOR'; payload: string }
   | { type: 'SET_HIGHLIGHT_MODE'; payload: HighlightMode }
   | { type: 'TOGGLE_SECTION_NAVIGATOR' }
-  | { type: 'SET_BPM'; payload: number };
+  | { type: 'SET_BPM'; payload: number }
+  | { type: 'TRANSPOSE_UP' }
+  | { type: 'TRANSPOSE_DOWN' }
+  | { type: 'RESET_TRANSPOSE' };
 
 const initialState: State = {
   isPlaying: false,
@@ -63,6 +68,7 @@ const initialState: State = {
   highlightMode: 'line',
   showSectionNavigator: true,
   bpm: 120,
+  transpose: 0,
 };
 
 function lyricPlayerReducer(state: State, action: Action): State {
@@ -93,6 +99,12 @@ function lyricPlayerReducer(state: State, action: Action): State {
     case 'SET_BPM':
         const newBpm = Math.max(40, Math.min(240, action.payload));
         return { ...state, bpm: newBpm };
+    case 'TRANSPOSE_UP':
+        return { ...state, transpose: state.transpose + 1 };
+    case 'TRANSPOSE_DOWN':
+        return { ...state, transpose: state.transpose - 1 };
+    case 'RESET_TRANSPOSE':
+        return { ...state, transpose: 0 };
     default:
       return state;
   }
@@ -132,7 +144,7 @@ const parseLyrics = (line: string): Array<{ chord: string | null; text: string }
     return parts;
 };
 
-const LyricLineDisplay = ({ line, showChords, chordColor }: { line: LyricLine; showChords: boolean; chordColor: string; }) => {
+const LyricLineDisplay = ({ line, showChords, chordColor, transpose }: { line: LyricLine; showChords: boolean; chordColor: string; transpose: number; }) => {
     const parsedLine = useMemo(() => parseLyrics(line.text), [line.text]);
     const hasChords = useMemo(() => parsedLine.some(p => p.chord), [parsedLine]);
     const hasText = useMemo(() => parsedLine.some(p => p.text.trim() !== ''), [parsedLine]);
@@ -150,7 +162,7 @@ const LyricLineDisplay = ({ line, showChords, chordColor }: { line: LyricLine; s
         <div className="flex -mb-1" style={{ color: chordColor }}>
           {parsedLine.map((part, index) => (
             <div key={`chord-container-${index}`} className="flex-shrink-0 relative" style={{paddingRight: part.text ? '0.25em' : '0.5em'}}>
-                <span className="font-bold whitespace-pre">{part.chord || ''}</span>
+                <span className="font-bold whitespace-pre">{part.chord ? transposeChord(part.chord, transpose) : ''}</span>
                 <span className="text-transparent whitespace-pre">{part.text}</span>
             </div>
           ))}
@@ -158,7 +170,7 @@ const LyricLineDisplay = ({ line, showChords, chordColor }: { line: LyricLine; s
         <div className="flex">
           {parsedLine.map((part, index) => (
             <div key={`text-container-${index}`} className="flex-shrink-0 relative" style={{paddingRight: part.text ? '0.25em' : '0.5em'}}>
-              <span className="text-transparent font-bold whitespace-pre">{part.chord || ''}</span>
+              <span className="text-transparent font-bold whitespace-pre">{part.chord ? transposeChord(part.chord, transpose) : ''}</span>
               <span className="whitespace-pre">{part.text}</span>
             </div>
           ))}
@@ -184,7 +196,7 @@ const DEFAULT_BPM_FOR_NORMAL_SPEED = 120;
 
 export default function LyricPlayer({ song }: { song: Song }) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
-  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor, highlightMode, showSectionNavigator, bpm } = state;
+  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor, highlightMode, showSectionNavigator, bpm, transpose } = state;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
@@ -390,72 +402,103 @@ export default function LyricPlayer({ song }: { song: Song }) {
   
   const renderSettingsContent = () => {
     return (
-      <ScrollArea className="flex-grow">
-        <div className="p-4 space-y-4 pt-6">
-
-          <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+      <>
+        <SheetHeader className="p-4 pb-0">
+            <SheetTitle className="sr-only">Settings</SheetTitle>
+        </SheetHeader>
+        <ScrollArea className="flex-grow" style={{ maxHeight: 'calc(70vh - 4rem)'}}>
+          <div className="p-4 space-y-6 pt-2">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
                   <List className="h-5 w-5 text-muted-foreground" />
                   <Label htmlFor="show-section-nav" className="font-normal">Navigator</Label>
+                </div>
+                <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
               </div>
-              <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
-          </div>
 
-          <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
                   <Guitar className="h-5 w-5 text-muted-foreground" />
                   <Label htmlFor="show-chords" className="font-normal">Chords</Label>
+                </div>
+                <Switch id="show-chords" checked={showChords} onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })} />
               </div>
-              <Switch id="show-chords" checked={showChords} onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })} />
-          </div>
-          
-          <Separator />
-
-          <div className="space-y-2">
-            <div className="flex items-center gap-4">
-              <Palette className="h-5 w-5 text-muted-foreground" />
-              <Label className="font-normal">Color</Label>
             </div>
-            <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex flex-wrap gap-2 pt-2">
-              {CHORD_COLOR_OPTIONS.map((option) => (
-                <Label key={option.value} className="cursor-pointer">
-                  <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
-                  <div className={cn("w-5 h-5 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
-                </Label>
-              ))}
-            </RadioGroup>
-          </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center gap-4">
-                <Highlighter className="h-5 w-5 text-muted-foreground" />
-                <Label className="font-normal">Highlight</Label>
+            <Separator />
+            
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Music className="h-5 w-5 text-muted-foreground" />
+                        <Label className="font-normal">Key</Label>
+                    </div>
+                     <div className="flex items-center gap-2">
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'TRANSPOSE_DOWN' })}>
+                            <Minus className="h-4 w-4" />
+                        </Button>
+                        <span className="text-center font-bold w-10 text-base">
+                            {transpose > 0 ? `+${transpose}` : transpose}
+                        </span>
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'TRANSPOSE_UP' })}>
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'RESET_TRANSPOSE' })} disabled={transpose === 0}>
+                            <RotateCcw className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                    <Palette className="h-5 w-5 text-muted-foreground" />
+                    <Label className="font-normal">Color</Label>
+                    </div>
+                    <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex flex-wrap gap-2 justify-start">
+                    {CHORD_COLOR_OPTIONS.map((option) => (
+                        <Label key={option.value} className="cursor-pointer">
+                        <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
+                        <div className={cn("w-5 h-5 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
+                        </Label>
+                    ))}
+                    </RadioGroup>
+                </div>
             </div>
-            <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="grid grid-cols-3 gap-2 pt-2">
-                {HIGHLIGHT_OPTIONS.map(option => (
-                    <Label key={option.value} className={cn("flex h-8 items-center justify-center cursor-pointer rounded-md border p-1 text-xs font-normal hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-accent text-accent-foreground")}>
-                        <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
-                        {option.label}
-                    </Label>
-                ))}
-            </RadioGroup>
-          </div>
 
-          <Separator />
-          
-          <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                  <Clock className="h-5 w-5 text-muted-foreground" />
-                  <Label htmlFor="bpm-input" className="font-normal">BPM</Label>
-              </div>
-              <div className="flex items-center gap-2 max-w-[150px]">
-                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 1 })}><Minus className="h-4 w-4"/></Button>
-                  <Input id="bpm-input" type="number" value={bpm} onChange={handleBpmChange} min="40" max="240" className="text-center font-normal h-8" />
-                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 1 })}><Plus className="h-4 w-4"/></Button>
-              </div>
+            <Separator />
+
+            <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Highlighter className="h-5 w-5 text-muted-foreground" />
+                        <Label className="font-normal">Highlight</Label>
+                    </div>
+                    <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="grid grid-cols-3 gap-2">
+                        {HIGHLIGHT_OPTIONS.map(option => (
+                            <Label key={option.value} className={cn("flex h-8 items-center justify-center cursor-pointer rounded-md border p-1 text-xs hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-accent text-accent-foreground")}>
+                                <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
+                                {option.label}
+                            </Label>
+                        ))}
+                    </RadioGroup>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Clock className="h-5 w-5 text-muted-foreground" />
+                        <Label htmlFor="bpm-input" className="font-normal">BPM</Label>
+                    </div>
+                    <div className="flex items-center gap-2 max-w-[180px]">
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 1 })}><Minus className="h-4 w-4"/></Button>
+                        <Input id="bpm-input" type="number" value={bpm} onChange={handleBpmChange} min="40" max="240" className="text-center font-normal h-8 w-16" />
+                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 1 })}><Plus className="h-4 w-4"/></Button>
+                    </div>
+                </div>
+            </div>
           </div>
-        </div>
-      </ScrollArea>
+        </ScrollArea>
+      </>
     );
   }
 
@@ -494,9 +537,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 <Button variant="ghost" size="icon"><Settings /></Button>
               </SheetTrigger>
               <SheetContent side="bottom" className="p-0 flex flex-col max-h-[70vh] rounded-t-lg" showCloseButton={false}>
-                <SheetHeader>
-                  <SheetTitle className="sr-only">Settings</SheetTitle>
-                </SheetHeader>
                 {renderSettingsContent()}
               </SheetContent>
             </Sheet>
@@ -594,7 +634,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 )}
                 style={{ minHeight: isSectionBreak ? 'auto' : `calc(${fontSize}px * 1.5)`}}
                 >
-                {!isSectionBreak && <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} />}
+                {!isSectionBreak && <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} transpose={transpose} />}
                 </li>
             )
             })}
