@@ -24,21 +24,23 @@ function SongSection({ title, songs }: SongSectionProps) {
   return (
     <section>
       <h2 className="text-2xl font-headline font-semibold mb-4">{title}</h2>
-      <Carousel
-        opts={{
-          align: "start",
-          loop: false,
-        }}
-        className="w-full"
-      >
-        <CarouselContent className="-ml-4">
-          {songs.map((song) => (
-            <CarouselItem key={song.id} className="basis-2/5 md:basis-1/4 pl-4">
-              <SongCard song={song} />
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-      </Carousel>
+      <div className="w-full max-w-full">
+        <Carousel
+          opts={{
+            align: "start",
+            loop: false,
+          }}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-4">
+            {songs.map((song) => (
+              <CarouselItem key={song.id} className="basis-2/5 md:basis-1/4 pl-4">
+                <SongCard song={song} />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+      </div>
     </section>
   )
 }
