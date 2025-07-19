@@ -41,7 +41,7 @@ const initialState: State = {
   isFinished: false,
   fontSize: 24,
   showChords: true,
-  chordColor: 'hsl(var(--destructive))',
+  chordColor: 'hsl(var(--chord-color))',
 };
 
 function lyricPlayerReducer(state: State, action: Action): State {
@@ -140,7 +140,7 @@ const LyricLineDisplay = ({ line, showChords, chordColor }: { line: LyricLine; s
 };
 
 const CHORD_COLOR_OPTIONS = [
-    { value: 'hsl(var(--destructive))' },
+    { value: 'hsl(var(--chord-color))' },
     { value: 'hsl(221.2 83.2% 53.3%)' },
     { value: 'hsl(142.1 76.2% 36.3%)' },
     { value: 'hsl(24.6 95% 53.1%)' },
@@ -151,8 +151,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
   const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor } = state;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
-  const listContainerRef = useRef<HTMLUListElement | null>(null);
-
+  
   const duration = song.lyrics.length > 0 ? song.lyrics[song.lyrics.length - 1].time + 5 : 100;
 
   const handleSeek = (value: number[]) => {
@@ -200,23 +199,18 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
   useEffect(() => {
     const activeLine = lineRefs.current[currentLineIndex];
-    const container = listContainerRef.current;
-    if (activeLine && container) {
-      const containerRect = container.getBoundingClientRect();
-      const lineRect = activeLine.getBoundingClientRect();
-      const scrollOffset = lineRect.top - containerRect.top - containerRect.height / 2 + lineRect.height / 2;
-      
-      window.scrollTo({
-        top: window.scrollY + scrollOffset,
-        behavior: 'smooth',
-      });
+    if (activeLine) {
+        activeLine.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
     }
   }, [currentLineIndex]);
 
   return (
-    <div className="flex flex-col bg-background">
+    <div className="flex flex-col bg-background h-screen">
       {/* Header Info */}
-      <header className="fixed top-0 left-0 right-0 z-10 p-4 bg-gradient-to-b from-background to-transparent pointer-events-none">
+      <header className="fixed top-0 left-0 right-0 z-10 p-4 bg-gradient-to-b from-background via-background/90 to-transparent pointer-events-none h-32">
         <div className="container mx-auto flex items-start justify-between">
            <Button asChild variant="ghost" size="icon" className="pointer-events-auto">
             <Link href="/">
@@ -241,8 +235,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
       
       {/* Lyrics Scroll Area */}
       <ul
-        ref={listContainerRef}
-        className="w-full px-4 pt-40 pb-56" // Padding top for header, padding bottom for controls
+        className="w-full px-4 pt-32 pb-56 overflow-y-auto" 
         style={{ fontSize: `${fontSize}px`, lineHeight: '1.5' }}
       >
         {song.lyrics.map((line, index) => {
@@ -274,7 +267,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
       </ul>
 
       {/* Player Controls - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background to-transparent">
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background/90 to-transparent">
         <div className="max-w-4xl mx-auto space-y-4">
             <Slider
               value={[currentTime]}
