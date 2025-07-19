@@ -119,7 +119,7 @@ export default function SetlistCreator() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSaveSetlist)} className="space-y-8 max-w-2xl mx-auto h-full flex flex-col">
+      <form onSubmit={form.handleSubmit(handleSaveSetlist)} className="w-full max-w-lg mx-auto h-full flex flex-col space-y-8">
         
         <div className="space-y-2">
             <FormField
