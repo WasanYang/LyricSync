@@ -1,8 +1,8 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams, notFound } from 'next/navigation';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, notFound, useRouter } from 'next/navigation';
 import type { Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import { getSetlist as getSetlistFromDb } from '@/lib/db';
@@ -14,8 +14,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { Music, Move, X } from 'lucide-react';
+import { Music, Move, X, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 function LoadingSkeleton() {
     return (
@@ -40,7 +41,7 @@ function LoadingSkeleton() {
                  <Skeleton className="h-16 w-full opacity-40" />
             </div>
              <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80">
-                 <Skeleton className="h-24 w-full max-w-full mx-auto rounded-lg" />
+                 <Skeleton className="h-12 w-full max-w-lg mx-auto rounded-lg" />
             </div>
         </div>
     )
@@ -101,10 +102,9 @@ function FloatingQueue({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    // Center the panel initially on desktop
     const screenWidth = window.innerWidth;
-    const panelWidth = 350; // Corresponds to w-[350px]
-    setPosition({ x: screenWidth - panelWidth - 20, y: 60 });
+    const panelWidth = 350; 
+    setPosition({ x: screenWidth - panelWidth - 20, y: 80 });
   }, []);
 
   const handleDragMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
@@ -148,8 +148,8 @@ function FloatingQueue({
     >
       <div className="p-4 border-b flex items-center justify-between">
         <div>
-            <h2 className="text-lg font-headline font-semibold truncate">Up Next</h2>
-            <p className="text-sm text-muted-foreground">From: {setlist.title}</p>
+            <h2 className="text-lg font-headline font-semibold truncate">{setlist.title}</h2>
+            <p className="text-sm text-muted-foreground">{songs.length} songs</p>
         </div>
         <div className="flex items-center gap-1">
             <Button
@@ -254,8 +254,25 @@ export default function SetlistPlayerPage() {
 
     return (
       <div className="h-screen w-full flex flex-col bg-background overflow-hidden">
-        {/* Main Lyric Player Area */}
-        <div className="flex-grow relative h-full">
+        <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm shadow-sm pointer-events-auto">
+            <div className="relative container mx-auto flex items-center justify-between h-14 max-w-4xl">
+                <div className="flex-1 flex justify-start">
+                    <Button asChild variant="ghost" size="icon">
+                    <Link href="/create">
+                        <ArrowLeft />
+                        <span className="sr-only">Back to Creator</span>
+                    </Link>
+                    </Button>
+                </div>
+                <div className="flex-1 text-center min-w-0">
+                    <h1 className="font-headline text-lg font-bold truncate">{currentSong.title}</h1>
+                    <p className="text-sm text-muted-foreground truncate">{currentSong.artist}</p>
+                </div>
+                <div className="flex-1 flex justify-end items-center gap-0">
+                </div>
+            </header>
+
+        <div className="flex-grow relative h-full pt-14">
             <LyricPlayer 
                 song={currentSong} 
                 isSetlistMode={true}
@@ -263,7 +280,6 @@ export default function SetlistPlayerPage() {
             />
         </div>
         
-        {/* Floating Queue for Desktop */}
         <FloatingQueue
             setlist={setlist}
             songs={songs}
@@ -273,9 +289,7 @@ export default function SetlistPlayerPage() {
             onClose={() => setIsQueueVisible(false)}
         />
         
-        {/* Unified Control Bar for both mobile and desktop */}
         <SetlistControls
-            setlistTitle={setlist.title}
             songs={songs}
             currentIndex={currentIndex}
             onNext={handleNextSong}
