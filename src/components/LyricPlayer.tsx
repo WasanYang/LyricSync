@@ -455,7 +455,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
             }}
           >
             {/* Main Settings View */}
-            <div className="w-full flex-shrink-0 px-1 space-y-4">
+            <div className="w-full flex-shrink-0 p-4 space-y-4">
               <div className="flex items-center justify-between py-2">
                 <div className="flex items-center gap-4">
                   <List className="h-5 w-5 text-muted-foreground" />
@@ -515,7 +515,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
             </div>
 
             {/* Chords Settings Sub-View */}
-            <div className="w-full flex-shrink-0 px-1 space-y-4">
+            <div className="w-full flex-shrink-0 p-4 space-y-4">
               <div className="flex items-center py-2">
                 <Button variant="ghost" size="sm" onClick={() => setSettingsView('main')} className="pl-0">
                   <ArrowLeft className="h-4 w-4 mr-2" />
