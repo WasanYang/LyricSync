@@ -90,7 +90,6 @@ const parseLyrics = (line: string): Array<{ chord: string | null; text: string }
 
     if (parts.length === 0) {
         if(line.trim().startsWith('[')){
-             // Handle lines with only chords e.g., [Am] [G] [C]
             const chordOnlyRegex = /\[([^\]]+)\]/g;
             let chordMatch;
             while((chordMatch = chordOnlyRegex.exec(line)) !== null) {
@@ -108,26 +107,31 @@ const parseLyrics = (line: string): Array<{ chord: string | null; text: string }
 const LyricLineDisplay = ({ line, showChords, chordColor }: { line: LyricLine; showChords: boolean; chordColor: string; }) => {
     const parsedLine = useMemo(() => parseLyrics(line.text), [line.text]);
     const hasChords = useMemo(() => parsedLine.some(p => p.chord), [parsedLine]);
+    const hasText = useMemo(() => parsedLine.some(p => p.text.trim() !== ''), [parsedLine]);
 
+    if (!showChords && !hasText && hasChords) {
+        return null;
+    }
+    
     if (!showChords || !hasChords) {
         return <p>{line.text.replace(/\[[^\]]+\]/g, '')}</p>;
     }
     
     return (
-      <div className="inline-flex flex-col items-start">
-        <div className="flex" style={{ color: chordColor }}>
+      <div className="flex flex-col items-start leading-tight">
+        <div className="flex -mb-1" style={{ color: chordColor }}>
           {parsedLine.map((part, index) => (
-            <div key={`chord-${index}`} className="flex-shrink-0 font-bold whitespace-pre">
-              {part.chord ? part.chord : ''}
-              <span className="text-transparent">{part.text}</span>
+            <div key={`chord-container-${index}`} className="flex-shrink-0 relative" style={{paddingRight: part.text ? '0.25em' : '0.5em'}}>
+                <span className="font-bold whitespace-pre">{part.chord || ''}</span>
+                <span className="text-transparent whitespace-pre">{part.text}</span>
             </div>
           ))}
         </div>
         <div className="flex">
           {parsedLine.map((part, index) => (
-            <div key={`text-${index}`} className="flex-shrink-0 whitespace-pre">
-              <span className="text-transparent font-bold">{part.chord}</span>
-              <span>{part.text}</span>
+            <div key={`text-container-${index}`} className="flex-shrink-0 relative" style={{paddingRight: part.text ? '0.25em' : '0.5em'}}>
+              <span className="text-transparent font-bold whitespace-pre">{part.chord || ''}</span>
+              <span className="whitespace-pre">{part.text}</span>
             </div>
           ))}
         </div>
@@ -136,10 +140,10 @@ const LyricLineDisplay = ({ line, showChords, chordColor }: { line: LyricLine; s
 };
 
 const CHORD_COLOR_OPTIONS = [
-    { name: 'Red', value: 'hsl(0 84.2% 60.2%)' },
-    { name: 'Blue', value: 'hsl(221.2 83.2% 53.3%)' },
-    { name: 'Green', value: 'hsl(142.1 76.2% 36.3%)' },
-    { name: 'Orange', value: 'hsl(24.6 95% 53.1%)' },
+    { value: 'hsl(0 84.2% 60.2%)' },
+    { value: 'hsl(221.2 83.2% 53.3%)' },
+    { value: 'hsl(142.1 76.2% 36.3%)' },
+    { value: 'hsl(24.6 95% 53.1%)' },
 ];
 
 export default function LyricPlayer({ song }: { song: Song }) {
@@ -302,8 +306,8 @@ export default function LyricPlayer({ song }: { song: Song }) {
                             className="flex space-x-2"
                         >
                             {CHORD_COLOR_OPTIONS.map((option) => (
-                                <Label key={option.name} className="flex items-center space-x-1 cursor-pointer text-sm">
-                                    <RadioGroupItem value={option.value} id={`color-${option.name}`} className="sr-only" />
+                                <Label key={option.value} className="flex items-center space-x-1 cursor-pointer text-sm">
+                                    <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
                                     <div 
                                         className="w-6 h-6 rounded-full border-2"
                                         style={{ 
