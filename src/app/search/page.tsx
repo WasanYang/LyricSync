@@ -9,14 +9,15 @@ import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import SongStatusButton from '@/components/SongStatusButton';
 
 function SongListItem({ song }: { song: Song }) {
   return (
-    <Link href={`/lyrics/${song.id}`} className="block w-full">
-      <div className={cn(
-        "flex items-center space-x-4 p-2 rounded-lg transition-colors",
-        "hover:bg-accent hover:text-accent-foreground"
-      )}>
+    <div className={cn(
+      "flex items-center space-x-4 p-2 rounded-lg transition-colors",
+      "hover:bg-accent hover:text-accent-foreground group" // Added group for hover effects
+    )}>
+      <Link href={`/lyrics/${song.id}`} className="flex-grow flex items-center space-x-4 min-w-0">
         <Image
           src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
           alt={`${song.title} album art`}
@@ -29,8 +30,11 @@ function SongListItem({ song }: { song: Song }) {
           <p className="font-semibold font-headline truncate">{song.title}</p>
           <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
         </div>
+      </Link>
+      <div className="flex-shrink-0">
+        <SongStatusButton song={song} />
       </div>
-    </Link>
+    </div>
   );
 }
 
