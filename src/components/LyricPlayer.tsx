@@ -608,7 +608,7 @@ export default function LyricPlayer({ song, isSetlistMode = false, onNextSong }:
                     isSectionBreak ? 'h-[1.2em]' : 'min-h-[2.5rem] py-2',
                     isHighlighted
                     ? 'text-foreground scale-105'
-                    : 'text-muted-foreground',
+                    : 'text-muted-foreground/40',
                     fontWeight === 400 && 'font-normal',
                     fontWeight === 600 && 'font-semibold',
                     fontWeight === 700 && 'font-bold'
