@@ -1,15 +1,16 @@
+
 // src/components/SongCreator.tsx
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { saveSong } from '@/lib/db';
+import { saveSong, getSong as getSongFromDb } from '@/lib/db';
 import type { Song, LyricLine } from '@/lib/songs';
 import { ALL_NOTES } from '@/lib/chords';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Select,
   SelectContent,
@@ -43,6 +44,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import LyricPlayer from './LyricPlayer';
 import { Eye, Save, XCircle } from 'lucide-react';
+import { Skeleton } from './ui/skeleton';
 
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
@@ -71,12 +73,52 @@ const parseLyricsFromString = (lyricString: string): LyricLine[] => {
     .sort((a, b) => a.bar - b.bar);
 };
 
+const formatLyricsToString = (lyrics: LyricLine[]): string => {
+    return lyrics.map(line => `${line.bar} | ${line.text}`).join('\n');
+};
+
 const TIME_SIGNATURES = ["4/4", "3/4", "2/4", "6/8", "2/2", "3/2", "5/4", "7/4", "12/8"];
+
+function LoadingScreen() {
+    return (
+        <div className="flex flex-col h-full">
+            <header className="flex-shrink-0 p-4 border-b bg-background flex items-center justify-between">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-9 w-28" />
+            </header>
+            <div className="flex-grow overflow-y-auto p-4 md:p-6 pb-24 w-full max-w-2xl mx-auto space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-10 w-full" /></div>
+                    <div className="space-y-2"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-10 w-full" /></div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                     <div className="space-y-2"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-8 w-full" /></div>
+                     <div className="space-y-2"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-10 w-full" /></div>
+                     <div className="space-y-2"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-8 w-full" /></div>
+                </div>
+                <div className="space-y-2 flex-grow flex flex-col">
+                    <Skeleton className="h-4 w-1/4" />
+                    <Skeleton className="h-64 w-full" />
+                </div>
+            </div>
+             <div className="flex-shrink-0 sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t">
+              <div className="w-full max-w-2xl mx-auto flex items-center justify-between gap-4">
+                  <Skeleton className="h-10 w-32" />
+                  <Skeleton className="h-11 w-32" />
+              </div>
+            </div>
+        </div>
+    )
+}
 
 export default function SongCreator() {
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const songId = searchParams.get('id');
+
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(!!songId);
 
   const form = useForm<SongFormValues>({
     resolver: zodResolver(songFormSchema),
@@ -90,12 +132,36 @@ export default function SongCreator() {
     },
   });
 
+  useEffect(() => {
+    if (songId) {
+      const fetchSong = async () => {
+        setIsLoading(true);
+        const existingSong = await getSongFromDb(songId);
+        if (existingSong) {
+          form.reset({
+            title: existingSong.title,
+            artist: existingSong.artist,
+            lyrics: formatLyricsToString(existingSong.lyrics),
+            originalKey: existingSong.originalKey || 'C',
+            bpm: existingSong.bpm || 120,
+            timeSignature: existingSong.timeSignature || '4/4'
+          });
+        } else {
+            toast({ title: "Song not found", description: "The requested song could not be found.", variant: "destructive" });
+            router.push('/song-editor');
+        }
+        setIsLoading(false);
+      }
+      fetchSong();
+    }
+  }, [songId, form, router, toast]);
+
   const { formState: { isDirty } } = form;
 
   const formData = form.watch();
 
   const previewSong: Song = useMemo(() => ({
-    id: 'preview',
+    id: songId || 'preview',
     title: formData.title || 'Untitled',
     artist: formData.artist || 'Unknown Artist',
     updatedAt: new Date(),
@@ -103,11 +169,11 @@ export default function SongCreator() {
     originalKey: formData.originalKey,
     bpm: formData.bpm,
     timeSignature: formData.timeSignature,
-  }), [formData]);
+  }), [formData, songId]);
 
   async function handleSaveSong(data: SongFormValues) {
     const newSong: Song = {
-      id: `custom-${Date.now().toString()}`,
+      id: songId || `custom-${Date.now().toString()}`,
       title: data.title,
       artist: data.artist,
       updatedAt: new Date(),
@@ -120,11 +186,11 @@ export default function SongCreator() {
     try {
       await saveSong(newSong);
       toast({
-        title: 'Song Saved',
+        title: `Song ${songId ? 'Updated' : 'Saved'}`,
         description: `"${newSong.title}" has been saved successfully.`,
       });
       form.reset(); // This will also set isDirty to false
-      router.push('/'); // Navigate to home after successful save
+      router.push('/downloaded'); // Navigate to downloaded list after save/update
     } catch (error) {
       toast({
         title: 'Error',
@@ -136,14 +202,18 @@ export default function SongCreator() {
   }
 
   const handleCancel = () => {
-      router.push('/');
+      router.push('/downloaded');
+  }
+  
+  if (isLoading) {
+      return <LoadingScreen />
   }
 
   return (
     <Form {...form}>
       <div className="flex flex-col h-full">
           <header className="flex-shrink-0 p-4 border-b bg-background flex items-center justify-between">
-              <h1 className="text-2xl font-bold font-headline">Song Creator</h1>
+              <h1 className="text-2xl font-bold font-headline">{songId ? 'Edit Song' : 'Song Creator'}</h1>
               <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
                   <DialogTrigger asChild>
                       <Button type="button" variant="outline">
@@ -199,7 +269,7 @@ export default function SongCreator() {
                           render={({ field }) => (
                               <FormItem>
                                   <FormLabel>Original Key</FormLabel>
-                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <Select onValueChange={field.onChange} value={field.value}>
                                       <FormControl>
                                           <SelectTrigger>
                                               <SelectValue placeholder="Select a key" />
@@ -220,7 +290,7 @@ export default function SongCreator() {
                           <FormItem>
                           <FormLabel>BPM</FormLabel>
                           <FormControl>
-                              <Input type="number" placeholder="120" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10))}/>
+                              <Input type="number" placeholder="120" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)}/>
                           </FormControl>
                           <FormMessage />
                           </FormItem>
@@ -232,7 +302,7 @@ export default function SongCreator() {
                           render={({ field }) => (
                               <FormItem>
                                   <FormLabel>Time Signature</FormLabel>
-                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <Select onValueChange={field.onChange} value={field.value}>
                                       <FormControl>
                                           <SelectTrigger>
                                               <SelectValue placeholder="Select a time signature" />
@@ -287,7 +357,7 @@ export default function SongCreator() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Discard changes?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                You have unsaved changes. Are you sure you want to discard them and go back home?
+                                You have unsaved changes. Are you sure you want to discard them and go back?
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -297,15 +367,13 @@ export default function SongCreator() {
                           </AlertDialogContent>
                         </AlertDialog>
                   ) : (
-                    <Button type="button" variant="outline" asChild>
-                        <Link href="/">
-                            <XCircle className="mr-2 h-4 w-4"/> Cancel
-                        </Link>
+                    <Button type="button" variant="outline" onClick={handleCancel}>
+                        <XCircle className="mr-2 h-4 w-4"/> Cancel
                     </Button>
                   )}
 
                   <Button type="submit" form="song-creator-form" size="lg">
-                    <Save className="mr-2 h-4 w-4" /> Save Song
+                    <Save className="mr-2 h-4 w-4" /> {songId ? 'Update Song' : 'Save Song'}
                   </Button>
               </div>
             </div>

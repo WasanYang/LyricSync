@@ -1,3 +1,4 @@
+
 // src/lib/db.ts
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Song } from './songs';
@@ -59,6 +60,11 @@ export async function updateSong(song: Song): Promise<void> {
 export async function getSong(id: string): Promise<Song | undefined> {
   const db = await getDb();
   return db.get(SONGS_STORE, id);
+}
+
+export async function deleteSong(id: string): Promise<void> {
+    const db = await getDb();
+    await db.delete(SONGS_STORE, id);
 }
 
 export async function isSongSaved(id: string): Promise<{ saved: boolean; needsUpdate: boolean }> {
