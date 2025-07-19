@@ -585,7 +585,9 @@ export default function LyricPlayer({
               
               if (isSectionHeader) {
                   return (
-                      <li key={index} ref={el => lineRefs.current[index] = el} style={{ height: `calc(${fontSize}px * 0.5)` }}></li>
+                      <li key={index} ref={el => lineRefs.current[index] = el} className="pt-4 pb-2 text-center">
+                          <p className="text-muted-foreground italic uppercase tracking-wider" style={{fontSize: `calc(${fontSize}px * 0.8)`}}>{line.text.substring(1, line.text.length - 1)}</p>
+                      </li>
                   );
               }
 
