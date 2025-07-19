@@ -117,19 +117,19 @@ export default function SetlistPlayerPage() {
                             </Link>
                         </Button>
                         <div className="min-w-0">
-                            <h1 className="font-headline text-lg font-bold truncate leading-tight">{setlist.title}</h1>
-                            <p className="text-sm text-muted-foreground">{`Song ${currentIndex + 1} of ${songs.length}`}</p>
+                            <h1 className="font-headline text-base sm:text-lg font-bold truncate leading-tight">{setlist.title}</h1>
+                            <p className="text-xs sm:text-sm text-muted-foreground">{`Song ${currentIndex + 1} of ${songs.length}`}</p>
                         </div>
                     </div>
                     {nextSong && (
-                        <div className="hidden sm:flex items-center gap-2 pl-4 bg-muted/50 p-2 rounded-lg">
+                        <div className="flex items-center gap-1 sm:gap-2 pl-2 sm:pl-4 bg-muted/50 p-1 sm:p-2 rounded-lg">
                             <div className="min-w-0 text-right">
-                                <p className="text-xs text-muted-foreground font-semibold leading-tight">UP NEXT</p>
-                                <p className="font-bold truncate leading-tight text-sm">{nextSong.title}</p>
+                                <p className="hidden xs:block text-xs text-muted-foreground font-semibold leading-tight">UP NEXT</p>
+                                <p className="font-bold truncate leading-tight text-xs sm:text-sm max-w-[100px] sm:max-w-none">{nextSong.title}</p>
                             </div>
                             <div className="flex-shrink-0 bg-background text-foreground rounded-md p-1 text-center shadow">
                                 <p className="text-[10px] font-bold leading-tight opacity-70">KEY</p>
-                                <p className="text-base font-bold leading-tight">{getTransposedKey(transpose)}</p>
+                                <p className="text-sm sm:text-base font-bold leading-tight">{getTransposedKey(transpose)}</p>
                             </div>
                             <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0"/>
                         </div>
