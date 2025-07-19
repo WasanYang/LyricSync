@@ -60,13 +60,13 @@ export default function SearchPage() {
             <Input
               type="search"
               placeholder="e.g., Starlight Echoes or Celestial Sound"
-              className="pl-10 text-base bg-card focus-visible:ring-0 focus-visible:ring-offset-0"
+              className="pl-10 text-base bg-white dark:bg-white text-black focus-visible:ring-0 focus-visible:ring-offset-0"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <section>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col">
               {filteredSongs.map((song) => (
                 <SongListItem key={song.id} song={song} />
               ))}
