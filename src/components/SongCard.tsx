@@ -11,7 +11,7 @@ interface SongCardProps {
 export default function SongCard({ song }: SongCardProps) {
   return (
     <Link href={`/lyrics/${song.id}`} className="group block space-y-3">
-      <div className="aspect-square w-full overflow-hidden rounded-md transition-all duration-300 ease-in-out group-hover:shadow-lg group-hover:ring-2 group-hover:ring-primary group-hover:ring-offset-2 group-hover:ring-offset-background">
+      <div className="aspect-square w-full overflow-hidden rounded-md transition-all duration-300 ease-in-out group-hover:shadow-lg">
         <Image
           src={`https://placehold.co/300x300.png?text=${encodeURIComponent(song.title)}`}
           alt={`${song.title} album art`}
