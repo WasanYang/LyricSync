@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'r
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, Clock, X, Move, ChevronRight } from 'lucide-react';
+import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, Clock, X, Move } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
@@ -18,7 +18,6 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetClose,
 } from "@/components/ui/sheet"
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -181,7 +180,6 @@ const HIGHLIGHT_OPTIONS: { value: HighlightMode, label: string }[] = [
     { value: 'none', label: 'None' },
 ];
 
-// Assuming a "standard" or "default" BPM for normal playback speed (1.0x)
 const DEFAULT_BPM_FOR_NORMAL_SPEED = 120;
 
 export default function LyricPlayer({ song }: { song: Song }) {
@@ -192,17 +190,14 @@ export default function LyricPlayer({ song }: { song: Song }) {
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
   const [currentSectionIndex, setCurrentSectionIndex] = useState<number>(-1);
 
-  // Settings Sheet State
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // Drag and drop state for section navigator
   const navigatorRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: 16, y: 150 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    // Set initial position on client-side to avoid hydration mismatch
     setPosition({ x: 16, y: 150 });
   }, []);
 
@@ -404,6 +399,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
               </div>
               <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
             </div>
+
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                   <Guitar className="h-5 w-5 text-muted-foreground" />
@@ -411,28 +407,32 @@ export default function LyricPlayer({ song }: { song: Song }) {
               </div>
               <Switch id="show-chords" checked={showChords} onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })} />
             </div>
-            <div className="space-y-3">
+            
+            <Separator />
+
+            <div className="space-y-2">
               <div className="flex items-center gap-4">
                 <Palette className="h-5 w-5 text-muted-foreground" />
                 <Label className="font-normal">Color</Label>
               </div>
-              <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex space-x-2 pt-2">
+              <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex flex-wrap gap-2 pt-2">
                 {CHORD_COLOR_OPTIONS.map((option) => (
                   <Label key={option.value} className="cursor-pointer">
                     <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
-                    <div className={cn("w-8 h-8 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
+                    <div className={cn("w-6 h-6 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
                   </Label>
                 ))}
               </RadioGroup>
             </div>
-            <div className="space-y-3">
+
+            <div className="space-y-2">
               <div className="flex items-center gap-4">
                   <Highlighter className="h-5 w-5 text-muted-foreground" />
                   <Label className="font-normal">Highlight</Label>
               </div>
               <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="grid grid-cols-3 gap-2 pt-2">
                   {HIGHLIGHT_OPTIONS.map(option => (
-                      <Label key={option.value} className={cn("flex items-center justify-center cursor-pointer rounded-md border p-4 text-sm font-semibold hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary ring-2 ring-primary")}>
+                      <Label key={option.value} className={cn("flex items-center justify-center cursor-pointer rounded-md border p-2 text-sm font-normal hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-accent text-accent-foreground")}>
                           <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
                           {option.label}
                       </Label>
@@ -448,9 +448,9 @@ export default function LyricPlayer({ song }: { song: Song }) {
                     <Label htmlFor="bpm-input" className="font-normal">BPM</Label>
                 </div>
                 <div className="flex items-center gap-2 max-w-[150px]">
-                    <Button variant="outline" size="icon" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 1 })}><Minus className="h-4 w-4"/></Button>
-                    <Input id="bpm-input" type="number" value={bpm} onChange={handleBpmChange} min="40" max="240" className="text-center font-normal" />
-                    <Button variant="outline" size="icon" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 1 })}><Plus className="h-4 w-4"/></Button>
+                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 1 })}><Minus className="h-4 w-4"/></Button>
+                    <Input id="bpm-input" type="number" value={bpm} onChange={handleBpmChange} min="40" max="240" className="text-center font-normal h-8" />
+                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 1 })}><Plus className="h-4 w-4"/></Button>
                 </div>
             </div>
         </div>
@@ -461,7 +461,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
   return (
     <div className="flex flex-col bg-background h-screen overflow-hidden">
-      {/* Header Info */}
       <header className="fixed top-0 left-0 right-0 z-10 p-4 bg-background/80 backdrop-blur-sm pointer-events-auto">
         <div className="relative container mx-auto flex items-center justify-center h-10">
            <div className="absolute left-0">
@@ -493,7 +492,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon"><Settings /></Button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="p-0 flex flex-col max-h-[80vh] rounded-t-lg">
+              <SheetContent side="bottom" className="p-0 flex flex-col max-h-[70vh] rounded-t-lg" showCloseButton={false}>
                 {renderSettingsContent()}
               </SheetContent>
             </Sheet>
@@ -502,7 +501,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
         </div>
       </header>
       
-      {/* Section Navigator */}
       {showSectionNavigator && (
         <div 
           ref={navigatorRef}
@@ -548,7 +546,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
         </div>
       )}
         
-      {/* Lyrics Scroll Area */}
       <div ref={scrollContainerRef} className="w-full h-full relative overflow-y-auto">
         <ul
             className="w-full px-12 pt-32 pb-48"
@@ -601,7 +598,6 @@ export default function LyricPlayer({ song }: { song: Song }) {
       </div>
 
 
-      {/* Player Controls - Fixed at bottom */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm pointer-events-auto">
         <div className="max-w-4xl mx-auto space-y-4">
             <Slider
