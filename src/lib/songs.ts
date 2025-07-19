@@ -56,7 +56,7 @@ const songs: Song[] = [
     id: '2',
     title: 'Ocean Drive',
     artist: 'The Midnight Bloom',
-    updatedAt: new Date('2024-01-15T14:30:00Z'),
+    updatedAt: new Date('2025-07-15T10:00:00Z'),
     lyrics: [
       { time: 5, text: "Palm trees swaying in the breeze," },
       { time: 9, text: "Neon lights are calling me," },
