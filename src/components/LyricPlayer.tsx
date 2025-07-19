@@ -363,11 +363,11 @@ export default function LyricPlayer({
 
   const handleNextBar = useCallback(() => {
     handleSetBar(currentBarIndex + 1);
-  }, [currentBarIndex]);
+  }, [currentBarIndex, handleSetBar]);
 
   const handlePrevBar = useCallback(() => {
     handleSetBar(currentBarIndex - 1);
-  }, [currentBarIndex]);
+  }, [currentBarIndex, handleSetBar]);
 
   const handleSectionJump = (bar: number) => {
     const targetIndex = uniqueLyrics.findIndex(l => l.bar >= bar && !l.text.startsWith('('));
@@ -381,10 +381,11 @@ export default function LyricPlayer({
   }
   
   const handleKeyChange = (selectedKey: string) => {
-    const originalKeyIndex = ALL_NOTES.indexOf(song.originalKey || ORIGINAL_SONG_KEY_NOTE);
+    const originalKeyIndex = ALL_NOTES.indexOf(song.originalKey || 'C');
     const selectedKeyIndex = ALL_NOTES.indexOf(selectedKey);
     if (originalKeyIndex !== -1 && selectedKeyIndex !== -1) {
       let diff = selectedKeyIndex - originalKeyIndex;
+      // Find the shortest path for transposition (e.g., C -> A is -3, not +9)
       if (diff > 6) diff -= 12;
       if (diff < -6) diff += 12;
       dispatch({ type: 'SET_TRANSPOSE', payload: diff });
@@ -392,9 +393,9 @@ export default function LyricPlayer({
   };
 
   const currentKey = useMemo(() => {
-    const originalKeyIndex = ALL_NOTES.indexOf(song.originalKey || ORIGINAL_SONG_KEY_NOTE);
-    if (originalKeyIndex === -1) return song.originalKey || ORIGINAL_SONG_KEY_NOTE;
-    const newKeyIndex = (originalKeyIndex + transpose + 12*10) % 12;
+    const originalKeyIndex = ALL_NOTES.indexOf(song.originalKey || 'C');
+    if (originalKeyIndex === -1) return song.originalKey || 'C';
+    const newKeyIndex = (originalKeyIndex + transpose + 12*10) % 12; // 12*10 to handle negative modulo
     return ALL_NOTES[newKeyIndex];
   }, [transpose, song.originalKey]);
 
