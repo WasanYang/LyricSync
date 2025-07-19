@@ -261,7 +261,7 @@ export default function SongCreator() {
 
           <div className="flex-shrink-0 sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t">
               <div className="w-full max-w-2xl mx-auto flex items-center justify-between gap-4">
-                  <Button type="button" variant="ghost" asChild>
+                  <Button type="button" variant="outline" asChild>
                       <Link href="/">
                         <XCircle className="mr-2 h-4 w-4"/> Cancel
                       </Link>
