@@ -41,7 +41,7 @@ const initialState: State = {
   isFinished: false,
   fontSize: 24,
   showChords: true,
-  chordColor: 'hsl(0 84.2% 60.2%)', // Default red
+  chordColor: 'hsl(var(--destructive))',
 };
 
 function lyricPlayerReducer(state: State, action: Action): State {
@@ -140,7 +140,7 @@ const LyricLineDisplay = ({ line, showChords, chordColor }: { line: LyricLine; s
 };
 
 const CHORD_COLOR_OPTIONS = [
-    { value: 'hsl(0 84.2% 60.2%)' },
+    { value: 'hsl(var(--destructive))' },
     { value: 'hsl(221.2 83.2% 53.3%)' },
     { value: 'hsl(142.1 76.2% 36.3%)' },
     { value: 'hsl(24.6 95% 53.1%)' },
@@ -225,7 +225,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
       <ul
         ref={scrollContainerRef}
         className="flex-grow w-full overflow-y-auto scroll-smooth px-4"
-        style={{ fontSize: `${fontSize}px`, lineHeight: '1.2' }}
+        style={{ fontSize: `${fontSize}px`, lineHeight: '1.5' }}
       >
         {song.lyrics.map((line, index) => {
           const parsedLine = parseLyrics(line.text);
@@ -242,7 +242,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
               ref={el => lineRefs.current[index] = el}
               className={cn(
                 'rounded-md transition-all duration-300 text-center font-bold flex justify-center items-center',
-                'min-h-[2.5em]',
+                'min-h-[2.5rem]',
                 'py-2', 
                 index === currentLineIndex
                   ? 'text-foreground scale-105'
@@ -346,5 +346,3 @@ export default function LyricPlayer({ song }: { song: Song }) {
     </div>
   );
 }
-
-    
