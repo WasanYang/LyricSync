@@ -3,16 +3,10 @@
 
 import { getSongById as getSongFromStatic, type Song } from '@/lib/songs';
 import { getSong as getSongFromDb } from '@/lib/db';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import LyricPlayer from '@/components/LyricPlayer';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-
-interface LyricPageProps {
-  params: {
-    id: string;
-  };
-}
 
 function LoadingSkeleton() {
     return (
@@ -32,14 +26,16 @@ function LoadingSkeleton() {
     )
 }
 
-export default function LyricPage({ params }: LyricPageProps) {
-  const { id } = params;
+export default function LyricPage() {
+  const params = useParams();
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const [song, setSong] = useState<Song | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchSong() {
+      if (!id) return;
       try {
         setIsLoading(true);
         // Try to get song from IndexedDB first for offline access
