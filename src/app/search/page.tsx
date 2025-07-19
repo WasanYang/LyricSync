@@ -15,15 +15,15 @@ import Header from '@/components/Header';
 function SongListItem({ song }: { song: Song }) {
   return (
     <div className={cn(
-      "flex items-center space-x-4 p-2 rounded-lg transition-colors",
+      "flex items-center space-x-3 p-2 rounded-lg transition-colors",
       "hover:bg-accent hover:text-accent-foreground group" // Added group for hover effects
     )}>
-      <Link href={`/lyrics/${song.id}`} className="flex-grow flex items-center space-x-4 min-w-0">
+      <Link href={`/lyrics/${song.id}`} className="flex-grow flex items-center space-x-3 min-w-0">
         <Image
           src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
           alt={`${song.title} album art`}
-          width={40}
-          height={40}
+          width={32}
+          height={32}
           className="rounded-md aspect-square object-cover"
           data-ai-hint="album cover"
         />

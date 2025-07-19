@@ -66,17 +66,17 @@ export default function SetlistsPage() {
           {isLoading ? (
              <p>Loading setlists...</p>
           ) : setlists.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {setlists.map(setlist => {
                 const songCount = setlist.songIds.length;
                 
                 return (
                   <Link href={`/setlists/${setlist.id}`} key={setlist.id} className={cn(
-                      "p-4 rounded-lg bg-muted/50 flex items-center justify-between transition-colors",
+                      "p-3 rounded-lg bg-muted/50 flex items-center justify-between transition-colors",
                       "hover:bg-muted"
                   )}>
                     <div className="flex-grow">
-                      <h2 className="font-headline font-semibold text-lg">{setlist.title}</h2>
+                      <h2 className="font-headline font-semibold text-base">{setlist.title}</h2>
                       <p className="text-sm text-muted-foreground">{songCount} {songCount === 1 ? 'song' : 'songs'}</p>
                     </div>
                     <div className="flex items-center gap-2">
