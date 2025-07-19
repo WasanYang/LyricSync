@@ -62,62 +62,59 @@ function lyricPlayerReducer(state: State, action: Action): State {
   }
 }
 
-const parseLyrics = (line: string) => {
+const parseLyrics = (line: string): Array<{ chord: string | null; text: string }> => {
     const regex = /\[([^\]]+)\]([^\[]*)/g;
-    const parts = [];
+    const parts: Array<{ chord: string | null; text: string }> = [];
     let lastIndex = 0;
     let match;
 
+    // Handle initial text before the first chord
+    const firstChordMatch = line.match(/\[/);
+    if (firstChordMatch && firstChordMatch.index! > 0) {
+        parts.push({ chord: null, text: line.substring(0, firstChordMatch.index) });
+        lastIndex = firstChordMatch.index!;
+    }
+
     while ((match = regex.exec(line)) !== null) {
-        if (match.index > lastIndex) {
-            parts.push({ type: 'lyric', content: line.substring(lastIndex, match.index) });
-        }
-        parts.push({ type: 'chord', content: match[1] });
-        if (match[2]) {
-            parts.push({ type: 'lyric', content: match[2] });
-        }
+        parts.push({ chord: match[1], text: match[2] });
         lastIndex = match.index + match[0].length;
     }
-
-    if (lastIndex < line.length) {
-        parts.push({ type: 'lyric', content: line.substring(lastIndex) });
-    }
     
-    // If the line doesn't contain any chords, return the whole line as a lyric.
-    if (parts.length === 0) {
-        return [{ type: 'lyric', content: line }];
+    // If there's remaining text after the last chord (or if no chords at all)
+    if (lastIndex < line.length) {
+        parts.push({ chord: null, text: line.substring(lastIndex) });
     }
 
-    return parts;
+    // If the line had no chords at all, the above logic results in one part with the whole line.
+    return parts.length > 0 ? parts : [{ chord: null, text: line }];
 };
-
 
 const LyricLineDisplay = ({ line, showChords }: { line: LyricLine; showChords: boolean }) => {
     const parsedLine = useMemo(() => parseLyrics(line.text), [line.text]);
+    
+    const hasChords = useMemo(() => parsedLine.some(p => p.chord), [parsedLine]);
 
-    if (!showChords || !parsedLine.some(p => p.type === 'chord')) {
+    if (!showChords || !hasChords) {
         return <p>{line.text.replace(/\[[^\]]+\]/g, '')}</p>;
     }
-    
-    const chordsLine = parsedLine.map((part, index) => {
-        if (part.type === 'chord') {
-            return <span key={`c-${index}`} className="inline-block min-w-[2ch] font-bold text-accent">{part.content}</span>;
-        }
-        return <span key={`c-space-${index}`} className="opacity-0">{part.content}</span>;
-    });
-
-    const lyricsLine = parsedLine.map((part, index) => {
-        if (part.type === 'lyric') {
-            return <span key={`l-${index}`}>{part.content}</span>;
-        }
-        // Add phantom chord to preserve spacing
-        return <span key={`l-space-${index}`} className="inline-block min-w-[2ch] opacity-0">{part.content}</span>;
-    });
 
     return (
-        <div>
-            <div className="whitespace-pre text-sm -mb-1">{chordsLine}</div>
-            <div className="whitespace-pre">{lyricsLine}</div>
+        <div className="flex flex-col">
+            <div className="whitespace-pre text-accent font-bold">
+                {parsedLine.map((part, index) => (
+                    <span key={`c-${index}`} className="relative inline-block">
+                        <span className="absolute bottom-0 left-0">{part.chord}</span>
+                        <span className="opacity-0">{part.text}</span>
+                    </span>
+                ))}
+            </div>
+            <div className="whitespace-pre">
+                {parsedLine.map((part, index) => (
+                    <span key={`l-${index}`} className="inline-block">
+                        {part.text}
+                    </span>
+                ))}
+            </div>
         </div>
     );
 };
@@ -202,14 +199,15 @@ export default function LyricPlayer({ song }: { song: Song }) {
       <ul
         ref={scrollContainerRef}
         className="flex-grow w-full overflow-y-auto scroll-smooth px-4"
-        style={{ fontSize: `${fontSize}px` }}
+        style={{ fontSize: `${fontSize}px`, lineHeight: showChords ? '2.5' : '1.5' }}
       >
         {song.lyrics.map((line, index) => (
           <li
             key={index}
             ref={el => lineRefs.current[index] = el}
             className={cn(
-              'p-2 rounded-md transition-all duration-300 text-center font-bold leading-relaxed mb-4',
+              'p-2 rounded-md transition-all duration-300 text-center font-bold mb-4',
+               'min-h-[1.5em]', // Ensure consistent line height even for empty lines
               index === currentLineIndex
                 ? 'text-foreground scale-105'
                 : 'text-muted-foreground/50'
