@@ -4,10 +4,11 @@ import { useState, useEffect, useRef, useReducer, useCallback } from 'react';
 import type { Song } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, SkipBack, SkipForward, Repeat, Settings, Minus, Plus } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Repeat, Settings, Minus, Plus, Guitar } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { Switch } from '@/components/ui/switch';
 
 type State = {
   isPlaying: boolean;
@@ -15,6 +16,7 @@ type State = {
   currentLineIndex: number;
   isFinished: boolean;
   fontSize: number;
+  showChords: boolean;
 };
 
 type Action =
@@ -24,14 +26,16 @@ type Action =
   | { type: 'TICK'; payload: number }
   | { type: 'SET_LINE'; payload: number }
   | { type: 'FINISH' }
-  | { type: 'SET_FONT_SIZE'; payload: number };
+  | { type: 'SET_FONT_SIZE'; payload: number }
+  | { type: 'TOGGLE_CHORDS' };
 
 const initialState: State = {
   isPlaying: false,
   currentTime: 0,
   currentLineIndex: -1,
   isFinished: false,
-  fontSize: 24, // Increased default font size for better readability
+  fontSize: 24,
+  showChords: true,
 };
 
 function lyricPlayerReducer(state: State, action: Action): State {
@@ -51,6 +55,8 @@ function lyricPlayerReducer(state: State, action: Action): State {
     case 'SET_FONT_SIZE':
         const newSize = Math.max(16, Math.min(48, action.payload));
         return { ...state, fontSize: newSize };
+    case 'TOGGLE_CHORDS':
+        return { ...state, showChords: !state.showChords };
     default:
       return state;
   }
@@ -58,7 +64,7 @@ function lyricPlayerReducer(state: State, action: Action): State {
 
 export default function LyricPlayer({ song }: { song: Song }) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
-  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize } = state;
+  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords } = state;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
   const scrollContainerRef = useRef<HTMLUListElement | null>(null);
@@ -142,12 +148,15 @@ export default function LyricPlayer({ song }: { song: Song }) {
             key={index}
             ref={el => lineRefs.current[index] = el}
             className={cn(
-              'p-2 rounded-md transition-all duration-300 text-center font-bold leading-relaxed',
+              'p-2 rounded-md transition-all duration-300 text-center font-bold leading-relaxed mb-4',
               index === currentLineIndex
                 ? 'text-foreground scale-105'
                 : 'text-muted-foreground/50'
             )}
           >
+            {showChords && line.chords && (
+              <p className="text-accent font-bold text-sm mb-1">{line.chords}</p>
+            )}
             {line.text}
           </li>
         ))}
@@ -192,12 +201,23 @@ export default function LyricPlayer({ song }: { song: Song }) {
                   </p>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="font-size">Font Size</Label>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16}><Minus className="h-4 w-4" /></Button>
-                    <span className="font-mono text-sm w-8 text-center">{fontSize}px</span>
-                    <Button variant="outline" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48}><Plus className="h-4 w-4" /></Button>
-                  </div>
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="show-chords" className="flex items-center gap-2">
+                            <Guitar className="h-4 w-4" />
+                            Show Chords
+                        </Label>
+                        <Switch
+                            id="show-chords"
+                            checked={showChords}
+                            onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
+                        />
+                    </div>
+                    <Label htmlFor="font-size">Font Size</Label>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16}><Minus className="h-4 w-4" /></Button>
+                        <span className="font-mono text-sm w-8 text-center">{fontSize}px</span>
+                        <Button variant="outline" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48}><Plus className="h-4 w-4" /></Button>
+                    </div>
                 </div>
               </div>
             </PopoverContent>
