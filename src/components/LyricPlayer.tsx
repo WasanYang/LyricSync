@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'r
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter } from 'lucide-react';
+import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
@@ -31,6 +31,7 @@ type State = {
   showChords: boolean;
   chordColor: string;
   highlightMode: HighlightMode;
+  showSectionNavigator: boolean;
 };
 
 type Action =
@@ -43,7 +44,8 @@ type Action =
   | { type: 'SET_FONT_SIZE'; payload: number }
   | { type: 'TOGGLE_CHORDS' }
   | { type: 'SET_CHORD_COLOR'; payload: string }
-  | { type: 'SET_HIGHLIGHT_MODE'; payload: HighlightMode };
+  | { type: 'SET_HIGHLIGHT_MODE'; payload: HighlightMode }
+  | { type: 'TOGGLE_SECTION_NAVIGATOR' };
 
 const initialState: State = {
   isPlaying: false,
@@ -54,6 +56,7 @@ const initialState: State = {
   showChords: true,
   chordColor: 'hsl(var(--chord-color))',
   highlightMode: 'line',
+  showSectionNavigator: true,
 };
 
 function lyricPlayerReducer(state: State, action: Action): State {
@@ -79,6 +82,8 @@ function lyricPlayerReducer(state: State, action: Action): State {
         return { ...state, chordColor: action.payload };
     case 'SET_HIGHLIGHT_MODE':
         return { ...state, highlightMode: action.payload };
+    case 'TOGGLE_SECTION_NAVIGATOR':
+        return { ...state, showSectionNavigator: !state.showSectionNavigator };
     default:
       return state;
   }
@@ -162,7 +167,7 @@ const CHORD_COLOR_OPTIONS = [
 
 export default function LyricPlayer({ song }: { song: Song }) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
-  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor, highlightMode } = state;
+  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, showChords, chordColor, highlightMode, showSectionNavigator } = state;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
@@ -317,6 +322,17 @@ export default function LyricPlayer({ song }: { song: Song }) {
                 </SheetHeader>
                 <div className="grid gap-6 py-6">
                     <div className="flex items-center justify-between">
+                        <Label htmlFor="show-section-nav" className="flex items-center gap-3">
+                            <List className="h-5 w-5" />
+                            <span className="font-medium">Show Section Nav</span>
+                        </Label>
+                        <Switch
+                            id="show-section-nav"
+                            checked={showSectionNavigator}
+                            onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
+                        />
+                    </div>
+                    <div className="flex items-center justify-between">
                         <Label htmlFor="show-chords" className="flex items-center gap-3">
                             <Guitar className="h-5 w-5" />
                             <span className="font-medium">Show Chords</span>
@@ -384,24 +400,26 @@ export default function LyricPlayer({ song }: { song: Song }) {
       </header>
       
       {/* Section Navigator */}
-      <div className="fixed left-4 top-1/2 -translate-y-1/2 z-20 pointer-events-auto">
-        <div className="flex flex-col gap-2">
-            {sections.map((section, index) => (
-                <button
-                    key={section.uniqueKey}
-                    onDoubleClick={() => handleSectionJump(section.time)}
-                    className={cn(
-                        "text-xs font-bold py-1 px-3 rounded-full shadow-lg transition-all duration-300",
-                        index === currentSectionIndex
-                            ? "bg-primary text-primary-foreground" 
-                            : "bg-muted text-muted-foreground hover:bg-muted/80"
-                    )}
-                >
-                    {section.name}
-                </button>
-            ))}
+      {showSectionNavigator && (
+        <div className="fixed left-4 top-1/2 -translate-y-1/2 z-20 pointer-events-auto">
+          <div className="flex flex-col gap-2">
+              {sections.map((section, index) => (
+                  <button
+                      key={section.uniqueKey}
+                      onDoubleClick={() => handleSectionJump(section.time)}
+                      className={cn(
+                          "text-xs font-bold py-1 px-3 rounded-full shadow-lg transition-all duration-300",
+                          index === currentSectionIndex
+                              ? "bg-primary text-primary-foreground" 
+                              : "bg-muted text-muted-foreground/50 hover:bg-muted/80 hover:text-muted-foreground"
+                      )}
+                  >
+                      {section.name}
+                  </button>
+              ))}
+          </div>
         </div>
-      </div>
+      )}
         
       {/* Lyrics Scroll Area */}
       <div ref={scrollContainerRef} className="w-full h-full relative overflow-y-auto">
@@ -418,7 +436,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
             
             if (isSectionHeader) {
                 return (
-                    <li key={index} ref={el => lineRefs.current[index] = el} className="h-4" style={{ height: `calc(${fontSize}px * 0.5)` }}></li>
+                    <li key={index} ref={el => lineRefs.current[index] = el} style={{ height: `calc(${fontSize}px * 0.5)` }}></li>
                 );
             }
 
