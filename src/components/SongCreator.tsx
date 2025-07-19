@@ -46,26 +46,20 @@ type SongFormValues = z.infer<typeof songFormSchema>;
 const parseLyricsFromString = (lyricString: string): LyricLine[] => {
   return lyricString
     .split('\n')
-    .map(line => line.trim())
-    // .filter(line => line) // Allow empty lines for spacing
     .map(line => {
-      if (line === '') {
-          return { time: 0, text: '' };
-      }
       const parts = line.split('|');
       if (parts.length < 2) {
-        return { time: 0, text: line };
+        return { bar: 0, text: line.trim() };
       }
-      const time = parseFloat(parts[0].trim());
+      const bar = parseInt(parts[0].trim(), 10);
       const text = parts.slice(1).join('|').trim();
-      return { time: isNaN(time) ? 0 : time, text };
+      return { bar: isNaN(bar) ? 0 : bar, text };
     })
-    .sort((a, b) => a.time - b.time);
+    .filter(line => line.bar > 0 || line.text !== '') // Keep section headers or lines with a bar number
+    .sort((a, b) => a.bar - b.bar);
 };
 
 const TIME_SIGNATURES = ["4/4", "3/4", "2/4", "6/8", "2/2", "3/2", "5/4", "7/4", "12/8"];
-
-const lyricsPlaceholder = `Enter your lyrics here...`;
 
 export default function SongCreator() {
   const { toast } = useToast();
@@ -242,15 +236,15 @@ export default function SongCreator() {
                       <FormLabel>Lyrics & Chords</FormLabel>
                       <FormControl>
                           <Textarea
-                          placeholder={lyricsPlaceholder}
+                          placeholder="1 | [C]Lyrics for bar one..."
                           className="flex-grow text-sm font-mono resize-none h-64"
                           {...field}
                           />
                       </FormControl>
                       <p className="text-xs text-muted-foreground mt-2">
-                          Format: <code className="bg-muted px-1 py-0.5 rounded">time | [Chord]Lyric text</code>.
+                          Format: <code className="bg-muted px-1 py-0.5 rounded">bar| [Chord]Lyric text</code>.
                           <br/>
-                          Example: <code className="bg-muted px-1 py-0.5 rounded">0 | (Intro)</code>, <code className="bg-muted px-1 py-0.5 rounded">2 | [Am] [G] [C] [F]</code>, <code className="bg-muted px-1 py-0.5 rounded">15 | [C]This is a [G]line.</code>
+                          Example: <code className="bg-muted px-1 py-0.5 rounded">0 | (Intro)</code>, <code className="bg-muted px-1 py-0.5 rounded">1 | [Am] [G] [C] [F]</code>, <code className="bg-muted px-1 py-0.5 rounded">2 | [C]This is a [G]line.</code>
                       </p>
                       <FormMessage />
                       </FormItem>

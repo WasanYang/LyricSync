@@ -1,17 +1,15 @@
-
+// src/components/LyricPlayer.tsx
 'use client';
 
 import { useState, useEffect, useReducer, useCallback, useMemo, useRef } from 'react';
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, Clock, X, Move, Music, RotateCcw, Sun, Moon, ChevronRight, Text, CaseSensitive, ListMusic } from 'lucide-react';
+import { Play, Pause, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipBack, SkipForward, Highlighter, List, X, Move, Music, RotateCcw, Sun, Moon, ChevronRight, Text, CaseSensitive, ListMusic, ChevronUp, ChevronDown } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Link from 'next/link';
-import { Input } from '@/components/ui/input';
 import {
   Sheet,
   SheetContent,
@@ -35,34 +33,26 @@ type FontWeight = 400 | 600 | 700;
 
 
 type State = {
-  isPlaying: boolean;
-  currentTime: number;
-  currentLineIndex: number;
-  isFinished: boolean;
+  currentBarIndex: number;
   fontSize: number;
   fontWeight: FontWeight;
   showChords: boolean;
   chordColor: string;
   highlightMode: HighlightMode;
   showSectionNavigator: boolean;
-  bpm: number;
   transpose: number;
 };
 
 type Action =
-  | { type: 'TOGGLE_PLAY' }
-  | { type: 'RESTART' }
-  | { type: 'SET_TIME'; payload: number }
-  | { type: 'TICK'; payload: number }
-  | { type: 'SET_LINE'; payload: number }
-  | { type: 'FINISH' }
+  | { type: 'SET_BAR'; payload: number }
+  | { type: 'NEXT_BAR' }
+  | { type: 'PREV_BAR' }
   | { type: 'SET_FONT_SIZE'; payload: number }
   | { type: 'SET_FONT_WEIGHT'; payload: FontWeight }
   | { type: 'TOGGLE_CHORDS' }
   | { type: 'SET_CHORD_COLOR'; payload: string }
   | { type: 'SET_HIGHLIGHT_MODE'; payload: HighlightMode }
   | { type: 'TOGGLE_SECTION_NAVIGATOR' }
-  | { type: 'SET_BPM'; payload: number }
   | { type: 'SET_TRANSPOSE'; payload: number }
   | { type: 'TRANSPOSE_UP' }
   | { type: 'TRANSPOSE_DOWN' }
@@ -70,34 +60,26 @@ type Action =
   | { type: 'RESET_PLAYER_STATE' };
 
 const initialState: State = {
-  isPlaying: false,
-  currentTime: 0,
-  currentLineIndex: -1,
-  isFinished: false,
+  currentBarIndex: 0,
   fontSize: 16,
   fontWeight: 400,
   showChords: true,
   chordColor: 'hsl(var(--primary))',
   highlightMode: 'line',
   showSectionNavigator: true,
-  bpm: 120,
   transpose: 0,
 };
 
 function lyricPlayerReducer(state: State, action: Action): State {
   switch (action.type) {
-    case 'TOGGLE_PLAY':
-      return { ...state, isPlaying: !state.isPlaying, isFinished: false };
-    case 'RESTART':
-      return { ...state, currentTime: 0, currentLineIndex: -1, isPlaying: true, isFinished: false };
-    case 'SET_TIME':
-      return { ...state, currentTime: action.payload };
-    case 'TICK':
-      return { ...state, currentTime: state.currentTime + action.payload };
-    case 'SET_LINE':
-      return { ...state, currentLineIndex: action.payload };
-    case 'FINISH':
-      return { ...state, isPlaying: false, isFinished: true };
+    case 'SET_BAR':
+      return { ...state, currentBarIndex: action.payload };
+    case 'NEXT_BAR':
+      // This will be handled in the component to check against song length
+      return { ...state };
+    case 'PREV_BAR':
+      // This will be handled in the component to check against song length
+      return { ...state };
     case 'SET_FONT_SIZE':
         const newSize = Math.max(16, Math.min(48, action.payload));
         return { ...state, fontSize: newSize };
@@ -111,9 +93,6 @@ function lyricPlayerReducer(state: State, action: Action): State {
         return { ...state, highlightMode: action.payload };
     case 'TOGGLE_SECTION_NAVIGATOR':
         return { ...state, showSectionNavigator: !state.showSectionNavigator };
-    case 'SET_BPM':
-        const newBpm = Math.max(40, Math.min(240, action.payload));
-        return { ...state, bpm: newBpm };
     case 'SET_TRANSPOSE':
         return { ...state, transpose: action.payload };
     case 'TRANSPOSE_UP':
@@ -123,7 +102,7 @@ function lyricPlayerReducer(state: State, action: Action): State {
     case 'RESET_TRANSPOSE':
         return { ...state, transpose: 0 };
     case 'RESET_PLAYER_STATE':
-        return {...state, currentTime: 0, currentLineIndex: -1, isPlaying: state.isPlaying, isFinished: false };
+        return {...initialState, transpose: state.transpose}; // Keep transpose setting between songs in a setlist
     default:
       return state;
   }
@@ -218,7 +197,6 @@ const FONT_WEIGHT_OPTIONS: { value: FontWeight; label: string; style: React.CSSP
 ];
 
 
-const DEFAULT_BPM_FOR_NORMAL_SPEED = 120;
 const ORIGINAL_SONG_KEY_NOTE = 'A';
 
 interface LyricPlayerProps {
@@ -241,8 +219,7 @@ export default function LyricPlayer({
     onClose
 }: LyricPlayerProps) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
-  const { isPlaying, currentTime, currentLineIndex, isFinished, fontSize, fontWeight, showChords, chordColor, highlightMode, showSectionNavigator, bpm, transpose } = state;
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const { currentBarIndex, fontSize, fontWeight, showChords, chordColor, highlightMode, showSectionNavigator, transpose } = state;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
 
@@ -250,10 +227,9 @@ export default function LyricPlayer({
   const [isChordsSettingsOpen, setIsChordsSettingsOpen] = useState(false);
   const [isDisplaySettingsOpen, setIsDisplaySettingsOpen] = useState(false);
 
-
   const navigatorRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 16, y: 150 });
+  const [position, setPosition] = useState({ x: 16, y: window.innerHeight / 2 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   const [theme, setThemeState] = useState<'light' | 'dark'>('light');
@@ -274,10 +250,6 @@ export default function LyricPlayer({
   const toggleTheme = () => {
     setThemeState(prevTheme => prevTheme === 'dark' ? 'light' : 'dark');
   };
-
-  useEffect(() => {
-    setPosition({ x: 16, y: (window.innerHeight / 2) });
-  }, []);
 
   const handleDragMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     if (navigatorRef.current) {
@@ -304,7 +276,6 @@ export default function LyricPlayer({
 
   const handleDragMouseUp = useCallback(() => setIsDragging(false), []);
   const handleDragTouchEnd = useCallback(() => setIsDragging(false), []);
-
 
   const handleDragMouseMove = useCallback((e: MouseEvent) => {
     if (isDragging) {
@@ -346,10 +317,19 @@ export default function LyricPlayer({
     };
   }, [isDragging, handleDragMouseMove, handleDragMouseUp, handleDragTouchMove, handleDragTouchEnd]);
 
-  
-  const duration = song.lyrics.length > 0 ? song.lyrics[song.lyrics.length - 1].time + 5 : 100;
-
-  const playbackRate = useMemo(() => bpm / (song.bpm || DEFAULT_BPM_FOR_NORMAL_SPEED), [bpm, song.bpm]);
+  const uniqueLyrics = useMemo(() => {
+    const unique: (LyricLine & { originalIndex: number })[] = [];
+    const seenBars = new Set<number>();
+    song.lyrics.forEach((line, index) => {
+      if (!seenBars.has(line.bar) || line.text.startsWith('(')) {
+        unique.push({ ...line, originalIndex: index });
+        if (!line.text.startsWith('(')) {
+          seenBars.add(line.bar);
+        }
+      }
+    });
+    return unique;
+  }, [song.lyrics]);
 
   const sections = useMemo(() => {
     return song.lyrics
@@ -357,64 +337,45 @@ export default function LyricPlayer({
       .filter(line => line.text.startsWith('(') && line.text.endsWith(')'))
       .map((line, index) => ({
           name: line.text.substring(1, line.text.length - 1),
-          time: line.time,
+          bar: line.bar,
           index: line.originalIndex,
           uniqueKey: `${line.text.substring(1, line.text.length - 1)}-${index}`,
       }));
   }, [song.lyrics]);
+
+  const currentLine = useMemo(() => uniqueLyrics[currentBarIndex], [uniqueLyrics, currentBarIndex]);
   
-    const { currentSection, currentSectionIndex } = useMemo(() => {
-      if (!sections || sections.length === 0) {
-        return { currentSection: null, currentSectionIndex: -1 };
-      }
-
-      let sectionIdx = -1;
-      for (let i = sections.length - 1; i >= 0; i--) {
-        if (currentTime >= sections[i].time) {
-          sectionIdx = i;
-          break;
-        }
-      }
-
-      if (sectionIdx !== -1) {
-        const section = sections[sectionIdx];
-        return { currentSection: { ...section, numericIndex: sectionIdx }, currentSectionIndex: sectionIdx };
-      }
-
-      return { currentSection: null, currentSectionIndex: -1 };
-    }, [currentTime, sections]);
-
-
-  const handleSeek = (value: number[]) => {
-    dispatch({ type: 'SET_TIME', payload: value[0] });
-  };
-  
-  const handleSkip = (direction: 'forward' | 'backward') => {
-    let nextIndex = -1;
-    if (direction === 'forward') {
-      nextIndex = song.lyrics.findIndex(line => line.time > currentTime);
-    } else {
-      const prevLineTime = song.lyrics.slice(0, currentLineIndex).reverse().find(line => line.time < currentTime)?.time ?? 0;
-      dispatch({ type: 'SET_TIME', payload: prevLineTime });
-      return;
+  const currentSection = useMemo(() => {
+    if (!sections || sections.length === 0 || !currentLine) {
+      return null;
     }
-    
-    if (nextIndex !== -1) {
-        dispatch({ type: 'SET_TIME', payload: song.lyrics[nextIndex].time });
+    return sections.slice().reverse().find(s => s.bar <= currentLine.bar);
+  }, [currentLine, sections]);
+
+  const handleSetBar = (index: number) => {
+    if (index >= 0 && index < uniqueLyrics.length) {
+      dispatch({ type: 'SET_BAR', payload: index });
     }
   };
 
-  const handleSectionJump = (time: number) => {
-    dispatch({ type: 'SET_TIME', payload: time });
+  const handleNextBar = useCallback(() => {
+    handleSetBar(currentBarIndex + 1);
+  }, [currentBarIndex]);
+
+  const handlePrevBar = useCallback(() => {
+    handleSetBar(currentBarIndex - 1);
+  }, [currentBarIndex]);
+
+  const handleSectionJump = (bar: number) => {
+    const targetIndex = uniqueLyrics.findIndex(l => l.bar >= bar && !l.text.startsWith('('));
+    if (targetIndex !== -1) {
+      handleSetBar(targetIndex);
+    }
   };
 
   const changeFontSize = (amount: number) => {
     dispatch({ type: 'SET_FONT_SIZE', payload: fontSize + amount });
   }
-
-  const handleBpmChange = (value: number[]) => {
-    dispatch({ type: 'SET_BPM', payload: value[0] });
-  };
   
   const handleKeyChange = (selectedKey: string) => {
     const originalKeyIndex = ALL_NOTES.indexOf(song.originalKey || ORIGINAL_SONG_KEY_NOTE);
@@ -434,46 +395,9 @@ export default function LyricPlayer({
     return ALL_NOTES[newKeyIndex];
   }, [transpose, song.originalKey]);
 
-
-  useEffect(() => {
-    if (isPlaying) {
-      const intervalTime = 100 / playbackRate;
-      intervalRef.current = setInterval(() => {
-        dispatch({ type: 'TICK', payload: 0.1 });
-      }, intervalTime);
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [isPlaying, playbackRate]);
-
-  useEffect(() => {
-    const newCurrentLineIndex = song.lyrics.findIndex(line => line.time > currentTime) - 1;
-    
-    let finalIndex;
-    if (song.lyrics.length > 0 && currentTime >= duration) {
-        finalIndex = song.lyrics.length - 1;
-    } else if (song.lyrics.length > 0 && currentTime > 0 && newCurrentLineIndex === -2 && currentTime < duration) {
-        finalIndex = song.lyrics.length - 1;
-    } else {
-        finalIndex = newCurrentLineIndex;
-    }
-    
-    if (finalIndex !== currentLineIndex) {
-      dispatch({ type: 'SET_LINE', payload: finalIndex });
-    }
-
-    if (currentTime >= duration && isPlaying) {
-      dispatch({ type: 'FINISH' });
-    }
-  }, [currentTime, song.lyrics, currentLineIndex, duration, isPlaying]);
-
-
   useEffect(() => {
     if (highlightMode !== 'none') {
-        const activeLine = lineRefs.current[currentLineIndex];
+        const activeLine = lineRefs.current[currentBarIndex];
         const container = scrollContainerRef.current;
         if (activeLine && container) {
             const containerRect = container.getBoundingClientRect();
@@ -486,7 +410,7 @@ export default function LyricPlayer({
             });
         }
     }
-  }, [currentLineIndex, highlightMode]);
+  }, [currentBarIndex, highlightMode]);
   
   const handleOpenSubmenu = (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
     setIsSettingsOpen(false);
@@ -501,7 +425,6 @@ export default function LyricPlayer({
       setIsSettingsOpen(true);
     }, 150);
   };
-
 
   return (
     <>
@@ -530,142 +453,7 @@ export default function LyricPlayer({
                 </div>
               
                 <div className="flex-1 flex justify-end items-center gap-0">
-                </div>
-              </div>
-          </header>
-        )}
-        
-        {showSectionNavigator && (
-          <div 
-            ref={navigatorRef}
-            className="fixed z-20 pointer-events-auto flex flex-col items-center gap-2"
-            style={{ top: `${position.y}px`, left: `${position.x}px` }}
-          >
-            <div className="flex items-center gap-1">
-               <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 cursor-grab active:cursor-grabbing bg-transparent text-muted-foreground/60"
-                  onMouseDown={handleDragMouseDown}
-                  onTouchStart={handleDragTouchStart}
-                >
-                  <Move className="h-3 w-3" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-6 w-6 bg-transparent text-muted-foreground/60"
-                  onClick={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
-                >
-                    <X className="h-3 w-3"/>
-                </Button>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              {sections.map((section, index) => (
-                  <button
-                      key={section.uniqueKey}
-                      onClick={() => handleSectionJump(section.time)}
-                      className={cn(
-                          "text-xs font-bold py-1 px-3 rounded-full shadow-md transition-all duration-300",
-                          index === currentSectionIndex
-                              ? "bg-primary text-primary-foreground" 
-                              : "bg-background/40 text-muted-foreground/60 hover:bg-muted/80 hover:text-muted-foreground"
-                      )}
-                  >
-                      {section.name}
-                  </button>
-              ))}
-            </div>
-          </div>
-        )}
-          
-        <div ref={scrollContainerRef} className="w-full h-full relative overflow-y-auto">
-          <ul
-              className={cn(
-                  "w-full px-4 md:px-12",
-                  isSetlistMode ? "pt-8 pb-32" : "pt-20 pb-48 md:pb-56"
-              )}
-              style={{ fontSize: `${fontSize}px` }}
-          >
-              {song.lyrics.map((line, index) => {
-              const parsedLine = parseLyrics(line.text);
-              const hasText = parsedLine.some(p => p.text.trim() !== '');
-              const hasChords = parsedLine.some(p => p.chord);
-              
-              const isSectionHeader = line.text.startsWith('(') && line.text.endsWith(')');
-              
-              if (isSectionHeader) {
-                  return (
-                      <li key={index} ref={el => lineRefs.current[index] = el} style={{ height: `calc(${fontSize}px * 0.5)` }}></li>
-                  );
-              }
-
-              if (!showChords && !hasText && hasChords) {
-                  return null;
-              }
-              const isSectionBreak = !hasText && !hasChords && line.text.trim() === '';
-              
-              const lineSection = sections.slice().reverse().find(s => s.index <= index);
-              const isLineInCurrentSection = lineSection?.uniqueKey === currentSection?.uniqueKey;
-
-              const isHighlighted = highlightMode !== 'none' && (
-                (highlightMode === 'line' && index === currentLineIndex) ||
-                (highlightMode === 'section' && isLineInCurrentSection)
-              );
-
-              return (
-                  <li
-                  key={`${song.id}-${index}`}
-                  ref={el => lineRefs.current[index] = el}
-                  className={cn(
-                      'rounded-md transition-all duration-300 text-center flex justify-center items-center',
-                      isSectionBreak ? 'h-[1.2em]' : 'min-h-[2.5rem] py-2',
-                      isHighlighted
-                      ? 'text-foreground scale-105'
-                      : 'text-muted-foreground/40',
-                      fontWeight === 400 && 'font-normal',
-                      fontWeight === 600 && 'font-semibold',
-                      fontWeight === 700 && 'font-bold'
-                  )}
-                  style={{ minHeight: isSectionBreak ? 'auto' : `calc(${fontSize}px * 1.5)`}}
-                  >
-                  {!isSectionBreak && <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} transpose={transpose} fontWeight={fontWeight} />}
-                  </li>
-              )
-              })}
-          </ul>
-        </div>
-
-
-        <div className={cn("fixed bottom-0 left-0 right-0 pointer-events-none", isSetlistMode && "bottom-16")}>
-          <div className={cn("bg-background/50 backdrop-blur-sm pointer-events-auto py-4")}>
-              <div className="max-w-4xl mx-auto space-y-0 px-4">
-                <Slider
-                  value={[currentTime]}
-                  max={duration}
-                  step={0.1}
-                  onValueChange={handleSeek}
-                />
-                <div className="relative flex justify-between items-center w-full gap-2 h-16 px-0">
-                   <div className="flex-1 flex justify-start">
-                      <Button variant="ghost" size="icon" onClick={() => dispatch({type: 'RESTART'})} aria-label="Restart">
-                          <Repeat />
-                      </Button>
-                  </div>
-                  <div className="flex justify-center items-center gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => onPrevSong ? onPrevSong() : handleSkip('backward')} disabled={isSetlistMode && isPrevDisabled} aria-label="Skip Backward">
-                          <SkipBack />
-                      </Button>
-                    <Button size="lg" className="bg-primary hover:bg-primary/90 rounded-full w-16 h-16" onClick={() => dispatch({type: 'TOGGLE_PLAY'})} aria-label={isPlaying ? "Pause" : "Play"}>
-                        {isFinished ? <Repeat className="w-8 h-8"/> : (isPlaying ? <Pause className="w-8 h-8"/> : <Play className="w-8 h-8"/>)}
-                    </Button>
-                      <Button variant="ghost" size="icon" onClick={() => onNextSong ? onNextSong() : handleSkip('forward')} disabled={isSetlistMode && isNextDisabled} aria-label="Skip Forward">
-                          <SkipForward />
-                      </Button>
-                  </div>
-                  <div className="flex-1 flex justify-end">
-                      <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                    <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                       <SheetTrigger asChild>
                           <Button variant="ghost" size="icon"><Settings /></Button>
                       </SheetTrigger>
@@ -719,23 +507,6 @@ export default function LyricPlayer({
                                       ))}
                                   </RadioGroup>
                               </div>
-                              <div className="space-y-2 py-2">
-                                  <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-4">
-                                          <Clock className="h-5 w-5 text-muted-foreground" />
-                                          <Label htmlFor="bpm-slider">BPM</Label>
-                                      </div>
-                                      <span className="font-mono text-sm font-semibold">{bpm}</span>
-                                  </div>
-                                  <Slider
-                                      id="bpm-slider"
-                                      value={[bpm]}
-                                      onValueChange={handleBpmChange}
-                                      max={240}
-                                      min={40}
-                                      step={1}
-                                  />
-                              </div>
                               <div className="flex items-center justify-between py-2">
                                   <div className="flex items-center gap-4">
                                       {theme === 'dark' ? <Moon className="h-5 w-5 text-muted-foreground" /> : <Sun className="h-5 w-5 text-muted-foreground" />}
@@ -746,112 +517,229 @@ export default function LyricPlayer({
                           </div>
                           </ScrollArea>
                       </SheetContent>
-                      </Sheet>
-                  </div>
-
-              <Sheet open={isChordsSettingsOpen} onOpenChange={setIsChordsSettingsOpen}>
-                  <SheetContent
-                      side="bottom" 
-                      className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm"
-                      showCloseButton={false}
-                      onOpenAutoFocus={(e) => e.preventDefault()}
-                  >
-                      <SheetHeader className="p-2 pb-0 text-left">
-                          <SheetTitle className="sr-only">Chord Settings</SheetTitle>
-                          <div className="flex items-center h-[36px]">
-                              <Button variant="ghost" size="icon" onClick={() => handleCloseSubmenu(setIsChordsSettingsOpen)} className="h-8 w-8">
-                                  <ArrowLeft className="h-4 w-4" />
-                              </Button>
-                          </div>
-                      </SheetHeader>
-                      <ScrollArea className="flex-grow">
-                          <div className="p-4 space-y-4">
-                              <div className="flex items-center justify-between py-2">
-                                  <Label htmlFor="show-chords">Show Chords</Label>
-                                  <Switch id="show-chords" checked={showChords} onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })} />
-                              </div>
-                              <div className="space-y-4 pl-0">
-                                  <div className="flex items-center justify-between">
-                                      <Label className="text-muted-foreground">Key</Label>
-                                      <div className="flex items-center gap-2">
-                                          <span className="font-bold w-12 text-center text-sm">{transpose !== 0 ? `${transpose > 0 ? '+' : ''}${transpose}` : 'Original'}</span>
-                                          <Select value={currentKey} onValueChange={handleKeyChange}>
-                                              <SelectTrigger className="w-[80px] h-8 text-xs">
-                                                  <SelectValue placeholder="Key" />
-                                              </SelectTrigger>
-                                              <SelectContent>
-                                                  {ALL_NOTES.map((note) => (
-                                                      <SelectItem key={note} value={note} className="text-xs">{note}</SelectItem>
-                                                  ))}
-                                              </SelectContent>
-                                          </Select>
-                                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'RESET_TRANSPOSE' })} disabled={transpose === 0}>
-                                              <RotateCcw className="h-4 w-4" />
-                                          </Button>
-                                      </div>
-                                  </div>
-                                  <div className="flex items-center justify-between">
-                                      <Label className="text-muted-foreground">Color</Label>
-                                      <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex flex-wrap gap-2 justify-start">
-                                          {CHORD_COLOR_OPTIONS.map((option) => (
-                                              <Label key={option.value} className="cursor-pointer">
-                                                  <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
-                                                  <div className={cn("w-5 h-5 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
-                                              </Label>
-                                          ))}
-                                      </RadioGroup>
-                                  </div>
-                              </div>
-                          </div>
-                      </ScrollArea>
-                  </SheetContent>
-              </Sheet>
-              
-              <Sheet open={isDisplaySettingsOpen} onOpenChange={setIsDisplaySettingsOpen}>
-                  <SheetContent
-                      side="bottom" 
-                      className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm"
-                      showCloseButton={false}
-                      onOpenAutoFocus={(e) => e.preventDefault()}
-                  >
-                      <SheetHeader className="p-2 pb-0 text-left">
-                          <SheetTitle className="sr-only">Display Settings</SheetTitle>
-                          <div className="flex items-center h-[36px]">
-                              <Button variant="ghost" size="icon" onClick={() => handleCloseSubmenu(setIsDisplaySettingsOpen)} className="h-8 w-8">
-                                  <ArrowLeft className="h-4 w-4" />
-                              </Button>
-                          </div>
-                      </SheetHeader>
-                      <ScrollArea className="flex-grow">
-                          <div className="p-4 space-y-6">
-                              <div className="space-y-2">
-                                  <Label>Font Size</Label>
-                                      <div className="flex items-center gap-2">
-                                      <Button variant="outline" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16} className="w-10 h-10"><Minus className="h-4 w-4"/></Button>
-                                      <div className="flex-grow text-center font-mono text-lg">{fontSize}px</div>
-                                      <Button variant="outline" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48} className="w-10 h-10"><Plus className="h-4 w-4"/></Button>
-                                  </div>
-                              </div>
-                                  <div className="space-y-2">
-                                  <Label>Font Weight</Label>
-                                      <RadioGroup value={fontWeight.toString()} onValueChange={(value) => dispatch({ type: 'SET_FONT_WEIGHT', payload: parseInt(value) as FontWeight })} className="grid grid-cols-3 gap-2">
-                                      {FONT_WEIGHT_OPTIONS.map(option => (
-                                          <Label key={option.value} className={cn("flex h-10 items-center justify-center cursor-pointer rounded-md border text-lg hover:bg-accent hover:text-accent-foreground", fontWeight === option.value && "border-primary bg-primary/10 text-primary")}>
-                                              <RadioGroupItem value={option.value.toString()} id={`weight-${option.value}`} className="sr-only" />
-                                              <span style={option.style}>{option.label}</span>
-                                          </Label>
-                                      ))}
-                                  </RadioGroup>
-                              </div>
-                          </div>
-                      </ScrollArea>
-                  </SheetContent>
-              </Sheet>
+                    </Sheet>
                 </div>
               </div>
+          </header>
+        )}
+        
+        {showSectionNavigator && sections.length > 0 && (
+          <div 
+            ref={navigatorRef}
+            className="fixed z-20 pointer-events-auto flex flex-col items-center gap-2"
+            style={{ top: `${position.y}px`, left: `${position.x}px` }}
+          >
+            <div className="flex items-center gap-1">
+               <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 cursor-grab active:cursor-grabbing bg-transparent text-muted-foreground/60"
+                  onMouseDown={handleDragMouseDown}
+                  onTouchStart={handleDragTouchStart}
+                >
+                  <Move className="h-3 w-3" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6 bg-transparent text-muted-foreground/60"
+                  onClick={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
+                >
+                    <X className="h-3 w-3"/>
+                </Button>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              {sections.map((section, index) => (
+                  <button
+                      key={section.uniqueKey}
+                      onClick={() => handleSectionJump(section.bar)}
+                      className={cn(
+                          "text-xs font-bold py-1 px-3 rounded-full shadow-md transition-all duration-300",
+                          section.uniqueKey === currentSection?.uniqueKey
+                              ? "bg-primary text-primary-foreground" 
+                              : "bg-background/40 text-muted-foreground/60 hover:bg-muted/80 hover:text-muted-foreground"
+                      )}
+                  >
+                      {section.name}
+                  </button>
+              ))}
             </div>
           </div>
+        )}
+          
+        <div ref={scrollContainerRef} className="w-full h-full relative overflow-y-auto">
+          <ul
+              className={cn(
+                  "w-full px-4 md:px-12",
+                  isSetlistMode ? "pt-8 pb-32" : "pt-20 pb-48 md:pb-24"
+              )}
+              style={{ fontSize: `${fontSize}px` }}
+          >
+              {uniqueLyrics.map((line, index) => {
+              const parsedLine = parseLyrics(line.text);
+              const hasText = parsedLine.some(p => p.text.trim() !== '');
+              const hasChords = parsedLine.some(p => p.chord);
+              
+              const isSectionHeader = line.text.startsWith('(') && line.text.endsWith(')');
+              
+              if (isSectionHeader) {
+                  return (
+                      <li key={index} ref={el => lineRefs.current[index] = el} style={{ height: `calc(${fontSize}px * 0.5)` }}></li>
+                  );
+              }
+
+              if (!showChords && !hasText && hasChords) {
+                  return null;
+              }
+              const isSectionBreak = !hasText && !hasChords && line.text.trim() === '';
+              
+              const lineSection = sections.slice().reverse().find(s => s.index <= line.originalIndex);
+              const isLineInCurrentSection = lineSection?.uniqueKey === currentSection?.uniqueKey;
+
+              const isHighlighted = highlightMode !== 'none' && (
+                (highlightMode === 'line' && index === currentBarIndex) ||
+                (highlightMode === 'section' && isLineInCurrentSection)
+              );
+
+              return (
+                  <li
+                  key={`${song.id}-${line.originalIndex}`}
+                  ref={el => lineRefs.current[index] = el}
+                  className={cn(
+                      'rounded-md transition-all duration-300 text-center flex justify-center items-center',
+                      isSectionBreak ? 'h-[1.2em]' : 'min-h-[2.5rem] py-2',
+                      isHighlighted
+                      ? 'text-foreground scale-105'
+                      : 'text-muted-foreground/40',
+                      fontWeight === 400 && 'font-normal',
+                      fontWeight === 600 && 'font-semibold',
+                      fontWeight === 700 && 'font-bold'
+                  )}
+                  style={{ minHeight: isSectionBreak ? 'auto' : `calc(${fontSize}px * 1.5)`}}
+                  >
+                  {!isSectionBreak && <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} transpose={transpose} fontWeight={fontWeight} />}
+                  </li>
+              )
+              })}
+          </ul>
         </div>
+
+
+        <div className={cn("fixed bottom-0 left-0 right-0 pointer-events-none", isSetlistMode && "bottom-16")}>
+          <div className="bg-background/50 backdrop-blur-sm pointer-events-auto py-2">
+              <div className="max-w-4xl mx-auto space-y-0 px-4">
+                <div className="relative flex justify-center items-center w-full gap-4 h-16 px-0">
+                  <Button variant="outline" size="lg" onClick={handlePrevBar} disabled={currentBarIndex <= 0}>
+                      <ChevronUp className="h-6 w-6"/>
+                  </Button>
+                  <Button variant="outline" size="lg" onClick={handleNextBar} disabled={currentBarIndex >= uniqueLyrics.length -1}>
+                      <ChevronDown className="h-6 w-6"/>
+                  </Button>
+                </div>
+              </div>
+          </div>
+        </div>
+      </div>
+
+      <Sheet open={isChordsSettingsOpen} onOpenChange={setIsChordsSettingsOpen}>
+          <SheetContent
+              side="bottom" 
+              className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm"
+              showCloseButton={false}
+              onOpenAutoFocus={(e) => e.preventDefault()}
+          >
+              <SheetHeader className="p-2 pb-0 text-left">
+                  <SheetTitle className="sr-only">Chord Settings</SheetTitle>
+                  <div className="flex items-center h-[36px]">
+                      <Button variant="ghost" size="icon" onClick={() => handleCloseSubmenu(setIsChordsSettingsOpen)} className="h-8 w-8">
+                          <ArrowLeft className="h-4 w-4" />
+                      </Button>
+                  </div>
+              </SheetHeader>
+              <ScrollArea className="flex-grow">
+                  <div className="p-4 space-y-4">
+                      <div className="flex items-center justify-between py-2">
+                          <Label htmlFor="show-chords">Show Chords</Label>
+                          <Switch id="show-chords" checked={showChords} onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })} />
+                      </div>
+                      <div className="space-y-4 pl-0">
+                          <div className="flex items-center justify-between">
+                              <Label className="text-muted-foreground">Key</Label>
+                              <div className="flex items-center gap-2">
+                                  <span className="font-bold w-12 text-center text-sm">{transpose !== 0 ? `${transpose > 0 ? '+' : ''}${transpose}` : 'Original'}</span>
+                                  <Select value={currentKey} onValueChange={handleKeyChange}>
+                                      <SelectTrigger className="w-[80px] h-8 text-xs">
+                                          <SelectValue placeholder="Key" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                          {ALL_NOTES.map((note) => (
+                                              <SelectItem key={note} value={note} className="text-xs">{note}</SelectItem>
+                                          ))}
+                                      </SelectContent>
+                                  </Select>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => dispatch({ type: 'RESET_TRANSPOSE' })} disabled={transpose === 0}>
+                                      <RotateCcw className="h-4 w-4" />
+                                  </Button>
+                              </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                              <Label className="text-muted-foreground">Color</Label>
+                              <RadioGroup value={chordColor} onValueChange={(value) => dispatch({ type: 'SET_CHORD_COLOR', payload: value })} className="flex flex-wrap gap-2 justify-start">
+                                  {CHORD_COLOR_OPTIONS.map((option) => (
+                                      <Label key={option.value} className="cursor-pointer">
+                                          <RadioGroupItem value={option.value} id={`color-${option.value}`} className="sr-only" />
+                                          <div className={cn("w-5 h-5 rounded-full border-2", chordColor === option.value ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-background' : 'border-transparent')} style={{ backgroundColor: option.value }} title={option.name} />
+                                      </Label>
+                                  ))}
+                              </RadioGroup>
+                          </div>
+                      </div>
+                  </div>
+              </ScrollArea>
+          </SheetContent>
+      </Sheet>
+      
+      <Sheet open={isDisplaySettingsOpen} onOpenChange={setIsDisplaySettingsOpen}>
+          <SheetContent
+              side="bottom" 
+              className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm"
+              showCloseButton={false}
+              onOpenAutoFocus={(e) => e.preventDefault()}
+          >
+              <SheetHeader className="p-2 pb-0 text-left">
+                  <SheetTitle className="sr-only">Display Settings</SheetTitle>
+                  <div className="flex items-center h-[36px]">
+                      <Button variant="ghost" size="icon" onClick={() => handleCloseSubmenu(setIsDisplaySettingsOpen)} className="h-8 w-8">
+                          <ArrowLeft className="h-4 w-4" />
+                      </Button>
+                  </div>
+              </SheetHeader>
+              <ScrollArea className="flex-grow">
+                  <div className="p-4 space-y-6">
+                      <div className="space-y-2">
+                          <Label>Font Size</Label>
+                              <div className="flex items-center gap-2">
+                              <Button variant="outline" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16} className="w-10 h-10"><Minus className="h-4 w-4"/></Button>
+                              <div className="flex-grow text-center font-mono text-lg">{fontSize}px</div>
+                              <Button variant="outline" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48} className="w-10 h-10"><Plus className="h-4 w-4"/></Button>
+                          </div>
+                      </div>
+                          <div className="space-y-2">
+                          <Label>Font Weight</Label>
+                              <RadioGroup value={fontWeight.toString()} onValueChange={(value) => dispatch({ type: 'SET_FONT_WEIGHT', payload: parseInt(value) as FontWeight })} className="grid grid-cols-3 gap-2">
+                              {FONT_WEIGHT_OPTIONS.map(option => (
+                                  <Label key={option.value} className={cn("flex h-10 items-center justify-center cursor-pointer rounded-md border text-lg hover:bg-accent hover:text-accent-foreground", fontWeight === option.value && "border-primary bg-primary/10 text-primary")}>
+                                      <RadioGroupItem value={option.value.toString()} id={`weight-${option.value}`} className="sr-only" />
+                                      <span style={option.style}>{option.label}</span>
+                                  </Label>
+                              ))}
+                          </RadioGroup>
+                      </div>
+                  </div>
+              </ScrollArea>
+          </SheetContent>
+      </Sheet>
     </>
   );
 }
