@@ -122,15 +122,16 @@ export default function SetlistPlayerPage() {
                         </div>
                     </div>
                     {nextSong && (
-                        <div className="hidden sm:flex items-center gap-3 text-right pl-4">
-                            <div className="min-w-0">
-                                <p className="text-xs text-muted-foreground leading-tight">Up Next</p>
-                                <p className="font-semibold truncate leading-tight">{nextSong.title}</p>
+                        <div className="hidden sm:flex items-center gap-2 pl-4 bg-muted/50 p-2 rounded-lg">
+                            <div className="min-w-0 text-right">
+                                <p className="text-xs text-muted-foreground font-semibold leading-tight">UP NEXT</p>
+                                <p className="font-bold truncate leading-tight text-sm">{nextSong.title}</p>
                             </div>
-                            <div className="flex-shrink-0 bg-muted text-muted-foreground rounded-md px-2 py-1 text-center">
-                                <p className="text-xs font-bold leading-tight">KEY</p>
-                                <p className="text-lg font-bold leading-tight">{getTransposedKey(transpose)}</p>
+                            <div className="flex-shrink-0 bg-background text-foreground rounded-md p-1 text-center shadow">
+                                <p className="text-[10px] font-bold leading-tight opacity-70">KEY</p>
+                                <p className="text-base font-bold leading-tight">{getTransposedKey(transpose)}</p>
                             </div>
+                            <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0"/>
                         </div>
                     )}
                 </div>
