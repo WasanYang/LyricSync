@@ -59,7 +59,7 @@ export default function SearchPage() {
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
             <Input
               type="search"
-              placeholder="e.g., Starlight Echoes or Celestial Sound"
+              placeholder="Search for songs or artists..."
               className="pl-10 text-base bg-black text-white dark:bg-white dark:text-black focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
