@@ -10,6 +10,7 @@ import {
   Sheet,
   SheetContent,
   SheetHeader,
+  SheetTitle,
   SheetTrigger,
   SheetClose,
 } from '@/components/ui/sheet';
@@ -79,6 +80,7 @@ export default function Header() {
                       <Music className="h-6 w-6 text-primary" />
                       <span className="font-bold font-headline text-lg">Rhythmic Reads</span>
                     </Link>
+                    <SheetTitle className="sr-only">Main Menu</SheetTitle>
                   </SheetHeader>
                   <div className="p-4 space-y-4">
                      <nav className="flex flex-col space-y-2">
