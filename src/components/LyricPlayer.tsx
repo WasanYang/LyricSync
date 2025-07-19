@@ -496,7 +496,7 @@ export default function LyricPlayer({
   return (
     <div className="flex flex-col bg-background h-full overflow-hidden">
       { !isSetlistMode && (
-         <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm shadow-sm pointer-events-auto">
+         <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm pointer-events-auto">
             <div className="relative container mx-auto flex items-center justify-between h-14">
             <div className="flex-1 flex justify-start">
                 <Button asChild variant="ghost" size="icon">
@@ -623,7 +623,7 @@ export default function LyricPlayer({
 
       <div className={cn(
           "fixed bottom-0 left-0 right-0 pointer-events-none",
-          isSetlistMode && "bottom-16"
+          isSetlistMode && "pb-16"
       )}>
         <div className="bg-background/50 backdrop-blur-sm pointer-events-auto">
             <div className="max-w-4xl mx-auto space-y-0 px-0">
@@ -661,7 +661,7 @@ export default function LyricPlayer({
                         </SheetTrigger>
                         <SheetContent 
                           side="bottom" 
-                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" 
+                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom" 
                           showCloseButton={false}
                           onOpenAutoFocus={(e) => e.preventDefault()}
                         >
@@ -745,7 +745,7 @@ export default function LyricPlayer({
                   <Sheet open={isChordsSettingsOpen} onOpenChange={setIsChordsSettingsOpen}>
                       <SheetContent
                           side="bottom" 
-                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom"
                           showCloseButton={false}
                           onOpenAutoFocus={(e) => e.preventDefault()}
                       >
@@ -803,7 +803,7 @@ export default function LyricPlayer({
                   <Sheet open={isDisplaySettingsOpen} onOpenChange={setIsDisplaySettingsOpen}>
                       <SheetContent
                           side="bottom" 
-                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom"
                           showCloseButton={false}
                           onOpenAutoFocus={(e) => e.preventDefault()}
                       >
