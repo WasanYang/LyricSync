@@ -124,11 +124,10 @@ export default function SetlistPlayerPage() {
                     
                     <div className="flex items-center gap-1 sm:gap-2 pl-2 sm:pl-4 bg-muted/50 p-1 sm:p-2 rounded-lg">
                         <div className="min-w-0 flex-grow text-right">
-                            <p className="text-[10px] text-muted-foreground font-semibold leading-tight hidden xs:block">UP NEXT</p>
                              <div className="flex items-center justify-end gap-2">
                                 <div className="min-w-0">
                                     <p className="font-bold truncate leading-tight text-xs sm:text-sm max-w-[100px] sm:max-w-none">{nextSong ? nextSong.title : 'End of list'}</p>
-                                    {nextSong && <p className="text-xs text-muted-foreground truncate hidden sm:block">{nextSong.artist}</p>}
+                                    {nextSong && <p className="text-xs text-muted-foreground truncate sm:block">{nextSong.artist}</p>}
                                 </div>
                                 {nextSong && (
                                     <div className="flex-shrink-0 text-center">
@@ -147,15 +146,18 @@ export default function SetlistPlayerPage() {
             </div>
         </header>
 
-        <div className="flex-grow relative h-full pt-[88px] pb-16">
+        <div className="flex-grow relative h-full pt-[88px] pb-32">
             <LyricPlayer 
                 song={currentSong} 
                 isSetlistMode={true}
-                onNextSong={handleNextSong}
-                onPrevSong={handlePrevSong}
             />
         </div>
-        
+        <SetlistControls
+            onNextSong={handleNextSong}
+            onPrevSong={handlePrevSong}
+            isNextDisabled={currentIndex >= songs.length - 1}
+            isPrevDisabled={currentIndex <= 0}
+        />
       </div>
     );
 }
