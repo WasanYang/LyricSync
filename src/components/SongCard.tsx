@@ -4,7 +4,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { formatDistanceToNow } from 'date-fns';
 import { type Song } from '@/lib/songs';
 import { saveSong, updateSong, isSongSaved } from '@/lib/db';
 import { Download, Check, ArrowUpCircle } from 'lucide-react';
@@ -140,11 +139,7 @@ export default function SongCard({ song }: SongCardProps) {
       <div className="flex justify-between items-start gap-2">
         <Link href={`/lyrics/${song.id}`} className="block flex-grow min-w-0">
           <p className="font-semibold font-headline truncate">{song.title}</p>
-          <div className="text-sm text-muted-foreground truncate flex items-center gap-2">
-            <span>{song.artist}</span>
-            <span className="text-xs">•</span>
-            <span className="text-xs">{formatDistanceToNow(song.updatedAt, { addSuffix: true })}</span>
-          </div>
+          <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
         </Link>
         {renderButton()}
       </div>
