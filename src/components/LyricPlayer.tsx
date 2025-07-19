@@ -277,7 +277,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
   return (
     <div className="flex flex-col bg-background h-screen">
       {/* Header Info */}
-      <header className="fixed top-0 left-0 right-0 z-10 p-4 bg-gradient-to-b from-background via-background/80 to-transparent pointer-events-auto">
+      <header className="fixed top-0 left-0 right-0 z-10 p-4 bg-background/80 backdrop-blur-sm pointer-events-auto">
         <div className="relative container mx-auto flex items-center justify-center h-10">
            <div className="absolute left-0">
              <Button asChild variant="ghost" size="icon">
@@ -298,7 +298,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
               </p>
           </div>
           
-          <div className="absolute right-0 flex items-center gap-2">
+          <div className="absolute right-0 flex items-center gap-0">
             <div className="flex items-center">
                 <Button variant="ghost" size="icon" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16} className="w-8 h-8"><Minus className="h-4 w-4"/></Button>
                 <Button variant="ghost" size="icon" onClick={() => changeFontSize(2)} disabled={fontSize >= 48} className="w-8 h-8"><Plus className="h-4 w-4"/></Button>
@@ -406,7 +406,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
       {/* Lyrics Scroll Area */}
       <div ref={scrollContainerRef} className="w-full h-full relative overflow-y-auto">
         <ul
-            className="w-full px-12 pt-32 pb-56"
+            className="w-full px-12 pt-32 pb-48"
             style={{ fontSize: `${fontSize}px` }}
         >
             {song.lyrics.map((line, index) => {
@@ -457,7 +457,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
 
 
       {/* Player Controls - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background/80 to-transparent pointer-events-auto">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm pointer-events-auto">
         <div className="max-w-4xl mx-auto space-y-4">
             <Slider
               value={[currentTime]}
