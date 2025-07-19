@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Music, Menu, LogIn, Home, Search, PlusSquare, Sun, Moon, ListMusic, Library } from 'lucide-react';
+import { Music, Menu, LogIn, Home, Search, PlusSquare, Sun, Moon, ListMusic, Library, Edit } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,6 +27,7 @@ const navLinks = [
 const mobileOnlyLinks = [
     { href: '/setlists', label: 'My Lists', icon: ListMusic },
     { href: '/downloaded', label: 'Downloaded', icon: Library },
+    { href: '/song-editor', label: 'Song Editor', icon: Edit },
 ]
 
 export default function Header() {
