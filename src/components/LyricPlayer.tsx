@@ -256,7 +256,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
   }, [currentSection]);
 
   useEffect(() => {
-    if (highlightMode === 'line') {
+    if (highlightMode !== 'none') {
         const activeLine = lineRefs.current[currentLineIndex];
         if (activeLine) {
             activeLine.scrollIntoView({
