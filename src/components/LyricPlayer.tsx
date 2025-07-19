@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useReducer, useCallback, useMemo } from 'r
 import type { Song, LyricLine } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Play, Pause, SkipBack, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings } from 'lucide-react';
+import { Play, Pause, SkipBack, Repeat, Minus, Plus, Guitar, Palette, ArrowLeft, Settings, SkipForward } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
@@ -312,11 +312,11 @@ export default function LyricPlayer({ song }: { song: Song }) {
           const parsedLine = parseLyrics(line.text);
           const hasText = parsedLine.some(p => p.text.trim() !== '');
           const hasChords = parsedLine.some(p => p.chord);
-          const isSectionBreak = !hasText && !hasChords && line.text.trim() === '';
-
-           if (!showChords && !hasText && hasChords) {
+          
+          if (!showChords && !hasText && hasChords) {
             return null;
           }
+          const isSectionBreak = !hasText && !hasChords && line.text.trim() === '';
 
           return (
             <li
@@ -329,7 +329,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
                   ? 'text-foreground scale-105'
                   : 'text-muted-foreground/50'
               )}
-              style={{ minHeight: isSectionBreak ? `${fontSize * 1.2}px` : `${fontSize * 1.5}px`}}
+              style={{ minHeight: isSectionBreak ? `${fontSize * 1.2}px` : `auto`}}
             >
                {!isSectionBreak && <LyricLineDisplay line={line} showChords={showChords} chordColor={chordColor} />}
             </li>
