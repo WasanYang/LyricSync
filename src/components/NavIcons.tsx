@@ -9,13 +9,16 @@ interface NavIconProps {
 export function HomeIcon({ className, isActive }: NavIconProps) {
   if (isActive) {
     return (
-      <svg
+       <svg
         className={className}
         viewBox="0 0 24 24"
         fill="currentColor"
         stroke="none"
       >
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <rect x="3" y="3" width="8" height="8" rx="1"></rect>
+        <rect x="13" y="3" width="8" height="8" rx="1"></rect>
+        <rect x="3" y="13" width="8" height="8" rx="1"></rect>
+        <rect x="13" y="13" width="8" height="8" rx="1"></rect>
       </svg>
     )
   }
@@ -29,7 +32,10 @@ export function HomeIcon({ className, isActive }: NavIconProps) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+      <rect x="3" y="3" width="8" height="8" rx="1"></rect>
+      <rect x="13" y="3" width="8" height="8" rx="1"></rect>
+      <rect x="3" y="13" width="8" height="8" rx="1"></rect>
+      <rect x="13" y="13" width="8" height="8" rx="1"></rect>
     </svg>
   );
 }
