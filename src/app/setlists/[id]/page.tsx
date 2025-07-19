@@ -111,9 +111,9 @@ export default function SetlistPlayerPage() {
                 <div className="flex items-center justify-between w-full">
                      <div className="flex items-center gap-2 min-w-0">
                         <Button asChild variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -ml-2">
-                            <Link href="/create">
+                            <Link href="/setlists">
                                 <ArrowLeft className="h-5 w-5" />
-                                <span className="sr-only">Back to Creator</span>
+                                <span className="sr-only">Back to My Lists</span>
                             </Link>
                         </Button>
                         <div className="min-w-0">
