@@ -525,7 +525,7 @@ export default function LyricPlayer({ song }: { song: Song }) {
             {sections.map((section, index) => (
                 <button
                     key={section.uniqueKey}
-                    onDoubleClick={() => handleSectionJump(section.time)}
+                    onClick={() => handleSectionJump(section.time)}
                     className={cn(
                         "text-xs font-bold py-1 px-3 rounded-full shadow-md transition-all duration-300",
                         index === currentSectionIndex
