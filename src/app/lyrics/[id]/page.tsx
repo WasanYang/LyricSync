@@ -1,3 +1,4 @@
+
 // src/app/lyrics/[id]/page.tsx
 'use client';
 
@@ -10,17 +11,27 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 function LoadingSkeleton() {
     return (
-        <div className="flex flex-col bg-background h-screen overflow-hidden p-4 pt-20">
-            <div className="space-y-4 max-w-lg mx-auto w-full">
-                <Skeleton className="h-8 w-3/4 mx-auto" />
-                <Skeleton className="h-4 w-1/2 mx-auto" />
-                <div className="pt-12 space-y-6">
-                    <Skeleton className="h-6 w-full" />
-                    <Skeleton className="h-6 w-5/6" />
-                    <Skeleton className="h-6 w-full" />
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-6 w-5/6" />
+        <div className="flex flex-col bg-background h-screen overflow-hidden">
+            <div className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm pointer-events-auto">
+              <div className="relative container mx-auto flex items-center justify-between h-14">
+                <Skeleton className="h-9 w-9" />
+                <Skeleton className="h-6 w-48" />
+                <div className="w-9"></div>
+              </div>
+            </div>
+            <div className="flex-grow p-4 pt-20">
+                <div className="space-y-4 max-w-lg mx-auto w-full">
+                    <div className="pt-12 space-y-6">
+                        <Skeleton className="h-6 w-full" />
+                        <Skeleton className="h-6 w-5/6" />
+                        <Skeleton className="h-6 w-full" />
+                        <Skeleton className="h-6 w-3/4" />
+                        <Skeleton className="h-6 w-5/6" />
+                    </div>
                 </div>
+            </div>
+             <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80">
+                 <Skeleton className="h-12 w-full max-w-lg mx-auto rounded-lg" />
             </div>
         </div>
     )
@@ -75,7 +86,7 @@ export default function LyricPage() {
   }
 
   return (
-    <div className="relative w-full min-h-screen bg-background">
+    <div className="relative w-full h-screen flex flex-col bg-background">
       <LyricPlayer song={song} />
     </div>
   );
