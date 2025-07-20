@@ -37,7 +37,7 @@ const navLinks = [
 
 const mobileOnlyLinks = [
     { href: '/setlists', label: 'My Lists', icon: ListMusic },
-    { href: '/downloaded', label: 'Downloaded', icon: Library },
+    { href: '/downloaded', label: 'My Library', icon: Library },
     { href: '/song-editor', label: 'Song Creator', icon: Edit },
 ]
 
@@ -178,7 +178,7 @@ export default function Header() {
                               href={link.href}
                               className={cn(
                                 'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
-                                pathname === link.href ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'
+                                pathname.startsWith(link.href) ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'
                               )}
                             >
                               <link.icon className="h-5 w-5" />

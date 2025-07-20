@@ -9,7 +9,7 @@ import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { DownloadCloud, Trash2, Edit, ArrowUpCircle } from 'lucide-react';
+import { Library, Trash2, Edit, ArrowUpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -115,7 +115,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete "{song.title}" from your downloaded songs.
+                This action cannot be undone. This will permanently delete "{song.title}" from your library.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -158,7 +158,7 @@ export default function DownloadedPage() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
         <div className="space-y-8">
-          <h1 className="text-4xl font-headline font-bold tracking-tight">Downloaded Songs</h1>
+          <h1 className="text-4xl font-headline font-bold tracking-tight">My Library</h1>
 
           {isLoading ? (
             <p>Loading songs...</p>
@@ -170,11 +170,11 @@ export default function DownloadedPage() {
             </div>
           ) : (
             <div className="text-center py-16 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full">
-                <DownloadCloud className="h-12 w-12 text-muted-foreground mb-4" />
-                <h2 className="text-xl font-headline font-semibold">No Downloaded Songs</h2>
-                <p className="text-muted-foreground">You haven&apos;t saved any songs for offline use.</p>
+                <Library className="h-12 w-12 text-muted-foreground mb-4" />
+                <h2 className="text-xl font-headline font-semibold">Your Library is Empty</h2>
+                <p className="text-muted-foreground">You haven't saved any songs for offline use yet.</p>
                 <Button variant="link" asChild>
-                    <Link href="/search">Find songs to download</Link>
+                    <Link href="/search">Find songs to add</Link>
                 </Button>
             </div>
           )}
