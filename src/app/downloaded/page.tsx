@@ -74,11 +74,8 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
   }
 
   return (
-    <div className={cn(
-      "flex items-center space-x-3 p-2 rounded-lg transition-colors",
-      "hover:bg-accent hover:text-accent-foreground group"
-    )}>
-      <Link href={`/lyrics/${song.id}`} className="flex-grow flex items-center space-x-3 min-w-0">
+    <div className={cn("flex items-center space-x-3")}>
+      <Link href={`/lyrics/${song.id}`} className="flex-grow flex items-center space-x-3 min-w-0 p-2 rounded-lg transition-colors hover:bg-accent hover:text-accent-foreground group">
         <Image
           src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
           alt={`${song.title} album art`}
@@ -167,7 +164,7 @@ export default function DownloadedPage() {
           {isLoading ? (
             <p>Loading songs...</p>
           ) : songs.length > 0 ? (
-            <div className="flex flex-col">
+            <div className="flex flex-col space-y-1">
               {songs.map(song => (
                 <SongListItem key={song.id} song={song} onDelete={handleSongDeleted} onUpdate={handleSongUpdated} />
               ))}
