@@ -8,6 +8,7 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel"
 import BottomNavBar from '@/components/BottomNavBar';
+import Link from 'next/link';
 
 
 // In a real app, these would come from an API
@@ -35,7 +36,9 @@ function SongSection({ title, songs }: SongSectionProps) {
           <CarouselContent className="-ml-4">
             {songs.map((song) => (
               <CarouselItem key={song.id} className="basis-1/2 md:basis-1/5 pl-4">
-                <SongCard song={song} />
+                <Link href={`/lyrics/${song.id}`} className="block">
+                  <SongCard song={song} />
+                </Link>
               </CarouselItem>
             ))}
           </CarouselContent>
