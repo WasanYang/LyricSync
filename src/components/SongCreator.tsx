@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
 import { saveSong, getSong as getSongFromDb } from '@/lib/db';
 import type { Song, LyricLine } from '@/lib/songs';
 import { ALL_NOTES } from '@/lib/chords';
@@ -172,7 +173,7 @@ export default function SongCreator() {
 
   async function handleSaveSong(data: SongFormValues) {
     const newSong: Song = {
-      id: songId || `custom-${Date.now().toString()}`,
+      id: songId || `custom-${uuidv4()}`,
       title: data.title,
       artist: data.artist,
       updatedAt: new Date(), // This will be the save/update time

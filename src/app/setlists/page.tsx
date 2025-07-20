@@ -37,6 +37,7 @@ import {
 import { cn } from '@/lib/utils';
 import { MoreVertical } from 'lucide-react';
 
+
 const SYNC_LIMIT = 5;
 
 function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist: SetlistWithSyncStatus, onSetlistChange: () => void, onSyncLimitReached: () => void }) {
@@ -117,16 +118,7 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                  {setlist.isSynced ? (
                     <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
                 ) : setlist.containsCustomSongs ? (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                           <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Cannot sync setlists with custom songs.</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" title="Cannot sync setlists with custom songs."/>
                 ) : (
                    <ListMusic className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                 )}
