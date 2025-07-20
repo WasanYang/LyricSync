@@ -58,7 +58,9 @@ export default function RootLayout({
           >
             <AuthProvider>
               <div className="w-full max-w-[768px] mx-auto flex-grow flex flex-col">
-                {children}
+                <div className="flex-grow flex flex-col pb-16 md:pb-0">
+                  {children}
+                </div>
               </div>
               <Toaster />
               <Footer />

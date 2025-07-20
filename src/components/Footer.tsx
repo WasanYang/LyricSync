@@ -15,7 +15,7 @@ const FooterLink = ({ href, children }: { href: string; children: React.ReactNod
 
 export default function Footer() {
     return (
-        <footer className="hidden md:block w-full border-t mt-auto">
+        <footer className="w-full border-t mt-auto">
             <div className="max-w-7xl mx-auto px-8 py-12">
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
                     <div className="lg:col-span-2">
