@@ -2,6 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { getAllSavedSongs, deleteSong as deleteSongFromDb, updateSong, type Song, uploadSongToCloud } from '@/lib/db';
 import { getSongById } from '@/lib/songs';
 import Header from '@/components/Header';
@@ -24,6 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Skeleton } from '@/components/ui/skeleton';
 
 function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (songId: string) => void, onUpdate: (songId: string) => void }) {
   const { user, isSuperAdmin } = useAuth();
@@ -117,18 +119,18 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
       <div className="flex-shrink-0 flex items-center gap-1">
         {isCustomSong ? (
             isSuperAdmin ? (
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={handleUpload}>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={handleUpload}>
                   <UploadCloud className="h-4 w-4" />
               </Button>
             ) : (
-              <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
+              <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
                   <Link href={`/song-editor?id=${song.id}`} onClick={e => e.stopPropagation()}>
                       <Edit className="h-4 w-4" />
                   </Link>
               </Button>
             )
         ) : (
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={handleUpdate}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={handleUpdate}>
                 <RefreshCw className="h-4 w-4" />
             </Button>
         )}
@@ -159,6 +161,14 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
 export default function DownloadedPage() {
   const [songs, setSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/welcome');
+    }
+  }, [user, authLoading, router]);
 
   async function loadSongs() {
     setIsLoading(true);
@@ -168,8 +178,10 @@ export default function DownloadedPage() {
   }
 
   useEffect(() => {
-    loadSongs();
-  }, []);
+    if (user) {
+        loadSongs();
+    }
+  }, [user]);
 
   const handleSongDeleted = (deletedId: string) => {
     setSongs(prevSongs => prevSongs.filter(song => song.id !== deletedId));
@@ -178,6 +190,25 @@ export default function DownloadedPage() {
   const handleSongUpdated = (updatedId: string) => {
     // Re-fetch the songs to get the updated list
     loadSongs();
+  }
+  
+  if (authLoading || !user) {
+    return (
+       <div className="flex-grow flex flex-col">
+          <Header />
+          <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
+             <div className="space-y-4">
+               <Skeleton className="h-8 w-48" />
+               <div className="space-y-2">
+                 <Skeleton className="h-12 w-full" />
+                 <Skeleton className="h-12 w-full" />
+                 <Skeleton className="h-12 w-full" />
+               </div>
+             </div>
+          </main>
+          <BottomNavBar />
+      </div>
+    );
   }
 
   return (

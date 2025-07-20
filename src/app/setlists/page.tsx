@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   getSetlists, 
@@ -42,6 +43,7 @@ import {
 } from "@/components/ui/tooltip"
 import { cn } from '@/lib/utils';
 import { MoreVertical } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const SYNC_LIMIT = 5;
@@ -240,6 +242,13 @@ export default function SetlistsPage() {
   const [syncedCount, setSyncedCount] = useState(0);
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/welcome');
+    }
+  }, [user, authLoading, router]);
 
   const loadData = async () => {
     if (!user) return;
@@ -259,14 +268,8 @@ export default function SetlistsPage() {
   };
   
   useEffect(() => {
-    if (!authLoading) {
-      if (user) {
+    if (!authLoading && user) {
         loadData();
-      } else {
-        // Handle case where user is logged out, maybe redirect or show message
-        setIsLoading(false);
-        setSetlists([]);
-      }
     }
   }, [user, authLoading]);
 
@@ -278,6 +281,28 @@ export default function SetlistsPage() {
       });
   };
 
+  if (authLoading || !user) {
+     return (
+       <div className="flex-grow flex flex-col">
+          <Header />
+          <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
+             <div className="space-y-4">
+               <div className="space-y-1">
+                  <Skeleton className="h-8 w-36" />
+                  <Skeleton className="h-4 w-24" />
+               </div>
+               <div className="space-y-2 pt-4">
+                 <Skeleton className="h-16 w-full" />
+                 <Skeleton className="h-16 w-full" />
+                 <Skeleton className="h-16 w-full" />
+               </div>
+             </div>
+          </main>
+          <BottomNavBar />
+      </div>
+    );
+  }
+
   return (
     <div className="flex-grow flex flex-col">
       <Header />
@@ -288,17 +313,8 @@ export default function SetlistsPage() {
               {user && <p className="text-muted-foreground">Synced: {syncedCount}/{SYNC_LIMIT}</p>}
             </div>
           
-          {isLoading || authLoading ? (
+          {isLoading ? (
              <p>Loading setlists...</p>
-          ) : !user ? (
-             <div className="text-center py-16 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full">
-                <ListMusic className="h-12 w-12 text-muted-foreground mb-4" />
-                <h2 className="text-xl font-headline font-semibold">Please Login</h2>
-                <p className="text-muted-foreground">Login to create and sync your setlists.</p>
-                 <Button variant="link" asChild>
-                    <Link href="/login">Login Now</Link>
-                </Button>
-              </div>
           ) : setlists.length > 0 ? (
             <TooltipProvider>
               <div className="space-y-3">

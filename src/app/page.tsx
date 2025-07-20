@@ -1,4 +1,6 @@
 
+'use client'
+
 import { getSongs, type Song } from '@/lib/songs';
 import SongCard from '@/components/SongCard';
 import Header from '@/components/Header';
@@ -9,7 +11,10 @@ import {
 } from "@/components/ui/carousel"
 import BottomNavBar from '@/components/BottomNavBar';
 import Link from 'next/link';
-
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // In a real app, these would come from an API
 const featuredSongs = getSongs().slice(0, 4);
@@ -50,6 +55,44 @@ function SongSection({ title, songs }: SongSectionProps) {
 
 
 export default function Home() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    // If not loading and no user, redirect to welcome page.
+    if (!loading && !user) {
+      router.replace('/welcome');
+    }
+  }, [user, loading, router]);
+
+  // While loading or if no user (and redirecting), show a skeleton screen
+  if (loading || !user) {
+    return (
+       <div className="flex-grow flex flex-col">
+          <Header />
+          <main className="flex-grow container mx-auto px-4 py-8 space-y-12 pb-24 md:pb-8">
+              <div className="space-y-4">
+                  <Skeleton className="h-8 w-48 mb-4" />
+                  <div className="flex space-x-4">
+                      <Skeleton className="h-48 w-1/2 md:w-1/5" />
+                      <Skeleton className="h-48 w-1/2 md:w-1/5" />
+                      <Skeleton className="h-48 hidden md:block md:w-1/5" />
+                      <Skeleton className="h-48 hidden md:block md:w-1/5" />
+                  </div>
+              </div>
+               <div className="space-y-4">
+                  <Skeleton className="h-8 w-48 mb-4" />
+                  <div className="flex space-x-4">
+                      <Skeleton className="h-48 w-1/2 md:w-1/5" />
+                      <Skeleton className="h-48 w-1/2 md:w-1/5" />
+                  </div>
+              </div>
+          </main>
+          <BottomNavBar />
+      </div>
+    );
+  }
+
   return (
     <div className="flex-grow flex flex-col">
       <Header />

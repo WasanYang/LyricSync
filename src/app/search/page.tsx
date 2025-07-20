@@ -1,7 +1,9 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { getSongs, type Song } from '@/lib/songs';
 import { Input } from '@/components/ui/input';
 import { SearchIcon } from 'lucide-react';
@@ -11,6 +13,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import SongStatusButton from '@/components/SongStatusButton';
 import Header from '@/components/Header';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function SongListItem({ song }: { song: Song }) {
   return (
@@ -43,6 +46,15 @@ function SongListItem({ song }: { song: Song }) {
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const allSongs = useMemo(() => getSongs(), []);
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/welcome');
+    }
+  }, [user, loading, router]);
+
 
   const filteredSongs = useMemo(() => {
     if (!searchTerm) {
@@ -54,6 +66,27 @@ export default function SearchPage() {
         song.artist.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm, allSongs]);
+
+  if (loading || !user) {
+    return (
+      <div className="flex-grow flex flex-col">
+         <Header />
+         <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
+            <div className="space-y-8">
+               <Skeleton className="h-8 w-32" />
+               <Skeleton className="h-10 w-full" />
+               <div className="space-y-2 pt-4">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+               </div>
+            </div>
+         </main>
+         <BottomNavBar />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-grow flex flex-col">
