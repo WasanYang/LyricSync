@@ -1,3 +1,4 @@
+
 // src/components/SongCard.tsx
 'use client';
 
@@ -20,7 +21,7 @@ export default function SongCard({ song }: SongCardProps) {
   };
   
   return (
-    <div className="group relative space-y-2">
+    <div className="group relative space-y-1.5">
       <div className="aspect-square w-full overflow-hidden rounded-md transition-all duration-300 ease-in-out group-hover:shadow-lg group-hover:shadow-primary/20">
         <Image
           src={`https://placehold.co/300x300.png?text=${encodeURIComponent(song.title)}`}
@@ -37,7 +38,7 @@ export default function SongCard({ song }: SongCardProps) {
           <p className="font-semibold font-headline text-sm truncate">{song.title}</p>
           <p className="text-xs text-muted-foreground truncate">{song.artist}</p>
         </div>
-        <div onClick={handleButtonClick} className="flex-shrink-0">
+        <div onClick={handleButtonClick} className="flex-shrink-0 pt-0.5">
           <SongStatusButton song={song} />
         </div>
       </div>
