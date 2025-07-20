@@ -36,26 +36,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signInWithGoogle = async () => {
     if (!auth) {
-        console.error("Firebase Auth is not initialized.");
-        return;
+      throw new Error("Firebase is not configured correctly. Please check your API keys.");
     }
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
     } catch (error) {
       console.error("Error signing in with Google: ", error);
+      throw new Error("Failed to sign in with Google.");
     }
   };
 
   const logout = async () => {
      if (!auth) {
-        console.error("Firebase Auth is not initialized.");
-        return;
+        throw new Error("Firebase is not configured correctly. Please check your API keys.");
     }
     try {
       await signOut(auth);
     } catch (error) {
       console.error("Error signing out: ", error);
+      throw new Error("Failed to sign out.");
     }
   };
 

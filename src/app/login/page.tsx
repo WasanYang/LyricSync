@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Music } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -21,12 +22,27 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 export default function LoginPage() {
   const { user, signInWithGoogle } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
       router.push('/');
     }
   }, [user, router]);
+  
+  const handleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      if (error instanceof Error) {
+        toast({
+          title: "Login Error",
+          description: error.message,
+          variant: "destructive",
+        })
+      }
+    }
+  }
 
   return (
     <div className="flex-grow flex flex-col items-center justify-center p-4">
@@ -34,7 +50,7 @@ export default function LoginPage() {
         <Music className="h-12 w-12 text-primary mb-4" />
         <h1 className="text-3xl font-bold font-headline mb-2">Welcome to Rhythmic Reads</h1>
         <p className="text-muted-foreground mb-8">Sign in to save your setlists and access your songs anywhere.</p>
-        <Button onClick={signInWithGoogle} size="lg" className="w-full">
+        <Button onClick={handleSignIn} size="lg" className="w-full">
           <GoogleIcon className="mr-2 h-5 w-5" />
           Sign In with Google
         </Button>
