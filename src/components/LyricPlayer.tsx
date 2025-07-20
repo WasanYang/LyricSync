@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Sheet,
   SheetContent,
@@ -236,6 +237,7 @@ export default function LyricPlayer({
     isPrevDisabled,
     onClose
 }: LyricPlayerProps) {
+  const router = useRouter();
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
   const { isPlaying, currentTime, currentBarIndex, isFinished, fontSize, fontWeight, showChords, chordColor, highlightMode, showSectionNavigator, bpm, transpose } = state;
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -515,11 +517,9 @@ export default function LyricPlayer({
                           <span className="sr-only">Close Preview</span>
                       </Button>
                     ) : (
-                      <Button asChild variant="ghost" size="icon">
-                        <Link href="/">
-                            <ArrowLeft />
-                            <span className="sr-only">Back to Home</span>
-                        </Link>
+                      <Button variant="ghost" size="icon" onClick={() => router.back()}>
+                        <ArrowLeft />
+                        <span className="sr-only">Back</span>
                       </Button>
                     )}
                 </div>

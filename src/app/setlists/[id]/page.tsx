@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, notFound } from 'next/navigation';
+import { useParams, notFound, useRouter } from 'next/navigation';
 import type { Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import { getSetlist as getSetlistFromDb } from '@/lib/db';
@@ -54,6 +54,7 @@ const getTransposedKey = (transpose: number): string => {
 
 export default function SetlistPlayerPage() {
     const params = useParams();
+    const router = useRouter();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     
     const [setlist, setSetlist] = useState<Setlist | null>(null);
@@ -110,11 +111,9 @@ export default function SetlistPlayerPage() {
             <div className="container mx-auto px-4 h-[88px] flex flex-col justify-center">
                 <div className="flex items-center justify-between w-full">
                      <div className="flex items-center gap-2 min-w-0">
-                        <Button asChild variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -ml-2">
-                            <Link href="/setlists">
-                                <ArrowLeft className="h-5 w-5" />
-                                <span className="sr-only">Back to My Lists</span>
-                            </Link>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -ml-2" onClick={() => router.back()}>
+                            <ArrowLeft className="h-5 w-5" />
+                            <span className="sr-only">Back</span>
                         </Button>
                         <div className="min-w-0">
                             <h1 className="font-headline text-base sm:text-lg font-bold truncate leading-tight">{setlist.title}</h1>
