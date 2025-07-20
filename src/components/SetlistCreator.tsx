@@ -1,4 +1,3 @@
-
 // src/components/SetlistCreator.tsx
 'use client';
 
@@ -94,14 +93,14 @@ function AddSongComponent({
             <div key={song.id} className="flex items-center justify-between p-2 rounded-md hover:bg-accent group">
                 <button
                     onClick={() => onAddSong(song)}
-                    className="flex-grow text-left flex items-start"
+                    className="flex-grow text-left flex items-start min-w-0"
                 >
-                    <div>
-                        <p className="font-semibold text-sm">{song.title}</p>
-                        <p className="text-xs text-muted-foreground">{song.artist} • Key: {song.originalKey || 'N/A'}</p>
+                    <div className="min-w-0">
+                        <p className="font-semibold text-sm truncate">{song.title}</p>
+                        <p className="text-xs text-muted-foreground truncate">{song.artist} • Key: {song.originalKey || 'N/A'}</p>
                     </div>
                 </button>
-                <div onClick={(e) => e.stopPropagation()}>
+                <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
                     <SongStatusButton song={song} />
                 </div>
             </div>
@@ -313,6 +312,9 @@ export default function SetlistCreator() {
                           {addSongTrigger}
                       </DrawerTrigger>
                       <DrawerContent>
+                          <DrawerHeader className="p-0">
+                            <DrawerTitle className="sr-only">Add a song</DrawerTitle>
+                          </DrawerHeader>
                           {addSongContent}
                       </DrawerContent>
                   </Drawer>
