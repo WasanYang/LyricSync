@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Music, Menu, LogOut, Home, Search, PlusSquare, Sun, Moon, ListMusic, Library, Edit, LogIn, User } from 'lucide-react';
+import { Music, Menu, LogOut, Home, Search, PlusSquare, Sun, Moon, ListMusic, Library, Edit, LogIn, User, Wifi, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,6 +27,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useOnlineStatus } from '@/hooks/use-online-status';
 
 
 const navLinks = [
@@ -112,6 +113,7 @@ export default function Header() {
   const { theme, setTheme } = useTheme();
   const { user, logout } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const isOnline = useOnlineStatus();
 
   useEffect(() => {
     setMounted(true);
@@ -214,6 +216,19 @@ export default function Header() {
                               )}
                             </Button>
                            )}
+                        </div>
+                        <div className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground">
+                            {isOnline ? (
+                                <span className="relative flex h-3 w-3">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                                </span>
+                            ) : (
+                                <span className="relative flex h-3 w-3">
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-gray-400"></span>
+                                </span>
+                            )}
+                           <span>{isOnline ? 'Online Mode' : 'Offline Mode'}</span>
                         </div>
                   </div>
                 </SheetContent>
