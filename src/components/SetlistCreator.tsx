@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { getSongs, type Song } from '@/lib/songs';
-import { saveSetlist, getSetlist as getSetlistFromDb } from '@/lib/db';
+import { saveSetlist, getSetlist as getSetlistFromDb, getSong as getSongFromDb } from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { GripVertical, PlusCircle, Search, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +23,8 @@ import { cn } from '@/lib/utils';
 import { getAllSavedSongs } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
 import { Skeleton } from './ui/skeleton';
+import { useIsMobile } from '@/hooks/use-mobile';
+
 
 const setlistFormSchema = z.object({
   title: z.string().min(1, 'Setlist title is required.'),
@@ -52,6 +55,45 @@ function LoadingScreen() {
     )
 }
 
+function AddSongComponent({ availableSongs, onAddSong, searchTerm, onSearchTermChange }: { availableSongs: Song[], onAddSong: (song: Song) => void, searchTerm: string, onSearchTermChange: (term: string) => void }) {
+  return (
+    <>
+      <div className="p-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search songs..."
+            className="pl-9"
+            value={searchTerm}
+            onChange={(e) => onSearchTermChange(e.target.value)}
+          />
+        </div>
+      </div>
+      <ScrollArea className="h-[300px]">
+        <div className="p-4 pt-0">
+        {availableSongs.length > 0 ? (
+          availableSongs.map(song => (
+            <button
+              key={song.id}
+              onClick={() => onAddSong(song)}
+              className="w-full text-left p-2 rounded-md hover:bg-accent flex items-start"
+            >
+              <div>
+                <p className="font-semibold text-sm">{song.title}</p>
+                <p className="text-xs text-muted-foreground">{song.artist}</p>
+              </div>
+            </button>
+          ))
+        ) : (
+          <p className="text-sm text-center text-muted-foreground py-4">No songs found.</p>
+        )}
+        </div>
+      </ScrollArea>
+    </>
+  )
+}
+
+
 export default function SetlistCreator() {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -64,6 +106,8 @@ export default function SetlistCreator() {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [allSongs, setAllSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(!!setlistId);
+  
+  const isMobile = useIsMobile();
   
   const form = useForm<SetlistFormValues>({
     resolver: zodResolver(setlistFormSchema),
@@ -124,6 +168,12 @@ export default function SetlistCreator() {
   const addSong = (song: Song) => {
     setSelectedSongs(prev => [...prev, song]);
   };
+
+  const handleAddSong = (song: Song) => {
+    addSong(song);
+    setSearchTerm('');
+    setIsPopoverOpen(false); // Works for both Drawer and Popover
+  }
 
   const removeSong = (songId: string) => {
     setSelectedSongs(prev => prev.filter(song => song.id !== songId));
@@ -203,6 +253,14 @@ export default function SetlistCreator() {
   if (isLoading) {
       return <LoadingScreen />;
   }
+  
+  const addSongTrigger = (
+     <Button variant="ghost" size="icon">
+        <PlusCircle className="h-5 w-5" />
+      </Button>
+  );
+  
+  const addSongContent = <AddSongComponent availableSongs={availableSongs} onAddSong={handleAddSong} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} />;
 
   return (
     <Form {...form}>
@@ -227,50 +285,28 @@ export default function SetlistCreator() {
         <div className="flex-grow space-y-4 flex flex-col">
           <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold font-headline">Songs</h2>
-              <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <PlusCircle className="h-5 w-5" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[300px] p-0" align="end">
-                  <div className="p-4">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Search songs..."
-                        className="pl-9"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <ScrollArea className="h-[300px]">
-                    <div className="p-4 pt-0">
-                    {availableSongs.length > 0 ? (
-                      availableSongs.map(song => (
-                        <button
-                          key={song.id}
-                          onClick={() => {
-                            addSong(song);
-                            setSearchTerm('');
-                            setIsPopoverOpen(false);
-                          }}
-                          className="w-full text-left p-2 rounded-md hover:bg-accent flex items-start"
-                        >
-                          <div>
-                            <p className="font-semibold text-sm">{song.title}</p>
-                            <p className="text-xs text-muted-foreground">{song.artist}</p>
-                          </div>
-                        </button>
-                      ))
-                    ) : (
-                      <p className="text-sm text-center text-muted-foreground py-4">No songs found.</p>
-                    )}
-                    </div>
-                  </ScrollArea>
-                </PopoverContent>
-              </Popover>
+              {isMobile ? (
+                  <Drawer open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                      <DrawerTrigger asChild>
+                          {addSongTrigger}
+                      </DrawerTrigger>
+                      <DrawerContent>
+                          <DrawerHeader>
+                              <DrawerTitle>Add a song</DrawerTitle>
+                          </DrawerHeader>
+                          {addSongContent}
+                      </DrawerContent>
+                  </Drawer>
+              ) : (
+                  <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                      <PopoverTrigger asChild>
+                        {addSongTrigger}
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[300px] p-0" align="end">
+                         {addSongContent}
+                      </PopoverContent>
+                  </Popover>
+              )}
           </div>
           
           <div className="flex-grow">
