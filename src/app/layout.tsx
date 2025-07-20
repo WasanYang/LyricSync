@@ -3,6 +3,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { AuthProvider } from '@/context/AuthContext';
 
 export const metadata: Metadata = {
   title: 'Rhythmic Reads',
@@ -30,10 +31,12 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <div className="w-full max-w-[768px] mx-auto flex-grow flex flex-col">
-              {children}
-            </div>
-            <Toaster />
+            <AuthProvider>
+              <div className="w-full max-w-[768px] mx-auto flex-grow flex flex-col">
+                {children}
+              </div>
+              <Toaster />
+            </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
