@@ -427,6 +427,19 @@ export default function LyricPlayer({
       
       dispatch({ type: 'SET_TIME', payload: newTime });
       dispatch({ type: 'SET_BAR', payload: index });
+      
+      const activeLine = lineRefs.current[index];
+      const container = scrollContainerRef.current;
+      if (activeLine && container) {
+          const containerRect = container.getBoundingClientRect();
+          const lineRect = activeLine.getBoundingClientRect();
+          const desiredScrollTop = container.scrollTop + (lineRect.top - containerRect.top) - (containerRect.height / 2) + (lineRect.height / 2);
+
+          container.scrollTo({
+              top: desiredScrollTop,
+              behavior: 'smooth'
+          });
+      }
     }
   }, [uniqueLyrics, bpm, song.timeSignature]);
 
