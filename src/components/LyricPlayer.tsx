@@ -25,7 +25,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
+import { Slider } from '@/components/ui/slider';
 
 
 type HighlightMode = 'line' | 'section' | 'none';
@@ -33,20 +34,26 @@ type FontWeight = 400 | 600 | 700;
 
 
 type State = {
+  isPlaying: boolean;
+  currentTime: number;
   currentBarIndex: number;
+  isFinished: boolean;
   fontSize: number;
   fontWeight: FontWeight;
   showChords: boolean;
   chordColor: string;
   highlightMode: HighlightMode;
   showSectionNavigator: boolean;
+  bpm: number;
   transpose: number;
 };
 
 type Action =
+  | { type: 'TOGGLE_PLAY' }
+  | { type: 'SET_TIME'; payload: number }
   | { type: 'SET_BAR'; payload: number }
-  | { type: 'NEXT_BAR' }
-  | { type: 'PREV_BAR' }
+  | { type: 'FINISH' }
+  | { type: 'RESET' }
   | { type: 'SET_FONT_SIZE'; payload: number }
   | { type: 'SET_FONT_WEIGHT'; payload: FontWeight }
   | { type: 'TOGGLE_CHORDS' }
@@ -57,29 +64,40 @@ type Action =
   | { type: 'TRANSPOSE_UP' }
   | { type: 'TRANSPOSE_DOWN' }
   | { type: 'RESET_TRANSPOSE' }
+  | { type: 'SET_BPM'; payload: number }
   | { type: 'RESET_PLAYER_STATE' };
 
+
 const initialState: State = {
+  isPlaying: false,
+  currentTime: 0,
   currentBarIndex: 0,
+  isFinished: false,
   fontSize: 16,
   fontWeight: 400,
   showChords: true,
   chordColor: 'hsl(var(--primary))',
   highlightMode: 'line',
   showSectionNavigator: true,
+  bpm: 120,
   transpose: 0,
 };
 
 function lyricPlayerReducer(state: State, action: Action): State {
   switch (action.type) {
+    case 'TOGGLE_PLAY':
+      if (state.isFinished) {
+        return { ...state, isPlaying: true, isFinished: false, currentTime: 0, currentBarIndex: 0 };
+      }
+      return { ...state, isPlaying: !state.isPlaying };
+    case 'SET_TIME':
+      return { ...state, currentTime: action.payload };
     case 'SET_BAR':
       return { ...state, currentBarIndex: action.payload };
-    case 'NEXT_BAR':
-      // This will be handled in the component to check against song length
-      return { ...state };
-    case 'PREV_BAR':
-      // This will be handled in the component to check against song length
-      return { ...state };
+    case 'FINISH':
+      return { ...state, isPlaying: false, isFinished: true };
+    case 'RESET':
+        return { ...state, isPlaying: false, isFinished: false, currentTime: 0, currentBarIndex: 0 };
     case 'SET_FONT_SIZE':
         const newSize = Math.max(16, Math.min(48, action.payload));
         return { ...state, fontSize: newSize };
@@ -101,8 +119,10 @@ function lyricPlayerReducer(state: State, action: Action): State {
         return { ...state, transpose: state.transpose - 1 };
     case 'RESET_TRANSPOSE':
         return { ...state, transpose: 0 };
+    case 'SET_BPM':
+        return { ...state, bpm: action.payload };
     case 'RESET_PLAYER_STATE':
-        return {...initialState, transpose: state.transpose}; // Keep transpose setting between songs in a setlist
+        return {...initialState, transpose: state.transpose, bpm: action.payload.bpm || initialState.bpm};
     default:
       return state;
   }
@@ -196,9 +216,6 @@ const FONT_WEIGHT_OPTIONS: { value: FontWeight; label: string; style: React.CSSP
     { value: 700, label: 'A', style: { fontWeight: 700 } },
 ];
 
-
-const ORIGINAL_SONG_KEY_NOTE = 'A';
-
 interface LyricPlayerProps {
     song: Song;
     isSetlistMode?: boolean;
@@ -219,7 +236,8 @@ export default function LyricPlayer({
     onClose
 }: LyricPlayerProps) {
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
-  const { currentBarIndex, fontSize, fontWeight, showChords, chordColor, highlightMode, showSectionNavigator, transpose } = state;
+  const { isPlaying, currentTime, currentBarIndex, isFinished, fontSize, fontWeight, showChords, chordColor, highlightMode, showSectionNavigator, bpm, transpose } = state;
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
 
@@ -234,21 +252,40 @@ export default function LyricPlayer({
 
   const [theme, setThemeState] = useState<'light' | 'dark'>('light');
 
-  useEffect(() => {
-    dispatch({ type: 'RESET_PLAYER_STATE' });
-  }, [song.id]);
-  
-  useEffect(() => {
-    // Set initial position of navigator
-    setPosition(pos => ({ ...pos, y: 150 }));
-    
-    const isDarkMode = document.documentElement.classList.contains('dark')
-    setThemeState(isDarkMode ? 'dark' : 'light')
-  }, [])
+  const uniqueLyrics = useMemo(() => {
+    const unique: (LyricLine & { originalIndex: number })[] = [];
+    const seenBars = new Set<number>();
+    song.lyrics.forEach((line, index) => {
+      if (line.bar > 0 && !seenBars.has(line.bar)) {
+        unique.push({ ...line, originalIndex: index });
+        seenBars.add(line.bar);
+      } else if (line.text.startsWith('(')) {
+        unique.push({ ...line, originalIndex: index });
+      }
+    });
+    return unique.sort((a,b) => a.bar - b.bar || a.originalIndex - b.originalIndex);
+  }, [song.lyrics]);
+
+  const totalDuration = useMemo(() => {
+    if (!bpm || bpm === 0 || uniqueLyrics.length === 0) return 100;
+    const lastBar = Math.max(...uniqueLyrics.map(l => l.bar));
+    const timeSignatureBeats = song.timeSignature ? parseInt(song.timeSignature.split('/')[0]) : 4;
+    return (lastBar * timeSignatureBeats * 60) / bpm;
+  }, [bpm, uniqueLyrics, song.timeSignature]);
 
   useEffect(() => {
-    document.documentElement.classList[theme === 'dark' ? 'add' : 'remove']('dark')
-  }, [theme])
+    dispatch({ type: 'RESET_PLAYER_STATE', payload: { bpm: song.bpm } });
+  }, [song.id, song.bpm]);
+  
+  useEffect(() => {
+    setPosition({ x: 16, y: 150 });
+    const isDarkMode = document.documentElement.classList.contains('dark');
+    setThemeState(isDarkMode ? 'dark' : 'light');
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList[theme === 'dark' ? 'add' : 'remove']('dark');
+  }, [theme]);
 
   const toggleTheme = () => {
     setThemeState(prevTheme => prevTheme === 'dark' ? 'light' : 'dark');
@@ -320,20 +357,6 @@ export default function LyricPlayer({
     };
   }, [isDragging, handleDragMouseMove, handleDragMouseUp, handleDragTouchMove, handleDragTouchEnd]);
 
-  const uniqueLyrics = useMemo(() => {
-    const unique: (LyricLine & { originalIndex: number })[] = [];
-    const seenBars = new Set<number>();
-    song.lyrics.forEach((line, index) => {
-      if (!seenBars.has(line.bar) || line.text.startsWith('(')) {
-        unique.push({ ...line, originalIndex: index });
-        if (!line.text.startsWith('(')) {
-          seenBars.add(line.bar);
-        }
-      }
-    });
-    return unique;
-  }, [song.lyrics]);
-
   const sections = useMemo(() => {
     return song.lyrics
       .map((line, index) => ({...line, originalIndex: index}))
@@ -355,8 +378,51 @@ export default function LyricPlayer({
     return sections.slice().reverse().find(s => s.bar <= currentLine.bar);
   }, [currentLine, sections]);
 
+  useEffect(() => {
+    if (isPlaying) {
+      intervalRef.current = setInterval(() => {
+        dispatch({ type: 'SET_TIME', payload: currentTime + 0.1 });
+      }, 100);
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isPlaying, currentTime]);
+
+  useEffect(() => {
+    if (currentTime >= totalDuration) {
+      dispatch({ type: 'FINISH' });
+    } else {
+      const timePerBeat = 60 / bpm;
+      const timeSignatureBeats = song.timeSignature ? parseInt(song.timeSignature.split('/')[0]) : 4;
+      const timePerBar = timePerBeat * timeSignatureBeats;
+      
+      const currentBarNumber = Math.floor(currentTime / timePerBar) + 1;
+
+      const newIndex = uniqueLyrics.findIndex(l => l.bar >= currentBarNumber && !l.text.startsWith('('));
+      
+      if (newIndex !== -1 && newIndex !== currentBarIndex) {
+        dispatch({ type: 'SET_BAR', payload: newIndex });
+      }
+    }
+  }, [currentTime, bpm, totalDuration, uniqueLyrics, currentBarIndex, song.timeSignature]);
+  
+
+  const handleSliderChange = (value: number[]) => {
+    dispatch({ type: 'SET_TIME', payload: value[0] });
+  };
+  
   const handleSetBar = (index: number) => {
     if (index >= 0 && index < uniqueLyrics.length) {
+      const targetLine = uniqueLyrics[index];
+      const timePerBeat = 60 / bpm;
+      const timeSignatureBeats = song.timeSignature ? parseInt(song.timeSignature.split('/')[0]) : 4;
+      const timePerBar = timePerBeat * timeSignatureBeats;
+      const newTime = (targetLine.bar -1) * timePerBar;
+      
+      dispatch({ type: 'SET_TIME', payload: newTime });
       dispatch({ type: 'SET_BAR', payload: index });
     }
   };
@@ -385,7 +451,6 @@ export default function LyricPlayer({
     const selectedKeyIndex = ALL_NOTES.indexOf(selectedKey);
     if (originalKeyIndex !== -1 && selectedKeyIndex !== -1) {
       let diff = selectedKeyIndex - originalKeyIndex;
-      // Find the shortest path for transposition (e.g., C -> A is -3, not +9)
       if (diff > 6) diff -= 12;
       if (diff < -6) diff += 12;
       dispatch({ type: 'SET_TRANSPOSE', payload: diff });
@@ -395,7 +460,7 @@ export default function LyricPlayer({
   const currentKey = useMemo(() => {
     const originalKeyIndex = ALL_NOTES.indexOf(song.originalKey || 'C');
     if (originalKeyIndex === -1) return song.originalKey || 'C';
-    const newKeyIndex = (originalKeyIndex + transpose + 12*10) % 12; // 12*10 to handle negative modulo
+    const newKeyIndex = (originalKeyIndex + transpose + 12*10) % 12;
     return ALL_NOTES[newKeyIndex];
   }, [transpose, song.originalKey]);
 
@@ -428,6 +493,12 @@ export default function LyricPlayer({
     setTimeout(() => {
       setIsSettingsOpen(true);
     }, 150);
+  };
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -589,7 +660,7 @@ export default function LyricPlayer({
               
               if (isSectionHeader) {
                   return (
-                      <li key={index} ref={el => lineRefs.current[index] = el} className="pt-4 pb-2 text-center">
+                      <li key={`${song.id}-${line.originalIndex}-header`} ref={el => lineRefs.current[index] = el} className="pt-4 pb-2 text-center">
                           <p className="text-muted-foreground italic uppercase tracking-wider" style={{fontSize: `calc(${fontSize}px * 0.8)`}}>{line.text.substring(1, line.text.length - 1)}</p>
                       </li>
                   );
@@ -634,15 +705,36 @@ export default function LyricPlayer({
 
         <div className={cn("fixed bottom-0 left-0 right-0 pointer-events-none", isSetlistMode && "bottom-16")}>
           <div className="bg-background/50 backdrop-blur-sm pointer-events-auto py-2">
-              <div className="max-w-4xl mx-auto space-y-0 px-4">
-                <div className="relative flex justify-center items-center w-full gap-4 h-16 px-0">
-                  <Button variant="outline" size="lg" onClick={handlePrevBar} disabled={currentBarIndex <= 0}>
-                      <ChevronUp className="h-6 w-6"/>
-                  </Button>
-                  <Button variant="outline" size="lg" onClick={handleNextBar} disabled={currentBarIndex >= uniqueLyrics.length -1}>
-                      <ChevronDown className="h-6 w-6"/>
-                  </Button>
-                </div>
+              <div className="max-w-4xl mx-auto space-y-2 px-4">
+                  <div className="flex items-center gap-4">
+                    <span className="text-xs font-mono w-10 text-center">{formatTime(currentTime)}</span>
+                    <Slider
+                      value={[currentTime]}
+                      max={totalDuration}
+                      step={0.1}
+                      onValueChange={handleSliderChange}
+                    />
+                    <span className="text-xs font-mono w-10 text-center">{formatTime(totalDuration)}</span>
+                  </div>
+                  <div className="relative flex justify-center items-center w-full gap-4 h-12 px-12">
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2">
+                        <span className="text-xs font-bold text-muted-foreground">{bpm} BPM</span>
+                      </div>
+                      <Button variant="ghost" size="icon" onClick={handlePrevBar} disabled={currentBarIndex <= 0}>
+                        <SkipBack />
+                      </Button>
+                      <Button variant="outline" size="icon" className="w-12 h-12 rounded-full" onClick={() => dispatch({ type: 'TOGGLE_PLAY' })}>
+                          {isFinished ? <Repeat className="h-6 w-6"/> : (isPlaying ? <Pause className="h-6 w-6"/> : <Play className="h-6 w-6"/>)}
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={handleNextBar} disabled={currentBarIndex >= uniqueLyrics.length -1}>
+                        <SkipForward />
+                      </Button>
+                      <div className="absolute right-0 top-1/2 -translate-y-1/2">
+                          <Button variant="ghost" size="icon" onClick={() => dispatch({ type: 'RESET' })}>
+                              <RotateCcw className="h-4 w-4" />
+                          </Button>
+                      </div>
+                  </div>
               </div>
           </div>
         </div>
@@ -688,6 +780,19 @@ export default function LyricPlayer({
                                       <RotateCcw className="h-4 w-4" />
                                   </Button>
                               </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                              <Label className="text-muted-foreground">BPM</Label>
+                               <div className="flex items-center gap-2">
+                                    <Button variant="outline" size="icon" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 5 })} className="w-8 h-8"><Minus className="h-4 w-4"/></Button>
+                                    <Input 
+                                      type="number" 
+                                      className="w-16 h-8 text-center" 
+                                      value={bpm} 
+                                      onChange={(e) => dispatch({ type: 'SET_BPM', payload: parseInt(e.target.value, 10) || bpm })}
+                                    />
+                                    <Button variant="outline" size="icon" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 5 })} className="w-8 h-8"><Plus className="h-4 w-4"/></Button>
+                               </div>
                           </div>
                           <div className="flex items-center justify-between">
                               <Label className="text-muted-foreground">Color</Label>
