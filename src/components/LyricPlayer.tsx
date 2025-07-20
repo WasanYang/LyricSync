@@ -412,9 +412,37 @@ export default function LyricPlayer({
     }
   }, [currentTime, bpm, totalDuration, uniqueLyrics, currentBarIndex, song.timeSignature]);
   
+  const scrollToLine = useCallback((index: number) => {
+    if (highlightMode === 'none') return;
+    const activeLine = lineRefs.current[index];
+    const container = scrollContainerRef.current;
+    if (activeLine && container) {
+        const containerRect = container.getBoundingClientRect();
+        const lineRect = activeLine.getBoundingClientRect();
+        const desiredScrollTop = container.scrollTop + (lineRect.top - containerRect.top) - (containerRect.height / 2) + (lineRect.height / 2);
+
+        container.scrollTo({
+            top: desiredScrollTop,
+            behavior: 'smooth'
+        });
+    }
+  }, [highlightMode]);
+
 
   const handleSliderChange = (value: number[]) => {
-    dispatch({ type: 'SET_TIME', payload: value[0] });
+    const newTime = value[0];
+    dispatch({ type: 'SET_TIME', payload: newTime });
+
+    const timePerBeat = 60 / bpm;
+    const timeSignatureBeats = song.timeSignature ? parseInt(song.timeSignature.split('/')[0]) : 4;
+    const timePerBar = timePerBeat * timeSignatureBeats;
+    const currentBarNumber = Math.floor(newTime / timePerBar) + 1;
+    const newIndex = uniqueLyrics.findIndex(l => l.bar >= currentBarNumber && !l.text.startsWith('('));
+
+    if (newIndex !== -1) {
+      dispatch({ type: 'SET_BAR', payload: newIndex });
+      scrollToLine(newIndex);
+    }
   };
   
   const handleSetBar = useCallback((index: number) => {
@@ -427,21 +455,9 @@ export default function LyricPlayer({
       
       dispatch({ type: 'SET_TIME', payload: newTime });
       dispatch({ type: 'SET_BAR', payload: index });
-      
-      const activeLine = lineRefs.current[index];
-      const container = scrollContainerRef.current;
-      if (activeLine && container) {
-          const containerRect = container.getBoundingClientRect();
-          const lineRect = activeLine.getBoundingClientRect();
-          const desiredScrollTop = container.scrollTop + (lineRect.top - containerRect.top) - (containerRect.height / 2) + (lineRect.height / 2);
-
-          container.scrollTo({
-              top: desiredScrollTop,
-              behavior: 'smooth'
-          });
-      }
+      scrollToLine(index);
     }
-  }, [uniqueLyrics, bpm, song.timeSignature]);
+  }, [uniqueLyrics, bpm, song.timeSignature, scrollToLine]);
 
   const handleNextBar = useCallback(() => {
     handleSetBar(currentBarIndex + 1);
@@ -481,21 +497,8 @@ export default function LyricPlayer({
   }, [transpose, song.originalKey]);
 
   useEffect(() => {
-    if (highlightMode !== 'none') {
-        const activeLine = lineRefs.current[currentBarIndex];
-        const container = scrollContainerRef.current;
-        if (activeLine && container) {
-            const containerRect = container.getBoundingClientRect();
-            const lineRect = activeLine.getBoundingClientRect();
-            const desiredScrollTop = container.scrollTop + (lineRect.top - containerRect.top) - (containerRect.height / 2) + (lineRect.height / 2);
-
-            container.scrollTo({
-                top: desiredScrollTop,
-                behavior: 'smooth'
-            });
-        }
-    }
-  }, [currentBarIndex, highlightMode]);
+    scrollToLine(currentBarIndex);
+  }, [currentBarIndex, scrollToLine]);
   
   const handleOpenSubmenu = (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
     setIsSettingsOpen(false);
