@@ -76,7 +76,7 @@ export default function SongStatusButton({ song }: SongStatusButtonProps) {
   };
 
   if (isChecking) {
-    return <Skeleton className="h-8 w-8 rounded-full" />;
+    return <Skeleton className="h-7 w-7 rounded-full" />;
   }
   if (status.needsUpdate) {
     return (
@@ -84,10 +84,10 @@ export default function SongStatusButton({ song }: SongStatusButtonProps) {
         variant="ghost"
         size="icon"
         onClick={handleUpdate}
-        className="h-8 w-8 text-blue-500 hover:text-blue-600"
+        className="h-7 w-7 text-blue-500 hover:text-blue-600"
         aria-label="Update song"
       >
-        <ArrowUpCircle />
+        <ArrowUpCircle className="h-5 w-5" />
       </Button>
     );
   }
@@ -97,10 +97,10 @@ export default function SongStatusButton({ song }: SongStatusButtonProps) {
         variant="ghost"
         size="icon"
         disabled
-        className="h-8 w-8 text-green-500 hover:text-green-500 cursor-not-allowed"
+        className="h-7 w-7 text-green-500 hover:text-green-500 cursor-not-allowed"
         aria-label="Song is saved offline"
       >
-        <Check />
+        <Check className="h-5 w-5" />
       </Button>
     );
   }
@@ -109,10 +109,10 @@ export default function SongStatusButton({ song }: SongStatusButtonProps) {
       variant="ghost"
       size="icon"
       onClick={handleDownload}
-      className="h-8 w-8 text-muted-foreground hover:text-primary"
+      className="h-7 w-7 text-muted-foreground hover:text-primary"
       aria-label="Save song offline"
     >
-      <Download />
+      <Download className="h-5 w-5" />
     </Button>
   );
 }

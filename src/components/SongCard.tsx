@@ -37,7 +37,7 @@ export default function SongCard({ song }: SongCardProps) {
           <p className="font-semibold font-headline text-sm truncate">{song.title}</p>
           <p className="text-xs text-muted-foreground truncate">{song.artist}</p>
         </div>
-        <div onClick={handleButtonClick}>
+        <div onClick={handleButtonClick} className="flex-shrink-0">
           <SongStatusButton song={song} />
         </div>
       </div>

@@ -18,8 +18,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 function SongListItem({ song }: { song: Song }) {
   return (
     <div className={cn(
-      "flex items-center space-x-3 p-2 rounded-lg transition-all duration-200",
-      "hover:shadow-md group" // Changed hover effect
+      "flex items-center space-x-3 p-2 rounded-lg transition-colors duration-200",
+      "hover:bg-muted/50 group" 
     )}>
       <Link href={`/lyrics/${song.id}`} className="flex-grow flex items-center space-x-3 min-w-0">
         <Image
