@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
 
 
 type HighlightMode = 'line' | 'section' | 'none';
@@ -65,7 +66,7 @@ type Action =
   | { type: 'TRANSPOSE_DOWN' }
   | { type: 'RESET_TRANSPOSE' }
   | { type: 'SET_BPM'; payload: number }
-  | { type: 'RESET_PLAYER_STATE' };
+  | { type: 'RESET_PLAYER_STATE'; payload: { bpm: number | undefined } };
 
 
 const initialState: State = {
