@@ -33,8 +33,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
         await deleteSongFromDb(song.id);
         onDelete(song.id);
         toast({
-            title: "Song Deleted",
-            description: `"${song.title}" has been removed from your downloads.`
+            title: `Song "${song.title}" deleted.`,
         });
     } catch (error) {
         toast({
