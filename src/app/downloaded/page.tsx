@@ -84,14 +84,19 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
         <Image
           src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
           alt={`${song.title} album art`}
-          width={32}
-          height={32}
+          width={40}
+          height={40}
           className="rounded-md aspect-square object-cover"
           data-ai-hint="album cover"
         />
         <div className="min-w-0">
           <p className="font-semibold font-headline truncate">{song.title}</p>
           <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
+          {song.updatedAt && (
+            <p className="text-xs text-muted-foreground/80 truncate">
+              Updated on: {new Date(song.updatedAt).toLocaleDateString()}
+            </p>
+          )}
         </div>
       </Link>
       <div className="flex-shrink-0 flex items-center gap-1">
