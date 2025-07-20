@@ -10,7 +10,7 @@ import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Library, Trash2, Edit, RefreshCw, UploadCloud } from 'lucide-react';
+import { Library, Trash2, Edit, RefreshCw, UploadCloud, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -216,7 +216,16 @@ export default function DownloadedPage() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
         <div className="space-y-8">
-          <h1 className="text-3xl font-headline font-bold tracking-tight">Library</h1>
+            <div className="flex justify-between items-center">
+                <h1 className="text-3xl font-headline font-bold tracking-tight">Library</h1>
+                <Button variant="ghost" size="icon" asChild>
+                    <Link href="/song-editor">
+                        <PlusCircle className="h-6 w-6" />
+                        <span className="sr-only">Add new song</span>
+                    </Link>
+                </Button>
+            </div>
+
 
           {isLoading ? (
             <p>Loading songs...</p>

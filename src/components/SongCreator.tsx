@@ -30,6 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose
 } from "@/components/ui/dialog"
 import {
   AlertDialog,
@@ -214,7 +215,7 @@ export default function SongCreator() {
       <div className="flex flex-col h-full">
           <header className="flex-shrink-0 p-4 border-b bg-background flex items-center justify-between">
               <h1 className="text-2xl font-bold font-headline">{songId ? 'Edit Song' : 'Song Creator'}</h1>
-              <Dialog>
+              <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
                   <DialogTrigger asChild>
                       <Button type="button" variant="outline">
                           <Eye className="mr-2 h-4 w-4" /> Preview
@@ -225,10 +226,7 @@ export default function SongCreator() {
                           <DialogTitle>Song Preview</DialogTitle>
                       </DialogHeader>
                       <div className="relative w-full h-full flex-grow bg-background">
-                          <LyricPlayer song={previewSong} onClose={() => {
-                            const closeButton = document.querySelector('[data-radix-dialog-close]');
-                            if(closeButton instanceof HTMLElement) closeButton.click();
-                          }} />
+                          <LyricPlayer song={previewSong} onClose={() => setIsPreviewOpen(false)} />
                       </div>
                   </DialogContent>
               </Dialog>

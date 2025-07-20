@@ -39,7 +39,6 @@ const navLinks = [
 const mobileOnlyLinks = [
     { href: '/setlists', label: 'Setlists', icon: ListMusic },
     { href: '/downloaded', label: 'Library', icon: Library },
-    { href: '/song-editor', label: 'Song Creator', icon: Edit },
 ]
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
