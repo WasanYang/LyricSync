@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, type User } from 'firebase/auth';
+import { onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, signInAnonymously as firebaseSignInAnonymously, type User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -10,6 +10,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInAnonymously: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -47,6 +48,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signInAnonymously = async () => {
+    if (!auth) {
+      throw new Error("Firebase is not configured correctly. Please check your API keys.");
+    }
+    try {
+      await firebaseSignInAnonymously(auth);
+    } catch (error) {
+      console.error("Error signing in anonymously: ", error);
+      throw new Error("Failed to sign in as guest.");
+    }
+  };
+
   const logout = async () => {
      if (!auth) {
         throw new Error("Firebase is not configured correctly. Please check your API keys.");
@@ -59,7 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const value = { user, loading, signInWithGoogle, logout };
+  const value = { user, loading, signInWithGoogle, signInAnonymously, logout };
   
   // Render a loading screen while auth state is being determined
   if (loading) {

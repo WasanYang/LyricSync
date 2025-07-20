@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Music } from 'lucide-react';
+import { Music, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -20,7 +20,7 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function LoginPage() {
-  const { user, signInWithGoogle } = useAuth();
+  const { user, signInWithGoogle, signInAnonymously } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -30,9 +30,14 @@ export default function LoginPage() {
     }
   }, [user, router]);
   
-  const handleSignIn = async () => {
+  const handleSignIn = async (method: 'google' | 'guest') => {
     try {
-      await signInWithGoogle();
+      if (method === 'google') {
+        await signInWithGoogle();
+      } else {
+        await signInAnonymously();
+      }
+      router.push('/');
     } catch (error) {
       if (error instanceof Error) {
         toast({
@@ -50,10 +55,16 @@ export default function LoginPage() {
         <Music className="h-12 w-12 text-primary mb-4" />
         <h1 className="text-3xl font-bold font-headline mb-2">Welcome to Rhythmic Reads</h1>
         <p className="text-muted-foreground mb-8">Sign in to save your setlists and access your songs anywhere.</p>
-        <Button onClick={handleSignIn} size="lg" className="w-full">
-          <GoogleIcon className="mr-2 h-5 w-5" />
-          Sign In with Google
-        </Button>
+        <div className="w-full space-y-4">
+            <Button onClick={() => handleSignIn('google')} size="lg" className="w-full">
+              <GoogleIcon className="mr-2 h-5 w-5" />
+              Sign In with Google
+            </Button>
+            <Button onClick={() => handleSignIn('guest')} size="lg" variant="secondary" className="w-full">
+              <User className="mr-2 h-5 w-5" />
+              Continue as Guest
+            </Button>
+        </div>
       </div>
     </div>
   );
