@@ -309,7 +309,7 @@ export default function SetlistsPage() {
       <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
         <div className="space-y-8">
             <div>
-              <h1 className="text-3xl font-headline font-bold tracking-tight">My Lists</h1>
+              <h1 className="text-3xl font-headline font-bold tracking-tight">Setlists</h1>
               {user && <p className="text-muted-foreground">Synced: {syncedCount}/{SYNC_LIMIT}</p>}
             </div>
           

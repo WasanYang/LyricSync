@@ -37,8 +37,8 @@ const navLinks = [
 ];
 
 const mobileOnlyLinks = [
-    { href: '/setlists', label: 'My Lists', icon: ListMusic },
-    { href: '/downloaded', label: 'My Library', icon: Library },
+    { href: '/setlists', label: 'Setlists', icon: ListMusic },
+    { href: '/downloaded', label: 'Library', icon: Library },
     { href: '/song-editor', label: 'Song Creator', icon: Edit },
 ]
 

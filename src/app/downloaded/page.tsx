@@ -216,7 +216,7 @@ export default function DownloadedPage() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
         <div className="space-y-8">
-          <h1 className="text-3xl font-headline font-bold tracking-tight">My Library</h1>
+          <h1 className="text-3xl font-headline font-bold tracking-tight">Library</h1>
 
           {isLoading ? (
             <p>Loading songs...</p>
