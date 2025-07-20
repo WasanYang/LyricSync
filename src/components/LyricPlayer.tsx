@@ -445,7 +445,6 @@ export default function LyricPlayer({
 
     if (newIndex !== -1) {
       dispatch({ type: 'SET_BAR', payload: newIndex });
-      scrollToLine(newIndex);
     }
   };
   
@@ -613,7 +612,7 @@ export default function LyricPlayer({
               
               if (isSectionHeader) {
                   return (
-                      <li key={`${song.id}-${line.originalIndex}-header`} ref={el => lineRefs.current[index] = el} className="pt-4 pb-2 text-center">
+                      <li key={`${song.id}-${line.originalIndex}-header`} ref={el => lineRefs.current[index] = el} className="pt-4 pb-2 text-left">
                           <p className="text-muted-foreground italic uppercase tracking-wider" style={{fontSize: `calc(${fontSize}px * 0.8)`}}>{line.text.substring(1, line.text.length - 1)}</p>
                       </li>
                   );
