@@ -734,7 +734,7 @@ export default function LyricPlayer({
                                         </div>
                                         <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="flex items-center gap-1">
                                             {HIGHLIGHT_OPTIONS.map(option => (
-                                                <Label key={option.value} className={cn("flex h-7 w-14 items-center justify-center cursor-pointer rounded-md border text-xs hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-primary/10 text-primary")}>
+                                                <Label key={option.value} className={cn("flex h-7 w-14 items-center justify-center cursor-pointer rounded-md border text-xs opacity-75 hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-primary/10 text-primary opacity-100")}>
                                                     <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
                                                     {option.label}
                                                 </Label>
@@ -859,7 +859,7 @@ export default function LyricPlayer({
                           <Label>Font Weight</Label>
                               <RadioGroup value={fontWeight.toString()} onValueChange={(value) => dispatch({ type: 'SET_FONT_WEIGHT', payload: parseInt(value) as FontWeight })} className="grid grid-cols-3 gap-2">
                               {FONT_WEIGHT_OPTIONS.map(option => (
-                                  <Label key={option.value} className={cn("flex h-10 items-center justify-center cursor-pointer rounded-md border text-lg hover:bg-accent hover:text-accent-foreground", fontWeight === option.value && "border-primary bg-primary/10 text-primary")}>
+                                  <Label key={option.value} className={cn("flex h-10 items-center justify-center cursor-pointer rounded-md border text-lg opacity-75 hover:bg-accent hover:text-accent-foreground", fontWeight === option.value && "border-primary bg-primary/10 text-primary opacity-100")}>
                                       <RadioGroupItem value={option.value.toString()} id={`weight-${option.value}`} className="sr-only" />
                                       <span style={option.style}>{option.label}</span>
                                   </Label>
