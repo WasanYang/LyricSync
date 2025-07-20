@@ -1,3 +1,4 @@
+
 // src/components/LyricPlayer.tsx
 'use client';
 
