@@ -79,6 +79,10 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-300;
+  }
+  
+  html.is-offline body {
+    @apply bg-muted;
   }
 }
