@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import SongStatusButton from '@/components/SongStatusButton';
 import { Play } from 'lucide-react';
 import Link from 'next/link';
+import Header from '@/components/Header';
+import BottomNavBar from '@/components/BottomNavBar';
 
 function LoadingSkeleton() {
     return (
@@ -53,9 +55,8 @@ const getLyricPreview = (lyrics: LyricLine[]) => {
     return preview;
 }
 
-export default function SongDetailPage() {
+function SongDetailContent() {
   const params = useParams();
-  const router = useRouter();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const [song, setSong] = useState<Song | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -141,4 +142,17 @@ export default function SongDetailPage() {
         </div>
     </div>
   );
+}
+
+
+export default function SongDetailPage() {
+    return (
+        <div className="flex-grow flex flex-col">
+            <Header />
+            <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
+                <SongDetailContent />
+            </main>
+            <BottomNavBar />
+        </div>
+    )
 }
