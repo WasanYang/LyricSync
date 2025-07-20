@@ -112,7 +112,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                 <Trash2 className="h-4 w-4" />
               </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent onClick={(e) => e.stopPropagation() }>
+          <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
