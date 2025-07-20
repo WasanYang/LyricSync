@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Music, Menu, LogOut, Home, Search, PlusSquare, Sun, Moon, ListMusic, Library, Edit, LogIn, User, Wifi, WifiOff, Info } from 'lucide-react';
+import { Music, Menu, LogOut, Home, Search, PlusSquare, Sun, Moon, ListMusic, Library, Edit, LogIn, User, Wifi, WifiOff, Info, UserCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -92,11 +92,18 @@ function UserNav() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        { isAnonymous && (
+        { isAnonymous ? (
             <DropdownMenuItem onClick={() => signInWithGoogle()}>
               <GoogleIcon className="mr-2 h-4 w-4" />
               <span>Sign in with Google</span>
             </DropdownMenuItem>
+        ) : (
+             <DropdownMenuItem asChild>
+                <Link href="/profile">
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                </Link>
+             </DropdownMenuItem>
         )}
         <DropdownMenuItem onClick={logout}>
           <LogOut className="mr-2 h-4 w-4" />
@@ -191,12 +198,20 @@ export default function Header() {
                       </nav>
                       <Separator />
                        { user ? (
-                        <SheetClose asChild>
-                           <button onClick={logout} className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary">
-                              <LogOut className="h-5 w-5" />
-                              <span>Logout</span>
-                           </button>
-                         </SheetClose>
+                        <>
+                           <SheetClose asChild>
+                               <Link href="/profile" className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary">
+                                  <UserCircle className="h-5 w-5" />
+                                  <span>Profile</span>
+                               </Link>
+                           </SheetClose>
+                           <SheetClose asChild>
+                               <button onClick={logout} className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary">
+                                  <LogOut className="h-5 w-5" />
+                                  <span>Logout</span>
+                               </button>
+                           </SheetClose>
+                        </>
                        ) : (
                         <>
                            <SheetClose asChild>
