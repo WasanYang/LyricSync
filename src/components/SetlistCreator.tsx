@@ -7,6 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { getSongs, type Song } from '@/lib/songs';
 import { saveSetlist } from '@/lib/db';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -16,6 +18,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { GripVertical, PlusCircle, Search, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { getAllSavedSongs } from '@/lib/db';
+
 
 const setlistFormSchema = z.object({
   title: z.string().min(1, 'Setlist title is required.'),
@@ -25,10 +29,13 @@ type SetlistFormValues = z.infer<typeof setlistFormSchema>;
 
 export default function SetlistCreator() {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const router = useRouter();
   const [selectedSongs, setSelectedSongs] = useState<Song[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  
+  const [allSongs, setAllSongs] = useState<Song[]>([]);
+
   const form = useForm<SetlistFormValues>({
     resolver: zodResolver(setlistFormSchema),
     defaultValues: {
@@ -36,7 +43,18 @@ export default function SetlistCreator() {
     },
   });
 
-  const allSongs = useMemo(() => getSongs(), []);
+  // Fetch all songs (official + custom) on component mount
+  useMemo(() => {
+    const fetchSongs = async () => {
+        const officialSongs = getSongs();
+        const customSongs = await getAllSavedSongs();
+        const combined = [...officialSongs, ...customSongs.filter(cs => cs.id.startsWith('custom-'))];
+        const uniqueSongs = Array.from(new Map(combined.map(song => [song.id, song])).values());
+        setAllSongs(uniqueSongs);
+    };
+    fetchSongs();
+  }, []);
+
 
   const availableSongs = useMemo(() => {
     return allSongs
@@ -82,6 +100,11 @@ export default function SetlistCreator() {
 
 
   async function handleSaveSetlist(data: SetlistFormValues) {
+    if (!user) {
+        toast({ title: "Please login", description: "You must be logged in to save a setlist.", variant: "destructive" });
+        return;
+    }
+
     if (selectedSongs.length === 0) {
       toast({
         title: 'Empty Setlist',
@@ -93,19 +116,24 @@ export default function SetlistCreator() {
     
     try {
       await saveSetlist({
-        id: Date.now().toString(),
+        id: `local-${Date.now().toString()}`,
         title: data.title,
         songIds: selectedSongs.map(s => s.id),
+        userId: user.uid,
+        createdAt: Date.now(),
+        isSynced: false,
+        firestoreId: null,
       });
       
       toast({
-        title: 'Setlist Saved',
-        description: `"${data.title}" has been saved successfully.`,
+        title: 'Setlist Saved Locally',
+        description: `"${data.title}" has been saved to this device.`,
       });
 
       // Reset form and state
       form.reset();
       setSelectedSongs([]);
+      router.push('/setlists');
 
     } catch (error) {
        toast({

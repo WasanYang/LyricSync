@@ -5,8 +5,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import type { Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
-import { getSetlist as getSetlistFromDb } from '@/lib/db';
-import { getSongById } from '@/lib/songs';
+import { getSetlist as getSetlistFromDb, getSong as getSongFromLocalDb } from '@/lib/db';
+import { getSongById as getSongFromStatic } from '@/lib/songs';
 import { ALL_NOTES } from '@/lib/chords';
 
 import LyricPlayer from '@/components/LyricPlayer';
@@ -63,6 +63,17 @@ export default function SetlistPlayerPage() {
     const [transpose, setTranspose] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
+    const findSong = async (songId: string): Promise<Song | null> => {
+        // Custom songs are only in local DB
+        if (songId.startsWith('custom-')) {
+            return await getSongFromLocalDb(songId) || null;
+        }
+        // For official songs, try local DB first (for offline/edited versions), then static list
+        const localSong = await getSongFromLocalDb(songId);
+        if (localSong) return localSong;
+        return getSongFromStatic(songId) || null;
+    }
+
     useEffect(() => {
         async function loadSetlist() {
             if (!id) return;
@@ -71,7 +82,8 @@ export default function SetlistPlayerPage() {
                 const loadedSetlist = await getSetlistFromDb(id);
                 if (loadedSetlist) {
                     setSetlist(loadedSetlist);
-                    const loadedSongs = loadedSetlist.songIds.map(songId => getSongById(songId)).filter(Boolean) as Song[];
+                    const songPromises = loadedSetlist.songIds.map(findSong);
+                    const loadedSongs = (await Promise.all(songPromises)).filter(Boolean) as Song[];
                     setSongs(loadedSongs);
                 } else {
                     notFound();
