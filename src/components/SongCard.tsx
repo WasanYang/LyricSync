@@ -20,7 +20,7 @@ export default function SongCard({ song }: SongCardProps) {
   };
   
   return (
-    <div className="group relative space-y-3">
+    <div className="group relative space-y-2">
       <div className="aspect-square w-full overflow-hidden rounded-md transition-all duration-300 ease-in-out group-hover:shadow-lg group-hover:shadow-primary/20">
         <Image
           src={`https://placehold.co/300x300.png?text=${encodeURIComponent(song.title)}`}
@@ -34,8 +34,8 @@ export default function SongCard({ song }: SongCardProps) {
       
       <div className="flex justify-between items-start gap-2">
         <div className="flex-grow min-w-0">
-          <p className="font-semibold font-headline truncate">{song.title}</p>
-          <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
+          <p className="font-semibold font-headline text-sm truncate">{song.title}</p>
+          <p className="text-xs text-muted-foreground truncate">{song.artist}</p>
         </div>
         <div onClick={handleButtonClick}>
           <SongStatusButton song={song} />
