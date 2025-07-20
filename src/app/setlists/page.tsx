@@ -14,7 +14,7 @@ import {
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import { Button } from '@/components/ui/button';
-import { Trash2, ListMusic, ChevronRight, UploadCloud, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Trash2, ListMusic, ChevronRight, UploadCloud, CheckCircle, AlertTriangle, Edit, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -43,6 +43,7 @@ const SYNC_LIMIT = 5;
 function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist: SetlistWithSyncStatus, onSetlistChange: () => void, onSyncLimitReached: () => void }) {
     const { toast } = useToast();
     const { user } = useAuth();
+    const [isSyncing, setIsSyncing] = useState(false);
 
     const handleDelete = async (e: React.MouseEvent) => {
         e.preventDefault();
@@ -68,6 +69,7 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
       e.preventDefault();
       e.stopPropagation();
       if (!user) return;
+      setIsSyncing(true);
 
       try {
         await syncSetlist(setlist.id, user.uid);
@@ -86,11 +88,16 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                 variant: "destructive",
             });
         }
+      } finally {
+        setIsSyncing(false);
       }
     };
     
-    const handleUnsync = async () => {
+    const handleUnsync = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (!user || !setlist.firestoreId) return;
+        setIsSyncing(true);
         try {
             await unsyncSetlist(setlist.id, user.uid, setlist.firestoreId);
             toast({
@@ -104,8 +111,23 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                 description: "Could not unsync the setlist.",
                 variant: "destructive"
             });
+        } finally {
+            setIsSyncing(false);
         }
     }
+
+    const getStatusIcon = () => {
+        if (setlist.containsCustomSongs) {
+            return <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" title="Cannot sync setlists with custom songs."/>;
+        }
+        if (setlist.needsSync) {
+            return <UploadCloud className="h-5 w-5 text-blue-500 flex-shrink-0" title="Changes need to be synced." />;
+        }
+        if (setlist.isSynced) {
+            return <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" title="Synced"/>;
+        }
+        return <ListMusic className="h-5 w-5 text-muted-foreground flex-shrink-0" title="Local only" />;
+    };
 
     const songCount = setlist.songIds.length;
     
@@ -115,59 +137,74 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
             "hover:bg-muted"
         )}>
             <Link href={`/setlists/${setlist.id}`} key={setlist.id} className="flex-grow flex items-center gap-4 min-w-0">
-                 {setlist.isSynced ? (
-                    <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                ) : setlist.containsCustomSongs ? (
-                    <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" title="Cannot sync setlists with custom songs."/>
-                ) : (
-                   <ListMusic className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                )}
+                 {getStatusIcon()}
                 <div className="flex-grow min-w-0">
                     <h2 className="font-headline font-semibold text-base truncate">{setlist.title}</h2>
                     <p className="text-sm text-muted-foreground">{songCount} {songCount === 1 ? 'song' : 'songs'}</p>
                 </div>
             </Link>
             <div className="flex items-center gap-1">
-                {!setlist.isSynced && !setlist.containsCustomSongs && (
-                     <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary h-8 w-8" onClick={handleSync}>
-                       <UploadCloud className="h-4 w-4" />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                     <Button variant="ghost" size="icon" className="text-muted-foreground h-8 w-8" onClick={(e) => e.preventDefault()}>
+                       <MoreVertical className="h-4 w-4" />
                      </Button>
-                )}
-                 <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                         <Button variant="ghost" size="icon" className="text-muted-foreground h-8 w-8" onClick={(e) => e.preventDefault()}>
-                           <MoreVertical className="h-4 w-4" />
-                         </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                         {setlist.isSynced && (
-                            <DropdownMenuItem onClick={handleUnsync}>
-                                Unsync
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenuItem asChild>
+                        <Link href={`/create?id=${setlist.id}`}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            <span>Edit</span>
+                        </Link>
+                    </DropdownMenuItem>
+                    
+                    {!setlist.containsCustomSongs && (
+                        setlist.isSynced ? (
+                            <>
+                                {setlist.needsSync && (
+                                     <DropdownMenuItem onClick={handleSync} disabled={isSyncing}>
+                                        {isSyncing ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+                                        <span>Sync to Cloud</span>
+                                    </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem onClick={handleUnsync} disabled={isSyncing}>
+                                    Unsync
+                                </DropdownMenuItem>
+                            </>
+                        ) : (
+                             <DropdownMenuItem onClick={handleSync} disabled={isSyncing}>
+                                {isSyncing ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
+                                <span>Sync to Cloud</span>
                             </DropdownMenuItem>
-                         )}
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                             <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
-                               Delete
-                             </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete your setlist
-                                &quot;{setlist.title}&quot;.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={(e) => handleDelete(e)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        )
+                    )}
+
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                           Delete
+                         </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your setlist
+                            &quot;{setlist.title}&quot;.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={(e) => handleDelete(e)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Link href={`/setlists/${setlist.id}`} className="block">
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </Link>
             </div>
         </div>
     );
@@ -189,7 +226,7 @@ export default function SetlistsPage() {
             getSetlists(user.uid),
             getSyncedSetlistsCount(user.uid)
         ]);
-        setSetlists(loadedSetlists.sort((a,b) => b.createdAt - a.createdAt));
+        setSetlists(loadedSetlists.sort((a,b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt)));
         setSyncedCount(count);
     } catch (error) {
         console.error("Failed to load setlist data:", error);

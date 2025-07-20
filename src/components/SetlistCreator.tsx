@@ -1,14 +1,15 @@
+
 // src/components/SetlistCreator.tsx
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { getSongs, type Song } from '@/lib/songs';
-import { saveSetlist } from '@/lib/db';
+import { saveSetlist, getSetlist as getSetlistFromDb } from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -19,7 +20,8 @@ import { GripVertical, PlusCircle, Search, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { getAllSavedSongs } from '@/lib/db';
-
+import { v4 as uuidv4 } from 'uuid';
+import { Skeleton } from './ui/skeleton';
 
 const setlistFormSchema = z.object({
   title: z.string().min(1, 'Setlist title is required.'),
@@ -27,15 +29,42 @@ const setlistFormSchema = z.object({
 
 type SetlistFormValues = z.infer<typeof setlistFormSchema>;
 
+function LoadingScreen() {
+    return (
+        <div className="w-full max-w-lg mx-auto h-full flex flex-col space-y-8">
+            <div className="space-y-2">
+                <Skeleton className="h-8 w-3/4" />
+            </div>
+            <div className="flex-grow space-y-4 flex flex-col">
+                <div className="flex justify-between items-center">
+                    <Skeleton className="h-7 w-24" />
+                    <Skeleton className="h-9 w-9" />
+                </div>
+                <div className="flex-grow">
+                    <div className="text-center py-10 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full">
+                       <Skeleton className="h-5 w-48 mb-2" />
+                       <Skeleton className="h-4 w-40" />
+                    </div>
+                </div>
+            </div>
+            <Skeleton className="h-11 w-full" />
+        </div>
+    )
+}
+
 export default function SetlistCreator() {
   const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const setlistId = searchParams.get('id');
+  
   const [selectedSongs, setSelectedSongs] = useState<Song[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [allSongs, setAllSongs] = useState<Song[]>([]);
-
+  const [isLoading, setIsLoading] = useState(!!setlistId);
+  
   const form = useForm<SetlistFormValues>({
     resolver: zodResolver(setlistFormSchema),
     defaultValues: {
@@ -55,6 +84,33 @@ export default function SetlistCreator() {
     fetchSongs();
   }, []);
 
+  useEffect(() => {
+    if (setlistId) {
+      const fetchSetlist = async () => {
+        setIsLoading(true);
+        const existingSetlist = await getSetlistFromDb(setlistId);
+        if (existingSetlist) {
+          form.setValue('title', existingSetlist.title);
+          
+          const songPromises = existingSetlist.songIds.map(async (id) => {
+             const officialSong = getSongs().find(s => s.id === id);
+             if (officialSong) return officialSong;
+             const customSong = await getSongFromDb(id);
+             return customSong;
+          });
+          
+          const loadedSongs = (await Promise.all(songPromises)).filter(Boolean) as Song[];
+          setSelectedSongs(loadedSongs);
+          
+        } else {
+           toast({ title: "Setlist not found", description: "The requested setlist could not be found.", variant: "destructive" });
+           router.push('/setlists');
+        }
+        setIsLoading(false);
+      }
+      fetchSetlist();
+    }
+  }, [setlistId, form, router, toast]);
 
   const availableSongs = useMemo(() => {
     return allSongs
@@ -98,7 +154,6 @@ export default function SetlistCreator() {
     e.currentTarget.classList.remove('border-primary', 'border-2');
   };
 
-
   async function handleSaveSetlist(data: SetlistFormValues) {
     if (!user) {
         toast({ title: "Please login", description: "You must be logged in to save a setlist.", variant: "destructive" });
@@ -113,26 +168,26 @@ export default function SetlistCreator() {
       });
       return;
     }
+
+    const existingSetlist = setlistId ? await getSetlistFromDb(setlistId) : null;
     
     try {
       await saveSetlist({
-        id: `local-${Date.now().toString()}`,
+        id: existingSetlist?.id || `local-${uuidv4()}`,
+        firestoreId: existingSetlist?.firestoreId || null,
+        isSynced: existingSetlist?.isSynced || false,
+        createdAt: existingSetlist?.createdAt || Date.now(),
+        updatedAt: Date.now(), // Always update timestamp on save/update
         title: data.title,
         songIds: selectedSongs.map(s => s.id),
         userId: user.uid,
-        createdAt: Date.now(),
-        isSynced: false,
-        firestoreId: null,
       });
       
       toast({
-        title: 'Setlist Saved Locally',
-        description: `"${data.title}" has been saved to this device.`,
+        title: `Setlist ${setlistId ? 'Updated' : 'Saved'}`,
+        description: `"${data.title}" has been saved.`,
       });
 
-      // Reset form and state
-      form.reset();
-      setSelectedSongs([]);
       router.push('/setlists');
 
     } catch (error) {
@@ -143,6 +198,10 @@ export default function SetlistCreator() {
       });
       console.error('Failed to save setlist:', error);
     }
+  }
+
+  if (isLoading) {
+      return <LoadingScreen />;
   }
 
   return (
@@ -247,7 +306,9 @@ export default function SetlistCreator() {
           </div>
         </div>
 
-        <Button type="submit" size="lg" className="w-full">Save Setlist</Button>
+        <Button type="submit" size="lg" className="w-full">
+            {setlistId ? 'Update Setlist' : 'Save Setlist'}
+        </Button>
         
       </form>
     </Form>
