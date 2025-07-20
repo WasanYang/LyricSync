@@ -94,7 +94,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
           <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
           {song.updatedAt && (
             <p className="text-xs text-muted-foreground/80 truncate">
-              Updated on: {new Date(song.updatedAt).toLocaleDateString()}
+              Updated: {new Date(song.updatedAt).toLocaleString()}
             </p>
           )}
         </div>
