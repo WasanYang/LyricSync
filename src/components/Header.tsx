@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Music, Menu, LogOut, Home, Search, PlusSquare, Sun, Moon, ListMusic, Library, Edit, LogIn, User, Wifi, WifiOff } from 'lucide-react';
+import { Music, Menu, LogOut, Home, Search, PlusSquare, Sun, Moon, ListMusic, Library, Edit, LogIn, User, Wifi, WifiOff, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -198,12 +198,20 @@ export default function Header() {
                            </button>
                          </SheetClose>
                        ) : (
-                        <SheetClose asChild>
-                           <Link href="/login" className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary">
-                              <LogIn className="h-5 w-5" />
-                              <span>Login</span>
-                           </Link>
-                        </SheetClose>
+                        <>
+                           <SheetClose asChild>
+                               <Link href="/login" className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary">
+                                  <LogIn className="h-5 w-5" />
+                                  <span>Login</span>
+                               </Link>
+                           </SheetClose>
+                           <SheetClose asChild>
+                               <Link href="/welcome" className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary">
+                                  <Info className="h-5 w-5" />
+                                  <span>About this App</span>
+                               </Link>
+                           </SheetClose>
+                        </>
                        )}
                        <div className="flex items-center justify-between rounded-md px-3 py-2 text-base font-medium text-muted-foreground">
                            <span>Theme</span>
