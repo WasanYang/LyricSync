@@ -1,44 +1,61 @@
 
-// src/app/lyrics/[id]/page.tsx
 'use client';
 
-import { getSongById as getSongFromStatic, type Song } from '@/lib/songs';
+import { getSongById as getSongFromStatic, type Song, type LyricLine } from '@/lib/songs';
 import { getSong as getSongFromDb } from '@/lib/db';
-import { notFound, useParams } from 'next/navigation';
-import LyricPlayer from '@/components/LyricPlayer';
-import { useEffect, useState } from 'react';
+import { notFound, useParams, useRouter } from 'next/navigation';
+import { useEffect, useState, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import SongStatusButton from '@/components/SongStatusButton';
+import { Play } from 'lucide-react';
+import Link from 'next/link';
 
 function LoadingSkeleton() {
     return (
-        <div className="flex flex-col bg-background h-screen overflow-hidden">
-            <div className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm pointer-events-auto">
-              <div className="relative container mx-auto flex items-center justify-between h-14">
-                <Skeleton className="h-9 w-9" />
-                <Skeleton className="h-6 w-48" />
-                <div className="w-9"></div>
-              </div>
-            </div>
-            <div className="flex-grow p-4 pt-20">
-                <div className="space-y-4 max-w-lg mx-auto w-full">
-                    <div className="pt-12 space-y-6">
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-5/6" />
-                        <Skeleton className="h-6 w-full" />
-                        <Skeleton className="h-6 w-3/4" />
-                        <Skeleton className="h-6 w-5/6" />
+        <div className="space-y-8">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
+                <Skeleton className="w-48 h-48 sm:w-64 sm:h-64 rounded-lg flex-shrink-0" />
+                <div className="space-y-4 flex-grow w-full text-center sm:text-left">
+                    <Skeleton className="h-10 w-3/4 mx-auto sm:mx-0" />
+                    <Skeleton className="h-6 w-1/2 mx-auto sm:mx-0" />
+                    <div className="flex gap-4 justify-center sm:justify-start pt-4">
+                        <Skeleton className="h-11 w-40" />
+                        <Skeleton className="h-11 w-11 rounded-full" />
                     </div>
                 </div>
             </div>
-             <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80">
-                 <Skeleton className="h-12 w-full max-w-lg mx-auto rounded-lg" />
+            <div className="space-y-4">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-40 w-full" />
             </div>
         </div>
     )
 }
 
-export default function LyricPage() {
+const parseLyrics = (line: string) => {
+    return line.replace(/\[[^\]]+\]/g, ' ').replace(/\s+/g, ' ').trim();
+};
+
+const getLyricPreview = (lyrics: LyricLine[]) => {
+    let preview = '';
+    let lineCount = 0;
+    for (const line of lyrics) {
+        if (line.text.startsWith('(')) continue; // Skip section headers
+        const textOnly = parseLyrics(line.text);
+        if (textOnly) {
+            preview += textOnly + (lineCount < 3 ? '\n' : '...');
+            lineCount++;
+            if (lineCount >= 4) break;
+        }
+    }
+    return preview;
+}
+
+export default function SongDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const [song, setSong] = useState<Song | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -73,21 +90,55 @@ export default function LyricPage() {
     fetchSong();
   }, [id]);
 
+  const lyricPreview = useMemo(() => {
+    return song ? getLyricPreview(song.lyrics) : '';
+  }, [song]);
+
   if (isLoading) {
     return <LoadingSkeleton />;
   }
   
-  if (error) {
+  if (error || !song) {
      notFound();
   }
 
-  if (!song) {
-    return null; // Should be handled by error state, but as a fallback
-  }
-
   return (
-    <div className="relative w-full h-screen flex flex-col bg-background">
-      <LyricPlayer song={song} />
+    <div className="space-y-8">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
+            <div className="flex-shrink-0">
+                <Image
+                    src={`https://placehold.co/300x300.png?text=${encodeURIComponent(song.title)}`}
+                    alt={`${song.title} album art`}
+                    width={200}
+                    height={200}
+                    className="rounded-lg shadow-lg"
+                    data-ai-hint="album cover"
+                />
+            </div>
+            <div className="flex-grow space-y-3 text-center sm:text-left">
+                <h1 className="text-4xl font-bold font-headline">{song.title}</h1>
+                <p className="text-xl text-muted-foreground">{song.artist}</p>
+                <div className="text-sm text-muted-foreground space-x-4">
+                    {song.originalKey && <span>Key: {song.originalKey}</span>}
+                    {song.bpm && <span>BPM: {song.bpm}</span>}
+                    {song.timeSignature && <span>Time: {song.timeSignature}</span>}
+                </div>
+                <div className="flex items-center gap-3 pt-4 justify-center sm:justify-start">
+                    <Button asChild size="lg">
+                        <Link href={`/lyrics/${song.id}/player`}>
+                            <Play className="mr-2 h-5 w-5" /> Start Session
+                        </Link>
+                    </Button>
+                    <SongStatusButton song={song} />
+                </div>
+            </div>
+        </div>
+        <div className="space-y-4">
+            <h2 className="text-2xl font-bold font-headline">Lyrics</h2>
+            <div className="p-4 bg-muted/50 rounded-lg whitespace-pre-wrap font-body text-muted-foreground">
+                {lyricPreview}
+            </div>
+        </div>
     </div>
   );
 }

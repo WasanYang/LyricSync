@@ -1,74 +1,93 @@
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import type { Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import { getSetlist as getSetlistFromDb, getSong as getSongFromLocalDb } from '@/lib/db';
 import { getSongById as getSongFromStatic } from '@/lib/songs';
-import { ALL_NOTES } from '@/lib/chords';
-
-import LyricPlayer from '@/components/LyricPlayer';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import SetlistControls from '@/components/SetlistControls';
+import { Edit, Play, Trash2 } from 'lucide-react';
+import Image from 'next/image';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
+import { deleteSetlist as deleteSetlistFromDb } from '@/lib/db';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
-const ORIGINAL_SONG_KEY_NOTE = 'A'; // This should ideally be part of song data
 
 function LoadingSkeleton() {
     return (
-        <div className="flex flex-col bg-background h-screen overflow-hidden">
-             <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm border-b">
-                 <div className="container mx-auto p-2 h-20 flex items-center justify-between">
-                     <Skeleton className="h-8 w-24" />
-                     <Skeleton className="h-8 w-8" />
-                 </div>
-             </header>
-            <div className="flex-grow p-4 pt-28">
-                <div className="space-y-4 max-w-lg mx-auto w-full">
-                    <Skeleton className="h-6 w-full" />
-                    <Skeleton className="h-6 w-5/6" />
-                    <Skeleton className="h-6 w-full" />
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-6 w-5/6" />
-                </div>
+        <div className="space-y-8">
+            <div className="space-y-3">
+                <Skeleton className="h-10 w-3/4" />
+                <Skeleton className="h-5 w-24" />
             </div>
-             <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80">
-                 <Skeleton className="h-12 w-full max-w-lg mx-auto rounded-lg" />
+             <div className="flex gap-4">
+                <Skeleton className="h-11 w-40" />
+                <Skeleton className="h-11 w-11" />
+                <Skeleton className="h-11 w-11" />
+            </div>
+            <div className="space-y-2">
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
+                <Skeleton className="h-14 w-full" />
             </div>
         </div>
     )
 }
 
-const getTransposedKey = (transpose: number): string => {
-    const originalKeyIndex = ALL_NOTES.indexOf(ORIGINAL_SONG_KEY_NOTE);
-    if (originalKeyIndex === -1) return ORIGINAL_SONG_KEY_NOTE;
-    const newKeyIndex = (originalKeyIndex + transpose + 12 * 10) % 12;
-    return ALL_NOTES[newKeyIndex];
-};
+function SongItem({ song }: { song: Song }) {
+  return (
+    <Link href={`/lyrics/${song.id}`} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+      <Image
+        src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
+        alt={`${song.title} album art`}
+        width={48}
+        height={48}
+        className="rounded-md aspect-square object-cover"
+        data-ai-hint="album cover"
+      />
+      <div className="flex-grow min-w-0">
+        <p className="font-semibold font-headline truncate">{song.title}</p>
+        <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
+      </div>
+      <div className="text-sm text-muted-foreground">
+        Key: {song.originalKey || 'N/A'}
+      </div>
+    </Link>
+  );
+}
 
 
-export default function SetlistPlayerPage() {
+export default function SetlistDetailPage() {
     const params = useParams();
     const router = useRouter();
+    const { user } = useAuth();
+    const { toast } = useToast();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     
     const [setlist, setSetlist] = useState<Setlist | null>(null);
     const [songs, setSongs] = useState<Song[]>([]);
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [transpose, setTranspose] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
     const findSong = async (songId: string): Promise<Song | null> => {
-        // Custom songs are only in local DB
         if (songId.startsWith('custom-')) {
             return await getSongFromLocalDb(songId) || null;
         }
-        // For official songs, try local DB first (for offline/edited versions), then static list
         const localSong = await getSongFromLocalDb(songId);
         if (localSong) return localSong;
         return getSongFromStatic(songId) || null;
@@ -98,81 +117,78 @@ export default function SetlistPlayerPage() {
         loadSetlist();
     }, [id]);
 
-    const handleNextSong = useCallback(() => {
-        setCurrentIndex(prev => (prev + 1 < songs.length ? prev + 1 : prev));
-    }, [songs.length]);
-
-    const handlePrevSong = useCallback(() => {
-        setCurrentIndex(prev => (prev - 1 >= 0 ? prev - 1 : prev));
-    }, []);
+    const handleDelete = async () => {
+        if (!user || !setlist) return;
+        try {
+            await deleteSetlistFromDb(setlist.id, user.uid);
+            toast({
+                title: "Setlist Deleted",
+                description: `"${setlist.title}" has been removed.`
+            });
+            router.push('/setlists');
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Could not delete the setlist.",
+                variant: "destructive"
+            });
+        }
+    };
     
     if (isLoading) {
         return <LoadingSkeleton />;
     }
 
-    if (!setlist || songs.length === 0) {
+    if (!setlist) {
         return notFound();
     }
-    
-    const currentSong = songs[currentIndex];
-    const nextSong = currentIndex + 1 < songs.length ? songs[currentIndex + 1] : null;
 
     return (
-      <div className="h-screen w-full flex flex-col bg-background overflow-hidden">
-        <header className="fixed top-0 left-0 right-0 z-10 bg-background/90 backdrop-blur-sm border-b">
-            <div className="container mx-auto px-4 h-[88px] flex flex-col justify-center">
-                <div className="flex items-center justify-between w-full">
-                     <div className="flex items-center gap-2 min-w-0">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -ml-2" onClick={() => router.back()}>
-                            <ArrowLeft className="h-5 w-5" />
-                            <span className="sr-only">Back</span>
-                        </Button>
-                        <div className="min-w-0">
-                            <h1 className="font-headline text-base sm:text-lg font-bold truncate leading-tight">{setlist.title}</h1>
-                            <p className="text-xs sm:text-sm text-muted-foreground">{`Song ${currentIndex + 1} of ${songs.length}`}</p>
-                        </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-1 sm:gap-2 pl-2 sm:pl-4 bg-muted/50 p-1 sm:p-2 rounded-lg">
-                        <div className="min-w-0 flex-grow text-right">
-                             <div className="flex items-center justify-end gap-2">
-                                <div className="min-w-0">
-                                    <p className="font-bold truncate leading-tight text-xs sm:text-sm max-w-[100px] sm:max-w-none">{nextSong ? nextSong.title : 'End of list'}</p>
-                                    {nextSong && <p className="text-xs text-muted-foreground truncate sm:block">{nextSong.artist}</p>}
-                                </div>
-                                {nextSong && (
-                                    <div className="flex-shrink-0 text-center">
-                                        <p className="font-bold leading-tight text-xs sm:text-sm">({getTransposedKey(transpose)})</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        <ChevronRight className={cn("h-5 w-5 text-muted-foreground flex-shrink-0", !nextSong && "opacity-0")}/>
-                    </div>
-                   
-                </div>
-                 <div className="w-full text-center mt-2">
-                     <p className="text-sm font-semibold truncate">{currentSong.title}</p>
-                 </div>
-            </div>
-        </header>
-
-        <div className="flex-grow relative h-full pt-[88px] pb-32">
-            <LyricPlayer 
-                song={currentSong} 
-                isSetlistMode={true}
-                onNextSong={handleNextSong}
-                onPrevSong={handlePrevSong}
-                isNextDisabled={currentIndex >= songs.length - 1}
-                isPrevDisabled={currentIndex <= 0}
-            />
+      <div className="space-y-8">
+        <div className="space-y-2">
+            <h1 className="text-4xl font-bold font-headline">{setlist.title}</h1>
+            <p className="text-muted-foreground">{songs.length} {songs.length === 1 ? 'song' : 'songs'}</p>
         </div>
-        <SetlistControls
-            onNextSong={handleNextSong}
-            onPrevSong={handlePrevSong}
-            isNextDisabled={currentIndex >= songs.length - 1}
-            isPrevDisabled={currentIndex <= 0}
-        />
+
+        <div className="flex gap-2">
+            <Button asChild size="lg">
+                <Link href={`/setlists/${setlist.id}/player`}>
+                    <Play className="mr-2 h-5 w-5" /> Start Setlist
+                </Link>
+            </Button>
+            <Button asChild variant="outline" size="icon">
+                <Link href={`/create?id=${setlist.id}`}>
+                    <Edit className="h-5 w-5" />
+                    <span className="sr-only">Edit Setlist</span>
+                </Link>
+            </Button>
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="icon">
+                        <Trash2 className="h-5 w-5" />
+                        <span className="sr-only">Delete Setlist</span>
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the setlist &quot;{setlist.title}&quot;.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div>
+        
+        <div className="space-y-2">
+            {songs.map((song) => (
+                <SongItem key={song.id} song={song} />
+            ))}
+        </div>
       </div>
     );
 }

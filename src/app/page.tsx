@@ -138,7 +138,7 @@ export default function Home() {
   return (
     <div className="flex-grow flex flex-col">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-8 space-y-12">
+      <main className="flex-grow container mx-auto px-4 py-8 space-y-12 pb-24 md:pb-0">
         
         {/* Welcome & Quick Actions */}
         <section>

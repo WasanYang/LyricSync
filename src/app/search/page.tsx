@@ -24,10 +24,9 @@ const forYou = [...getSongs()].sort(() => 0.5 - Math.random()).slice(0, 4);
 function SongListItem({ song }: { song: Song }) {
   return (
     <div className={cn(
-      "flex items-center space-x-3 p-2 rounded-lg transition-colors duration-200",
-      "hover:bg-muted/50 group" 
+      "group" 
     )}>
-      <Link href={`/lyrics/${song.id}`} className="flex-grow flex items-center space-x-3 min-w-0">
+      <Link href={`/lyrics/${song.id}`} className="flex items-center space-x-3 p-2 rounded-lg transition-colors duration-200 hover:bg-muted/50">
         <Image
           src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
           alt={`${song.title} album art`}
@@ -36,14 +35,14 @@ function SongListItem({ song }: { song: Song }) {
           className="rounded-md aspect-square object-cover"
           data-ai-hint="album cover"
         />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-grow">
           <p className="font-semibold font-headline truncate">{song.title}</p>
           <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
         </div>
+        <div className="flex-shrink-0">
+            <SongStatusButton song={song} />
+        </div>
       </Link>
-      <div className="flex-shrink-0">
-        <SongStatusButton song={song} />
-      </div>
     </div>
   );
 }
