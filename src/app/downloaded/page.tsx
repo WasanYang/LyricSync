@@ -74,7 +74,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
 
   return (
     <div className={cn("flex items-center space-x-3")}>
-      <Link href={`/lyrics/${song.id}`} className="flex-grow flex items-center space-x-3 min-w-0 p-2 rounded-lg transition-colors hover:bg-accent hover:text-accent-foreground group">
+      <Link href={`/lyrics/${song.id}`} className="flex-grow flex items-center space-x-3 min-w-0 p-2 rounded-lg transition-colors hover:bg-muted hover:text-muted-foreground group">
         <Image
           src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
           alt={`${song.title} album art`}
