@@ -143,7 +143,7 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
         return (
             <Tooltip>
               <TooltipTrigger asChild>
-                <span>{icon}</span>
+                <span className="flex items-center">{icon}</span>
               </TooltipTrigger>
               <TooltipContent>
                 <p>{tooltipText}</p>
@@ -155,18 +155,17 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
     const songCount = setlist.songIds.length;
     
     return (
-      <TooltipProvider>
         <div className={cn(
             "p-3 rounded-lg bg-muted/50 flex items-center justify-between transition-colors",
             "hover:bg-muted"
         )}>
-            <Link href={`/setlists/${setlist.id}`} key={setlist.id} className="flex-grow flex items-center gap-4 min-w-0">
-                 {getStatusIcon()}
-                <div className="flex-grow min-w-0">
+            <div className="flex-grow flex items-center gap-4 min-w-0">
+                {getStatusIcon()}
+                <Link href={`/setlists/${setlist.id}`} key={setlist.id} className="flex-grow min-w-0">
                     <h2 className="font-headline font-semibold text-base truncate">{setlist.title}</h2>
                     <p className="text-sm text-muted-foreground">{songCount} {songCount === 1 ? 'song' : 'songs'}</p>
-                </div>
-            </Link>
+                </Link>
+            </div>
             <div className="flex items-center gap-1">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -231,7 +230,6 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                 </Link>
             </div>
         </div>
-      </TooltipProvider>
     );
 }
 
@@ -302,16 +300,18 @@ export default function SetlistsPage() {
                 </Button>
               </div>
           ) : setlists.length > 0 ? (
-            <div className="space-y-3">
-              {setlists.map(setlist => (
-                <SetlistItem 
-                    key={setlist.id} 
-                    setlist={setlist} 
-                    onSetlistChange={loadData}
-                    onSyncLimitReached={handleSyncLimitReached}
-                />
-              ))}
-            </div>
+            <TooltipProvider>
+              <div className="space-y-3">
+                {setlists.map(setlist => (
+                  <SetlistItem 
+                      key={setlist.id} 
+                      setlist={setlist} 
+                      onSetlistChange={loadData}
+                      onSyncLimitReached={handleSyncLimitReached}
+                  />
+                ))}
+              </div>
+            </TooltipProvider>
           ) : (
              <div className="text-center py-16 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full">
                 <ListMusic className="h-12 w-12 text-muted-foreground mb-4" />
