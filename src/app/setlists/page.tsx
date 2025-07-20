@@ -141,22 +141,21 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
         }
 
         return (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>{icon}</span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{tooltipText}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>{icon}</span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{tooltipText}</p>
+              </TooltipContent>
+            </Tooltip>
         );
     };
 
     const songCount = setlist.songIds.length;
     
     return (
+      <TooltipProvider>
         <div className={cn(
             "p-3 rounded-lg bg-muted/50 flex items-center justify-between transition-colors",
             "hover:bg-muted"
@@ -232,6 +231,7 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                 </Link>
             </div>
         </div>
+      </TooltipProvider>
     );
 }
 
