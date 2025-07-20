@@ -400,7 +400,7 @@ export default function LyricPlayer({
       dispatch({ type: 'FINISH' });
     } else {
       const timePerBeat = 60 / bpm;
-      const timeSignatureBeats = song.timeSignature ? parseInt(song.timeSignature.split('/')[0]) : 4;
+      const timeSignatureBeats = song.timeSignature ? parseInt(song.timeSignature.split('/')[0], 10) : 4;
       const timePerBar = timePerBeat * timeSignatureBeats;
       
       const currentBarNumber = Math.floor(currentTime / timePerBar) + 1;
@@ -429,13 +429,16 @@ export default function LyricPlayer({
     }
   }, [highlightMode]);
 
+  useEffect(() => {
+    scrollToLine(currentBarIndex);
+  }, [currentBarIndex, scrollToLine]);
 
   const handleSliderChange = (value: number[]) => {
     const newTime = value[0];
     dispatch({ type: 'SET_TIME', payload: newTime });
 
     const timePerBeat = 60 / bpm;
-    const timeSignatureBeats = song.timeSignature ? parseInt(song.timeSignature.split('/')[0]) : 4;
+    const timeSignatureBeats = song.timeSignature ? parseInt(song.timeSignature.split('/')[0], 10) : 4;
     const timePerBar = timePerBeat * timeSignatureBeats;
     const currentBarNumber = Math.floor(newTime / timePerBar) + 1;
     const newIndex = uniqueLyrics.findIndex(l => l.bar >= currentBarNumber && !l.text.startsWith('('));
@@ -450,7 +453,7 @@ export default function LyricPlayer({
     if (index >= 0 && index < uniqueLyrics.length) {
       const targetLine = uniqueLyrics[index];
       const timePerBeat = 60 / bpm;
-      const timeSignatureBeats = song.timeSignature ? parseInt(song.timeSignature.split('/')[0]) : 4;
+      const timeSignatureBeats = song.timeSignature ? parseInt(song.timeSignature.split('/')[0], 10) : 4;
       const timePerBar = timePerBeat * timeSignatureBeats;
       const newTime = (targetLine.bar -1) * timePerBar;
       
@@ -497,10 +500,6 @@ export default function LyricPlayer({
     return ALL_NOTES[newKeyIndex];
   }, [transpose, song.originalKey]);
 
-  useEffect(() => {
-    scrollToLine(currentBarIndex);
-  }, [currentBarIndex, scrollToLine]);
-  
   const handleOpenSubmenu = (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
     setIsSettingsOpen(false);
     setTimeout(() => {
