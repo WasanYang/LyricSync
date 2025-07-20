@@ -34,6 +34,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { cn } from '@/lib/utils';
 import { MoreVertical } from 'lucide-react';
 
@@ -117,16 +123,35 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
     }
 
     const getStatusIcon = () => {
+        let icon: React.ReactNode;
+        let tooltipText: string;
+
         if (setlist.containsCustomSongs) {
-            return <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" title="Cannot sync setlists with custom songs."/>;
+            icon = <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" />;
+            tooltipText = "Cannot sync setlists with custom songs.";
+        } else if (setlist.needsSync) {
+            icon = <UploadCloud className="h-5 w-5 text-blue-500 flex-shrink-0" />;
+            tooltipText = "Changes need to be synced.";
+        } else if (setlist.isSynced) {
+            icon = <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />;
+            tooltipText = "Synced with cloud";
+        } else {
+            icon = <ListMusic className="h-5 w-5 text-muted-foreground flex-shrink-0" />;
+            tooltipText = "Local only";
         }
-        if (setlist.needsSync) {
-            return <UploadCloud className="h-5 w-5 text-blue-500 flex-shrink-0" title="Changes need to be synced." />;
-        }
-        if (setlist.isSynced) {
-            return <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" title="Synced"/>;
-        }
-        return <ListMusic className="h-5 w-5 text-muted-foreground flex-shrink-0" title="Local only" />;
+
+        return (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>{icon}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{tooltipText}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+        );
     };
 
     const songCount = setlist.songIds.length;
