@@ -417,7 +417,7 @@ export default function LyricPlayer({
     dispatch({ type: 'SET_TIME', payload: value[0] });
   };
   
-  const handleSetBar = (index: number) => {
+  const handleSetBar = useCallback((index: number) => {
     if (index >= 0 && index < uniqueLyrics.length) {
       const targetLine = uniqueLyrics[index];
       const timePerBeat = 60 / bpm;
@@ -428,7 +428,7 @@ export default function LyricPlayer({
       dispatch({ type: 'SET_TIME', payload: newTime });
       dispatch({ type: 'SET_BAR', payload: index });
     }
-  };
+  }, [uniqueLyrics, bpm, song.timeSignature]);
 
   const handleNextBar = useCallback(() => {
     handleSetBar(currentBarIndex + 1);
@@ -529,71 +529,7 @@ export default function LyricPlayer({
                 </div>
               
                 <div className="flex-1 flex justify-end items-center gap-0">
-                    <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                      <SheetTrigger asChild>
-                          <Button variant="ghost" size="icon"><Settings /></Button>
-                      </SheetTrigger>
-                      <SheetContent 
-                          side="bottom" 
-                          className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm" 
-                          showCloseButton={false}
-                          onOpenAutoFocus={(e) => e.preventDefault()}
-                      >
-                          <SheetHeader className="p-2 pb-0 text-left">
-                              <SheetTitle className="sr-only">Settings</SheetTitle>
-                          </SheetHeader>
-                          <ScrollArea className="flex-grow">
-                          <div className="p-4 space-y-4">
-                              <button onClick={() => handleOpenSubmenu(setIsDisplaySettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
-                                  <div className="flex items-center gap-4">
-                                      <Text className="h-5 w-5 text-muted-foreground" />
-                                      <Label className="cursor-pointer">Display</Label>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                  </div>
-                              </button>
-                              <button onClick={() => handleOpenSubmenu(setIsChordsSettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
-                                  <div className="flex items-center gap-4">
-                                      <Guitar className="h-5 w-5 text-muted-foreground" />
-                                      <Label className="cursor-pointer">Chords</Label>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                  </div>
-                              </button>
-                              <div className="flex items-center justify-between py-2">
-                                  <div className="flex items-center gap-4">
-                                      <ListMusic className="h-5 w-5 text-muted-foreground" />
-                                      <Label htmlFor="show-section-nav">Navigator</Label>
-                                  </div>
-                                  <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
-                              </div>
-                              <div className="flex items-center justify-between py-2">
-                                  <div className="flex items-center gap-4">
-                                      <Highlighter className="h-5 w-5 text-muted-foreground" />
-                                      <Label>Highlight</Label>
-                                  </div>
-                                  <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="flex items-center gap-1">
-                                      {HIGHLIGHT_OPTIONS.map(option => (
-                                          <Label key={option.value} className={cn("flex h-7 w-14 items-center justify-center cursor-pointer rounded-md border text-xs hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-primary/10 text-primary")}>
-                                              <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
-                                              {option.label}
-                                          </Label>
-                                      ))}
-                                  </RadioGroup>
-                              </div>
-                              <div className="flex items-center justify-between py-2">
-                                  <div className="flex items-center gap-4">
-                                      {theme === 'dark' ? <Moon className="h-5 w-5 text-muted-foreground" /> : <Sun className="h-5 w-5 text-muted-foreground" />}
-                                      <Label htmlFor="dark-mode">Theme</Label>
-                                  </div>
-                                  <Switch id="dark-mode" checked={theme === 'dark'} onCheckedChange={toggleTheme} />
-                              </div>
-                          </div>
-                          </ScrollArea>
-                      </SheetContent>
-                    </Sheet>
+                   {/* This space is intentionally left blank to balance the header */}
                 </div>
               </div>
           </header>
@@ -717,8 +653,8 @@ export default function LyricPlayer({
                     />
                     <span className="text-xs font-mono w-10 text-center">{formatTime(totalDuration)}</span>
                   </div>
-                  <div className="relative flex justify-center items-center w-full gap-4 h-12 px-12">
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2">
+                  <div className="relative flex justify-center items-center w-full gap-4 h-12">
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center">
                         <span className="text-xs font-bold text-muted-foreground">{bpm} BPM</span>
                       </div>
                       <Button variant="ghost" size="icon" onClick={handlePrevBar} disabled={currentBarIndex <= 0}>
@@ -730,10 +666,75 @@ export default function LyricPlayer({
                       <Button variant="ghost" size="icon" onClick={handleNextBar} disabled={currentBarIndex >= uniqueLyrics.length -1}>
                         <SkipForward />
                       </Button>
-                      <div className="absolute right-0 top-1/2 -translate-y-1/2">
+                      <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center">
                           <Button variant="ghost" size="icon" onClick={() => dispatch({ type: 'RESET' })}>
                               <RotateCcw className="h-4 w-4" />
                           </Button>
+                          <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                            <SheetTrigger asChild>
+                                <Button variant="ghost" size="icon"><Settings /></Button>
+                            </SheetTrigger>
+                            <SheetContent 
+                                side="bottom" 
+                                className="p-0 flex flex-col max-h-[80vh] rounded-t-lg bg-background/95 backdrop-blur-sm" 
+                                showCloseButton={false}
+                                onOpenAutoFocus={(e) => e.preventDefault()}
+                            >
+                                <SheetHeader className="p-2 pb-0 text-left">
+                                    <SheetTitle className="sr-only">Settings</SheetTitle>
+                                </SheetHeader>
+                                <ScrollArea className="flex-grow">
+                                <div className="p-4 space-y-4">
+                                    <button onClick={() => handleOpenSubmenu(setIsDisplaySettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
+                                        <div className="flex items-center gap-4">
+                                            <Text className="h-5 w-5 text-muted-foreground" />
+                                            <Label className="cursor-pointer">Display</Label>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                        </div>
+                                    </button>
+                                    <button onClick={() => handleOpenSubmenu(setIsChordsSettingsOpen)} className="w-full flex items-center justify-between py-2 text-left">
+                                        <div className="flex items-center gap-4">
+                                            <Guitar className="h-5 w-5 text-muted-foreground" />
+                                            <Label className="cursor-pointer">Chords</Label>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                        </div>
+                                    </button>
+                                    <div className="flex items-center justify-between py-2">
+                                        <div className="flex items-center gap-4">
+                                            <ListMusic className="h-5 w-5 text-muted-foreground" />
+                                            <Label htmlFor="show-section-nav">Navigator</Label>
+                                        </div>
+                                        <Switch id="show-section-nav" checked={showSectionNavigator} onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })} />
+                                    </div>
+                                    <div className="flex items-center justify-between py-2">
+                                        <div className="flex items-center gap-4">
+                                            <Highlighter className="h-5 w-5 text-muted-foreground" />
+                                            <Label>Highlight</Label>
+                                        </div>
+                                        <RadioGroup value={highlightMode} onValueChange={(value: HighlightMode) => dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: value })} className="flex items-center gap-1">
+                                            {HIGHLIGHT_OPTIONS.map(option => (
+                                                <Label key={option.value} className={cn("flex h-7 w-14 items-center justify-center cursor-pointer rounded-md border text-xs hover:bg-accent hover:text-accent-foreground", highlightMode === option.value && "border-primary bg-primary/10 text-primary")}>
+                                                    <RadioGroupItem value={option.value} id={`highlight-${option.value}`} className="sr-only" />
+                                                    {option.label}
+                                                </Label>
+                                            ))}
+                                        </RadioGroup>
+                                    </div>
+                                    <div className="flex items-center justify-between py-2">
+                                        <div className="flex items-center gap-4">
+                                            {theme === 'dark' ? <Moon className="h-5 w-5 text-muted-foreground" /> : <Sun className="h-5 w-5 text-muted-foreground" />}
+                                            <Label htmlFor="dark-mode">Theme</Label>
+                                        </div>
+                                        <Switch id="dark-mode" checked={theme === 'dark'} onCheckedChange={toggleTheme} />
+                                    </div>
+                                </div>
+                                </ScrollArea>
+                            </SheetContent>
+                          </Sheet>
                       </div>
                   </div>
               </div>
