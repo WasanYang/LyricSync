@@ -11,6 +11,9 @@ interface SongCardProps {
 
 export default function SongCard({ song }: SongCardProps) {
   
+  // This stops the click from propagating to the parent Link component,
+  // ensuring that clicking the button only performs its action (e.g., download)
+  // without navigating to the song's lyric page.
   const handleButtonClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
