@@ -2,14 +2,14 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { getAllSavedSongs, deleteSong as deleteSongFromDb, type Song } from '@/lib/db';
+import { getAllSavedSongs, deleteSong as deleteSongFromDb, updateSong, type Song } from '@/lib/db';
+import { getSongById } from '@/lib/songs';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
-import SongStatusButton from '@/components/SongStatusButton';
 import { cn } from '@/lib/utils';
-import { DownloadCloud, Trash2, Edit } from 'lucide-react';
+import { DownloadCloud, Trash2, Edit, ArrowUpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -24,7 +24,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-function SongListItem({ song, onDelete }: { song: Song, onDelete: (songId: string) => void }) {
+function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (songId: string) => void, onUpdate: (songId: string) => void }) {
   const isCustomSong = song.id.startsWith('custom-');
   const { toast } = useToast();
   
@@ -44,6 +44,34 @@ function SongListItem({ song, onDelete }: { song: Song, onDelete: (songId: strin
             description: "Could not delete the song.",
             variant: "destructive"
         });
+    }
+  }
+
+  const handleUpdate = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const latestSong = getSongById(song.id);
+    if (!latestSong) {
+      toast({
+        title: "Error",
+        description: "Could not find the latest version of this song.",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      await updateSong(latestSong);
+      onUpdate(latestSong.id);
+      toast({
+        title: "Song Updated",
+        description: `"${latestSong.title}" has been updated.`
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Could not update the song.",
+        variant: "destructive",
+      });
     }
   }
 
@@ -74,7 +102,9 @@ function SongListItem({ song, onDelete }: { song: Song, onDelete: (songId: strin
                 </Link>
             </Button>
         ) : (
-            <SongStatusButton song={song} />
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={handleUpdate}>
+                <ArrowUpCircle className="h-4 w-4" />
+            </Button>
         )}
         <AlertDialog>
           <AlertDialogTrigger asChild>
@@ -104,18 +134,24 @@ export default function DownloadedPage() {
   const [songs, setSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  async function loadSongs() {
+    setIsLoading(true);
+    const loadedSongs = await getAllSavedSongs();
+    setSongs(loadedSongs);
+    setIsLoading(false);
+  }
+
   useEffect(() => {
-    async function loadSongs() {
-      setIsLoading(true);
-      const loadedSongs = await getAllSavedSongs();
-      setSongs(loadedSongs);
-      setIsLoading(false);
-    }
     loadSongs();
   }, []);
 
   const handleSongDeleted = (deletedId: string) => {
     setSongs(prevSongs => prevSongs.filter(song => song.id !== deletedId));
+  }
+  
+  const handleSongUpdated = (updatedId: string) => {
+    // Re-fetch the songs to get the updated list
+    loadSongs();
   }
 
   return (
@@ -130,7 +166,7 @@ export default function DownloadedPage() {
           ) : songs.length > 0 ? (
             <div className="flex flex-col">
               {songs.map(song => (
-                <SongListItem key={song.id} song={song} onDelete={handleSongDeleted} />
+                <SongListItem key={song.id} song={song} onDelete={handleSongDeleted} onUpdate={handleSongUpdated} />
               ))}
             </div>
           ) : (
