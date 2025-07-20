@@ -44,15 +44,17 @@ export default function WelcomePage() {
     
     return (
         <div className="bg-background min-h-screen text-foreground relative">
-            <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleClose}
-                className="absolute top-4 right-4 z-10 h-8 w-8"
-            >
-                <X className="w-5 h-5" />
-                <span className="sr-only">Close</span>
-            </Button>
+            {user && (
+              <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleClose}
+                  className="absolute top-4 right-4 z-10 h-8 w-8"
+              >
+                  <X className="w-5 h-5" />
+                  <span className="sr-only">Close</span>
+              </Button>
+            )}
             
             <main className="container mx-auto px-4 py-16 sm:py-24">
                 <section className="text-center mb-16 sm:mb-24">
