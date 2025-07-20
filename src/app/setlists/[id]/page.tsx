@@ -26,6 +26,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import Header from '@/components/Header';
+import BottomNavBar from '@/components/BottomNavBar';
 
 
 function LoadingSkeleton() {
@@ -72,8 +74,7 @@ function SongItem({ song }: { song: Song }) {
   );
 }
 
-
-export default function SetlistDetailPage() {
+function SetlistDetailContent() {
     const params = useParams();
     const router = useRouter();
     const { user } = useAuth();
@@ -190,5 +191,17 @@ export default function SetlistDetailPage() {
             ))}
         </div>
       </div>
+    );
+}
+
+export default function SetlistDetailPage() {
+    return (
+        <div className="flex-grow flex flex-col">
+            <Header />
+            <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
+                <SetlistDetailContent />
+            </main>
+            <BottomNavBar />
+        </div>
     );
 }
