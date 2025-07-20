@@ -9,7 +9,6 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/context/AuthContext';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { useEffect, useState } from 'react';
-import Footer from '@/components/Footer';
 
 // Metadata cannot be exported from a client component.
 // We can define it here and then use it in the component.
@@ -63,7 +62,6 @@ export default function RootLayout({
                 </div>
               </div>
               <Toaster />
-              <Footer />
             </AuthProvider>
         </ThemeProvider>
       </body>

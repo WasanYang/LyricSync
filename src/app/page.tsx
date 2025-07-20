@@ -21,6 +21,7 @@ import { RefreshCw, ListMusic, PlusCircle, ChevronRight, Music } from 'lucide-re
 import { cn } from '@/lib/utils';
 import PremiumCard from '@/components/PremiumCard';
 import { Button } from '@/components/ui/button';
+import Footer from '@/components/Footer';
 
 // In a real app, these would come from an API
 const featuredSongs = getSongs().slice(0, 5);
@@ -137,7 +138,7 @@ export default function Home() {
   return (
     <div className="flex-grow flex flex-col">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-8 space-y-12 pb-24 md:pb-8">
+      <main className="flex-grow container mx-auto px-4 py-8 space-y-12">
         
         {/* Welcome & Quick Actions */}
         <section>
@@ -206,6 +207,7 @@ export default function Home() {
         </section>
 
       </main>
+      <Footer />
       <BottomNavBar />
     </div>
   );
