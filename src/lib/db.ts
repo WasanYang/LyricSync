@@ -3,7 +3,7 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Song } from './songs';
 import { db as firestoreDb } from './firebase'; 
-import { collection, addDoc, getDocs, query, where, deleteDoc, doc, serverTimestamp, writeBatch, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, deleteDoc, doc, serverTimestamp, writeBatch, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 
 
 const DB_NAME = 'RhythmicReadsDB';
@@ -123,6 +123,32 @@ export async function getAllSavedSongs(): Promise<Song[]> {
 export async function getAllSavedSongIds(): Promise<string[]> {
   const db = await getDb();
   return db.getAllKeys(SONGS_STORE);
+}
+
+// --- Super Admin Song Upload ---
+export async function uploadSongToCloud(song: Song): Promise<void> {
+    if (!firestoreDb) throw new Error("Firebase is not configured.");
+    
+    // Convert Date object to a format Firestore understands, like a string or timestamp.
+    const { updatedAt, ...songData } = song;
+    const dataToUpload = {
+        ...songData,
+        // Replace custom- prefix with something neutral or remove it
+        id: song.id.replace('custom-', 'uploaded-'),
+        updatedAt: updatedAt.toISOString(), // Store as ISO string
+    };
+
+    try {
+        // Use setDoc to control the ID
+        const songDocRef = doc(firestoreDb, "songs", dataToUpload.id);
+        await setDoc(songDocRef, dataToUpload);
+    } catch (e: any) {
+        console.error("Error uploading song to cloud:", e);
+        if (e.code === 'permission-denied') {
+            throw new Error("You do not have permission to upload songs.");
+        }
+        throw new Error("Failed to upload song to the cloud.");
+    }
 }
 
 

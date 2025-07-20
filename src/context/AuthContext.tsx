@@ -1,3 +1,4 @@
+
 // src/context/AuthContext.tsx
 'use client';
 
@@ -6,9 +7,12 @@ import { onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, signI
 import { auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
+const SUPER_ADMIN_EMAIL = 'esxy26@gmail.com';
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isSuperAdmin: boolean;
   signInWithGoogle: () => Promise<void>;
   signInAnonymously: () => Promise<void>;
   logout: () => Promise<void>;
@@ -19,12 +23,14 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   useEffect(() => {
     // Only subscribe if auth is initialized
     if (auth) {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         setUser(user);
+        setIsSuperAdmin(user?.email === SUPER_ADMIN_EMAIL);
         setLoading(false);
       });
       return () => unsubscribe();
@@ -72,7 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const value = { user, loading, signInWithGoogle, signInAnonymously, logout };
+  const value = { user, loading, isSuperAdmin, signInWithGoogle, signInAnonymously, logout };
   
   // Render a loading screen while auth state is being determined
   if (loading) {

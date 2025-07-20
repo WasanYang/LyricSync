@@ -2,16 +2,17 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { getAllSavedSongs, deleteSong as deleteSongFromDb, updateSong, type Song } from '@/lib/db';
+import { getAllSavedSongs, deleteSong as deleteSongFromDb, updateSong, type Song, uploadSongToCloud } from '@/lib/db';
 import { getSongById } from '@/lib/songs';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Library, Trash2, Edit, ArrowUpCircle } from 'lucide-react';
+import { Library, Trash2, Edit, RefreshCw, UploadCloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (songId: string) => void, onUpdate: (songId: string) => void }) {
+  const { user, isSuperAdmin } = useAuth();
   const isCustomSong = song.id.startsWith('custom-');
   const { toast } = useToast();
   
@@ -72,6 +74,25 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
     }
   }
 
+  const handleUpload = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await uploadSongToCloud(song);
+      toast({
+        title: "Song Uploaded",
+        description: `"${song.title}" has been uploaded to the cloud.`
+      });
+      // Optionally, you might want to refresh the list or change the song's state
+    } catch (error) {
+       toast({
+        title: "Upload Error",
+        description: error instanceof Error ? error.message : "Could not upload song.",
+        variant: "destructive"
+       })
+    }
+  }
+
   return (
     <div className={cn("flex items-center space-x-3")}>
       <Link href={`/lyrics/${song.id}`} className="flex-grow flex items-center space-x-3 min-w-0 p-2 rounded-lg transition-colors hover:bg-muted hover:text-muted-foreground group">
@@ -95,14 +116,20 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
       </Link>
       <div className="flex-shrink-0 flex items-center gap-1">
         {isCustomSong ? (
-            <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
-                <Link href={`/song-editor?id=${song.id}`} onClick={e => e.stopPropagation()}>
-                    <Edit className="h-4 w-4" />
-                </Link>
-            </Button>
+            isSuperAdmin ? (
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={handleUpload}>
+                  <UploadCloud className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
+                  <Link href={`/song-editor?id=${song.id}`} onClick={e => e.stopPropagation()}>
+                      <Edit className="h-4 w-4" />
+                  </Link>
+              </Button>
+            )
         ) : (
             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={handleUpdate}>
-                <ArrowUpCircle className="h-4 w-4" />
+                <RefreshCw className="h-4 w-4" />
             </Button>
         )}
         <AlertDialog>
