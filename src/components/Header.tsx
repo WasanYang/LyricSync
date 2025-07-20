@@ -82,8 +82,8 @@ export default function Header() {
                              <Link
                               href={link.href}
                               className={cn(
-                                'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:bg-accent',
-                                pathname === link.href ? 'bg-accent text-primary' : 'text-muted-foreground'
+                                'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
+                                pathname === link.href ? 'bg-accent text-primary-foreground' : 'text-muted-foreground'
                               )}
                             >
                               <link.icon className="h-5 w-5" />
@@ -99,8 +99,8 @@ export default function Header() {
                              <Link
                               href={link.href}
                               className={cn(
-                                'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:bg-accent',
-                                pathname === link.href ? 'bg-accent text-primary' : 'text-muted-foreground'
+                                'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
+                                pathname === link.href ? 'bg-accent text-primary-foreground' : 'text-muted-foreground'
                               )}
                             >
                               <link.icon className="h-5 w-5" />
@@ -110,7 +110,7 @@ export default function Header() {
                         ))}
                       </nav>
                       <Separator />
-                       <a href="#" className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:bg-accent">
+                       <a href="#" className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary">
                           <LogIn className="h-5 w-5" />
                           <span>Login</span>
                        </a>
