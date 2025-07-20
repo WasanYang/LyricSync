@@ -15,8 +15,8 @@ import Header from '@/components/Header';
 function SongListItem({ song }: { song: Song }) {
   return (
     <div className={cn(
-      "flex items-center space-x-3 p-2 rounded-lg transition-colors",
-      "hover:bg-accent hover:text-accent-foreground group" // Added group for hover effects
+      "flex items-center space-x-3 p-2 rounded-lg transition-all duration-200",
+      "hover:shadow-md group" // Changed hover effect
     )}>
       <Link href={`/lyrics/${song.id}`} className="flex-grow flex items-center space-x-3 min-w-0">
         <Image
@@ -72,7 +72,7 @@ export default function SearchPage() {
             />
           </div>
           <section>
-            <div className="flex flex-col">
+            <div className="flex flex-col space-y-1">
               {filteredSongs.map((song) => (
                 <SongListItem key={song.id} song={song} />
               ))}
