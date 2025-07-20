@@ -81,7 +81,7 @@ const initialState: State = {
   showChords: true,
   chordColor: 'hsl(var(--primary))',
   highlightMode: 'line',
-  showSectionNavigator: true,
+  showSectionNavigator: false,
   bpm: 120,
   transpose: 0,
 };
