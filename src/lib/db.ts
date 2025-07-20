@@ -1,3 +1,4 @@
+
 // src/lib/db.ts
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Song } from './songs';
@@ -42,7 +43,7 @@ let dbPromise: Promise<IDBPDatabase<RhythmicReadsDB>> | null = null;
 function getDb(): Promise<IDBPDatabase<RhythmicReadsDB>> {
   if (!dbPromise) {
     dbPromise = openDB<RhythmicReadsDB>(DB_NAME, DB_VERSION, {
-      upgrade(db, oldVersion) {
+      upgrade(db, oldVersion, newVersion, transaction) {
         if (oldVersion < 1) {
             if (!db.objectStoreNames.contains(SONGS_STORE)) {
                 db.createObjectStore(SONGS_STORE, { keyPath: 'id' });
@@ -53,11 +54,14 @@ function getDb(): Promise<IDBPDatabase<RhythmicReadsDB>> {
             }
         }
         if (oldVersion < 2) {
-            const setlistStore = db.transaction(SETLISTS_STORE, 'readwrite').store;
+            // Must use the existing transaction in an upgrade function.
+            const setlistStore = transaction.objectStore(SETLISTS_STORE);
             if (setlistStore.indexNames.contains('by-title')) {
               setlistStore.deleteIndex('by-title');
             }
-            setlistStore.createIndex('by-userId', 'userId');
+            if (!setlistStore.indexNames.contains('by-userId')) {
+                setlistStore.createIndex('by-userId', 'userId');
+            }
         }
       },
     });
@@ -223,3 +227,5 @@ export async function unsyncSetlist(localId: string, userId: string, firestoreId
      setlist.firestoreId = null;
      await db.put(SETLISTS_STORE, setlist);
 }
+
+    
