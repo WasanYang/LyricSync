@@ -279,10 +279,12 @@ export default function LyricPlayer({
 
   useEffect(() => {
     dispatch({ type: 'RESET_PLAYER_STATE', payload: { bpm: song.bpm } });
-  }, [song.id, song.bpm]);
+    if (isSetlistMode) {
+      setPosition({ x: 16, y: 150 });
+    }
+  }, [song.id, song.bpm, isSetlistMode]);
   
   useEffect(() => {
-    setPosition({ x: 16, y: 150 });
     const isDarkMode = document.documentElement.classList.contains('dark');
     setThemeState(isDarkMode ? 'dark' : 'light');
   }, []);
