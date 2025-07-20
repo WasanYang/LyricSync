@@ -48,12 +48,16 @@ function getDb(): Promise<IDBPDatabase<RhythmicReadsDB>> {
 
 export async function saveSong(song: Song): Promise<void> {
   const db = await getDb();
-  await db.put(SONGS_STORE, song);
+  // Set the updatedAt to the current time of saving
+  const songToSave = { ...song, updatedAt: new Date() };
+  await db.put(SONGS_STORE, songToSave);
 }
 
 export async function updateSong(song: Song): Promise<void> {
     const db = await getDb();
-    await db.put(SONGS_STORE, song);
+    // Set the updatedAt to the current time of updating
+    const songToUpdate = { ...song, updatedAt: new Date() };
+    await db.put(SONGS_STORE, songToUpdate);
 }
 
 export async function getSong(id: string): Promise<Song | undefined> {
@@ -81,10 +85,14 @@ export async function isSongSaved(id: string): Promise<{ saved: boolean; needsUp
      return { saved: true, needsUpdate: false }; // Should not happen if data is consistent
   }
 
-  const savedDate = new Date(savedSong.updatedAt).getTime();
-  const latestDate = new Date(latestSong.updatedAt).getTime();
+  // For pre-existing songs, the original data source is the "cloud".
+  // `updatedAt` in `songs.ts` represents the cloud version's date.
+  // We compare it with the local `updatedAt` to see if an update is needed.
+  // Note: Local `updatedAt` is set on download/update.
+  const cloudVersionDate = new Date(latestSong.updatedAt).getTime();
+  const localVersionDate = new Date(savedSong.updatedAt).getTime();
 
-  return { saved: true, needsUpdate: latestDate > savedDate };
+  return { saved: true, needsUpdate: cloudVersionDate > localVersionDate };
 }
 
 export async function getAllSavedSongs(): Promise<Song[]> {

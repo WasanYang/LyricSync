@@ -1,4 +1,3 @@
-
 // src/components/SongCreator.tsx
 'use client';
 
@@ -176,7 +175,7 @@ export default function SongCreator() {
       id: songId || `custom-${Date.now().toString()}`,
       title: data.title,
       artist: data.artist,
-      updatedAt: new Date(),
+      updatedAt: new Date(), // This will be the save/update time
       lyrics: parseLyricsFromString(data.lyrics),
       originalKey: data.originalKey,
       bpm: data.bpm,
@@ -184,7 +183,7 @@ export default function SongCreator() {
     };
 
     try {
-      await saveSong(newSong);
+      await saveSong(newSong); // saveSong will now handle setting the final `updatedAt` in DB.
       toast({
         title: `Song ${songId ? 'Updated' : 'Saved'}`,
         description: `"${newSong.title}" has been saved successfully.`,
