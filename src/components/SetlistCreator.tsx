@@ -295,7 +295,7 @@ export default function SetlistCreator() {
                 <FormItem>
                   <FormLabel className="sr-only">Setlist Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="Setlist Name" {...field} className="text-2xl font-bold p-0 h-auto border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent" />
+                    <Input placeholder="Setlist Name" {...field} className="text-xl font-bold p-0 h-auto border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -95,7 +95,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
 
   return (
     <div className={cn("flex items-center space-x-3")}>
-      <Link href={`/lyrics/${song.id}`} className="flex-grow flex items-center space-x-3 min-w-0 p-2 rounded-lg transition-colors hover:bg-muted hover:text-muted-foreground group">
+      <Link href={`/lyrics/${song.id}`} className="flex-grow flex items-center space-x-3 min-w-0 p-2 rounded-lg transition-colors hover:bg-muted group">
         <Image
           src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
           alt={`${song.title} album art`}
@@ -185,7 +185,7 @@ export default function DownloadedPage() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
         <div className="space-y-8">
-          <h1 className="text-4xl font-headline font-bold tracking-tight">My Library</h1>
+          <h1 className="text-3xl font-headline font-bold tracking-tight">My Library</h1>
 
           {isLoading ? (
             <p>Loading songs...</p>

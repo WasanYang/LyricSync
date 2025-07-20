@@ -60,7 +60,7 @@ export default function SearchPage() {
        <Header />
       <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
         <div className="space-y-8">
-          <h1 className="text-4xl font-headline font-bold tracking-tight">Search</h1>
+          <h1 className="text-3xl font-headline font-bold tracking-tight">Search</h1>
           <div className="relative">
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
             <Input

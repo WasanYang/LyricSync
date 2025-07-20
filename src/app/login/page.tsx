@@ -53,7 +53,7 @@ export default function LoginPage() {
     <div className="flex-grow flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm flex flex-col items-center text-center">
         <Music className="h-12 w-12 text-primary mb-4" />
-        <h1 className="text-3xl font-bold font-headline mb-2">Welcome to Rhythmic Reads</h1>
+        <h1 className="text-2xl font-bold font-headline mb-2">Welcome to Rhythmic Reads</h1>
         <p className="text-muted-foreground mb-8">Sign in to save your setlists and access your songs anywhere.</p>
         <div className="w-full space-y-4">
             <Button onClick={() => handleSignIn('google')} size="lg" className="w-full">
