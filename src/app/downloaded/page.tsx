@@ -115,7 +115,7 @@ export default function DownloadedPage() {
   }, []);
 
   const handleSongDeleted = (deletedId: string) => {
-    setSongs(prev => prev.filter(s => s.id !== deletedId));
+    setSongs(prevSongs => prevSongs.filter(song => song.id !== deletedId));
   }
 
   return (
