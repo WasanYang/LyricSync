@@ -9,7 +9,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { saveSong, getSong as getSongFromDb } from '@/lib/db';
 import type { Song, LyricLine } from '@/lib/songs';
 import { ALL_NOTES } from '@/lib/chords';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Select,
@@ -27,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -43,7 +43,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import LyricPlayer from './LyricPlayer';
-import { Eye, Save, XCircle } from 'lucide-react';
+import { Eye, Save, XCircle, HelpCircle } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 
 const songFormSchema = z.object({
@@ -189,7 +189,7 @@ export default function SongCreator() {
         title: `Song ${songId ? 'Updated' : 'Saved'}`,
         description: `"${newSong.title}" has been saved successfully.`,
       });
-      form.reset(); // This will also set isDirty to false
+      form.reset({}, { keepValues: false, keepDirty: false, keepDefaultValues: false }); // Reset form state completely
       router.push('/downloaded'); // Navigate to downloaded list after save/update
     } catch (error) {
       toast({
@@ -214,7 +214,7 @@ export default function SongCreator() {
       <div className="flex flex-col h-full">
           <header className="flex-shrink-0 p-4 border-b bg-background flex items-center justify-between">
               <h1 className="text-2xl font-bold font-headline">{songId ? 'Edit Song' : 'Song Creator'}</h1>
-              <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+              <Dialog>
                   <DialogTrigger asChild>
                       <Button type="button" variant="outline">
                           <Eye className="mr-2 h-4 w-4" /> Preview
@@ -225,7 +225,10 @@ export default function SongCreator() {
                           <DialogTitle>Song Preview</DialogTitle>
                       </DialogHeader>
                       <div className="relative w-full h-full flex-grow bg-background">
-                          <LyricPlayer song={previewSong} onClose={() => setIsPreviewOpen(false)} />
+                          <LyricPlayer song={previewSong} onClose={() => {
+                            const closeButton = document.querySelector('[data-radix-dialog-close]');
+                            if(closeButton instanceof HTMLElement) closeButton.click();
+                          }} />
                       </div>
                   </DialogContent>
               </Dialog>
@@ -323,20 +326,68 @@ export default function SongCreator() {
                   name="lyrics"
                   render={({ field }) => (
                       <FormItem className="flex-grow flex flex-col">
-                      <FormLabel>Lyrics & Chords</FormLabel>
-                      <FormControl>
-                          <Textarea
-                          placeholder="1 | [C]Lyrics for bar one..."
-                          className="flex-grow text-sm font-mono resize-none h-64"
-                          {...field}
-                          />
-                      </FormControl>
-                      <p className="text-xs text-muted-foreground mt-2">
-                          Format: <code className="bg-muted px-1 py-0.5 rounded">bar| [Chord]Lyric text</code>.
-                          <br/>
-                          Example: <code className="bg-muted px-1 py-0.5 rounded">0 | (Intro)</code>, <code className="bg-muted px-1 py-0.5 rounded">1 | [Am] [G] [C] [F]</code>, <code className="bg-muted px-1 py-0.5 rounded">2 | [C]This is a [G]line.</code>
-                      </p>
-                      <FormMessage />
+                        <div className="flex items-center gap-2">
+                          <FormLabel>Lyrics &amp; Chords</FormLabel>
+                           <Dialog>
+                              <DialogTrigger asChild>
+                                  <Button type="button" variant="ghost" size="icon" className="h-5 w-5 text-muted-foreground">
+                                    <HelpCircle className="h-4 w-4" />
+                                  </Button>
+                              </DialogTrigger>
+                              <DialogContent className="sm:max-w-2xl">
+                                  <DialogHeader>
+                                      <DialogTitle>How to Format Lyrics & Chords</DialogTitle>
+                                      <DialogDescription>
+                                          Follow this format to ensure your lyrics and chords display correctly in the player.
+                                      </DialogDescription>
+                                  </DialogHeader>
+                                  <div className="space-y-4 text-sm py-4">
+                                      <p>Each line must start with a bar number, followed by a pipe `|`, and then the text content.</p>
+                                      <div className="p-4 bg-muted rounded-md font-mono text-xs overflow-x-auto">
+                                          <p className="font-bold mb-2">Format:</p>
+                                          <p><code className="text-primary">bar_number</code> | <code className="text-primary">[Chord]</code>Lyric text...</p>
+                                      </div>
+                                      
+                                      <div>
+                                          <h4 className="font-semibold mb-2">Key Concepts:</h4>
+                                          <ul className="list-disc pl-5 space-y-2">
+                                              <li>
+                                                  <strong>Bar Number:</strong> Every line must begin with a number representing the bar (measure) of the song. Use `0` for intros or elements before the first bar.
+                                              </li>
+                                              <li>
+                                                  <strong>Pipe Separator:</strong> A pipe character `|` must follow the bar number to separate it from the content.
+                                              </li>
+                                              <li>
+                                                  <strong>Chords:</strong> Enclose chords in square brackets, like <code className="bg-muted px-1 py-0.5 rounded">[C]</code> or <code className="bg-muted px-1 py-0.5 rounded">[G/B]</code>. Place them right before the syllable where the chord change occurs.
+                                              </li>
+                                              <li>
+                                                  <strong>Section Headers:</strong> To define sections like (Intro), (Verse), or (Chorus), use a bar number of `0` and enclose the text in parentheses.
+                                              </li>
+                                          </ul>
+                                      </div>
+                                      
+                                      <div className="p-4 bg-muted rounded-md font-mono text-xs overflow-x-auto">
+                                        <p className="font-bold mb-2">Examples:</p>
+                                        <p>0 | (Intro)</p>
+                                        <p>1 | [Am] [G] [C] [F]</p>
+                                        <p>2 | [C]This is a [G]line with chords.</p>
+                                        <p>3 | This is a line with no chords.</p>
+                                        <p>4 | </p>
+                                        <p>5 | (Verse 1)</p>
+                                        <p>6 | The quick [Am]brown fox [G]jumps over the [C]lazy dog.[F]</p>
+                                      </div>
+                                  </div>
+                              </DialogContent>
+                          </Dialog>
+                        </div>
+                        <FormControl>
+                            <Textarea
+                            placeholder="1 | [C]Lyrics for bar one..."
+                            className="flex-grow text-sm font-mono resize-none h-64"
+                            {...field}
+                            />
+                        </FormControl>
+                        <FormMessage />
                       </FormItem>
                   )}
                   />
