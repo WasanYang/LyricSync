@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { getSongs, type Song } from '@/lib/songs';
-import { saveSetlist, getSetlist as getSetlistFromDb, getSong as getSongFromDb } from '@/lib/db';
+import { saveSetlist, getSetlist as getSetlistFromDb, getSong as getSongFromDb, getAllSavedSongIds } from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -24,6 +24,7 @@ import { getAllSavedSongs } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
 import { Skeleton } from './ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
+import SongStatusButton from './SongStatusButton';
 
 
 const setlistFormSchema = z.object({
@@ -55,7 +56,24 @@ function LoadingScreen() {
     )
 }
 
-function AddSongComponent({ availableSongs, onAddSong, searchTerm, onSearchTermChange }: { availableSongs: Song[], onAddSong: (song: Song) => void, searchTerm: string, onSearchTermChange: (term: string) => void }) {
+function AddSongComponent({ 
+    availableSongs, 
+    onAddSong, 
+    searchTerm, 
+    onSearchTermChange,
+}: { 
+    availableSongs: Song[], 
+    onAddSong: (song: Song) => void, 
+    searchTerm: string, 
+    onSearchTermChange: (term: string) => void,
+}) {
+
+  const handleButtonClick = (e: React.MouseEvent, song: Song) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onAddSong(song);
+  };
+  
   return (
     <>
       <div className="p-4">
@@ -73,16 +91,20 @@ function AddSongComponent({ availableSongs, onAddSong, searchTerm, onSearchTermC
         <div className="p-4 pt-0">
         {availableSongs.length > 0 ? (
           availableSongs.map(song => (
-            <button
-              key={song.id}
-              onClick={() => onAddSong(song)}
-              className="w-full text-left p-2 rounded-md hover:bg-accent flex items-start"
-            >
-              <div>
-                <p className="font-semibold text-sm">{song.title}</p>
-                <p className="text-xs text-muted-foreground">{song.artist}</p>
-              </div>
-            </button>
+            <div key={song.id} className="flex items-center justify-between p-2 rounded-md hover:bg-accent group">
+                <button
+                    onClick={() => onAddSong(song)}
+                    className="flex-grow text-left flex items-start"
+                >
+                    <div>
+                        <p className="font-semibold text-sm">{song.title}</p>
+                        <p className="text-xs text-muted-foreground">{song.artist} • Key: {song.originalKey || 'N/A'}</p>
+                    </div>
+                </button>
+                <div onClick={(e) => e.stopPropagation()}>
+                    <SongStatusButton song={song} />
+                </div>
+            </div>
           ))
         ) : (
           <p className="text-sm text-center text-muted-foreground py-4">No songs found.</p>
@@ -123,7 +145,7 @@ export default function SetlistCreator() {
         const customSongs = await getAllSavedSongs();
         const combined = [...officialSongs, ...customSongs.filter(cs => cs.id.startsWith('custom-'))];
         const uniqueSongs = Array.from(new Map(combined.map(song => [song.id, song])).values());
-        setAllSongs(uniqueSongs);
+        setAllSongs(uniqueSongs.sort((a,b) => a.title.localeCompare(b.title)));
     };
     fetchSongs();
   }, []);
@@ -291,9 +313,6 @@ export default function SetlistCreator() {
                           {addSongTrigger}
                       </DrawerTrigger>
                       <DrawerContent>
-                          <DrawerHeader>
-                              <DrawerTitle>Add a song</DrawerTitle>
-                          </DrawerHeader>
                           {addSongContent}
                       </DrawerContent>
                   </Drawer>
@@ -302,7 +321,7 @@ export default function SetlistCreator() {
                       <PopoverTrigger asChild>
                         {addSongTrigger}
                       </PopoverTrigger>
-                      <PopoverContent className="w-[300px] p-0" align="end">
+                      <PopoverContent className="w-[350px] p-0" align="end">
                          {addSongContent}
                       </PopoverContent>
                   </Popover>
