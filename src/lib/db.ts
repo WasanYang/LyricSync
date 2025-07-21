@@ -3,7 +3,7 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Song } from './songs';
 import { db as firestoreDb } from './firebase'; 
-import { collection, addDoc, getDocs, query, where, deleteDoc, doc, serverTimestamp, writeBatch, getDoc, updateDoc, setDoc, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, deleteDoc, doc, serverTimestamp, writeBatch, getDoc, updateDoc, setDoc, orderBy, Timestamp } from 'firebase/firestore';
 
 
 const DB_NAME = 'RhythmicReadsDB';
@@ -158,6 +158,7 @@ export async function getAllCloudSongs(): Promise<Song[]> {
     const songs: Song[] = [];
     querySnapshot.forEach((doc) => {
         const data = doc.data();
+        const updatedAt = data.updatedAt;
         songs.push({
             id: doc.id,
             title: data.title,
@@ -166,7 +167,7 @@ export async function getAllCloudSongs(): Promise<Song[]> {
             originalKey: data.originalKey,
             bpm: data.bpm,
             timeSignature: data.timeSignature,
-            updatedAt: data.updatedAt?.toDate() || new Date(), // Convert timestamp to Date
+            updatedAt: updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
         } as Song);
     });
 
