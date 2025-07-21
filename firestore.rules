@@ -3,16 +3,23 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Public read for songs, but only admins can write.
+    
+    // Allow public read access to songs, but only super admin can write.
     match /songs/{songId} {
       allow read: if true;
-      allow write, delete: if request.auth != null && request.auth.token.email == 'esxy26@gmail.com';
+      allow write: if request.auth != null && request.auth.token.email == 'esxy26@gmail.com';
     }
 
-    // Users can only manage their own setlists.
+    // Users can only access their own setlists.
     match /setlists/{setlistId} {
-      allow read, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow create, update: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      // Allow reading a single document if the user is the owner.
+      allow get: if request.auth.uid == resource.data.userId;
+      
+      // Allow listing/querying documents only if the query is filtered by the user's own UID.
+      allow list: if request.auth.uid == request.query.filters.find(f => f.field.string_value == 'userId').value.string_value;
+
+      // Allow creating, updating, and deleting if the user is the owner.
+      allow write: if request.auth.uid == request.resource.data.userId;
     }
   }
 }
