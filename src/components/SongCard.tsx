@@ -24,7 +24,7 @@ export default function SongCard({ song }: SongCardProps) {
     <div className="group relative space-y-1.5">
       <div className="aspect-square w-full overflow-hidden rounded-md transition-all duration-300 ease-in-out group-hover:shadow-lg group-hover:shadow-primary/20">
         <Image
-          src={`https://placehold.co/300x300.png?text=${encodeURIComponent(song.title)}`}
+          src={`https://placehold.co/300x300.png`}
           alt={`${song.title} album art`}
           width={300}
           height={300}

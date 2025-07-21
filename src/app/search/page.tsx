@@ -28,7 +28,7 @@ function SongListItem({ song }: { song: Song }) {
     )}>
       <Link href={`/lyrics/${song.id}`} className="flex items-center space-x-3 p-2 rounded-lg transition-colors duration-200 hover:bg-muted/50">
         <Image
-          src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
+          src={`https://placehold.co/80x80.png`}
           alt={`${song.title} album art`}
           width={40}
           height={40}

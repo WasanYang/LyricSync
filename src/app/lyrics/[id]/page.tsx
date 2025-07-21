@@ -111,7 +111,7 @@ function SongDetailContent() {
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
             <div className="flex-shrink-0">
                 <Image
-                    src={`https://placehold.co/300x300.png?text=${encodeURIComponent(song.title)}`}
+                    src={`https://placehold.co/300x300.png`}
                     alt={`${song.title} album art`}
                     width={200}
                     height={200}

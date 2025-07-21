@@ -113,7 +113,7 @@ function RecommendedSetlistCard({ setlist }: { setlist: Setlist & { description:
             <div className="group relative space-y-1.5">
                 <div className="aspect-square w-full overflow-hidden rounded-md transition-all duration-300 ease-in-out group-hover:shadow-lg group-hover:shadow-primary/20">
                     <Image
-                        src={`https://placehold.co/300x300.png?text=${encodeURIComponent(firstSong?.title || setlist.title)}`}
+                        src={`https://placehold.co/300x300.png`}
                         alt={setlist.title}
                         width={300}
                         height={300}
@@ -240,7 +240,7 @@ export default function Home() {
                     </Link>
                 </Button>
                 <Button variant="outline" size="lg" className="justify-start" asChild>
-                    <Link href="/downloaded">
+                    <Link href="/library">
                         <Music className="mr-3 h-5 w-5" /> My Library
                     </Link>
                 </Button>

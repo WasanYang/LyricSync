@@ -103,7 +103,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
       <div className="flex-grow flex items-center space-x-3 min-w-0">
         <Link href={`/lyrics/${song.id}`}>
           <Image
-            src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
+            src={`https://placehold.co/80x80.png`}
             alt={`${song.title} album art`}
             width={40}
             height={40}
@@ -168,7 +168,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                     </TooltipTrigger>
                     <TooltipContent><p>Edit Cloud Song</p></TooltipContent>
                 </Tooltip>
-            ) : !isSuperAdmin ? (
+            ) : !isCustomSong ? ( // This now correctly targets system songs
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={handleUpdate}>
@@ -209,7 +209,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
   );
 }
 
-export default function DownloadedPage() {
+export default function LibraryPage() {
   const [songs, setSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user, loading: authLoading } = useAuth();

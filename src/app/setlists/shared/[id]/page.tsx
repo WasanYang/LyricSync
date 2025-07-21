@@ -42,7 +42,7 @@ function SongItem({ song }: { song: Song }) {
   return (
     <div className="flex items-center space-x-4 p-3 rounded-lg bg-muted/50">
       <Image
-        src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
+        src={`https://placehold.co/80x80.png`}
         alt={`${song.title} album art`}
         width={48}
         height={48}
