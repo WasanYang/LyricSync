@@ -1,17 +1,30 @@
+
 // src/app/admin/songs/page.tsx
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { getAllCloudSongs, type Song } from '@/lib/db';
+import { getAllCloudSongs, deleteCloudSong, type Song } from '@/lib/db';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, PlusCircle, Edit, ListMusic } from 'lucide-react';
+import { Search, PlusCircle, Edit, ListMusic, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 function LoadingSkeleton() {
     return (
@@ -39,21 +52,23 @@ function LoadingSkeleton() {
 export default function AdminSongsPage() {
     const { user, isSuperAdmin, loading: authLoading } = useAuth();
     const router = useRouter();
+    const { toast } = useToast();
     const [songs, setSongs] = useState<Song[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+
+    async function loadSongs() {
+        setIsLoading(true);
+        const cloudSongs = await getAllCloudSongs();
+        setSongs(cloudSongs);
+        setIsLoading(false);
+    }
 
     useEffect(() => {
         if (!authLoading) {
             if (!user || !isSuperAdmin) {
                 router.replace('/');
             } else {
-                async function loadSongs() {
-                    setIsLoading(true);
-                    const cloudSongs = await getAllCloudSongs();
-                    setSongs(cloudSongs);
-                    setIsLoading(false);
-                }
                 loadSongs();
             }
         }
@@ -67,6 +82,25 @@ export default function AdminSongsPage() {
         );
     }, [songs, searchTerm]);
 
+    const handleDelete = async (songToDelete: Song) => {
+        try {
+            await deleteCloudSong(songToDelete.id);
+            toast({
+                title: "Song Deleted",
+                description: `"${songToDelete.title}" has been removed from the cloud.`,
+            });
+            // Refresh the list
+            setSongs(prevSongs => prevSongs.filter(s => s.id !== songToDelete.id));
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Could not delete the song.",
+                variant: "destructive"
+            });
+        }
+    };
+
+
     if (authLoading || !user || !isSuperAdmin) {
         return <LoadingSkeleton />;
     }
@@ -79,7 +113,7 @@ export default function AdminSongsPage() {
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                         <h1 className="text-3xl font-bold font-headline">Manage Cloud Songs</h1>
                         <Button asChild>
-                            <Link href="/song-editor?mode=cloud&action=create">
+                            <Link href="/song-editor?mode=cloud">
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Create New Song
                             </Link>
@@ -96,9 +130,9 @@ export default function AdminSongsPage() {
                     </div>
                     {isLoading ? (
                         <div className="space-y-2">
-                            <Skeleton className="h-14 w-full" />
-                            <Skeleton className="h-14 w-full" />
-                            <Skeleton className="h-14 w-full" />
+                            <Skeleton className="h-16 w-full" />
+                            <Skeleton className="h-16 w-full" />
+                            <Skeleton className="h-16 w-full" />
                         </div>
                     ) : filteredSongs.length > 0 ? (
                         <ul className="space-y-2">
@@ -108,12 +142,34 @@ export default function AdminSongsPage() {
                                         <p className="font-semibold">{song.title}</p>
                                         <p className="text-sm text-muted-foreground">{song.artist}</p>
                                     </div>
-                                    <Button asChild variant="outline" size="sm">
-                                        <Link href={`/song-editor?mode=cloud&id=${song.id}`}>
-                                            <Edit className="mr-2 h-3 w-3" />
-                                            Edit
-                                        </Link>
-                                    </Button>
+                                    <div className="flex items-center gap-2">
+                                        <Button asChild variant="outline" size="sm">
+                                            <Link href={`/song-editor?mode=cloud&id=${song.id}`}>
+                                                <Edit className="mr-2 h-3 w-3" />
+                                                Edit
+                                            </Link>
+                                        </Button>
+                                         <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="destructive" size="sm">
+                                                    <Trash2 className="mr-2 h-3 w-3" />
+                                                    Delete
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This will permanently delete "{song.title}" from the cloud. This action cannot be undone.
+                                                </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDelete(song)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </div>
                                 </li>
                             ))}
                         </ul>

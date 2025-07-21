@@ -199,6 +199,20 @@ export async function getCloudSongById(songId: string): Promise<Song | null> {
     }
 }
 
+export async function deleteCloudSong(songId: string): Promise<void> {
+    if (!firestoreDb) throw new Error("Firebase is not configured.");
+    try {
+        const songDocRef = doc(firestoreDb, "songs", songId);
+        await deleteDoc(songDocRef);
+    } catch (e: any) {
+        console.error("Error deleting song from cloud:", e);
+        if (e.code === 'permission-denied') {
+            throw new Error("You do not have permission to delete songs.");
+        }
+        throw new Error("Failed to delete song from the cloud.");
+    }
+}
+
 
 // --- Setlist Functions ---
 
@@ -358,5 +372,3 @@ export async function unsyncSetlist(localId: string, userId: string, firestoreId
      setlist.firestoreId = null;
      await db.put(SETLISTS_STORE, setlist);
 }
-
-    
