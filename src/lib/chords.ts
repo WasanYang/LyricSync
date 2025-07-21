@@ -1,3 +1,4 @@
+
 const NOTES_SHARP = [
   'C',
   'C#',
@@ -98,3 +99,4 @@ export const transposeChord = (chord: string, amount: number): string => {
 
   return newRoot + quality + newSlashPart;
 };
+
