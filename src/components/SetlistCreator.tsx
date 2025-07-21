@@ -338,7 +338,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
 
   return (
     <div className="relative w-full max-w-lg mx-auto">
-        <div className="absolute top-2 -left-1 z-10">
+        <div className="absolute top-1 -left-1 z-10">
             <BackButton />
         </div>
         <Form {...form}>
