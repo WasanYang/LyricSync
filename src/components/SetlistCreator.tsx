@@ -244,7 +244,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   };
 
   const handleGoBack = () => {
-    router.push(setlistId ? `/setlists/${setlistId}` : '/setlists');
+    router.back();
   }
 
   async function handleSaveSetlist(data: SetlistFormValues) {
