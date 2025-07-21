@@ -10,7 +10,7 @@ import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Library, Trash2, Edit, RefreshCw, UploadCloud, PlusCircle, Eye } from 'lucide-react';
+import { Library, Trash2, Edit, RefreshCw, UploadCloud, PlusCircle, Eye, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -112,7 +112,10 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
           />
         </Link>
         <div className="min-w-0">
-          <Link href={`/lyrics/${song.id}`} className="font-semibold font-headline truncate hover:underline">{song.title}</Link>
+          <div className="flex items-center gap-2">
+            <Link href={`/lyrics/${song.id}`} className="font-semibold font-headline truncate hover:underline">{song.title}</Link>
+            {isCloudSong && <Cloud className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
+          </div>
           <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
           {song.updatedAt && (
             <p className="text-xs text-muted-foreground/80 truncate">
@@ -121,7 +124,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
           )}
         </div>
       </div>
-      <div className="flex-shrink-0 flex items-center gap-1">
+      <div className="flex-shrink-0 flex items-center">
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger asChild>
@@ -158,11 +161,11 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                     )}
                     <Tooltip>
                         <AlertDialog>
-                            <TooltipTrigger asChild>
+                            <AlertDialogTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
                                     <Trash2 className="h-4 w-4" />
                                 </Button>
-                            </TooltipTrigger>
+                            </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
