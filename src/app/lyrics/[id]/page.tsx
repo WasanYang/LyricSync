@@ -2,7 +2,7 @@
 'use client';
 
 import { getSongById as getSongFromStatic, type Song, type LyricLine } from '@/lib/songs';
-import { getSong as getSongFromDb } from '@/lib/db';
+import { getSong as getSongFromDb, getCloudSongById } from '@/lib/db';
 import { notFound, useParams, useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -67,12 +67,15 @@ function SongDetailContent() {
       if (!id) return;
       try {
         setIsLoading(true);
-        // Try to get song from IndexedDB first for offline access
+        // Priority: Local DB > Static List > Cloud
         let fetchedSong = await getSongFromDb(id);
         
-        // If not in DB, get it from the static list
         if (!fetchedSong) {
           fetchedSong = getSongFromStatic(id);
+        }
+
+        if (!fetchedSong) {
+          fetchedSong = await getCloudSongById(id);
         }
 
         if (fetchedSong) {

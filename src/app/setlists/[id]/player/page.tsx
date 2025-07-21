@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import type { Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
-import { getSetlist as getSetlistFromDb, getSong as getSongFromLocalDb } from '@/lib/db';
+import { getSetlist as getSetlistFromDb, getSong as getSongFromLocalDb, getCloudSongById } from '@/lib/db';
 import { getSongById as getSongFromStatic } from '@/lib/songs';
 import { ALL_NOTES } from '@/lib/chords';
 
@@ -64,14 +64,14 @@ export default function SetlistPlayerPage() {
     const [isLoading, setIsLoading] = useState(true);
 
     const findSong = async (songId: string): Promise<Song | null> => {
-        // Custom songs are only in local DB
-        if (songId.startsWith('custom-')) {
-            return await getSongFromLocalDb(songId) || null;
-        }
-        // For official songs, try local DB first (for offline/edited versions), then static list
-        const localSong = await getSongFromLocalDb(songId);
-        if (localSong) return localSong;
-        return getSongFromStatic(songId) || null;
+        let song = await getSongFromLocalDb(songId);
+        if (song) return song;
+
+        song = getSongFromStatic(songId);
+        if (song) return song;
+        
+        song = await getCloudSongById(songId);
+        return song;
     }
 
     useEffect(() => {
