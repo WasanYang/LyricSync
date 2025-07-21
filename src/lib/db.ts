@@ -169,6 +169,7 @@ export async function getAllCloudSongs(): Promise<Song[]> {
             userId: data.userId,
             uploaderName: data.uploaderName,
             uploaderEmail: data.uploaderEmail,
+            source: data.source,
             updatedAt: updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
         } as Song);
     });

@@ -47,8 +47,8 @@ export default function AdminUserUploadsPage() {
     async function loadSongs() {
         setIsLoading(true);
         const cloudSongs = await getAllCloudSongs();
-        // Filter to only show songs uploaded by users (starting with 'uploaded-')
-        const userUploadedSongs = cloudSongs.filter(s => s.id.startsWith('uploaded-'));
+        // Filter to only show songs uploaded by users
+        const userUploadedSongs = cloudSongs.filter(s => s.source === 'user');
         setSongs(userUploadedSongs);
         setIsLoading(false);
     }

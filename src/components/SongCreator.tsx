@@ -184,7 +184,8 @@ export default function SongCreator() {
     originalKey: formData.originalKey,
     bpm: formData.bpm,
     timeSignature: formData.timeSignature,
-  }), [formData, songId]);
+    source: isCloudMode ? 'system' : 'user',
+  }), [formData, songId, isCloudMode]);
 
   async function handleSaveSong(data: SongFormValues) {
     if (!user) return;
@@ -193,7 +194,7 @@ export default function SongCreator() {
     const isUpdating = !!songId;
 
     const newSongData: Omit<Song, 'updatedAt'> & { updatedAt: Date | any } = {
-      id: isUpdating ? songId : (isCloudAction ? `uploaded-${uuidv4()}` : `custom-${uuidv4()}`),
+      id: isUpdating ? songId : uuidv4(),
       title: data.title,
       artist: data.artist,
       lyrics: parseLyricsFromString(data.lyrics),
@@ -203,6 +204,7 @@ export default function SongCreator() {
       userId: user.uid,
       uploaderName: user.displayName,
       uploaderEmail: user.email,
+      source: isCloudAction ? 'system' : 'user',
     };
 
 
@@ -220,10 +222,16 @@ export default function SongCreator() {
     } else {
       // Regular user saving to local IndexedDB
       try {
-        await saveSong({ ...newSongData, updatedAt: new Date() });
+        const localSong = {
+          ...newSongData,
+          id: isUpdating ? songId : `custom-${uuidv4()}`,
+          source: 'user', // Local custom songs are always from user
+          updatedAt: new Date()
+        } as Song;
+        await saveSong(localSong);
         toast({
           title: `Song ${isUpdating ? 'Updated' : 'Saved'}`,
-          description: `"${newSongData.title}" has been saved to your local library.`,
+          description: `"${localSong.title}" has been saved to your local library.`,
         });
         form.reset({}, { keepValues: false, keepDirty: false, keepDefaultValues: false });
         router.push('/downloaded');

@@ -12,6 +12,7 @@ export type Song = {
   originalKey?: string;
   bpm?: number;
   timeSignature?: string;
+  source: 'system' | 'user'; // system: from the app, user: custom song or upload
   // Fields for user-uploaded songs
   userId?: string;
   uploaderName?: string;
@@ -27,6 +28,7 @@ const songs: Song[] = [
     originalKey: 'C',
     bpm: 120,
     timeSignature: '4/4',
+    source: 'system',
     lyrics: [
       { bar: 0, text: "(Intro)" },
       { bar: 1, text: "[Am] [G] [C] [F]" },
@@ -72,6 +74,7 @@ const songs: Song[] = [
     originalKey: 'G',
     bpm: 100,
     timeSignature: '4/4',
+    source: 'system',
     lyrics: [
       { bar: 0, text: "(Intro)" },
       { bar: 1, text: "[G] [D] [Em] [C]" },
@@ -114,6 +117,7 @@ const songs: Song[] = [
     originalKey: 'Dm',
     bpm: 95,
     timeSignature: '4/4',
+    source: 'system',
     lyrics: [
         { bar: 0, text: "(Verse 1)" },
         { bar: 1, text: "The [Dm]rain is washing streets of [C]chrome," },
@@ -148,6 +152,7 @@ const songs: Song[] = [
     originalKey: 'A',
     bpm: 72,
     timeSignature: '4/4',
+    source: 'system',
     lyrics: [
       { bar: 0, text: "(Intro)" },
       { bar: 1, text: "[A] [F#m] [D] [E]" },

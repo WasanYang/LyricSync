@@ -61,8 +61,8 @@ export default function AdminSongsPage() {
     async function loadSongs() {
         setIsLoading(true);
         const cloudSongs = await getAllCloudSongs();
-        // Filter to only show system songs (not starting with 'uploaded-')
-        const systemSongs = cloudSongs.filter(s => !s.id.startsWith('uploaded-'));
+        // Filter to only show system songs
+        const systemSongs = cloudSongs.filter(s => s.source === 'system');
         setSongs(systemSongs);
         setIsLoading(false);
     }
