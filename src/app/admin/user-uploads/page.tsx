@@ -99,16 +99,6 @@ export default function AdminUserUploadsPage() {
                                 </TooltipTrigger>
                                 <TooltipContent><p>View in Player</p></TooltipContent>
                             </Tooltip>
-                             <Tooltip>
-                                <TooltipTrigger asChild>
-                                     <Button asChild variant="ghost" size="icon" disabled>
-                                        <Link href={`/song-editor?mode=cloud&id=${song.id}`}>
-                                            <Edit className="h-4 w-4" />
-                                        </Link>
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent><p>Editing disabled on this page</p></TooltipContent>
-                            </Tooltip>
                         </TooltipProvider>
                     </div>
                 </li>
