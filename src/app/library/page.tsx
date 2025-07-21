@@ -33,7 +33,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
   const { toast } = useToast();
 
   const isCustomSong = song.id.startsWith('custom-');
-  const isCloudUploadedSong = song.id.startsWith('uploaded-');
+  const isCloudSong = song.source === 'system';
   
   const handleDelete = async () => {
     try {
@@ -157,8 +157,8 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                         </Tooltip>
                     )}
                 </>
-            ) : isCloudUploadedSong && isSuperAdmin ? (
-                <Tooltip>
+            ) : isCloudSong && isSuperAdmin ? (
+                 <Tooltip>
                     <TooltipTrigger asChild>
                          <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
                             <Link href={`/song-editor?mode=cloud&id=${song.id}`} onClick={e => e.stopPropagation()}>
@@ -168,7 +168,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                     </TooltipTrigger>
                     <TooltipContent><p>Edit Cloud Song</p></TooltipContent>
                 </Tooltip>
-            ) : !isCustomSong ? ( // This now correctly targets system songs
+            ) : isCloudSong ? ( // This now correctly targets system songs
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={handleUpdate}>
@@ -183,7 +183,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                 <TooltipTrigger asChild>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                       </AlertDialogTrigger>
@@ -279,7 +279,11 @@ export default function LibraryPage() {
 
 
           {isLoading ? (
-            <p>Loading songs...</p>
+            <div className="space-y-2">
+                 <Skeleton className="h-16 w-full" />
+                 <Skeleton className="h-16 w-full" />
+                 <Skeleton className="h-16 w-full" />
+            </div>
           ) : songs.length > 0 ? (
             <div className="flex flex-col space-y-1">
               {songs.map(song => (
