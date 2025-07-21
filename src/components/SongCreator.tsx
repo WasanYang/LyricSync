@@ -1,4 +1,3 @@
-
 // src/components/SongCreator.tsx
 'use client';
 
@@ -201,6 +200,9 @@ export default function SongCreator() {
       originalKey: data.originalKey,
       bpm: data.bpm,
       timeSignature: data.timeSignature,
+      userId: user.uid,
+      uploaderName: user.displayName,
+      uploaderEmail: user.email,
     };
 
 

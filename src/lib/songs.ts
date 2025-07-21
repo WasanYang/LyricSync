@@ -12,6 +12,10 @@ export type Song = {
   originalKey?: string;
   bpm?: number;
   timeSignature?: string;
+  // Fields for user-uploaded songs
+  userId?: string;
+  uploaderName?: string;
+  uploaderEmail?: string;
 };
 
 const songs: Song[] = [

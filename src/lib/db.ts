@@ -1,4 +1,3 @@
-
 // src/lib/db.ts
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Song } from './songs';
@@ -167,6 +166,9 @@ export async function getAllCloudSongs(): Promise<Song[]> {
             originalKey: data.originalKey,
             bpm: data.bpm,
             timeSignature: data.timeSignature,
+            userId: data.userId,
+            uploaderName: data.uploaderName,
+            uploaderEmail: data.uploaderEmail,
             updatedAt: updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
         } as Song);
     });

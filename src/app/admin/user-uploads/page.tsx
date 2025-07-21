@@ -66,7 +66,9 @@ export default function AdminUserUploadsPage() {
     const filteredSongs = useMemo(() => {
         return songs.filter(song =>
             song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            song.artist.toLowerCase().includes(searchTerm.toLowerCase())
+            song.artist.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            song.uploaderName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            song.uploaderEmail?.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [songs, searchTerm]);
 
@@ -81,6 +83,9 @@ export default function AdminUserUploadsPage() {
                     <div className="flex-grow">
                         <Link href={`/lyrics/${song.id}`} className="font-semibold hover:underline">{song.title}</Link>
                         <p className="text-sm text-muted-foreground">{song.artist}</p>
+                        <p className="text-xs text-muted-foreground/80">
+                            Uploaded by: {song.uploaderName || song.uploaderEmail || 'Unknown'}
+                        </p>
                     </div>
                     <div className="flex items-center gap-1">
                         <TooltipProvider>
@@ -122,7 +127,7 @@ export default function AdminUserUploadsPage() {
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
-                            placeholder="Search songs..."
+                            placeholder="Search by title, artist, or uploader..."
                             className="pl-10 bg-muted"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
