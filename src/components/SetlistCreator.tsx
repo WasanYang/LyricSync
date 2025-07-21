@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { GripVertical, PlusCircle, Search, Trash2, ArrowLeft } from 'lucide-react';
+import { GripVertical, PlusCircle, Search, Trash2, ArrowLeft, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { getAllSavedSongs } from '@/lib/db';
@@ -338,23 +338,24 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
 
   return (
     <div className="relative w-full max-w-lg mx-auto">
-        <div className="absolute -top-1 -left-1">
+        <div className="absolute top-2 -left-1 z-10">
             <BackButton />
         </div>
         <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSaveSetlist)} className="w-full h-full flex flex-col space-y-8">
             
-            <div className="space-y-2 pt-8 text-center">
+            <div className="space-y-2 pt-2 text-center">
                 <FormField
                 control={form.control}
                 name="title"
                 render={({ field }) => (
-                    <FormItem>
-                    <FormLabel className="sr-only">Setlist Title</FormLabel>
-                    <FormControl>
-                        <Input placeholder="Setlist Name" {...field} className="text-xl text-center font-bold p-0 h-auto border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent" />
-                    </FormControl>
-                    <FormMessage className="text-center" />
+                    <FormItem className="group relative">
+                        <FormLabel className="sr-only">Setlist Title</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Setlist Name" {...field} className="text-xl text-center font-bold p-0 h-auto border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent" />
+                        </FormControl>
+                         <Edit className="absolute top-1/2 right-0 -translate-y-1/2 h-4 w-4 text-muted-foreground/0 group-hover:text-muted-foreground/70 transition-colors" />
+                        <FormMessage className="text-center" />
                     </FormItem>
                 )}
                 />
