@@ -124,12 +124,12 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
             <Tooltip>
                 <TooltipTrigger asChild>
                     <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-                        <Link href={`/lyrics/${song.id}`} onClick={e => e.stopPropagation()}>
+                        <Link href={`/lyrics/${song.id}/player`} onClick={e => e.stopPropagation()}>
                             <Eye className="h-4 w-4" />
                         </Link>
                     </Button>
                 </TooltipTrigger>
-                <TooltipContent><p>View</p></TooltipContent>
+                <TooltipContent><p>View in Player</p></TooltipContent>
             </Tooltip>
 
             {isCustomSong ? (
