@@ -168,7 +168,9 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                             </Link>
                         </Button>
                     </TooltipTrigger>
-                    <TooltipContent><p>Edit</p></TooltipContent>
+                    <TooltipContent>
+                        <p>Edit</p>
+                    </TooltipContent>
                 </Tooltip>
 
                  {!setlist.containsCustomSongs && (
@@ -180,7 +182,9 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                                         {isSyncing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4 text-blue-500" />}
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent><p>Sync Changes</p></TooltipContent>
+                                <TooltipContent>
+                                    <p>Sync Changes</p>
+                                </TooltipContent>
                             </Tooltip>
                         ) : (
                              <Tooltip>
@@ -189,7 +193,9 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                                         <CheckCircle className="h-4 w-4 text-green-500" />
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent><p>Unsync</p></TooltipContent>
+                                <TooltipContent>
+                                    <p>Unsync</p>
+                                </TooltipContent>
                             </Tooltip>
                         )
                     ) : (
@@ -199,7 +205,9 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                                     {isSyncing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
                                 </Button>
                             </TooltipTrigger>
-                            <TooltipContent><p>Sync to Cloud</p></TooltipContent>
+                            <TooltipContent>
+                                <p>Sync to Cloud</p>
+                            </TooltipContent>
                         </Tooltip>
                     )
                  )}
@@ -207,27 +215,27 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                 <AlertDialog>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={(e) => {e.preventDefault(); e.stopPropagation();}}>
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </AlertDialogTrigger>
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
                         </TooltipTrigger>
-                        <TooltipContent><p>Delete</p></TooltipContent>
+                        <TooltipContent>
+                            <p>Delete</p>
+                        </TooltipContent>
                     </Tooltip>
-                  <AlertDialogContent onClick={(e) => e.stopPropagation()}>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete your setlist
-                        &quot;{setlist.title}&quot;.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDelete()} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your setlist
+                            &quot;{setlist.title}&quot;.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
                 </AlertDialog>
             </div>
         </div>
