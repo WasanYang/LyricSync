@@ -102,7 +102,7 @@ function RecommendedSetlistCard({ setlist }: { setlist: Setlist & { description:
     const firstSong = getSongs().find(s => s.id === setlist.songIds[0]);
 
     return (
-        <Card className="w-full overflow-hidden group">
+        <Card className="w-full overflow-hidden group border-0 shadow-lg bg-card">
             <Link href={`/setlists/shared/${setlist.id}`} className="block">
                 <CardContent className="p-0">
                      <div className="relative aspect-video">
@@ -117,7 +117,7 @@ function RecommendedSetlistCard({ setlist }: { setlist: Setlist & { description:
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-primary/70 to-accent/20" />
                     </div>
-                    <div className="p-4 bg-card">
+                    <div className="p-4">
                         <h3 className="font-semibold font-headline truncate">{setlist.title}</h3>
                         <p className="text-sm text-muted-foreground">{songCount} {songCount === 1 ? 'song' : 'songs'}</p>
                     </div>
