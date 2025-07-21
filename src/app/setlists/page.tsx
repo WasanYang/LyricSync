@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/tooltip"
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ShareSetlistDialog } from '@/components/ShareSetlistDialog';
 
 
 const SYNC_LIMIT = 5;
@@ -45,6 +46,7 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
     const { toast } = useToast();
     const { user } = useAuth();
     const [isSyncing, setIsSyncing] = useState(false);
+    const [isShareOpen, setIsShareOpen] = useState(false);
 
     const handleDelete = async () => {
         if (!user) return;
@@ -63,26 +65,7 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
             });
         }
     };
-
-    const handleShare = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!setlist.firestoreId) return;
-        const shareUrl = `${window.location.origin}/setlists/shared/${setlist.firestoreId}`;
-        navigator.clipboard.writeText(shareUrl).then(() => {
-            toast({
-                title: "Share Link Copied!",
-                description: "You can now share this setlist with others."
-            });
-        }, (err) => {
-            toast({
-                title: "Error",
-                description: "Could not copy the link.",
-                variant: "destructive"
-            });
-        });
-    }
-
+    
     const handleSync = async (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
@@ -167,6 +150,7 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
     const songCount = setlist.songIds.length;
     
     return (
+        <>
         <div className={cn(
             "p-3 rounded-lg bg-muted/50 flex items-center justify-between transition-colors",
             "hover:bg-muted"
@@ -195,7 +179,7 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                 {setlist.isSynced && (
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Button onClick={handleShare} variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                            <Button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsShareOpen(true); }} variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
                                 <Share2 className="h-4 w-4" />
                             </Button>
                         </TooltipTrigger>
@@ -273,6 +257,14 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                 </AlertDialog>
             </div>
         </div>
+        {setlist.isSynced && setlist.firestoreId && (
+            <ShareSetlistDialog 
+                isOpen={isShareOpen}
+                onOpenChange={setIsShareOpen}
+                setlist={setlist}
+            />
+        )}
+        </>
     );
 }
 
