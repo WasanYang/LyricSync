@@ -10,8 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['"Kanit"', 'sans-serif'],
-        headline: ['"Kanit"', 'sans-serif'],
+        body: ['"Noto Sans Thai"', 'sans-serif'],
+        headline: ['"Noto Sans Thai"', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
