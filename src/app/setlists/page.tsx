@@ -46,9 +46,7 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
     const { user } = useAuth();
     const [isSyncing, setIsSyncing] = useState(false);
 
-    const handleDelete = async (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
+    const handleDelete = async () => {
         if (!user) return;
         try {
             await deleteSetlistFromDb(setlist.id, user.uid);
@@ -227,7 +225,7 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={(e) => handleDelete(e)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                      <AlertDialogAction onClick={() => handleDelete()} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
