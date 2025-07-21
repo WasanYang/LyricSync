@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { getAllCloudSongs, deleteCloudSong, type Song } from '@/lib/db';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, PlusCircle, Edit, ListMusic, Trash2 } from 'lucide-react';
+import { Search, PlusCircle, Edit, ListMusic, Trash2, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 function LoadingSkeleton() {
     return (
@@ -74,12 +75,16 @@ export default function AdminSongsPage() {
         }
     }, [user, isSuperAdmin, authLoading, router]);
 
-    const filteredSongs = useMemo(() => {
-        if (!searchTerm) return songs;
-        return songs.filter(song =>
+    const { systemSongs, userSongs } = useMemo(() => {
+        const filtered = songs.filter(song =>
             song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             song.artist.toLowerCase().includes(searchTerm.toLowerCase())
         );
+
+        return {
+            systemSongs: filtered.filter(s => !s.id.startsWith('uploaded-')),
+            userSongs: filtered.filter(s => s.id.startsWith('uploaded-')),
+        }
     }, [songs, searchTerm]);
 
     const handleDelete = async (songToDelete: Song) => {
@@ -104,12 +109,73 @@ export default function AdminSongsPage() {
     if (authLoading || !user || !isSuperAdmin) {
         return <LoadingSkeleton />;
     }
+    
+    const SongList = ({ songs }: { songs: Song[] }) => (
+        <ul className="space-y-2">
+            {songs.map(song => (
+                <li key={song.id} className="flex items-center p-3 rounded-lg bg-muted/50">
+                    <div className="flex-grow">
+                        <p className="font-semibold">{song.title}</p>
+                        <p className="text-sm text-muted-foreground">{song.artist}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button asChild variant="ghost" size="icon">
+                                        <Link href={`/lyrics/${song.id}`}>
+                                            <Eye className="h-4 w-4" />
+                                        </Link>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>View</p></TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button asChild variant="ghost" size="icon">
+                                        <Link href={`/song-editor?mode=cloud&id=${song.id}`}>
+                                            <Edit className="h-4 w-4" />
+                                        </Link>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Edit</p></TooltipContent>
+                            </Tooltip>
+                             <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This will permanently delete "{song.title}" from the cloud. This action cannot be undone.
+                                            </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDelete(song)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Delete</p></TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+                </li>
+            ))}
+        </ul>
+    );
 
     return (
         <div className="flex-grow flex flex-col">
             <Header />
             <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
-                <div className="space-y-6">
+                <div className="space-y-8">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                         <h1 className="text-3xl font-bold font-headline">Manage Cloud Songs</h1>
                         <Button asChild>
@@ -134,45 +200,28 @@ export default function AdminSongsPage() {
                             <Skeleton className="h-16 w-full" />
                             <Skeleton className="h-16 w-full" />
                         </div>
-                    ) : filteredSongs.length > 0 ? (
-                        <ul className="space-y-2">
-                            {filteredSongs.map(song => (
-                                <li key={song.id} className="flex items-center p-3 rounded-lg bg-muted/50">
-                                    <div className="flex-grow">
-                                        <p className="font-semibold">{song.title}</p>
-                                        <p className="text-sm text-muted-foreground">{song.artist}</p>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Button asChild variant="outline" size="sm">
-                                            <Link href={`/song-editor?mode=cloud&id=${song.id}`}>
-                                                <Edit className="mr-2 h-3 w-3" />
-                                                Edit
-                                            </Link>
-                                        </Button>
-                                         <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button variant="destructive" size="sm">
-                                                    <Trash2 className="mr-2 h-3 w-3" />
-                                                    Delete
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                <AlertDialogDescription>
-                                                    This will permanently delete "{song.title}" from the cloud. This action cannot be undone.
-                                                </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleDelete(song)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
+                    ) : (songs.length > 0 || searchTerm) ? (
+                        <div className="space-y-6">
+                            {systemSongs.length > 0 && (
+                                <section>
+                                    <h2 className="text-xl font-semibold font-headline mb-3">System Songs</h2>
+                                    <SongList songs={systemSongs} />
+                                </section>
+                            )}
+                             {userSongs.length > 0 && (
+                                <section>
+                                    <h2 className="text-xl font-semibold font-headline mb-3">User Uploaded Songs</h2>
+                                    <SongList songs={userSongs} />
+                                </section>
+                            )}
+                            {systemSongs.length === 0 && userSongs.length === 0 && searchTerm && (
+                                 <div className="text-center py-16 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full">
+                                    <Search className="h-12 w-12 text-muted-foreground mb-4" />
+                                    <h2 className="text-xl font-headline font-semibold">No Results Found</h2>
+                                    <p className="text-muted-foreground">No songs matched your search for "{searchTerm}".</p>
+                                </div>
+                            )}
+                        </div>
                     ) : (
                         <div className="text-center py-16 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full">
                             <ListMusic className="h-12 w-12 text-muted-foreground mb-4" />
