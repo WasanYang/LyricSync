@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -7,9 +8,9 @@ import { cn } from '@/lib/utils';
 import { ListMusic } from 'lucide-react';
 
 const navLinks = [
-  { href: '/', label: 'Home', icon: HomeIcon },
-  { href: '/search', label: 'Search', icon: SearchIcon },
-  { href: '/setlists', label: 'Setlists', icon: ListMusic },
+  { href: '/', label: 'Home', icon: HomeIcon, isCustom: true },
+  { href: '/search', label: 'Search', icon: SearchIcon, isCustom: true },
+  { href: '/setlists', label: 'Setlists', icon: ListMusic, isCustom: false },
 ];
 
 export default function BottomNavBar() {
@@ -30,7 +31,11 @@ export default function BottomNavBar() {
                 isActive ? 'text-primary' : 'text-muted-foreground'
               )}
             >
-              <IconComponent className="h-6 w-6" isActive={isActive} />
+              {link.isCustom ? (
+                 <IconComponent className="h-6 w-6" isActive={isActive} />
+              ) : (
+                 <IconComponent className={cn("h-6 w-6", isActive ? "text-primary" : "text-muted-foreground")} />
+              )}
               <span>{link.label}</span>
             </Link>
           );
