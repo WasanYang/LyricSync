@@ -102,16 +102,13 @@ export async function isSongSaved(id: string): Promise<{ saved: boolean; needsUp
     return { saved: false, needsUpdate: false };
   }
   
-  // Custom songs don't have a "latest" version to check against
   if (savedSong.source === 'user') {
     return { saved: true, needsUpdate: false };
   }
   
-  // This logic works for both static songs and could be adapted for cloud songs
   const { getSongById } = await import('./songs');
   const latestSong = getSongById(id);
 
-  // If the "latest" version can't be found (e.g. removed from system), assume local is fine
   if (!latestSong) {
      return { saved: true, needsUpdate: false };
   }
