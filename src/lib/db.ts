@@ -1,4 +1,3 @@
-
 // src/lib/db.ts
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Song } from './songs';
@@ -98,17 +97,20 @@ export async function deleteSong(id: string): Promise<void> {
 export async function isSongSaved(id: string): Promise<{ saved: boolean; needsUpdate: boolean }> {
   const db = await getDb();
   const savedSong = await db.get(SONGS_STORE, id);
+  
   if (!savedSong) {
     return { saved: false, needsUpdate: false };
   }
   
+  // Custom songs created by the user don't need updates from the cloud.
   if (savedSong.source === 'user') {
     return { saved: true, needsUpdate: false };
   }
   
-  const { getSongById } = await import('./songs');
-  const latestSong = getSongById(id);
+  // For system songs, check against the cloud version.
+  const latestSong = await getCloudSongById(id);
 
+  // If the song doesn't exist in the cloud anymore, it can't be updated.
   if (!latestSong) {
      return { saved: true, needsUpdate: false };
   }

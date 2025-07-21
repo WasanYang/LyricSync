@@ -1,10 +1,9 @@
-
 // src/components/SongStatusButton.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { type Song } from '@/lib/songs';
-import { saveSong, updateSong, isSongSaved } from '@/lib/db';
+import { saveSong, updateSong, isSongSaved, getCloudSongById } from '@/lib/db';
 import { Download, Check, ArrowUpCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -60,7 +59,11 @@ export default function SongStatusButton({ song }: SongStatusButtonProps) {
     e.preventDefault();
     e.stopPropagation();
     try {
-      await updateSong(song);
+      const latestSong = await getCloudSongById(song.id);
+      if (!latestSong) {
+        throw new Error("Could not find the latest version of this song.");
+      }
+      await updateSong(latestSong);
       setStatus({ saved: true, needsUpdate: false });
       toast({
         title: "Song Updated",
@@ -69,7 +72,7 @@ export default function SongStatusButton({ song }: SongStatusButtonProps) {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Could not update the song.",
+        description: error instanceof Error ? error.message : "Could not update the song.",
         variant: "destructive",
       });
       console.error("Failed to update song:", error);
