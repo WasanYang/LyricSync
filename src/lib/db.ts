@@ -356,8 +356,11 @@ export async function syncSetlist(setlistId: string, userId: string): Promise<vo
         if (count >= SYNC_LIMIT) {
             throw new Error("SYNC_LIMIT_REACHED");
         }
-        const docRef = await addDoc(collection(firestoreDb, "setlists"), dataToSync);
-        setlist.firestoreId = docRef.id;
+        // Use a generated Firestore ID if none exists, or the existing one
+        const firestoreId = setlist.firestoreId || doc(collection(firestoreDb, "setlists")).id;
+        const docRef = doc(firestoreDb, "setlists", firestoreId);
+        await setDoc(docRef, dataToSync);
+        setlist.firestoreId = firestoreId;
     }
     
     // Update local setlist
