@@ -527,7 +527,7 @@ export default function LyricPlayer({
         { !isSetlistMode && (
            <header className="fixed top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm pointer-events-auto">
               <div className="relative container mx-auto flex items-center justify-between h-14">
-                <div className="flex-1 flex justify-start">
+                <div className="absolute left-2 top-1/2 -translate-y-1/2">
                     {onClose ? (
                       <Button variant="ghost" size="icon" onClick={onClose}>
                           <ArrowLeft />
@@ -541,12 +541,12 @@ export default function LyricPlayer({
                     )}
                 </div>
 
-                <div className="flex-1 text-center min-w-0">
+                <div className="flex-1 text-center min-w-0 px-12">
                     <h1 className="font-headline text-xl font-bold truncate">{song.title}</h1>
                 </div>
               
-                <div className="flex-1 flex justify-end items-center gap-0">
-                   {/* This space is intentionally left blank to balance the header */}
+                <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                    {/* This space is for the settings button, handled in the footer for this layout */}
                 </div>
               </div>
           </header>
