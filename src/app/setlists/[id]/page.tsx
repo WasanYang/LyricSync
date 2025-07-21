@@ -38,7 +38,6 @@ function LoadingSkeleton() {
                 <Skeleton className="h-5 w-24" />
             </div>
              <div className="flex gap-4">
-                <Skeleton className="h-11 w-24" />
                 <Skeleton className="h-11 w-40" />
                 <Skeleton className="h-11 w-11" />
                 <Skeleton className="h-11 w-11" />
@@ -149,17 +148,12 @@ function SetlistDetailContent() {
 
     return (
       <div className="space-y-8">
-        <div className="space-y-2">
+        <div className="space-y-2 pt-8 text-center">
             <h1 className="text-4xl font-bold font-headline">{setlist.title}</h1>
             <p className="text-muted-foreground">{songs.length} {songs.length === 1 ? 'song' : 'songs'}</p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-            <Button asChild variant="outline">
-                 <Link href="/setlists">
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Back to Setlists
-                </Link>
-            </Button>
+        <div className="flex flex-wrap gap-2 justify-center">
             <Button asChild size="lg">
                 <Link href={`/setlists/${setlist.id}/player`}>
                     <Play className="mr-2 h-5 w-5" /> Start Setlist
@@ -206,7 +200,13 @@ export default function SetlistDetailPage() {
     return (
         <div className="flex-grow flex flex-col">
             <Header />
-            <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
+            <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8 relative">
+                <Button asChild variant="ghost" size="icon" className="absolute top-4 left-4">
+                    <Link href="/setlists">
+                        <ArrowLeft className="h-5 w-5" />
+                        <span className="sr-only">Back to Setlists</span>
+                    </Link>
+                </Button>
                 <SetlistDetailContent />
             </main>
             <BottomNavBar />
