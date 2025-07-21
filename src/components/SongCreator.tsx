@@ -7,8 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import { saveSong, getSong as getSongFromDb, uploadSongToCloud, getAllCloudSongs } from '@/lib/db';
-import { getSongById } from '@/lib/songs';
+import { saveSong, getSong as getSongFromDb, uploadSongToCloud, getAllCloudSongs, getCloudSongById } from '@/lib/db';
 import type { Song, LyricLine } from '@/lib/songs';
 import { ALL_NOTES } from '@/lib/chords';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -224,8 +223,10 @@ export default function SongCreator() {
     if (songId) {
       const fetchSong = async () => {
         setIsLoading(true);
-        // If in cloud mode, it must be an official song. Otherwise, check local DB.
-        const existingSong = isCloudMode ? getSongById(songId) : await getSongFromDb(songId);
+        // If in cloud mode, fetch from firestore. Otherwise, check local DB.
+        const existingSong = isCloudMode 
+          ? await getCloudSongById(songId) 
+          : await getSongFromDb(songId);
         
         if (existingSong) {
           form.reset({

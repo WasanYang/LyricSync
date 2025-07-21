@@ -174,6 +174,31 @@ export async function getAllCloudSongs(): Promise<Song[]> {
     return songs;
 }
 
+export async function getCloudSongById(songId: string): Promise<Song | null> {
+    if (!firestoreDb) throw new Error("Firebase is not configured.");
+    
+    try {
+        const docRef = doc(firestoreDb, "songs", songId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            const updatedAt = data.updatedAt;
+            return {
+                id: docSnap.id,
+                ...data,
+                updatedAt: updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
+            } as Song;
+        } else {
+            console.log("No such document!");
+            return null;
+        }
+    } catch (error) {
+        console.error("Error getting cloud song:", error);
+        return null;
+    }
+}
+
 
 // --- Setlist Functions ---
 
