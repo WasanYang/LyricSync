@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import SongStatusButton from '@/components/SongStatusButton';
-import { Play } from 'lucide-react';
+import { Play, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
@@ -107,7 +107,7 @@ function SongDetailContent() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pt-8">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8">
             <div className="flex-shrink-0">
                 <Image
@@ -149,10 +149,16 @@ function SongDetailContent() {
 
 
 export default function SongDetailPage() {
+    const router = useRouter();
+
     return (
         <div className="flex-grow flex flex-col">
             <Header />
-            <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
+            <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8 relative">
+                 <Button variant="ghost" size="icon" className="absolute top-4 left-4" onClick={() => router.back()}>
+                    <ArrowLeft className="h-5 w-5" />
+                    <span className="sr-only">Back</span>
+                </Button>
                 <SongDetailContent />
             </main>
             <BottomNavBar />
