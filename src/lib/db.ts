@@ -338,7 +338,7 @@ export async function syncSetlist(setlistId: string, userId: string): Promise<vo
         throw new Error("Cannot sync setlists with custom songs.");
     }
     
-    const dataToSync = {
+    const dataToSync: { title: string; songIds: string[]; userId: string; syncedAt: any } = {
         title: setlist.title,
         songIds: setlist.songIds,
         userId: setlist.userId,
@@ -348,7 +348,7 @@ export async function syncSetlist(setlistId: string, userId: string): Promise<vo
     if (setlist.isSynced && setlist.firestoreId) {
         // It's an update to an existing synced setlist
         const docRef = doc(firestoreDb, "setlists", setlist.firestoreId);
-        await updateDoc(docRef, dataToSync);
+        await updateDoc(docRef, dataToSync); // userId is now included here
     } else {
         // It's a new sync
         // Check sync limit
