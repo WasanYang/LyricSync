@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Music, Menu, LogOut, Home, Search, PlusSquare, Sun, Moon, ListMusic, Library, Edit, LogIn, User, Wifi, WifiOff, Info, UserCircle, UploadCloud, Database } from 'lucide-react';
+import { Music, Menu, LogOut, Home, Search, PlusSquare, Sun, Moon, ListMusic, Library, Edit, LogIn, User, Wifi, WifiOff, Info, UserCircle, UploadCloud, Database, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,6 +26,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu"
 import { useOnlineStatus } from '@/hooks/use-online-status';
 
@@ -104,13 +105,24 @@ function UserNav() {
              </DropdownMenuItem>
         )}
         { isSuperAdmin && (
-             <DropdownMenuItem asChild>
-                <Link href="/admin/songs">
-                    <Database className="mr-2 h-4 w-4" />
-                    <span>Manage Cloud Songs</span>
-                </Link>
-             </DropdownMenuItem>
+            <DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Admin</DropdownMenuLabel>
+                <DropdownMenuItem asChild>
+                    <Link href="/admin/songs">
+                        <Database className="mr-2 h-4 w-4" />
+                        <span>Manage Cloud Songs</span>
+                    </Link>
+                </DropdownMenuItem>
+                 <DropdownMenuItem asChild>
+                    <Link href="/admin/user-uploads">
+                        <Users className="mr-2 h-4 w-4" />
+                        <span>User Uploads</span>
+                    </Link>
+                </DropdownMenuItem>
+            </DropdownMenuGroup>
         )}
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={logout}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
@@ -212,13 +224,24 @@ export default function Header() {
                                </Link>
                            </SheetClose>
                            {isSuperAdmin && (
+                            <>
+                             <Separator />
+                             <p className="px-3 text-xs font-semibold text-muted-foreground tracking-wider uppercase">Admin</p>
                              <SheetClose asChild>
                                 <Link href="/admin/songs" className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary">
                                     <Database className="h-5 w-5" />
-                                    <span>Manage Cloud Songs</span>
+                                    <span>Cloud Songs</span>
                                 </Link>
                              </SheetClose>
+                             <SheetClose asChild>
+                                <Link href="/admin/user-uploads" className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary">
+                                    <Users className="h-5 w-5" />
+                                    <span>User Uploads</span>
+                                </Link>
+                             </SheetClose>
+                            </>
                            )}
+                           <Separator />
                            <SheetClose asChild>
                                <button onClick={logout} className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary">
                                   <LogOut className="h-5 w-5" />
