@@ -22,11 +22,47 @@ import { cn } from '@/lib/utils';
 import PremiumCard from '@/components/PremiumCard';
 import { Button } from '@/components/ui/button';
 import Footer from '@/components/Footer';
+import { Card, CardContent } from '@/components/ui/card';
+import Image from 'next/image';
 
 // In a real app, these would come from an API
 const featuredSongs = getSongs().slice(0, 5);
 const recentReleases = getSongs().slice(2, 6).reverse();
 const popularHits = getSongs().slice(1, 6);
+
+// Mock data for recommended setlists
+const recommendedSetlists: (Setlist & { description: string })[] = [
+    {
+        id: 'rec-worship',
+        title: 'Worship Classics',
+        description: 'Timeless songs of praise.',
+        songIds: ['4', '1'],
+        userId: 'system',
+        createdAt: Date.now(),
+        isSynced: true,
+        firestoreId: 'rec-worship'
+    },
+    {
+        id: 'rec-acoustic',
+        title: 'Acoustic Cafe',
+        description: 'Chill vibes for a relaxed set.',
+        songIds: ['2', '3'],
+        userId: 'system',
+        createdAt: Date.now(),
+        isSynced: true,
+        firestoreId: 'rec-acoustic'
+    },
+    {
+        id: 'rec-upbeat',
+        title: 'Upbeat Hits',
+        description: 'Get the energy flowing.',
+        songIds: ['2', '1', '3'],
+        userId: 'system',
+        createdAt: Date.now(),
+        isSynced: true,
+        firestoreId: 'rec-upbeat'
+    }
+];
 
 function SongCarousel({ songs }: { songs: Song[] }) {
     return (
@@ -59,6 +95,36 @@ function RecentSetlistItem({ setlist }: {setlist: Setlist}) {
             </div>
         </Link>
     )
+}
+
+function RecommendedSetlistCard({ setlist }: { setlist: Setlist & { description: string } }) {
+    const songCount = setlist.songIds.length;
+    const firstSong = getSongs().find(s => s.id === setlist.songIds[0]);
+
+    return (
+        <Card className="w-full overflow-hidden group">
+            <Link href={`/setlists/shared/${setlist.id}`} className="block">
+                <CardContent className="p-0">
+                     <div className="relative aspect-video">
+                        {firstSong && (
+                            <Image
+                                src={`https://placehold.co/400x225.png?text=${encodeURIComponent(firstSong.title)}`}
+                                alt={setlist.title}
+                                fill
+                                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                data-ai-hint="stage lights"
+                            />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
+                    </div>
+                    <div className="p-4">
+                        <h3 className="font-semibold font-headline truncate">{setlist.title}</h3>
+                        <p className="text-sm text-muted-foreground">{songCount} {songCount === 1 ? 'song' : 'songs'}</p>
+                    </div>
+                </CardContent>
+            </Link>
+        </Card>
+    );
 }
 
 function LoadingSkeleton() {
@@ -185,6 +251,16 @@ export default function Home() {
             </section>
         )}
         
+         {/* Recommended Setlists */}
+         <section>
+            <h2 className="text-xl font-headline font-semibold mb-4">Recommended Setlists</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {recommendedSetlists.map(setlist => (
+                    <RecommendedSetlistCard key={setlist.id} setlist={setlist} />
+                ))}
+            </div>
+        </section>
+
         {/* Recommended Songs */}
         <section>
             <h2 className="text-xl font-headline font-semibold mb-4">Recommended Songs</h2>
