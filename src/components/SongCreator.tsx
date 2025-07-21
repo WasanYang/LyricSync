@@ -43,7 +43,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import LyricPlayer from './LyricPlayer';
-import { Eye, Save, XCircle, HelpCircle, Database } from 'lucide-react';
+import { Eye, Save, XCircle, HelpCircle, Database, ArrowLeft } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
 
@@ -104,8 +104,7 @@ function LoadingScreen() {
                 </div>
             </div>
              <div className="flex-shrink-0 sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t">
-              <div className="w-full max-w-2xl mx-auto flex items-center justify-between gap-4">
-                  <Skeleton className="h-10 w-32" />
+              <div className="w-full max-w-2xl mx-auto flex items-center justify-end">
                   <Skeleton className="h-11 w-32" />
               </div>
             </div>
@@ -268,11 +267,46 @@ export default function SongCreator() {
     );
   }
 
+  const CancelButton = () => {
+    if (isDirty) {
+      return (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button type="button" variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Discard changes?</AlertDialogTitle>
+              <AlertDialogDescription>
+                You have unsaved changes. Are you sure you want to discard them and go back?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep Editing</AlertDialogCancel>
+              <AlertDialogAction onClick={handleCancel} className="bg-destructive hover:bg-destructive/90">Discard</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      );
+    }
+    return (
+      <Button type="button" variant="ghost" size="icon" onClick={handleCancel}>
+        <ArrowLeft className="h-5 w-5" />
+      </Button>
+    );
+  };
+
+
   return (
     <Form {...form}>
       <div className="flex flex-col h-full">
-          <header className="flex-shrink-0 p-4 border-b bg-background flex items-center justify-between">
-              <h1 className="text-2xl font-bold font-headline">{getPageTitle()}</h1>
+          <header className="flex-shrink-0 p-4 border-b bg-background flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <CancelButton />
+                <h1 className="text-xl md:text-2xl font-bold font-headline truncate">{getPageTitle()}</h1>
+              </div>
               <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
                   <DialogTrigger asChild>
                       <Button type="button" variant="outline">
@@ -451,34 +485,7 @@ export default function SongCreator() {
           </div>
 
           <div className="flex-shrink-0 sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t">
-              <div className="w-full max-w-2xl mx-auto flex items-center justify-between gap-4">
-                  
-                  {isDirty ? (
-                       <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                             <Button type="button" variant="outline">
-                                <XCircle className="mr-2 h-4 w-4"/> Cancel
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Discard changes?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                You have unsaved changes. Are you sure you want to discard them and go back?
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Keep Editing</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleCancel} className="bg-destructive hover:bg-destructive/90">Discard</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                  ) : (
-                    <Button type="button" variant="outline" onClick={handleCancel}>
-                        <XCircle className="mr-2 h-4 w-4"/> Cancel
-                    </Button>
-                  )}
-
+              <div className="w-full max-w-2xl mx-auto flex items-center justify-end gap-4">
                   {getSubmitButton()}
               </div>
             </div>
