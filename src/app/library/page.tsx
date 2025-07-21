@@ -159,11 +159,9 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                     <Tooltip>
                         <AlertDialog>
                             <TooltipTrigger asChild>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </AlertDialogTrigger>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
                             </TooltipTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
@@ -181,17 +179,6 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                         <TooltipContent><p>Delete</p></TooltipContent>
                     </Tooltip>
                 </>
-            ) : isCloudSong && isSuperAdmin ? (
-                 <Tooltip>
-                    <TooltipTrigger asChild>
-                         <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-                            <Link href={`/song-editor?mode=cloud&id=${song.id}`} onClick={e => e.stopPropagation()}>
-                                <Edit className="h-4 w-4" />
-                            </Link>
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent><p>Edit Cloud Song</p></TooltipContent>
-                </Tooltip>
             ) : isCloudSong ? (
                 <Tooltip>
                     <TooltipTrigger asChild>
