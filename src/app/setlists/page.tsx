@@ -30,19 +30,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from '@/lib/utils';
-import { MoreVertical } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 
@@ -161,75 +154,83 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
             "p-3 rounded-lg bg-muted/50 flex items-center justify-between transition-colors",
             "hover:bg-muted"
         )}>
-            <div className="flex-grow flex items-center gap-4 min-w-0">
+            <Link href={`/setlists/${setlist.id}`} key={setlist.id} className="flex-grow flex items-center gap-4 min-w-0">
                 {getStatusIcon()}
-                <Link href={`/setlists/${setlist.id}`} key={setlist.id} className="flex-grow min-w-0">
+                <div className="flex-grow min-w-0">
                     <h2 className="font-headline font-semibold text-base truncate">{setlist.title}</h2>
                     <p className="text-sm text-muted-foreground">{songCount} {songCount === 1 ? 'song' : 'songs'}</p>
-                </Link>
-            </div>
-            <div className="flex items-center gap-1">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                     <Button variant="ghost" size="icon" className="text-muted-foreground h-8 w-8" onClick={(e) => e.preventDefault()}>
-                       <MoreVertical className="h-4 w-4" />
-                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenuItem asChild>
-                        <Link href={`/create?id=${setlist.id}`}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            <span>Edit</span>
-                        </Link>
-                    </DropdownMenuItem>
-                    
-                    {!setlist.containsCustomSongs && (
-                        setlist.isSynced ? (
-                            <>
-                                {setlist.needsSync && (
-                                     <DropdownMenuItem onClick={handleSync} disabled={isSyncing}>
-                                        {isSyncing ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
-                                        <span>Sync to Cloud</span>
-                                    </DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem onClick={handleUnsync} disabled={isSyncing}>
-                                    Unsync
-                                </DropdownMenuItem>
-                            </>
-                        ) : (
-                             <DropdownMenuItem onClick={handleSync} disabled={isSyncing}>
-                                {isSyncing ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <UploadCloud className="mr-2 h-4 w-4" />}
-                                <span>Sync to Cloud</span>
-                            </DropdownMenuItem>
-                        )
-                    )}
+                </div>
+            </Link>
+            <div className="flex items-center gap-1 ml-2">
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                            <Link href={`/create?id=${setlist.id}`} onClick={(e) => e.stopPropagation()}>
+                                <Edit className="h-4 w-4" />
+                            </Link>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent><p>Edit</p></TooltipContent>
+                </Tooltip>
 
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                           Delete
-                         </DropdownMenuItem>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete your setlist
-                            &quot;{setlist.title}&quot;.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={(e) => handleDelete(e)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <Link href={`/setlists/${setlist.id}`} className="block">
-                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                </Link>
+                 {!setlist.containsCustomSongs && (
+                    setlist.isSynced ? (
+                        setlist.needsSync ? (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button onClick={handleSync} disabled={isSyncing} variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                                        {isSyncing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4 text-blue-500" />}
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Sync Changes</p></TooltipContent>
+                            </Tooltip>
+                        ) : (
+                             <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button onClick={handleUnsync} disabled={isSyncing} variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                                        <CheckCircle className="h-4 w-4 text-green-500" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent><p>Unsync</p></TooltipContent>
+                            </Tooltip>
+                        )
+                    ) : (
+                         <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button onClick={handleSync} disabled={isSyncing} variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                                    {isSyncing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Sync to Cloud</p></TooltipContent>
+                        </Tooltip>
+                    )
+                 )}
+                
+                <AlertDialog>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={(e) => {e.preventDefault(); e.stopPropagation();}}>
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </AlertDialogTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent><p>Delete</p></TooltipContent>
+                    </Tooltip>
+                  <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete your setlist
+                        &quot;{setlist.title}&quot;.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={(e) => handleDelete(e)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
             </div>
         </div>
     );
