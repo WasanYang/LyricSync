@@ -254,7 +254,7 @@ const LyricLineDisplay = ({
         {parsedLine.map((part, index) => (
           <span key={`chord-${index}`} className='whitespace-pre'>
             <span className='font-bold'>
-              {part.chord ? transposeChord(part.chord, transpose) : ''}
+              {part.chord ? transposeChord(part.chord, transpose).replace(/\|/g, ' | ') : ''}
             </span>
             <span className='text-transparent' style={{ fontWeight }}>
               {part.text}

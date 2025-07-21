@@ -71,6 +71,11 @@ const getTransposedNote = (note: string, amount: number): string => {
 export const transposeChord = (chord: string, amount: number): string => {
   if (amount === 0) return chord;
   
+  // Handle multi-chord groups like [G/B|C|D|G]
+  if (chord.includes('|')) {
+    return chord.split('|').map(c => transposeChord(c, amount)).join('|');
+  }
+
   // This regex handles standard chords, slash chords (e.g., G/B), and complex chords (e.g., Asus4, Cmaj7).
   // 1. ([A-G][b#]?): Captures the root note (e.g., 'A', 'C#', 'Bb').
   // 2. ([^/]*): Captures the chord quality (e.g., 'sus4', 'maj7', 'm') - everything until a slash or the end.
@@ -99,4 +104,3 @@ export const transposeChord = (chord: string, amount: number): string => {
 
   return newRoot + quality + newSlashPart;
 };
-
