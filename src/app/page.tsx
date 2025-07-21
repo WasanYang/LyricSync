@@ -17,7 +17,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, ListMusic, PlusCircle, ChevronRight, Music } from 'lucide-react';
+import { RefreshCw, ListMusic, PlusCircle, ChevronRight, Music, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import PremiumCard from '@/components/PremiumCard';
 import { Button } from '@/components/ui/button';
@@ -85,7 +85,7 @@ function SongCarousel({ songs }: { songs: Song[] }) {
 function RecentSetlistItem({ setlist }: {setlist: Setlist}) {
     const songCount = setlist.songIds.length;
     return (
-        <Link href={`/setlists/${setlist.id}`} className="block p-3 rounded-lg bg-muted/60 hover:bg-muted transition-colors">
+        <Link href={`/setlists/${setlist.id}`} className="block p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors">
             <div className="flex items-center justify-between">
                 <div>
                     <p className="font-semibold font-headline truncate">{setlist.title}</p>
@@ -117,7 +117,7 @@ function RecommendedSetlistCard({ setlist }: { setlist: Setlist & { description:
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
                     </div>
-                    <div className="p-4">
+                    <div className="p-4 bg-card">
                         <h3 className="font-semibold font-headline truncate">{setlist.title}</h3>
                         <p className="text-sm text-muted-foreground">{songCount} {songCount === 1 ? 'song' : 'songs'}</p>
                     </div>
@@ -254,10 +254,16 @@ export default function Home() {
          {/* Recommended Setlists */}
          <section>
             <h2 className="text-xl font-headline font-semibold mb-4">Recommended Setlists</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {recommendedSetlists.map(setlist => (
-                    <RecommendedSetlistCard key={setlist.id} setlist={setlist} />
-                ))}
+             <div className="w-full max-w-full -mr-4">
+                <Carousel opts={{ align: "start", loop: false }} className="w-full">
+                    <CarouselContent className="-ml-4">
+                        {recommendedSetlists.map(setlist => (
+                            <CarouselItem key={setlist.id} className="basis-2/3 sm:basis-1/3 pl-4">
+                                <RecommendedSetlistCard setlist={setlist} />
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                </Carousel>
             </div>
         </section>
 
