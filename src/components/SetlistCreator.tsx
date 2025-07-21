@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { GripVertical, PlusCircle, Search, Trash2 } from 'lucide-react';
+import { GripVertical, PlusCircle, Search, Trash2, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { getAllSavedSongs } from '@/lib/db';
@@ -24,6 +24,17 @@ import { v4 as uuidv4 } from 'uuid';
 import { Skeleton } from './ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import SongStatusButton from './SongStatusButton';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 
 const setlistFormSchema = z.object({
@@ -139,6 +150,8 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
     },
   });
 
+  const { formState: { isDirty } } = form;
+
   // Fetch all songs (official + custom) on component mount
   useMemo(() => {
     const fetchSongs = async () => {
@@ -157,7 +170,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
         setIsLoading(true);
         const existingSetlist = await getSetlistFromDb(setlistId);
         if (existingSetlist) {
-          form.setValue('title', existingSetlist.title);
+          form.reset({ title: existingSetlist.title });
           
           const songPromises = existingSetlist.songIds.map(async (id) => {
              const officialSong = getSongs().find(s => s.id === id);
@@ -190,6 +203,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
 
   const addSong = (song: Song) => {
     setSelectedSongs(prev => [...prev, song]);
+    form.trigger('title'); // Mark form as dirty when songs change
   };
 
   const handleAddSong = (song: Song) => {
@@ -200,6 +214,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
 
   const removeSong = (songId: string) => {
     setSelectedSongs(prev => prev.filter(song => song.id !== songId));
+     form.trigger('title');
   };
 
   const handleDragStart = (e: React.DragEvent<HTMLLIElement>, index: number) => {
@@ -215,6 +230,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
     newSongs.splice(dropIndex, 0, draggedSong);
     setSelectedSongs(newSongs);
     e.currentTarget.classList.remove('border-primary', 'border-2');
+    form.trigger('title');
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLLIElement>) => {
@@ -226,6 +242,10 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
     e.preventDefault();
     e.currentTarget.classList.remove('border-primary', 'border-2');
   };
+
+  const handleGoBack = () => {
+    router.push(setlistId ? `/setlists/${setlistId}` : '/setlists');
+  }
 
   async function handleSaveSetlist(data: SetlistFormValues) {
     if (!user) {
@@ -276,6 +296,37 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   if (isLoading) {
       return <LoadingScreen />;
   }
+
+  const BackButton = () => {
+    if (isDirty) {
+        return (
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Discard changes?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            You have unsaved changes. Are you sure you want to discard them and go back?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Keep Editing</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleGoBack} className="bg-destructive hover:bg-destructive/90">Discard</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        )
+    }
+    return (
+        <Button variant="ghost" size="icon" onClick={handleGoBack}>
+            <ArrowLeft className="h-5 w-5" />
+        </Button>
+    )
+  }
   
   const addSongTrigger = (
      <Button variant="ghost" size="icon">
@@ -286,90 +337,95 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   const addSongContent = <AddSongComponent availableSongs={availableSongs} onAddSong={handleAddSong} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} />;
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSaveSetlist)} className="w-full max-w-lg mx-auto flex flex-col space-y-8">
-        
-        <div className="space-y-2">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="sr-only">Setlist Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Setlist Name" {...field} className="text-xl font-bold p-0 h-auto border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+    <div className="relative w-full max-w-lg mx-auto">
+        <div className="absolute -top-1 -left-1">
+            <BackButton />
         </div>
+        <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSaveSetlist)} className="w-full h-full flex flex-col space-y-8">
+            
+            <div className="space-y-2 pt-8 text-center">
+                <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel className="sr-only">Setlist Title</FormLabel>
+                    <FormControl>
+                        <Input placeholder="Setlist Name" {...field} className="text-xl text-center font-bold p-0 h-auto border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent" />
+                    </FormControl>
+                    <FormMessage className="text-center" />
+                    </FormItem>
+                )}
+                />
+            </div>
 
-        <div className="flex-grow space-y-4 flex flex-col">
-          <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold font-headline">Songs</h2>
-              {isMobile ? (
-                  <Drawer open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                      <DrawerTrigger asChild>
-                          {addSongTrigger}
-                      </DrawerTrigger>
-                      <DrawerContent>
-                          <DrawerHeader className="p-0">
-                            <DrawerTitle className="sr-only">Add a song</DrawerTitle>
-                          </DrawerHeader>
-                          {addSongContent}
-                      </DrawerContent>
-                  </Drawer>
-              ) : (
-                  <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                      <PopoverTrigger asChild>
-                        {addSongTrigger}
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[350px] p-0" align="end">
-                         {addSongContent}
-                      </PopoverContent>
-                  </Popover>
-              )}
-          </div>
-          
-          <div className="flex-grow">
-            {selectedSongs.length > 0 ? (
-              <ul className="space-y-2">
-                {selectedSongs.map((song, index) => (
-                  <li
-                    key={song.id}
-                    className="flex items-center p-2 rounded-md bg-muted/50 transition-all border-2 border-transparent"
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, index)}
-                    onDrop={(e) => handleDrop(e, index)}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                  >
-                    <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab mr-2" />
-                    <div className="flex-grow">
-                      <p className="font-semibold">{song.title}</p>
-                      <p className="text-sm text-muted-foreground">{song.artist}</p>
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={() => removeSong(song.id)} className="text-muted-foreground hover:text-destructive h-8 w-8">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-center py-10 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full">
-                <p className="text-muted-foreground">Your setlist is empty.</p>
-                <p className="text-sm text-muted-foreground">Add songs to get started.</p>
-              </div>
-            )}
-          </div>
-        </div>
+            <div className="flex-grow space-y-4 flex flex-col">
+            <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold font-headline">Songs ({selectedSongs.length})</h2>
+                {isMobile ? (
+                    <Drawer open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                        <DrawerTrigger asChild>
+                            {addSongTrigger}
+                        </DrawerTrigger>
+                        <DrawerContent>
+                            <DrawerHeader className="p-0">
+                                <DrawerTitle className="sr-only">Add a song</DrawerTitle>
+                            </DrawerHeader>
+                            {addSongContent}
+                        </DrawerContent>
+                    </Drawer>
+                ) : (
+                    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                        <PopoverTrigger asChild>
+                            {addSongTrigger}
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[350px] p-0" align="end">
+                            {addSongContent}
+                        </PopoverContent>
+                    </Popover>
+                )}
+            </div>
+            
+            <div className="flex-grow min-h-[200px]">
+                {selectedSongs.length > 0 ? (
+                <ul className="space-y-2">
+                    {selectedSongs.map((song, index) => (
+                    <li
+                        key={song.id}
+                        className="flex items-center p-2 rounded-md bg-muted/50 transition-all border-2 border-transparent"
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, index)}
+                        onDrop={(e) => handleDrop(e, index)}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                    >
+                        <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab mr-2" />
+                        <div className="flex-grow">
+                        <p className="font-semibold">{song.title}</p>
+                        <p className="text-sm text-muted-foreground">{song.artist}</p>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={() => removeSong(song.id)} className="text-muted-foreground hover:text-destructive h-8 w-8">
+                        <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </li>
+                    ))}
+                </ul>
+                ) : (
+                <div className="text-center py-10 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full">
+                    <p className="text-muted-foreground">Your setlist is empty.</p>
+                    <p className="text-sm text-muted-foreground">Add songs to get started.</p>
+                </div>
+                )}
+            </div>
+            </div>
 
-        <Button type="submit" size="lg" className="w-full">
-            {setlistId ? 'Update Setlist' : 'Save Setlist'}
-        </Button>
-        
-      </form>
-    </Form>
+            <Button type="submit" size="lg" className="w-full">
+                {setlistId ? 'Update Setlist' : 'Save Setlist'}
+            </Button>
+            
+        </form>
+        </Form>
+    </div>
   );
 }
