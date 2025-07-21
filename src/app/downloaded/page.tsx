@@ -10,7 +10,7 @@ import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Library, Trash2, Edit, RefreshCw, UploadCloud, PlusCircle } from 'lucide-react';
+import { Library, Trash2, Edit, RefreshCw, UploadCloud, PlusCircle, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -26,11 +26,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (songId: string) => void, onUpdate: (songId: string) => void }) {
   const { user, isSuperAdmin } = useAuth();
-  const isCustomSong = song.id.startsWith('custom-');
   const { toast } = useToast();
+
+  const isCustomSong = song.id.startsWith('custom-');
+  const isCloudUploadedSong = song.id.startsWith('uploaded-');
   
   const handleDelete = async () => {
     try {
@@ -117,44 +120,88 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
         </div>
       </Link>
       <div className="flex-shrink-0 flex items-center gap-1">
-        {isCustomSong ? (
-             <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-                  <Link href={`/song-editor?id=${song.id}`} onClick={e => e.stopPropagation()}>
-                      <Edit className="h-4 w-4" />
-                  </Link>
-              </Button>
-        ) : (
-          !isSuperAdmin ? (
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={handleUpdate}>
-                <RefreshCw className="h-4 w-4" />
-            </Button>
-          ) : (
-             <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-                  <Link href={`/song-editor?id=${song.id}&cloud=true`} onClick={e => e.stopPropagation()}>
-                      <Edit className="h-4 w-4" />
-                  </Link>
-              </Button>
-          )
-        )}
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                <Trash2 className="h-4 w-4" />
-              </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete "{song.title}" from your library.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                        <Link href={`/lyrics/${song.id}`} onClick={e => e.stopPropagation()}>
+                            <Eye className="h-4 w-4" />
+                        </Link>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent><p>View</p></TooltipContent>
+            </Tooltip>
+
+            {isCustomSong ? (
+                <>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                                <Link href={`/song-editor?id=${song.id}`} onClick={e => e.stopPropagation()}>
+                                    <Edit className="h-4 w-4" />
+                                </Link>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent><p>Edit</p></TooltipContent>
+                    </Tooltip>
+                    {isSuperAdmin && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={handleUpload}>
+                                    <UploadCloud className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent><p>Upload to Cloud</p></TooltipContent>
+                        </Tooltip>
+                    )}
+                </>
+            ) : isCloudUploadedSong && isSuperAdmin ? (
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                         <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                            <Link href={`/song-editor?mode=cloud&id=${song.id}`} onClick={e => e.stopPropagation()}>
+                                <Edit className="h-4 w-4" />
+                            </Link>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent><p>Edit Cloud Song</p></TooltipContent>
+                </Tooltip>
+            ) : !isSuperAdmin ? (
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={handleUpdate}>
+                            <RefreshCw className="h-4 w-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent><p>Check for Updates</p></TooltipContent>
+                </Tooltip>
+            ) : null }
+
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete "{song.title}" from your library.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                </TooltipTrigger>
+                <TooltipContent><p>Delete</p></TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   );
