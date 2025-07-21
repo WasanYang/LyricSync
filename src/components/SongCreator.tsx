@@ -41,6 +41,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import LyricPlayer from './LyricPlayer';
 import { Eye, Save, XCircle, HelpCircle, UploadCloud, Database, Search, Edit, PlusCircle } from 'lucide-react';
