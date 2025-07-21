@@ -163,7 +163,7 @@ export default function SongCreator() {
           });
         } else {
             toast({ title: "Song not found", description: "The requested song could not be found.", variant: "destructive" });
-            router.push(isCloudMode ? '/admin/songs' : '/downloaded');
+            router.push(isCloudMode ? '/admin/songs' : '/library');
         }
         setIsLoading(false);
       }
@@ -234,7 +234,7 @@ export default function SongCreator() {
           description: `"${localSong.title}" has been saved to your local library.`,
         });
         form.reset({}, { keepValues: false, keepDirty: false, keepDefaultValues: false });
-        router.push('/downloaded');
+        router.push('/library');
       } catch (error) {
         toast({ title: 'Error', description: 'Could not save the song.', variant: 'destructive' });
         console.error('Failed to save song:', error);
@@ -243,11 +243,7 @@ export default function SongCreator() {
   }
 
   const handleCancel = () => {
-      if (isCloudMode) {
-          router.push('/admin/songs');
-      } else {
-          router.push('/downloaded');
-      }
+      router.back();
   }
   
   if (isLoading) {
