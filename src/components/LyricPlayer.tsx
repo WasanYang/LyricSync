@@ -168,33 +168,30 @@ const parseLyrics = (line: string): Array<{ chord: string | null; text: string }
 const LyricLineDisplay = ({ line, showChords, chordColor, transpose, fontWeight }: { line: LyricLine; showChords: boolean; chordColor: string; transpose: number; fontWeight: FontWeight; }) => {
     const parsedLine = useMemo(() => parseLyrics(line.text), [line.text]);
     const hasChords = useMemo(() => parsedLine.some(p => p.chord), [parsedLine]);
-    const hasText = useMemo(() => parsedLine.some(p => p.text.trim() !== ''), [parsedLine]);
+    const cleanLyricText = useMemo(() => line.text.replace(/\[[^\]]+\]/g, ''), [line.text]);
 
-    if (!showChords && !hasText && hasChords) {
-        return null;
+    if (!showChords) {
+        return <p style={{ fontWeight }}>{cleanLyricText}</p>;
     }
     
-    if (!showChords || !hasChords) {
-        return <p style={{ fontWeight }}>{line.text.replace(/\[[^\]]+\]/g, '')}</p>;
+    if (!hasChords) {
+        return <p style={{ fontWeight }}>{cleanLyricText}</p>;
     }
     
     return (
       <div className="flex flex-col items-start leading-tight">
+        {/* Chord Line */}
         <div className="flex -mb-1" style={{ color: chordColor }}>
           {parsedLine.map((part, index) => (
-            <div key={`chord-container-${index}`} className="flex-shrink-0 relative" style={{paddingRight: part.text ? '0.25em' : '0.5em'}}>
+            <div key={`chord-container-${index}`} className="flex-shrink-0 relative">
                 <span className="font-bold whitespace-pre">{part.chord ? transposeChord(part.chord, transpose) : ''}</span>
                 <span className="text-transparent whitespace-pre" style={{ fontWeight }}>{part.text}</span>
             </div>
           ))}
         </div>
-        <div className="flex">
-          {parsedLine.map((part, index) => (
-            <div key={`text-container-${index}`} className="flex-shrink-0 relative" style={{paddingRight: part.text ? '0.25em' : '0.5em'}}>
-              <span className="text-transparent font-bold whitespace-pre">{part.chord ? transposeChord(part.chord, transpose) : ''}</span>
-              <span className="whitespace-pre" style={{ fontWeight }}>{part.text}</span>
-            </div>
-          ))}
+        {/* Lyric Line */}
+        <div style={{ fontWeight }}>
+          {cleanLyricText}
         </div>
       </div>
     );
