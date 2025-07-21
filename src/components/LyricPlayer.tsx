@@ -185,29 +185,35 @@ const parseLyrics = (
   let match;
 
   while ((match = regex.exec(line)) !== null) {
+    // Text before the current match
     if (match.index > lastIndex) {
       parts.push({ chord: null, text: line.substring(lastIndex, match.index) });
     }
-    parts.push({ chord: match[1], text: match[2] });
+    
+    let text = match[2];
+    // If the text part is empty and there's another chord immediately after, add a space.
+    if (text === '' && line.substring(regex.lastIndex).startsWith('[')) {
+        text = ' ';
+    }
+    
+    parts.push({ chord: match[1], text });
     lastIndex = regex.lastIndex;
   }
 
+  // Text after the last match
   if (lastIndex < line.length) {
     parts.push({ chord: null, text: line.substring(lastIndex) });
   }
 
-  if (parts.length === 0) {
-    if (line.trim().startsWith('[')) {
-      const chordOnlyRegex = /\[([^\]]+)\]/g;
-      let chordMatch;
-      while ((chordMatch = chordOnlyRegex.exec(line)) !== null) {
-        parts.push({ chord: chordMatch[1], text: '' });
-      }
-    }
-    if (parts.length === 0) {
-      parts.push({ chord: null, text: line });
-    }
+  // If the line was empty or only whitespace
+  if (parts.length === 0 && line.trim() === '') {
+      return [{ chord: null, text: line }];
   }
+  
+  if (parts.length === 0) {
+      return [{ chord: null, text: line }];
+  }
+
   return parts;
 };
 
@@ -244,22 +250,16 @@ const LyricLineDisplay = ({
   return (
     <div className='flex flex-col items-start leading-tight'>
       {/* Chord Line */}
-      <div className='flex -mb-1' style={{ color: chordColor }}>
+      <div className='-mb-1' style={{ color: chordColor }}>
         {parsedLine.map((part, index) => (
-          <div
-            key={`chord-container-${index}`}
-            className='flex-shrink-0 relative'
-          >
-            <span className='font-bold whitespace-pre'>
+          <span key={`chord-${index}`} className='whitespace-pre'>
+            <span className='font-bold'>
               {part.chord ? transposeChord(part.chord, transpose) : ''}
             </span>
-            <span
-              className='text-transparent whitespace-pre'
-              style={{ fontWeight }}
-            >
+            <span className='text-transparent' style={{ fontWeight }}>
               {part.text}
             </span>
-          </div>
+          </span>
         ))}
       </div>
       {/* Lyric Line */}
