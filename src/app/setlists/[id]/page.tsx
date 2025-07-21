@@ -10,7 +10,7 @@ import { getSongById as getSongFromStatic } from '@/lib/songs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Edit, Play, Trash2 } from 'lucide-react';
+import { Edit, Play, Trash2, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -38,6 +38,7 @@ function LoadingSkeleton() {
                 <Skeleton className="h-5 w-24" />
             </div>
              <div className="flex gap-4">
+                <Skeleton className="h-11 w-24" />
                 <Skeleton className="h-11 w-40" />
                 <Skeleton className="h-11 w-11" />
                 <Skeleton className="h-11 w-11" />
@@ -153,7 +154,12 @@ function SetlistDetailContent() {
             <p className="text-muted-foreground">{songs.length} {songs.length === 1 ? 'song' : 'songs'}</p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline">
+                 <Link href="/setlists">
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Back to Setlists
+                </Link>
+            </Button>
             <Button asChild size="lg">
                 <Link href={`/setlists/${setlist.id}/player`}>
                     <Play className="mr-2 h-5 w-5" /> Start Setlist
