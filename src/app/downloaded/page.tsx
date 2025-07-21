@@ -99,18 +99,20 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
   }
 
   return (
-    <div className={cn("flex items-center space-x-3")}>
-      <Link href={`/lyrics/${song.id}`} className="flex-grow flex items-center space-x-3 min-w-0 p-2 rounded-lg transition-colors hover:bg-muted group">
-        <Image
-          src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
-          alt={`${song.title} album art`}
-          width={40}
-          height={40}
-          className="rounded-md aspect-square object-cover"
-          data-ai-hint="album cover"
-        />
+    <div className="flex items-center space-x-3 p-2 rounded-lg transition-colors hover:bg-muted group">
+      <div className="flex-grow flex items-center space-x-3 min-w-0">
+        <Link href={`/lyrics/${song.id}`}>
+          <Image
+            src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
+            alt={`${song.title} album art`}
+            width={40}
+            height={40}
+            className="rounded-md aspect-square object-cover"
+            data-ai-hint="album cover"
+          />
+        </Link>
         <div className="min-w-0">
-          <p className="font-semibold font-headline truncate">{song.title}</p>
+          <Link href={`/lyrics/${song.id}`} className="font-semibold font-headline truncate hover:underline">{song.title}</Link>
           <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
           {song.updatedAt && (
             <p className="text-xs text-muted-foreground/80 truncate">
@@ -118,7 +120,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
             </p>
           )}
         </div>
-      </Link>
+      </div>
       <div className="flex-shrink-0 flex items-center gap-1">
         <TooltipProvider>
             <Tooltip>
