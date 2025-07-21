@@ -34,7 +34,7 @@ function SongListItem({ song }: { song: Song }) {
           <p className="font-semibold font-headline truncate">{song.title}</p>
           <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
         </div>
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
             <SongStatusButton song={song} />
         </div>
       </Link>

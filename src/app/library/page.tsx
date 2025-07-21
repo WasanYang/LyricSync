@@ -10,7 +10,7 @@ import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Library, Trash2, Edit, RefreshCw, UploadCloud, PlusCircle, Eye, Cloud } from 'lucide-react';
+import { Library, Trash2, Edit, RefreshCw, UploadCloud, PlusCircle, Eye, Cloud, ArrowUpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import SongStatusButton from '@/components/SongStatusButton';
 
 function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (songId: string) => void, onUpdate: (songId: string) => void }) {
   const { user, isSuperAdmin } = useAuth();
@@ -137,7 +138,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                 <TooltipContent><p>View in Player</p></TooltipContent>
             </Tooltip>
 
-            {isCustomSong ? (
+            {isCustomSong && (
                 <>
                     <Tooltip>
                         <TooltipTrigger asChild>
@@ -182,17 +183,13 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                         <TooltipContent><p>Delete</p></TooltipContent>
                     </Tooltip>
                 </>
-            ) : isCloudSong ? (
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={handleUpdate}>
-                            <RefreshCw className="h-4 w-4" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent><p>Check for Updates</p></TooltipContent>
-                </Tooltip>
-            ) : null }
-
+            )}
+            
+            {!isCustomSong && (
+              <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                <SongStatusButton song={song} />
+              </div>
+            )}
         </TooltipProvider>
       </div>
     </div>
