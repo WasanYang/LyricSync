@@ -56,7 +56,7 @@ function SongItem({ song }: { song: Song }) {
   return (
     <Link href={`/lyrics/${song.id}`} className="flex items-center space-x-4 p-3 rounded-lg hover:bg-muted/50 transition-colors">
       <Image
-        src={`https://placehold.co/80x80.png`}
+        src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
         alt={`${song.title} album art`}
         width={48}
         height={48}

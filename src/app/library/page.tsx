@@ -104,7 +104,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
       <div className="flex-grow flex items-center space-x-3 min-w-0">
         <Link href={`/lyrics/${song.id}`}>
           <Image
-            src={`https://placehold.co/80x80.png`}
+            src={`https://placehold.co/80x80.png?text=${encodeURIComponent(song.title)}`}
             alt={`${song.title} album art`}
             width={40}
             height={40}

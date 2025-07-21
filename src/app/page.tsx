@@ -113,7 +113,7 @@ function RecommendedSetlistCard({ setlist }: { setlist: Setlist & { description:
             <div className="group relative space-y-1.5">
                 <div className="aspect-square w-full overflow-hidden rounded-md transition-all duration-300 ease-in-out group-hover:shadow-lg group-hover:shadow-primary/20">
                     <Image
-                        src={`https://placehold.co/300x300.png`}
+                        src={`https://placehold.co/300x300.png?text=${encodeURIComponent(setlist.title)}`}
                         alt={setlist.title}
                         width={300}
                         height={300}
@@ -226,7 +226,7 @@ export default function Home() {
   return (
     <div className="flex-grow flex flex-col">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-8 space-y-12 pb-24 md:pb-0">
+      <main className="flex-grow container mx-auto px-4 py-8 space-y-12 pb-24 md:pb-12">
         
         {/* Welcome & Quick Actions */}
         <section>
