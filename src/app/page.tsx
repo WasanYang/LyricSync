@@ -102,28 +102,24 @@ function RecommendedSetlistCard({ setlist }: { setlist: Setlist & { description:
     const firstSong = getSongs().find(s => s.id === setlist.songIds[0]);
 
     return (
-        <Card className="w-full overflow-hidden group border-0 shadow-lg bg-card">
-            <Link href={`/setlists/shared/${setlist.id}`} className="block">
-                <CardContent className="p-0">
-                     <div className="relative aspect-video">
-                        {firstSong && (
-                            <Image
-                                src={`https://placehold.co/400x225.png?text=${encodeURIComponent(firstSong.title)}`}
-                                alt={setlist.title}
-                                fill
-                                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                data-ai-hint="stage lights"
-                            />
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-primary/70 to-accent/20" />
-                    </div>
-                    <div className="p-4">
-                        <h3 className="font-semibold font-headline truncate">{setlist.title}</h3>
-                        <p className="text-sm text-muted-foreground">{songCount} {songCount === 1 ? 'song' : 'songs'}</p>
-                    </div>
-                </CardContent>
-            </Link>
-        </Card>
+        <Link href={`/setlists/shared/${setlist.id}`} className="block group">
+            <div className="group relative space-y-1.5">
+                <div className="aspect-square w-full overflow-hidden rounded-md transition-all duration-300 ease-in-out group-hover:shadow-lg group-hover:shadow-primary/20">
+                    <Image
+                        src={`https://placehold.co/300x300.png?text=${encodeURIComponent(firstSong?.title || setlist.title)}`}
+                        alt={setlist.title}
+                        width={300}
+                        height={300}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        data-ai-hint="stage lights"
+                    />
+                </div>
+                <div className="flex-grow min-w-0">
+                    <p className="font-semibold font-headline text-sm truncate">{setlist.title}</p>
+                    <p className="text-xs text-muted-foreground truncate">{songCount} {songCount === 1 ? 'song' : 'songs'}</p>
+                </div>
+            </div>
+        </Link>
     );
 }
 
@@ -258,7 +254,7 @@ export default function Home() {
                 <Carousel opts={{ align: "start", loop: false }} className="w-full">
                     <CarouselContent className="-ml-4">
                         {recommendedSetlists.map(setlist => (
-                            <CarouselItem key={setlist.id} className="basis-2/3 sm:basis-1/3 pl-4">
+                            <CarouselItem key={setlist.id} className="basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4">
                                 <RecommendedSetlistCard setlist={setlist} />
                             </CarouselItem>
                         ))}
