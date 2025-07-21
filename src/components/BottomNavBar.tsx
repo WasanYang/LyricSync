@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, SearchIcon, CreateIcon } from '@/components/NavIcons';
+import { HomeIcon, SearchIcon, Library } from '@/components/NavIcons';
 import { cn } from '@/lib/utils';
+import { ListMusic } from 'lucide-react';
 
 const navLinks = [
   { href: '/', label: 'Home', icon: HomeIcon },
   { href: '/search', label: 'Search', icon: SearchIcon },
-  { href: '/create', label: 'Creator', icon: CreateIcon },
+  { href: '/setlists', label: 'Setlists', icon: ListMusic },
 ];
 
 export default function BottomNavBar() {
@@ -19,6 +20,7 @@ export default function BottomNavBar() {
       <nav className="flex items-center justify-around h-16 max-w-[768px] mx-auto">
         {navLinks.map((link) => {
           const isActive = pathname === link.href;
+          const IconComponent = link.icon;
           return (
             <Link
               key={link.href}
@@ -28,7 +30,7 @@ export default function BottomNavBar() {
                 isActive ? 'text-primary' : 'text-muted-foreground'
               )}
             >
-              <link.icon className="h-6 w-6" isActive={isActive} />
+              <IconComponent className="h-6 w-6" isActive={isActive} />
               <span>{link.label}</span>
             </Link>
           );

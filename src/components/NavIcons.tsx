@@ -1,6 +1,8 @@
 // src/components/NavIcons.tsx
 'use client';
 
+import { ListMusic } from "lucide-react";
+
 interface NavIconProps {
   className?: string;
   isActive: boolean;
@@ -58,7 +60,7 @@ export function SearchIcon({ className, isActive }: NavIconProps) {
   );
 }
 
-export function CreateIcon({ className, isActive }: NavIconProps) {
+export function Library({ className, isActive }: NavIconProps) {
   return (
     <svg
       className={className}
@@ -69,17 +71,17 @@ export function CreateIcon({ className, isActive }: NavIconProps) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      {isActive ? (
-        <>
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill={'currentColor'}></rect>
-          <line x1="12" y1="8" x2="12" y2="16" stroke="hsl(var(--background))"></line>
-          <line x1="8" y1="12" x2="16" y2="12" stroke="hsl(var(--background))"></line>
-        </>
-      ) : (
-        <>
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </>
+      <path d="M16 6l4 14" />
+      <path d="M12 6v14" />
+      <path d="M8 8v12" />
+      <path d="M4 4v16" />
+       {isActive && (
+        <g>
+          <path d="M16 6l4 14" stroke="none" fill="currentColor" />
+          <path d="M12 6v14" stroke="none" fill="currentColor" />
+          <path d="M8 8v12" stroke="none" fill="currentColor" />
+          <path d="M4 4v16" stroke="none" fill="currentColor" />
+        </g>
       )}
     </svg>
   );

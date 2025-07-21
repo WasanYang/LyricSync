@@ -33,7 +33,6 @@ import { useOnlineStatus } from '@/hooks/use-online-status';
 const navLinks = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/search', label: 'Search', icon: Search },
-  { href: '/create', label: 'Creator', icon: PlusSquare },
 ];
 
 const mobileOnlyLinks = [

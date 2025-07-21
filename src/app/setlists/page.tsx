@@ -15,7 +15,7 @@ import {
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import { Button } from '@/components/ui/button';
-import { Trash2, ListMusic, ChevronRight, UploadCloud, CheckCircle, AlertTriangle, Edit, RefreshCw } from 'lucide-react';
+import { Trash2, ListMusic, ChevronRight, UploadCloud, CheckCircle, AlertTriangle, Edit, RefreshCw, PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -308,9 +308,17 @@ export default function SetlistsPage() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8">
         <div className="space-y-8">
-            <div>
-              <h1 className="text-3xl font-headline font-bold tracking-tight">Setlists</h1>
-              {user && <p className="text-muted-foreground">Synced: {syncedCount}/{SYNC_LIMIT}</p>}
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-headline font-bold tracking-tight">Setlists</h1>
+                {user && <p className="text-muted-foreground">Synced: {syncedCount}/{SYNC_LIMIT}</p>}
+              </div>
+              <Button asChild>
+                <Link href="/create">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Create New
+                </Link>
+              </Button>
             </div>
           
           {isLoading ? (

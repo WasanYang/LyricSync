@@ -152,8 +152,8 @@ export default function Home() {
                     </Link>
                 </Button>
                 <Button variant="outline" size="lg" className="justify-start" asChild>
-                    <Link href="/create">
-                        <PlusCircle className="mr-3 h-5 w-5" /> Create New Setlist
+                    <Link href="/downloaded">
+                        <Music className="mr-3 h-5 w-5" /> My Library
                     </Link>
                 </Button>
             </div>
