@@ -61,7 +61,9 @@ export default function AdminSongsPage() {
     async function loadSongs() {
         setIsLoading(true);
         const cloudSongs = await getAllCloudSongs();
-        setSongs(cloudSongs);
+        // Filter to only show system songs (not starting with 'uploaded-')
+        const systemSongs = cloudSongs.filter(s => !s.id.startsWith('uploaded-'));
+        setSongs(systemSongs);
         setIsLoading(false);
     }
 
@@ -75,16 +77,11 @@ export default function AdminSongsPage() {
         }
     }, [user, isSuperAdmin, authLoading, router]);
 
-    const { systemSongs, userSongs } = useMemo(() => {
-        const filtered = songs.filter(song =>
+    const filteredSongs = useMemo(() => {
+        return songs.filter(song =>
             song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             song.artist.toLowerCase().includes(searchTerm.toLowerCase())
         );
-
-        return {
-            systemSongs: filtered.filter(s => !s.id.startsWith('uploaded-')),
-            userSongs: filtered.filter(s => s.id.startsWith('uploaded-')),
-        }
     }, [songs, searchTerm]);
 
     const handleDelete = async (songToDelete: Song) => {
@@ -113,9 +110,9 @@ export default function AdminSongsPage() {
     const SongList = ({ songs }: { songs: Song[] }) => (
         <ul className="space-y-2">
             {songs.map(song => (
-                <li key={song.id} className="flex items-center p-3 rounded-lg bg-muted/50">
+                <li key={song.id} className="flex items-center p-3 rounded-lg bg-muted/50 transition-colors hover:bg-muted/80 group">
                     <div className="flex-grow">
-                        <p className="font-semibold">{song.title}</p>
+                        <Link href={`/lyrics/${song.id}`} className="font-semibold hover:underline">{song.title}</Link>
                         <p className="text-sm text-muted-foreground">{song.artist}</p>
                     </div>
                     <div className="flex items-center gap-1">
@@ -123,12 +120,12 @@ export default function AdminSongsPage() {
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Button asChild variant="ghost" size="icon">
-                                        <Link href={`/lyrics/${song.id}`}>
+                                        <Link href={`/lyrics/${song.id}/player`}>
                                             <Eye className="h-4 w-4" />
                                         </Link>
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent><p>View</p></TooltipContent>
+                                <TooltipContent><p>View in Player</p></TooltipContent>
                             </Tooltip>
                             <Tooltip>
                                 <TooltipTrigger asChild>
@@ -202,19 +199,11 @@ export default function AdminSongsPage() {
                         </div>
                     ) : (songs.length > 0 || searchTerm) ? (
                         <div className="space-y-6">
-                            {systemSongs.length > 0 && (
+                            {filteredSongs.length > 0 ? (
                                 <section>
-                                    <h2 className="text-xl font-semibold font-headline mb-3">System Songs</h2>
-                                    <SongList songs={systemSongs} />
+                                    <SongList songs={filteredSongs} />
                                 </section>
-                            )}
-                             {userSongs.length > 0 && (
-                                <section>
-                                    <h2 className="text-xl font-semibold font-headline mb-3">User Uploaded Songs</h2>
-                                    <SongList songs={userSongs} />
-                                </section>
-                            )}
-                            {systemSongs.length === 0 && userSongs.length === 0 && searchTerm && (
+                            ) : (
                                  <div className="text-center py-16 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full">
                                     <Search className="h-12 w-12 text-muted-foreground mb-4" />
                                     <h2 className="text-xl font-headline font-semibold">No Results Found</h2>
