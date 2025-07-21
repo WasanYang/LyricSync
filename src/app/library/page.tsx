@@ -156,6 +156,30 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                             <TooltipContent><p>Upload to Cloud</p></TooltipContent>
                         </Tooltip>
                     )}
+                    <Tooltip>
+                        <AlertDialog>
+                            <TooltipTrigger asChild>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </AlertDialogTrigger>
+                            </TooltipTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete "{song.title}" from your library.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                        <TooltipContent><p>Delete</p></TooltipContent>
+                    </Tooltip>
                 </>
             ) : isCloudSong && isSuperAdmin ? (
                  <Tooltip>
@@ -168,7 +192,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                     </TooltipTrigger>
                     <TooltipContent><p>Edit Cloud Song</p></TooltipContent>
                 </Tooltip>
-            ) : isCloudSong ? ( // This now correctly targets system songs
+            ) : isCloudSong ? (
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={handleUpdate}>
@@ -179,30 +203,6 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                 </Tooltip>
             ) : null }
 
-            <Tooltip>
-                <AlertDialog>
-                    <TooltipTrigger asChild>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </AlertDialogTrigger>
-                    </TooltipTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete "{song.title}" from your library.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-                <TooltipContent><p>Delete</p></TooltipContent>
-            </Tooltip>
         </TooltipProvider>
       </div>
     </div>
@@ -306,5 +306,3 @@ export default function LibraryPage() {
     </div>
   );
 }
-
-    
