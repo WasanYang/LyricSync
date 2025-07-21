@@ -115,7 +115,7 @@ function RecommendedSetlistCard({ setlist }: { setlist: Setlist & { description:
                                 data-ai-hint="stage lights"
                             />
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/0" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-primary/70 to-accent/20" />
                     </div>
                     <div className="p-4 bg-card">
                         <h3 className="font-semibold font-headline truncate">{setlist.title}</h3>
