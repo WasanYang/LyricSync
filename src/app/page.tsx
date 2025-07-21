@@ -1,8 +1,9 @@
 
 'use client'
 
-import { getSongs, type Song } from '@/lib/songs';
-import { getSetlists, type Setlist } from '@/lib/db';
+import { getSongs as getStaticSongs } from '@/lib/songs';
+import { getSetlists, type Setlist, getAllCloudSongs } from '@/lib/db';
+import type { Song } from '@/lib/songs';
 import SongCard from '@/components/SongCard';
 import Header from '@/components/Header';
 import {
@@ -24,11 +25,6 @@ import { Button } from '@/components/ui/button';
 import Footer from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
-
-// In a real app, these would come from an API
-const featuredSongs = getSongs().slice(0, 5);
-const recentReleases = getSongs().slice(2, 6).reverse();
-const popularHits = getSongs().slice(1, 6);
 
 // Mock data for recommended setlists
 const recommendedSetlists: (Setlist & { description: string })[] = [
@@ -64,7 +60,18 @@ const recommendedSetlists: (Setlist & { description: string })[] = [
     }
 ];
 
-function SongCarousel({ songs }: { songs: Song[] }) {
+function SongCarousel({ songs, isLoading }: { songs: Song[], isLoading?: boolean }) {
+    if (isLoading) {
+        return (
+            <div className="flex space-x-4 -ml-4 w-full max-w-full">
+                <div className="basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4"><Skeleton className="aspect-square w-full" /><Skeleton className="h-4 w-3/4 mt-2" /><Skeleton className="h-3 w-1/2 mt-1" /></div>
+                <div className="basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4"><Skeleton className="aspect-square w-full" /><Skeleton className="h-4 w-3/4 mt-2" /><Skeleton className="h-3 w-1/2 mt-1" /></div>
+                <div className="hidden sm:block sm:basis-1/4 md:basis-1/5 pl-4"><Skeleton className="aspect-square w-full" /><Skeleton className="h-4 w-3/4 mt-2" /><Skeleton className="h-3 w-1/2 mt-1" /></div>
+                <div className="hidden md:block md:basis-1/5 pl-4"><Skeleton className="aspect-square w-full" /><Skeleton className="h-4 w-3/4 mt-2" /><Skeleton className="h-3 w-1/2 mt-1" /></div>
+            </div>
+        )
+    }
+
     return (
         <div className="w-full max-w-full -mr-4">
             <Carousel opts={{ align: "start", loop: false }} className="w-full">
@@ -99,10 +106,10 @@ function RecentSetlistItem({ setlist }: {setlist: Setlist}) {
 
 function RecommendedSetlistCard({ setlist }: { setlist: Setlist & { description: string } }) {
     const songCount = setlist.songIds.length;
-    const firstSong = getSongs().find(s => s.id === setlist.songIds[0]);
+    const firstSong = getStaticSongs().find(s => s.id === setlist.songIds[0]);
 
     return (
-        <Link href={`/setlists/shared/${setlist.id}`} className="block group">
+         <Link href={`/setlists/shared/${setlist.id}`} className="block group">
             <div className="group relative space-y-1.5">
                 <div className="aspect-square w-full overflow-hidden rounded-md transition-all duration-300 ease-in-out group-hover:shadow-lg group-hover:shadow-primary/20">
                     <Image
@@ -166,7 +173,9 @@ export default function Home() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [recentSetlists, setRecentSetlists] = useState<Setlist[]>([]);
+  const [systemSongs, setSystemSongs] = useState<Song[]>([]);
   const [isLoadingSetlists, setIsLoadingSetlists] = useState(true);
+  const [isLoadingSongs, setIsLoadingSongs] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -175,9 +184,12 @@ export default function Home() {
   }, [user, loading, router]);
 
   useEffect(() => {
-    async function loadRecentSetlists() {
+    async function loadData() {
         if (!user) return;
+        
         setIsLoadingSetlists(true);
+        setIsLoadingSongs(true);
+        
         try {
             const allSetlists = await getSetlists(user.uid);
             const sorted = allSetlists.sort((a,b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
@@ -187,15 +199,29 @@ export default function Home() {
         } finally {
             setIsLoadingSetlists(false);
         }
+
+        try {
+            const allSongs = await getAllCloudSongs();
+            const filteredSystemSongs = allSongs.filter(song => song.source === 'system');
+            setSystemSongs(filteredSystemSongs);
+        } catch (error) {
+            console.error("Failed to load system songs", error);
+        } finally {
+            setIsLoadingSongs(false);
+        }
     }
     if (user) {
-        loadRecentSetlists();
+        loadData();
     }
   }, [user]);
 
   if (loading || !user) {
     return <LoadingSkeleton />;
   }
+
+  const featuredSongs = systemSongs.slice(0, 5);
+  const recentReleases = [...systemSongs].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 5);
+  const popularHits = [...systemSongs].sort(() => 0.5 - Math.random()).slice(0, 5); // Mock popularity with random sort for now
 
   return (
     <div className="flex-grow flex flex-col">
@@ -273,13 +299,13 @@ export default function Home() {
                 <TabsTrigger value="recent">Recent</TabsTrigger>
               </TabsList>
               <TabsContent value="featured" className="pt-4">
-                <SongCarousel songs={featuredSongs} />
+                <SongCarousel songs={featuredSongs} isLoading={isLoadingSongs} />
               </TabsContent>
               <TabsContent value="popular" className="pt-4">
-                <SongCarousel songs={popularHits} />
+                <SongCarousel songs={popularHits} isLoading={isLoadingSongs} />
               </TabsContent>
               <TabsContent value="recent" className="pt-4">
-                <SongCarousel songs={recentReleases} />
+                <SongCarousel songs={recentReleases} isLoading={isLoadingSongs} />
               </TabsContent>
             </Tabs>
         </section>
