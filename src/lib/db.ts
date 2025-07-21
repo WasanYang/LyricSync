@@ -3,7 +3,7 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Song } from './songs';
 import { db as firestoreDb } from './firebase'; 
-import { collection, addDoc, getDocs, query, where, deleteDoc, doc, serverTimestamp, writeBatch, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, deleteDoc, doc, serverTimestamp, writeBatch, getDoc, updateDoc, setDoc, orderBy } from 'firebase/firestore';
 
 
 const DB_NAME = 'RhythmicReadsDB';
@@ -146,6 +146,31 @@ export async function uploadSongToCloud(song: Song): Promise<void> {
         }
         throw new Error("Failed to upload song to the cloud.");
     }
+}
+
+export async function getAllCloudSongs(): Promise<Song[]> {
+    if (!firestoreDb) throw new Error("Firebase is not configured.");
+
+    const songsCollection = collection(firestoreDb, "songs");
+    const q = query(songsCollection, orderBy("title"));
+    const querySnapshot = await getDocs(q);
+    
+    const songs: Song[] = [];
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        songs.push({
+            id: doc.id,
+            title: data.title,
+            artist: data.artist,
+            lyrics: data.lyrics,
+            originalKey: data.originalKey,
+            bpm: data.bpm,
+            timeSignature: data.timeSignature,
+            updatedAt: data.updatedAt?.toDate() || new Date(), // Convert timestamp to Date
+        } as Song);
+    });
+
+    return songs;
 }
 
 

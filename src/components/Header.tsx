@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Music, Menu, LogOut, Home, Search, PlusSquare, Sun, Moon, ListMusic, Library, Edit, LogIn, User, Wifi, WifiOff, Info, UserCircle, UploadCloud } from 'lucide-react';
+import { Music, Menu, LogOut, Home, Search, PlusSquare, Sun, Moon, ListMusic, Library, Edit, LogIn, User, Wifi, WifiOff, Info, UserCircle, UploadCloud, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -106,9 +106,9 @@ function UserNav() {
         )}
         { isSuperAdmin && (
              <DropdownMenuItem asChild>
-                <Link href="/song-editor?cloud=true">
-                    <UploadCloud className="mr-2 h-4 w-4" />
-                    <span>Upload Song</span>
+                <Link href="/song-editor?mode=cloud">
+                    <Database className="mr-2 h-4 w-4" />
+                    <span>Manage Cloud Songs</span>
                 </Link>
              </DropdownMenuItem>
         )}
@@ -214,9 +214,9 @@ export default function Header() {
                            </SheetClose>
                            {isSuperAdmin && (
                              <SheetClose asChild>
-                                <Link href="/song-editor?cloud=true" className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary">
-                                    <UploadCloud className="h-5 w-5" />
-                                    <span>Upload Song</span>
+                                <Link href="/song-editor?mode=cloud" className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary">
+                                    <Database className="h-5 w-5" />
+                                    <span>Manage Cloud Songs</span>
                                 </Link>
                              </SheetClose>
                            )}

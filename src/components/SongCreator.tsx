@@ -1,12 +1,13 @@
+
 // src/components/SongCreator.tsx
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import { saveSong, getSong as getSongFromDb, uploadSongToCloud } from '@/lib/db';
+import { saveSong, getSong as getSongFromDb, uploadSongToCloud, getAllCloudSongs } from '@/lib/db';
 import { getSongById } from '@/lib/songs';
 import type { Song, LyricLine } from '@/lib/songs';
 import { ALL_NOTES } from '@/lib/chords';
@@ -27,11 +28,9 @@ import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose
 } from "@/components/ui/dialog"
 import {
   AlertDialog,
@@ -42,12 +41,13 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import LyricPlayer from './LyricPlayer';
-import { Eye, Save, XCircle, HelpCircle, UploadCloud } from 'lucide-react';
+import { Eye, Save, XCircle, HelpCircle, UploadCloud, Database, Search, Edit, PlusCircle } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
+import { ScrollArea } from './ui/scroll-area';
+import Link from 'next/link';
 
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
@@ -114,15 +114,92 @@ function LoadingScreen() {
     )
 }
 
+function CloudSongManager({ onEdit }: { onEdit: (songId: string) => void }) {
+    const [songs, setSongs] = useState<Song[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        async function loadSongs() {
+            setIsLoading(true);
+            const cloudSongs = await getAllCloudSongs();
+            setSongs(cloudSongs);
+            setIsLoading(false);
+        }
+        loadSongs();
+    }, []);
+
+    const filteredSongs = useMemo(() => {
+        return songs.filter(song =>
+            song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            song.artist.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [songs, searchTerm]);
+
+    return (
+        <div className="w-full max-w-2xl mx-auto flex flex-col space-y-6 p-4 md:p-6">
+            <div className="flex justify-between items-center">
+                <h1 className="text-2xl font-bold font-headline">Manage Cloud Songs</h1>
+                <Button asChild>
+                    <Link href="/song-editor?mode=cloud&action=create">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Create New
+                    </Link>
+                </Button>
+            </div>
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                    placeholder="Search cloud songs..."
+                    className="pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <ScrollArea className="h-[calc(100vh-250px)]">
+                {isLoading ? (
+                    <div className="space-y-2">
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                    </div>
+                ) : filteredSongs.length > 0 ? (
+                    <ul className="space-y-2">
+                        {filteredSongs.map(song => (
+                            <li key={song.id} className="flex items-center p-2 rounded-md bg-muted/50">
+                                <div className="flex-grow">
+                                    <p className="font-semibold">{song.title}</p>
+                                    <p className="text-sm text-muted-foreground">{song.artist}</p>
+                                </div>
+                                <Button variant="outline" size="sm" onClick={() => onEdit(song.id)}>
+                                    <Edit className="mr-2 h-3 w-3" />
+                                    Edit
+                                </Button>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <div className="text-center py-10 border-2 border-dashed rounded-lg">
+                        <p className="text-muted-foreground">No songs found in the cloud.</p>
+                    </div>
+                )}
+            </ScrollArea>
+        </div>
+    );
+}
+
 export default function SongCreator() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const songId = searchParams.get('id');
-  const isCloudMode = searchParams.get('cloud') === 'true';
-  const { user, isSuperAdmin } = useAuth();
+  const mode = searchParams.get('mode'); // 'cloud' or null
+  const action = searchParams.get('action'); // 'create' or null
 
-
+  const isCloudMode = mode === 'cloud';
+  
+  const { isSuperAdmin } = useAuth();
+  
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(!!songId);
 
@@ -137,6 +214,10 @@ export default function SongCreator() {
       timeSignature: '4/4'
     },
   });
+  
+  const handleEditCloudSong = useCallback((id: string) => {
+     router.push(`/song-editor?mode=cloud&id=${id}`);
+  }, [router]);
 
   useEffect(() => {
     if (songId) {
@@ -156,7 +237,7 @@ export default function SongCreator() {
           });
         } else {
             toast({ title: "Song not found", description: "The requested song could not be found.", variant: "destructive" });
-            router.push('/song-editor');
+            router.push(isCloudMode ? '/song-editor?mode=cloud' : '/downloaded');
         }
         setIsLoading(false);
       }
@@ -203,7 +284,7 @@ export default function SongCreator() {
           title: `Song ${isUpdatingCloudSong ? 'Updated in Cloud' : 'Uploaded to Cloud'}`,
           description: `"${newSongData.title}" is now available to all users.`,
         });
-        router.push('/search'); // Go to search to see the new song
+        router.push('/song-editor?mode=cloud'); // Go back to cloud management list
       } catch (error) {
          toast({ title: 'Error', description: 'Could not save the song to the cloud.', variant: 'destructive' });
       }
@@ -225,16 +306,25 @@ export default function SongCreator() {
   }
 
   const handleCancel = () => {
-      router.push('/downloaded');
+      if (isCloudMode) {
+          router.push('/song-editor?mode=cloud');
+      } else {
+          router.push('/downloaded');
+      }
   }
   
   if (isLoading) {
       return <LoadingScreen />
   }
+
+  // If super admin is in cloud mode but no specific song is selected for editing/creation, show the list.
+  if (isSuperAdmin && isCloudMode && !songId && action !== 'create') {
+      return <CloudSongManager onEdit={handleEditCloudSong} />;
+  }
   
   const getPageTitle = () => {
     if (isSuperAdmin && isCloudMode) {
-      return songId ? 'Edit Cloud Song' : 'Upload New Song';
+      return songId ? 'Edit Cloud Song' : 'Create Cloud Song';
     }
     return songId ? 'Edit Song' : 'Create Custom Song';
   }
@@ -243,7 +333,7 @@ export default function SongCreator() {
     if (isSuperAdmin && isCloudMode) {
       return (
         <Button type="submit" form="song-creator-form" size="lg">
-          <UploadCloud className="mr-2 h-4 w-4" /> {songId ? 'Update Cloud Song' : 'Save to Cloud'}
+          <Database className="mr-2 h-4 w-4" /> {songId ? 'Update Cloud Song' : 'Save to Cloud'}
         </Button>
       );
     }
@@ -379,9 +469,9 @@ export default function SongCreator() {
                               <DialogContent className="sm:max-w-2xl">
                                   <DialogHeader>
                                       <DialogTitle>How to Format Lyrics & Chords</DialogTitle>
-                                      <DialogDescription>
+                                      <p className="text-sm text-muted-foreground">
                                           Follow this format to ensure your lyrics and chords display correctly in the player.
-                                      </DialogDescription>
+                                      </p>
                                   </DialogHeader>
                                   <div className="space-y-4 text-sm py-4">
                                       <p>Each line must start with a bar number, followed by a pipe `|`, and then the text content.</p>
