@@ -43,10 +43,6 @@ export default function RootLayout({
         {metadataConfig.description && <meta name="description" content={metadataConfig.description} />}
         {metadataConfig.manifest && <link rel="manifest" href={String(metadataConfig.manifest)} />}
         {viewportConfig.themeColor && <meta name="theme-color" content={String(viewportConfig.themeColor)} />}
-        
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className={cn('font-body antialiased min-h-screen flex flex-col bg-background')}>
          <ThemeProvider
