@@ -129,19 +129,16 @@ export async function getAllSavedSongIds(): Promise<string[]> {
 export async function uploadSongToCloud(song: Song): Promise<void> {
     if (!firestoreDb) throw new Error("Firebase is not configured.");
     
-    // Convert Date object to a format Firestore understands, like a string or timestamp.
     const { updatedAt, ...songData } = song;
+
     const dataToUpload = {
         ...songData,
-        // Replace custom- prefix with something neutral or remove it
-        id: song.id.replace('custom-', 'uploaded-'),
-        updatedAt: updatedAt.toISOString(), // Store as ISO string
+        updatedAt: serverTimestamp(), // Use Firestore server timestamp for consistency
     };
 
     try {
-        // Use setDoc to control the ID
         const songDocRef = doc(firestoreDb, "songs", dataToUpload.id);
-        await setDoc(songDocRef, dataToUpload);
+        await setDoc(songDocRef, dataToUpload, { merge: true }); // Use setDoc with merge to create or update
     } catch (e: any) {
         console.error("Error uploading song to cloud:", e);
         if (e.code === 'permission-denied') {
@@ -158,7 +155,7 @@ export async function saveSetlist(setlist: Setlist): Promise<void> {
   const db = await getDb();
   const setlistToSave: Setlist = {
       ...setlist,
-      updatedAt: Date.now() // Ensure updatedAt is always set on save
+      updatedAt: Date.now() // Ensure updatedAt is always set on save/update
   }
   // If it's already synced, mark it as needing a sync after edit
   if (setlistToSave.isSynced) {

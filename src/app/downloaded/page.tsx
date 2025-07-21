@@ -118,21 +118,23 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
       </Link>
       <div className="flex-shrink-0 flex items-center gap-1">
         {isCustomSong ? (
-            isSuperAdmin ? (
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={handleUpload}>
-                  <UploadCloud className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+             <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
                   <Link href={`/song-editor?id=${song.id}`} onClick={e => e.stopPropagation()}>
                       <Edit className="h-4 w-4" />
                   </Link>
               </Button>
-            )
         ) : (
+          !isSuperAdmin ? (
             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={handleUpdate}>
                 <RefreshCw className="h-4 w-4" />
             </Button>
+          ) : (
+             <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                  <Link href={`/song-editor?id=${song.id}&cloud=true`} onClick={e => e.stopPropagation()}>
+                      <Edit className="h-4 w-4" />
+                  </Link>
+              </Button>
+          )
         )}
         <AlertDialog>
           <AlertDialogTrigger asChild>

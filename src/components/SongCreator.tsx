@@ -6,7 +6,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import { saveSong, getSong as getSongFromDb } from '@/lib/db';
+import { saveSong, getSong as getSongFromDb, uploadSongToCloud } from '@/lib/db';
+import { getSongById } from '@/lib/songs';
 import type { Song, LyricLine } from '@/lib/songs';
 import { ALL_NOTES } from '@/lib/chords';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -44,8 +45,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import LyricPlayer from './LyricPlayer';
-import { Eye, Save, XCircle, HelpCircle } from 'lucide-react';
+import { Eye, Save, XCircle, HelpCircle, UploadCloud } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
+import { useAuth } from '@/context/AuthContext';
 
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
@@ -117,6 +119,9 @@ export default function SongCreator() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const songId = searchParams.get('id');
+  const isCloudMode = searchParams.get('cloud') === 'true';
+  const { user, isSuperAdmin } = useAuth();
+
 
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(!!songId);
@@ -137,7 +142,9 @@ export default function SongCreator() {
     if (songId) {
       const fetchSong = async () => {
         setIsLoading(true);
-        const existingSong = await getSongFromDb(songId);
+        // If in cloud mode, it must be an official song. Otherwise, check local DB.
+        const existingSong = isCloudMode ? getSongById(songId) : await getSongFromDb(songId);
+        
         if (existingSong) {
           form.reset({
             title: existingSong.title,
@@ -155,7 +162,7 @@ export default function SongCreator() {
       }
       fetchSong();
     }
-  }, [songId, form, router, toast]);
+  }, [songId, isCloudMode, form, router, toast]);
 
   const { formState: { isDirty } } = form;
 
@@ -173,32 +180,47 @@ export default function SongCreator() {
   }), [formData, songId]);
 
   async function handleSaveSong(data: SongFormValues) {
-    const newSong: Song = {
-      id: songId || `custom-${uuidv4()}`,
+    const isUpdatingCloudSong = songId && isCloudMode && isSuperAdmin;
+    const isCreatingCloudSong = !songId && isCloudMode && isSuperAdmin;
+
+    // A song object that can be saved to local DB or Firestore
+    const newSongData: Omit<Song, 'updatedAt'> & { updatedAt: Date | any } = {
+      id: isUpdatingCloudSong ? songId! : (isCreatingCloudSong ? `uploaded-${uuidv4()}` : songId || `custom-${uuidv4()}`),
       title: data.title,
       artist: data.artist,
-      updatedAt: new Date(), // This will be the save/update time
       lyrics: parseLyricsFromString(data.lyrics),
       originalKey: data.originalKey,
       bpm: data.bpm,
       timeSignature: data.timeSignature,
     };
 
-    try {
-      await saveSong(newSong); // saveSong will now handle setting the final `updatedAt` in DB.
-      toast({
-        title: `Song ${songId ? 'Updated' : 'Saved'}`,
-        description: `"${newSong.title}" has been saved successfully.`,
-      });
-      form.reset({}, { keepValues: false, keepDirty: false, keepDefaultValues: false }); // Reset form state completely
-      router.push('/downloaded'); // Navigate to downloaded list after save/update
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Could not save the song.',
-        variant: 'destructive',
-      });
-      console.error('Failed to save song:', error);
+
+    if (isCreatingCloudSong || isUpdatingCloudSong) {
+      // Super Admin saving to Firestore
+      try {
+        await uploadSongToCloud(newSongData as Song);
+         toast({
+          title: `Song ${isUpdatingCloudSong ? 'Updated in Cloud' : 'Uploaded to Cloud'}`,
+          description: `"${newSongData.title}" is now available to all users.`,
+        });
+        router.push('/search'); // Go to search to see the new song
+      } catch (error) {
+         toast({ title: 'Error', description: 'Could not save the song to the cloud.', variant: 'destructive' });
+      }
+    } else {
+      // Regular user saving to local IndexedDB
+      try {
+        await saveSong({ ...newSongData, updatedAt: new Date() });
+        toast({
+          title: `Song ${songId ? 'Updated' : 'Saved'}`,
+          description: `"${newSongData.title}" has been saved to your local library.`,
+        });
+        form.reset({}, { keepValues: false, keepDirty: false, keepDefaultValues: false });
+        router.push('/downloaded');
+      } catch (error) {
+        toast({ title: 'Error', description: 'Could not save the song.', variant: 'destructive' });
+        console.error('Failed to save song:', error);
+      }
     }
   }
 
@@ -209,12 +231,34 @@ export default function SongCreator() {
   if (isLoading) {
       return <LoadingScreen />
   }
+  
+  const getPageTitle = () => {
+    if (isSuperAdmin && isCloudMode) {
+      return songId ? 'Edit Cloud Song' : 'Upload New Song';
+    }
+    return songId ? 'Edit Song' : 'Create Custom Song';
+  }
+
+  const getSubmitButton = () => {
+    if (isSuperAdmin && isCloudMode) {
+      return (
+        <Button type="submit" form="song-creator-form" size="lg">
+          <UploadCloud className="mr-2 h-4 w-4" /> {songId ? 'Update Cloud Song' : 'Save to Cloud'}
+        </Button>
+      );
+    }
+    return (
+       <Button type="submit" form="song-creator-form" size="lg">
+          <Save className="mr-2 h-4 w-4" /> {songId ? 'Update Song' : 'Save Song'}
+       </Button>
+    );
+  }
 
   return (
     <Form {...form}>
       <div className="flex flex-col h-full">
           <header className="flex-shrink-0 p-4 border-b bg-background flex items-center justify-between">
-              <h1 className="text-2xl font-bold font-headline">{songId ? 'Edit Song' : 'Song Creator'}</h1>
+              <h1 className="text-2xl font-bold font-headline">{getPageTitle()}</h1>
               <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
                   <DialogTrigger asChild>
                       <Button type="button" variant="outline">
@@ -421,9 +465,7 @@ export default function SongCreator() {
                     </Button>
                   )}
 
-                  <Button type="submit" form="song-creator-form" size="lg">
-                    <Save className="mr-2 h-4 w-4" /> {songId ? 'Update Song' : 'Save Song'}
-                  </Button>
+                  {getSubmitButton()}
               </div>
             </div>
       </div>
