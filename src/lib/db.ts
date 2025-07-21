@@ -222,10 +222,6 @@ export async function saveSetlist(setlist: Setlist): Promise<void> {
       ...setlist,
       updatedAt: Date.now() // Ensure updatedAt is always set on save/update
   }
-  // If it's already synced, mark it as needing a sync after edit
-  if (setlistToSave.isSynced) {
-    // The logic to compare dates will handle the 'needsSync' flag display
-  }
   await db.put(SETLISTS_STORE, setlistToSave);
 }
 
@@ -298,6 +294,35 @@ export async function getSetlists(userId: string): Promise<SetlistWithSyncStatus
 export async function getSetlist(id: string): Promise<Setlist | undefined> {
     const db = await getDb();
     return db.get(SETLISTS_STORE, id);
+}
+
+export async function getSetlistByFirestoreId(firestoreId: string): Promise<Setlist | null> {
+    if (!firestoreDb) throw new Error("Firebase is not configured.");
+    
+    try {
+        const docRef = doc(firestoreDb, "setlists", firestoreId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            const syncedAt = data.syncedAt as Timestamp;
+            return {
+                id: `shared-${docSnap.id}`, // Temporary ID for display
+                firestoreId: docSnap.id,
+                title: data.title,
+                songIds: data.songIds,
+                userId: data.userId,
+                createdAt: syncedAt.toMillis(),
+                updatedAt: syncedAt.toMillis(),
+                isSynced: true,
+            };
+        } else {
+            return null;
+        }
+    } catch (error) {
+        console.error("Error getting shared setlist:", error);
+        return null;
+    }
 }
 
 export async function deleteSetlist(id: string, userId: string): Promise<void> {

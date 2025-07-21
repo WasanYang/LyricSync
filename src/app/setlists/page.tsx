@@ -15,7 +15,7 @@ import {
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import { Button } from '@/components/ui/button';
-import { Trash2, ListMusic, ChevronRight, UploadCloud, CheckCircle, AlertTriangle, Edit, RefreshCw, PlusCircle } from 'lucide-react';
+import { Trash2, ListMusic, ChevronRight, UploadCloud, CheckCircle, AlertTriangle, Edit, RefreshCw, PlusCircle, Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -63,6 +63,25 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
             });
         }
     };
+
+    const handleShare = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!setlist.firestoreId) return;
+        const shareUrl = `${window.location.origin}/setlists/shared/${setlist.firestoreId}`;
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            toast({
+                title: "Share Link Copied!",
+                description: "You can now share this setlist with others."
+            });
+        }, (err) => {
+            toast({
+                title: "Error",
+                description: "Could not copy the link.",
+                variant: "destructive"
+            });
+        });
+    }
 
     const handleSync = async (e: React.MouseEvent) => {
       e.preventDefault();
@@ -172,6 +191,19 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                         <p>Edit</p>
                     </TooltipContent>
                 </Tooltip>
+
+                {setlist.isSynced && (
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button onClick={handleShare} variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                                <Share2 className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Share</p>
+                        </TooltipContent>
+                    </Tooltip>
+                )}
 
                  {!setlist.containsCustomSongs && (
                     setlist.isSynced ? (
