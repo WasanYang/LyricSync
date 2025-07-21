@@ -106,7 +106,7 @@ function UserNav() {
         )}
         { isSuperAdmin && (
              <DropdownMenuItem asChild>
-                <Link href="/song-editor?mode=cloud">
+                <Link href="/admin/songs">
                     <Database className="mr-2 h-4 w-4" />
                     <span>Manage Cloud Songs</span>
                 </Link>
@@ -214,7 +214,7 @@ export default function Header() {
                            </SheetClose>
                            {isSuperAdmin && (
                              <SheetClose asChild>
-                                <Link href="/song-editor?mode=cloud" className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary">
+                                <Link href="/admin/songs" className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary">
                                     <Database className="h-5 w-5" />
                                     <span>Manage Cloud Songs</span>
                                 </Link>

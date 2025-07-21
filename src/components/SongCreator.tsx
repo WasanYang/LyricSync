@@ -2,12 +2,12 @@
 // src/components/SongCreator.tsx
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import { saveSong, getSong as getSongFromDb, uploadSongToCloud, getAllCloudSongs, getCloudSongById } from '@/lib/db';
+import { saveSong, getSong as getSongFromDb, uploadSongToCloud, getCloudSongById } from '@/lib/db';
 import type { Song, LyricLine } from '@/lib/songs';
 import { ALL_NOTES } from '@/lib/chords';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -43,11 +43,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import LyricPlayer from './LyricPlayer';
-import { Eye, Save, XCircle, HelpCircle, UploadCloud, Database, Search, Edit, PlusCircle } from 'lucide-react';
+import { Eye, Save, XCircle, HelpCircle, Database } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
-import { ScrollArea } from './ui/scroll-area';
-import Link from 'next/link';
+
 
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
@@ -114,91 +113,16 @@ function LoadingScreen() {
     )
 }
 
-function CloudSongManager({ onEdit }: { onEdit: (songId: string) => void }) {
-    const [songs, setSongs] = useState<Song[]>([]);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        async function loadSongs() {
-            setIsLoading(true);
-            const cloudSongs = await getAllCloudSongs();
-            setSongs(cloudSongs);
-            setIsLoading(false);
-        }
-        loadSongs();
-    }, []);
-
-    const filteredSongs = useMemo(() => {
-        return songs.filter(song =>
-            song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            song.artist.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [songs, searchTerm]);
-
-    return (
-        <div className="w-full max-w-2xl mx-auto flex flex-col space-y-6 p-4 md:p-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold font-headline">Manage Cloud Songs</h1>
-                <Button asChild>
-                    <Link href="/song-editor?mode=cloud&action=create">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Create New
-                    </Link>
-                </Button>
-            </div>
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                    placeholder="Search cloud songs..."
-                    className="pl-10"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </div>
-            <ScrollArea className="h-[calc(100vh-250px)]">
-                {isLoading ? (
-                    <div className="space-y-2">
-                        <Skeleton className="h-12 w-full" />
-                        <Skeleton className="h-12 w-full" />
-                        <Skeleton className="h-12 w-full" />
-                    </div>
-                ) : filteredSongs.length > 0 ? (
-                    <ul className="space-y-2">
-                        {filteredSongs.map(song => (
-                            <li key={song.id} className="flex items-center p-2 rounded-md bg-muted/50">
-                                <div className="flex-grow">
-                                    <p className="font-semibold">{song.title}</p>
-                                    <p className="text-sm text-muted-foreground">{song.artist}</p>
-                                </div>
-                                <Button variant="outline" size="sm" onClick={() => onEdit(song.id)}>
-                                    <Edit className="mr-2 h-3 w-3" />
-                                    Edit
-                                </Button>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <div className="text-center py-10 border-2 border-dashed rounded-lg">
-                        <p className="text-muted-foreground">No songs found in the cloud.</p>
-                    </div>
-                )}
-            </ScrollArea>
-        </div>
-    );
-}
-
 export default function SongCreator() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const songId = searchParams.get('id');
   const mode = searchParams.get('mode'); // 'cloud' or null
-  const action = searchParams.get('action'); // 'create' or null
 
   const isCloudMode = mode === 'cloud';
   
-  const { isSuperAdmin } = useAuth();
+  const { user, isSuperAdmin } = useAuth();
   
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(!!songId);
@@ -214,12 +138,14 @@ export default function SongCreator() {
       timeSignature: '4/4'
     },
   });
-  
-  const handleEditCloudSong = useCallback((id: string) => {
-     router.push(`/song-editor?mode=cloud&id=${id}`);
-  }, [router]);
 
   useEffect(() => {
+    // If it's cloud mode but user isn't an admin, redirect.
+    if (isCloudMode && !isSuperAdmin) {
+      router.replace('/');
+      return;
+    }
+
     if (songId) {
       const fetchSong = async () => {
         setIsLoading(true);
@@ -239,13 +165,13 @@ export default function SongCreator() {
           });
         } else {
             toast({ title: "Song not found", description: "The requested song could not be found.", variant: "destructive" });
-            router.push(isCloudMode ? '/song-editor?mode=cloud' : '/downloaded');
+            router.push(isCloudMode ? '/admin/songs' : '/downloaded');
         }
         setIsLoading(false);
       }
       fetchSong();
     }
-  }, [songId, isCloudMode, form, router, toast]);
+  }, [songId, isCloudMode, isSuperAdmin, form, router, toast]);
 
   const { formState: { isDirty } } = form;
 
@@ -263,12 +189,13 @@ export default function SongCreator() {
   }), [formData, songId]);
 
   async function handleSaveSong(data: SongFormValues) {
-    const isUpdatingCloudSong = songId && isCloudMode && isSuperAdmin;
-    const isCreatingCloudSong = !songId && isCloudMode && isSuperAdmin;
+    if (!user) return;
+    
+    const isCloudAction = isCloudMode && isSuperAdmin;
+    const isUpdating = !!songId;
 
-    // A song object that can be saved to local DB or Firestore
     const newSongData: Omit<Song, 'updatedAt'> & { updatedAt: Date | any } = {
-      id: isUpdatingCloudSong ? songId! : (isCreatingCloudSong ? `uploaded-${uuidv4()}` : songId || `custom-${uuidv4()}`),
+      id: isUpdating ? songId : (isCloudAction ? `uploaded-${uuidv4()}` : `custom-${uuidv4()}`),
       title: data.title,
       artist: data.artist,
       lyrics: parseLyricsFromString(data.lyrics),
@@ -278,15 +205,14 @@ export default function SongCreator() {
     };
 
 
-    if (isCreatingCloudSong || isUpdatingCloudSong) {
-      // Super Admin saving to Firestore
+    if (isCloudAction) {
       try {
         await uploadSongToCloud(newSongData as Song);
          toast({
-          title: `Song ${isUpdatingCloudSong ? 'Updated in Cloud' : 'Uploaded to Cloud'}`,
+          title: `Song ${isUpdating ? 'Updated in Cloud' : 'Uploaded to Cloud'}`,
           description: `"${newSongData.title}" is now available to all users.`,
         });
-        router.push('/song-editor?mode=cloud'); // Go back to cloud management list
+        router.push('/admin/songs'); // Go back to cloud management list
       } catch (error) {
          toast({ title: 'Error', description: 'Could not save the song to the cloud.', variant: 'destructive' });
       }
@@ -295,7 +221,7 @@ export default function SongCreator() {
       try {
         await saveSong({ ...newSongData, updatedAt: new Date() });
         toast({
-          title: `Song ${songId ? 'Updated' : 'Saved'}`,
+          title: `Song ${isUpdating ? 'Updated' : 'Saved'}`,
           description: `"${newSongData.title}" has been saved to your local library.`,
         });
         form.reset({}, { keepValues: false, keepDirty: false, keepDefaultValues: false });
@@ -309,7 +235,7 @@ export default function SongCreator() {
 
   const handleCancel = () => {
       if (isCloudMode) {
-          router.push('/song-editor?mode=cloud');
+          router.push('/admin/songs');
       } else {
           router.push('/downloaded');
       }
@@ -317,11 +243,6 @@ export default function SongCreator() {
   
   if (isLoading) {
       return <LoadingScreen />
-  }
-
-  // If super admin is in cloud mode but no specific song is selected for editing/creation, show the list.
-  if (isSuperAdmin && isCloudMode && !songId && action !== 'create') {
-      return <CloudSongManager onEdit={handleEditCloudSong} />;
   }
   
   const getPageTitle = () => {
@@ -332,16 +253,17 @@ export default function SongCreator() {
   }
 
   const getSubmitButton = () => {
+    const isUpdating = !!songId;
     if (isSuperAdmin && isCloudMode) {
       return (
         <Button type="submit" form="song-creator-form" size="lg">
-          <Database className="mr-2 h-4 w-4" /> {songId ? 'Update Cloud Song' : 'Save to Cloud'}
+          <Database className="mr-2 h-4 w-4" /> {isUpdating ? 'Update Cloud Song' : 'Save to Cloud'}
         </Button>
       );
     }
     return (
        <Button type="submit" form="song-creator-form" size="lg">
-          <Save className="mr-2 h-4 w-4" /> {songId ? 'Update Song' : 'Save Song'}
+          <Save className="mr-2 h-4 w-4" /> {isUpdating ? 'Update Song' : 'Save Song'}
        </Button>
     );
   }
