@@ -17,7 +17,7 @@ export default function BottomNavBar() {
   const pathname = usePathname();
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/80 backdrop-blur-sm supports-[backdrop-filter]:bg-background/60 md:hidden">
+    <footer className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/80 backdrop-blur-sm supports-[backdrop-filter]:bg-background/50 md:hidden">
       <nav className="flex items-center justify-around h-16 max-w-[768px] mx-auto">
         {navLinks.map((link) => {
           const isActive = pathname === link.href;
