@@ -160,7 +160,7 @@ function SetlistDetailContent() {
                 </Link>
             </Button>
             <Button asChild variant="outline" size="icon">
-                <Link href={`/create?id=${setlist.id}`}>
+                <Link href={`/setlists/edit/${setlist.id}`}>
                     <Edit className="h-5 w-5" />
                     <span className="sr-only">Edit Setlist</span>
                 </Link>

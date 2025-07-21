@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { getSongs, type Song } from '@/lib/songs';
 import { saveSetlist, getSetlist as getSetlistFromDb, getSong as getSongFromDb, getAllSavedSongIds } from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -31,6 +31,10 @@ const setlistFormSchema = z.object({
 });
 
 type SetlistFormValues = z.infer<typeof setlistFormSchema>;
+
+interface SetlistCreatorProps {
+  setlistId?: string;
+}
 
 function LoadingScreen() {
     return (
@@ -115,12 +119,10 @@ function AddSongComponent({
 }
 
 
-export default function SetlistCreator() {
+export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const setlistId = searchParams.get('id');
   
   const [selectedSongs, setSelectedSongs] = useState<Song[]>([]);
   const [searchTerm, setSearchTerm] = useState('');

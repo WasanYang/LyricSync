@@ -163,7 +163,7 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-                            <Link href={`/create?id=${setlist.id}`} onClick={(e) => e.stopPropagation()}>
+                            <Link href={`/setlists/edit/${setlist.id}`} onClick={(e) => e.stopPropagation()}>
                                 <Edit className="h-4 w-4" />
                             </Link>
                         </Button>
@@ -213,29 +213,29 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                  )}
                 
                 <AlertDialog>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                            <p>Delete</p>
-                        </TooltipContent>
-                    </Tooltip>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete your setlist
-                            &quot;{setlist.title}&quot;.
-                        </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
+                  <Tooltip>
+                      <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                          </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                          <p>Delete</p>
+                      </TooltipContent>
+                  </Tooltip>
+                  <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                      <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete your setlist
+                          &quot;{setlist.title}&quot;.
+                      </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                      </AlertDialogFooter>
+                  </AlertDialogContent>
                 </AlertDialog>
             </div>
         </div>
@@ -321,7 +321,7 @@ export default function SetlistsPage() {
                 {user && <p className="text-muted-foreground">Synced: {syncedCount}/{SYNC_LIMIT}</p>}
               </div>
               <Button asChild>
-                <Link href="/create">
+                <Link href="/setlists/create">
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Create New
                 </Link>
@@ -349,7 +349,7 @@ export default function SetlistsPage() {
                 <h2 className="text-xl font-headline font-semibold">No Setlists Found</h2>
                 <p className="text-muted-foreground">You haven&apos;t created any setlists yet.</p>
                  <Button variant="link" asChild>
-                    <Link href="/create">Create one now</Link>
+                    <Link href="/setlists/create">Create one now</Link>
                 </Button>
               </div>
           )}
