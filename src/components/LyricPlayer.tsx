@@ -763,7 +763,7 @@ export default function LyricPlayer({
         >
           <ul
             className={cn(
-              'w-full px-4 md:px-12',
+              'w-full max-w-3xl mx-auto px-4 md:px-12',
               isSetlistMode ? 'pt-8 pb-32' : 'pt-20 pb-48 md:pb-24'
             )}
             style={{ fontSize: `${fontSize}px` }}
@@ -816,7 +816,7 @@ export default function LyricPlayer({
                   key={`${song.id}-${line.originalIndex}`}
                   ref={(el) => (lineRefs.current[index] = el)}
                   className={cn(
-                    'rounded-md transition-all duration-300 text-center flex justify-center items-center',
+                    'rounded-md transition-all duration-300 text-left flex justify-start items-center',
                     isSectionBreak ? 'h-[1.2em]' : 'min-h-[2.5rem] py-2',
                     isHighlighted
                       ? 'text-foreground scale-105'
