@@ -367,7 +367,8 @@ export default function LyricPlayer({
     const timeSignatureBeats = song.timeSignature
         ? parseInt(song.timeSignature.split('/')[0], 10)
         : 4;
-    const secondsPerMeasure = (60 / (bpm || 120)) * timeSignatureBeats;
+    const currentBpm = typeof bpm === 'number' && bpm > 0 ? bpm : 120;
+    const secondsPerMeasure = (60 / currentBpm) * timeSignatureBeats;
 
     const lyricsWithTiming = song.lyrics
         .map((line, index) => {
@@ -503,7 +504,7 @@ export default function LyricPlayer({
         name: line.text.substring(1, line.text.length - 1),
         startTime: line.startTimeSeconds,
         index: line.originalIndex,
-        uniqueKey: `${line.text.substring(1, line.text.length - 1)}-${index}`,
+        uniqueKey: `${line.text.substring(1, line.text.length - 1)}-${line.originalIndex}`,
       }));
   }, [processedLyrics]);
 
@@ -618,12 +619,16 @@ export default function LyricPlayer({
     }
   }, [currentLineIndex, processedLyrics, handleSetLine]);
 
-  const handleSectionJump = (startTime: number) => {
-    const targetIndex = processedLyrics.findIndex(
-      (l) => l.startTimeSeconds >= startTime && l.measures > 0
-    );
-    if (targetIndex !== -1) {
-      handleSetLine(targetIndex);
+  const handleSectionJump = (sectionIndex: number) => {
+    const targetLine = processedLyrics.find(l => l.originalIndex === sectionIndex);
+    if (targetLine) {
+        const firstPlayableLineIndex = processedLyrics.findIndex(l => l.startTimeSeconds >= targetLine.startTimeSeconds && l.measures > 0);
+        if (firstPlayableLineIndex !== -1) {
+            handleSetLine(firstPlayableLineIndex);
+        } else {
+            // Fallback: just jump to the section header time if no playable line is after it
+            handleSetLine(processedLyrics.findIndex(l => l.originalIndex === sectionIndex));
+        }
     }
   };
 
@@ -740,7 +745,7 @@ export default function LyricPlayer({
               {sections.map((section, index) => (
                 <button
                   key={section.uniqueKey}
-                  onClick={() => handleSectionJump(section.startTime)}
+                  onClick={() => handleSectionJump(section.index)}
                   className={cn(
                     'text-xs font-bold py-1 px-3 rounded-full shadow-md transition-all duration-300',
                     section.uniqueKey === currentSection?.uniqueKey
