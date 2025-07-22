@@ -80,6 +80,7 @@ type State = {
   chordColor: string;
   highlightMode: HighlightMode;
   showSectionNavigator: boolean;
+  showKeyControls: boolean;
   bpm: number;
   transpose: number;
 };
@@ -96,6 +97,7 @@ type Action =
   | { type: 'SET_CHORD_COLOR'; payload: string }
   | { type: 'SET_HIGHLIGHT_MODE'; payload: HighlightMode }
   | { type: 'TOGGLE_SECTION_NAVIGATOR' }
+  | { type: 'TOGGLE_KEY_CONTROLS' }
   | { type: 'SET_TRANSPOSE'; payload: number }
   | { type: 'TRANSPOSE_UP' }
   | { type: 'TRANSPOSE_DOWN' }
@@ -114,6 +116,7 @@ const initialState: State = {
   chordColor: 'hsl(var(--primary))',
   highlightMode: 'line',
   showSectionNavigator: true,
+  showKeyControls: true,
   bpm: 120,
   transpose: 0,
 };
@@ -158,6 +161,8 @@ function lyricPlayerReducer(state: State, action: Action): State {
       return { ...state, highlightMode: action.payload };
     case 'TOGGLE_SECTION_NAVIGATOR':
       return { ...state, showSectionNavigator: !state.showSectionNavigator };
+    case 'TOGGLE_KEY_CONTROLS':
+        return { ...state, showKeyControls: !state.showKeyControls };
     case 'SET_TRANSPOSE':
       return { ...state, transpose: action.payload };
     case 'TRANSPOSE_UP':
@@ -174,6 +179,7 @@ function lyricPlayerReducer(state: State, action: Action): State {
         transpose: state.transpose,
         bpm: action.payload.bpm || initialState.bpm,
         showSectionNavigator: true, // always show on reset
+        showKeyControls: true,
       };
     default:
       return state;
@@ -341,6 +347,7 @@ export default function LyricPlayer({
     chordColor,
     highlightMode,
     showSectionNavigator,
+    showKeyControls,
     bpm,
     transpose,
   } = state;
@@ -350,10 +357,17 @@ export default function LyricPlayer({
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
+  // States for Draggable Navigator
   const navigatorRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 16, y: 450 }); // x is right offset
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isNavDragging, setIsNavDragging] = useState(false);
+  const [navPosition, setNavPosition] = useState({ x: 16, y: 450 });
+  const [navDragOffset, setNavDragOffset] = useState({ x: 0, y: 0 });
+
+  // States for Draggable Key Controls
+  const keyControlsRef = useRef<HTMLDivElement>(null);
+  const [isKeyControlsDragging, setIsKeyControlsDragging] = useState(false);
+  const [keyControlsPosition, setKeyControlsPosition] = useState({ x: 16, y: 90 });
+  const [keyControlsDragOffset, setKeyControlsDragOffset] = useState({ x: 0, y: 0 });
 
   const [theme, setThemeState] = useState<'light' | 'dark'>('light');
 
@@ -388,9 +402,11 @@ export default function LyricPlayer({
   useEffect(() => {
     dispatch({ type: 'RESET_PLAYER_STATE', payload: { bpm: song.bpm } });
     if (isSetlistMode) {
-      setPosition({ x: 16, y: 450 });
+      setNavPosition({ x: 16, y: 450 });
+      setKeyControlsPosition({ x: 16, y: 90 });
     } else {
-      setPosition({ x: 16, y: 100 });
+      setNavPosition({ x: 16, y: 100 });
+      setKeyControlsPosition({ x: 16, y: 90 });
     }
   }, [song.id, song.bpm, isSetlistMode]);
 
@@ -409,94 +425,99 @@ export default function LyricPlayer({
     setThemeState((prevTheme) => (prevTheme === 'dark' ? 'light' : 'dark'));
   };
 
-  const handleDragMouseDown = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-        if (navigatorRef.current) {
-            setIsDragging(true);
-            const rect = navigatorRef.current.getBoundingClientRect();
-            // Calculate offset from the right edge
-            setDragOffset({
-                x: window.innerWidth - e.clientX - rect.width,
-                y: e.clientY - rect.top
-            });
-        }
-    },
-    []
-);
-
-const handleDragTouchStart = useCallback(
-    (e: React.TouchEvent<HTMLButtonElement>) => {
-        if (navigatorRef.current) {
-            setIsDragging(true);
-            const touch = e.touches[0];
-            const rect = navigatorRef.current.getBoundingClientRect();
-             // Calculate offset from the right edge
-            setDragOffset({
-                x: window.innerWidth - touch.clientX - rect.width,
-                y: touch.clientY - rect.top
-            });
-        }
-    },
-    []
-);
-
-const handleDragMouseUp = useCallback(() => setIsDragging(false), []);
-const handleDragTouchEnd = useCallback(() => setIsDragging(false), []);
-
-const handleDragMouseMove = useCallback(
-    (e: MouseEvent) => {
-        if (isDragging && navigatorRef.current) {
-             const newRight = window.innerWidth - e.clientX - dragOffset.x;
-            setPosition({
-                x: newRight,
-                y: e.clientY - dragOffset.y,
-            });
-        }
-    },
-    [isDragging, dragOffset]
-);
-
-const handleDragTouchMove = useCallback(
-    (e: TouchEvent) => {
-        if (isDragging && navigatorRef.current) {
-            const touch = e.touches[0];
-            const newRight = window.innerWidth - touch.clientX - dragOffset.x;
-            setPosition({
-                x: newRight,
-                y: touch.clientY - dragOffset.y,
-            });
-        }
-    },
-    [isDragging, dragOffset]
-);
-
-
-  useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleDragMouseMove);
-      window.addEventListener('mouseup', handleDragMouseUp);
-      window.addEventListener('touchmove', handleDragTouchMove);
-      window.addEventListener('touchend', handleDragTouchEnd);
-    } else {
-      window.removeEventListener('mousemove', handleDragMouseMove);
-      window.removeEventListener('mouseup', handleDragMouseUp);
-      window.removeEventListener('touchmove', handleDragTouchMove);
-      window.removeEventListener('touchend', handleDragTouchEnd);
+  // --- Drag and Drop Logic for Navigator ---
+  const handleNavDragMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    if (navigatorRef.current) {
+        setIsNavDragging(true);
+        const rect = navigatorRef.current.getBoundingClientRect();
+        setNavDragOffset({ x: window.innerWidth - e.clientX - rect.width, y: e.clientY - rect.top });
     }
+  }, []);
 
-    return () => {
-      window.removeEventListener('mousemove', handleDragMouseMove);
-      window.removeEventListener('mouseup', handleDragMouseUp);
-      window.removeEventListener('touchmove', handleDragTouchMove);
-      window.removeEventListener('touchend', handleDragTouchEnd);
-    };
-  }, [
-    isDragging,
-    handleDragMouseMove,
-    handleDragMouseUp,
-    handleDragTouchMove,
-    handleDragTouchEnd,
-  ]);
+  const handleNavDragTouchStart = useCallback((e: React.TouchEvent<HTMLButtonElement>) => {
+    if (navigatorRef.current) {
+        setIsNavDragging(true);
+        const touch = e.touches[0];
+        const rect = navigatorRef.current.getBoundingClientRect();
+        setNavDragOffset({ x: window.innerWidth - touch.clientX - rect.width, y: touch.clientY - rect.top });
+    }
+  }, []);
+  
+  // --- Drag and Drop Logic for Key Controls ---
+  const handleKeyControlsDragMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    if (keyControlsRef.current) {
+        setIsKeyControlsDragging(true);
+        const rect = keyControlsRef.current.getBoundingClientRect();
+        setKeyControlsDragOffset({ x: window.innerWidth - e.clientX - rect.width, y: e.clientY - rect.top });
+    }
+  }, []);
+
+  const handleKeyControlsDragTouchStart = useCallback((e: React.TouchEvent<HTMLButtonElement>) => {
+    if (keyControlsRef.current) {
+        setIsKeyControlsDragging(true);
+        const touch = e.touches[0];
+        const rect = keyControlsRef.current.getBoundingClientRect();
+        setKeyControlsDragOffset({ x: window.innerWidth - touch.clientX - rect.width, y: touch.clientY - rect.top });
+    }
+  }, []);
+
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isNavDragging && navigatorRef.current) {
+        const newRight = window.innerWidth - e.clientX - navDragOffset.x;
+        setNavPosition({ x: newRight, y: e.clientY - navDragOffset.y });
+    }
+    if (isKeyControlsDragging && keyControlsRef.current) {
+        const newRight = window.innerWidth - e.clientX - keyControlsDragOffset.x;
+        setKeyControlsPosition({ x: newRight, y: e.clientY - keyControlsDragOffset.y });
+    }
+  }, [isNavDragging, navDragOffset, isKeyControlsDragging, keyControlsDragOffset]);
+  
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+      if (isNavDragging && navigatorRef.current) {
+          const touch = e.touches[0];
+          const newRight = window.innerWidth - touch.clientX - navDragOffset.x;
+          setNavPosition({ x: newRight, y: touch.clientY - navDragOffset.y });
+      }
+      if (isKeyControlsDragging && keyControlsRef.current) {
+          const touch = e.touches[0];
+          const newRight = window.innerWidth - touch.clientX - keyControlsDragOffset.x;
+          setKeyControlsPosition({ x: newRight, y: touch.clientY - keyControlsDragOffset.y });
+      }
+  }, [isNavDragging, navDragOffset, isKeyControlsDragging, keyControlsDragOffset]);
+  
+  const handleMouseUp = useCallback(() => {
+      setIsNavDragging(false);
+      setIsKeyControlsDragging(false);
+  }, []);
+  
+  const handleTouchEnd = useCallback(() => {
+      setIsNavDragging(false);
+      setIsKeyControlsDragging(false);
+  }, []);
+  
+  useEffect(() => {
+      const isDragging = isNavDragging || isKeyControlsDragging;
+      if (isDragging) {
+          window.addEventListener('mousemove', handleMouseMove);
+          window.addEventListener('mouseup', handleMouseUp);
+          window.addEventListener('touchmove', handleTouchMove);
+          window.addEventListener('touchend', handleTouchEnd);
+      } else {
+          window.removeEventListener('mousemove', handleMouseMove);
+          window.removeEventListener('mouseup', handleMouseUp);
+          window.removeEventListener('touchmove', handleTouchMove);
+          window.removeEventListener('touchend', handleTouchEnd);
+      }
+  
+      return () => {
+          window.removeEventListener('mousemove', handleMouseMove);
+          window.removeEventListener('mouseup', handleMouseUp);
+          window.removeEventListener('touchmove', handleTouchMove);
+          window.removeEventListener('touchend', handleTouchEnd);
+      };
+  }, [isNavDragging, isKeyControlsDragging, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
+
 
   const sections = useMemo(() => {
     return processedLyrics
@@ -685,148 +706,7 @@ const handleDragTouchMove = useCallback(
               </div>
 
               <div className='absolute right-2 top-1/2 -translate-y-1/2'>
-                 <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                    <SheetTrigger asChild>
-                      <Button variant='ghost' size='icon'>
-                        <Settings />
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent
-                      side='right'
-                      className='p-0 flex flex-col max-h-screen w-full max-w-xs'
-                      onOpenAutoFocus={(e) => e.preventDefault()}
-                    >
-                      <SheetHeader className='p-4 border-b'>
-                        <SheetTitle>Settings</SheetTitle>
-                      </SheetHeader>
-                      <ScrollArea className='flex-grow'>
-                        <div className='p-4 space-y-6'>
-                            {/* Chords Settings */}
-                            <div className='space-y-4'>
-                                <Label className="text-base font-semibold">Chords</Label>
-                                <div className='flex items-center justify-between'>
-                                    <Label htmlFor='show-chords-settings' className="cursor-pointer">Show Chords</Label>
-                                    <Switch
-                                    id='show-chords-settings'
-                                    checked={showChords}
-                                    onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
-                                    />
-                                </div>
-                                <div className='flex items-center justify-between'>
-                                    <Label>Key</Label>
-                                    <div className="flex items-center gap-1">
-                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => dispatch({type: 'TRANSPOSE_DOWN'})}><Minus className="h-4 w-4" /></Button>
-                                        <Select value={currentKey} onValueChange={handleKeyChange}>
-                                            <SelectTrigger className="w-[80px] h-7 text-xs">
-                                                <SelectValue placeholder='Key' />
-                                            </SelectTrigger>
-                                            <SelectContent align="start">
-                                                {ALL_NOTES.map((note) => (
-                                                <SelectItem key={note} value={note} className='text-xs'>
-                                                    {note}
-                                                </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => dispatch({type: 'TRANSPOSE_UP'})}><Plus className="h-4 w-4" /></Button>
-                                    </div>
-                                </div>
-                            </div>
-                           
-                            <Separator />
-                            
-                            {/* Display Settings */}
-                            <div className='space-y-4'>
-                                <Label className="text-base font-semibold">Display</Label>
-                                 <div className='flex items-center justify-between'>
-                                    <Label>Font Size</Label>
-                                     <div className="flex items-center gap-1">
-                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16}><Minus className="h-4 w-4" /></Button>
-                                        <span className="w-10 text-center text-sm font-mono">{fontSize}px</span>
-                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => changeFontSize(2)} disabled={fontSize >= 48}><Plus className="h-4 w-4" /></Button>
-                                     </div>
-                                </div>
-                                <div className='flex items-center justify-between'>
-                                    <Label>Highlight</Label>
-                                    <RadioGroup
-                                    value={highlightMode}
-                                    onValueChange={(value: HighlightMode) =>
-                                        dispatch({
-                                        type: 'SET_HIGHLIGHT_MODE',
-                                        payload: value,
-                                        })
-                                    }
-                                    className='flex items-center gap-1'
-                                    >
-                                    {HIGHLIGHT_OPTIONS.map((option) => (
-                                        <Label
-                                        key={option.value}
-                                        className={cn(
-                                            'flex h-7 w-14 items-center justify-center cursor-pointer rounded-md border text-xs opacity-75 hover:bg-accent hover:text-accent-foreground',
-                                            highlightMode === option.value &&
-                                            'border-primary bg-primary/10 text-primary opacity-100'
-                                        )}
-                                        >
-                                        <RadioGroupItem
-                                            value={option.value}
-                                            id={`highlight-${option.value}`}
-                                            className='sr-only'
-                                        />
-                                        {option.label}
-                                        </Label>
-                                    ))}
-                                    </RadioGroup>
-                                </div>
-                                <div className='flex items-center justify-between'>
-                                    <Label htmlFor='show-section-nav'>Navigator</Label>
-                                    <Switch
-                                    id='show-section-nav'
-                                    checked={showSectionNavigator}
-                                    onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
-                                    />
-                                </div>
-                                <div className='flex items-center justify-between'>
-                                    <Label htmlFor='dark-mode'>Theme</Label>
-                                    <Switch
-                                    id='dark-mode'
-                                    checked={theme === 'dark'}
-                                    onCheckedChange={toggleTheme}
-                                    />
-                                </div>
-                            </div>
-
-                            <Separator />
-                             {/* Other Settings */}
-                            <div className='space-y-4'>
-                                <Label className="text-base font-semibold">Playback</Label>
-                                <div className='flex items-center justify-between'>
-                                    <Label>BPM</Label>
-                                    <div className="flex items-center gap-1">
-                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 5 })}><Minus className="h-4 w-4" /></Button>
-                                        <Input
-                                            type='number'
-                                            className='w-16 h-7 text-center'
-                                            value={bpm}
-                                            onChange={(e) =>
-                                                dispatch({
-                                                type: 'SET_BPM',
-                                                payload: parseInt(e.target.value, 10) || bpm,
-                                                })
-                                            }
-                                        />
-                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 5 })}><Plus className="h-4 w-4" /></Button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                      </ScrollArea>
-                       <div className="p-4 border-t">
-                            <Button variant="outline" className="w-full" onClick={() => dispatch({ type: 'RESET_PLAYER_STATE', payload: { bpm: song.bpm } })}>
-                                <RotateCcw className="mr-2 h-4 w-4" /> Reset All Settings
-                            </Button>
-                        </div>
-                    </SheetContent>
-                  </Sheet>
+                 {/* This space is now empty, settings are at the bottom */}
               </div>
             </div>
           </header>
@@ -836,15 +716,15 @@ const handleDragTouchMove = useCallback(
           <div
             ref={navigatorRef}
             className='fixed z-20 pointer-events-auto flex flex-col items-center gap-2'
-            style={{ top: `${position.y}px`, right: `${position.x}px` }}
+            style={{ top: `${navPosition.y}px`, right: `${navPosition.x}px` }}
           >
             <div className='flex items-center gap-1'>
               <Button
                 variant='ghost'
                 size='icon'
                 className='h-6 w-6 cursor-grab active:cursor-grabbing bg-transparent text-muted-foreground/60'
-                onMouseDown={handleDragMouseDown}
-                onTouchStart={handleDragTouchStart}
+                onMouseDown={handleNavDragMouseDown}
+                onTouchStart={handleNavDragTouchStart}
               >
                 <Move className='h-3 w-3' />
               </Button>
@@ -878,42 +758,64 @@ const handleDragTouchMove = useCallback(
         )}
 
         {/* Floating Chord/Key Controls */}
-        <div className={cn("fixed z-20 pointer-events-auto flex flex-col items-end gap-2", 
-          isSetlistMode ? 'top-24' : 'top-16',
-          'right-4'
-        )}>
-            <div className="flex flex-col gap-2 p-2 bg-background/40 backdrop-blur-sm rounded-lg shadow-md border">
-                 <div className='flex items-center justify-between gap-4'>
-                    <Label htmlFor='show-chords-quick' className="cursor-pointer text-xs font-semibold">CHORDS</Label>
-                    <Switch
-                    id='show-chords-quick'
-                    checked={showChords}
-                    onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
-                    className="h-5 w-9 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input"
-                    thumbClassName="h-4 w-4 data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0"
-                    />
+        {showKeyControls && (
+            <div
+                ref={keyControlsRef}
+                className={cn("fixed z-20 pointer-events-auto flex flex-col items-end gap-2")}
+                style={{ top: `${keyControlsPosition.y}px`, right: `${keyControlsPosition.x}px` }}
+            >
+                <div className="flex items-center gap-1">
+                    <Button
+                        variant='ghost'
+                        size='icon'
+                        className='h-6 w-6 cursor-grab active:cursor-grabbing bg-transparent text-muted-foreground/60'
+                        onMouseDown={handleKeyControlsDragMouseDown}
+                        onTouchStart={handleKeyControlsDragTouchStart}
+                    >
+                        <Move className='h-3 w-3' />
+                    </Button>
+                    <Button
+                        variant='ghost'
+                        size='icon'
+                        className='h-6 w-6 bg-transparent text-muted-foreground/60'
+                        onClick={() => dispatch({ type: 'TOGGLE_KEY_CONTROLS' })}
+                    >
+                        <X className='h-3 w-3' />
+                    </Button>
                 </div>
-                <div className='flex items-center justify-between gap-4'>
-                    <Label className="text-xs font-semibold">KEY</Label>
-                    <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => dispatch({type: 'TRANSPOSE_DOWN'})}><Minus className="h-3 w-3" /></Button>
-                        <Select value={currentKey} onValueChange={handleKeyChange}>
-                            <SelectTrigger className="w-[60px] h-6 text-xs font-bold">
-                                <SelectValue placeholder='Key' />
-                            </SelectTrigger>
-                            <SelectContent align="start">
-                                {ALL_NOTES.map((note) => (
-                                <SelectItem key={note} value={note} className='text-xs'>
-                                    {note}
-                                </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => dispatch({type: 'TRANSPOSE_UP'})}><Plus className="h-3 w-3" /></Button>
+                <div className="flex flex-col gap-2 p-2 bg-background/40 backdrop-blur-sm rounded-lg shadow-md border">
+                    <div className='flex items-center justify-between gap-4'>
+                        <Label htmlFor='show-chords-quick' className="cursor-pointer text-xs font-semibold">CHORDS</Label>
+                        <Switch
+                            id='show-chords-quick'
+                            checked={showChords}
+                            onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
+                            className="h-5 w-9 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input"
+                            thumbClassName="h-4 w-4 data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0"
+                        />
+                    </div>
+                    <div className='flex items-center justify-between gap-4'>
+                        <Label className="text-xs font-semibold">KEY</Label>
+                        <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => dispatch({ type: 'TRANSPOSE_DOWN' })}><Minus className="h-3 w-3" /></Button>
+                            <Select value={currentKey} onValueChange={handleKeyChange}>
+                                <SelectTrigger className="w-[60px] h-6 text-xs font-bold">
+                                    <SelectValue placeholder='Key' />
+                                </SelectTrigger>
+                                <SelectContent align="start">
+                                    {ALL_NOTES.map((note) => (
+                                        <SelectItem key={note} value={note} className='text-xs'>
+                                            {note}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => dispatch({ type: 'TRANSPOSE_UP' })}><Plus className="h-3 w-3" /></Button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        )}
 
         <div
           ref={scrollContainerRef}
@@ -1162,6 +1064,14 @@ const handleDragTouchMove = useCallback(
                                     id='show-section-nav'
                                     checked={showSectionNavigator}
                                     onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
+                                    />
+                                </div>
+                                <div className='flex items-center justify-between'>
+                                    <Label htmlFor='show-key-controls'>Quick Controls</Label>
+                                    <Switch
+                                    id='show-key-controls'
+                                    checked={showKeyControls}
+                                    onCheckedChange={() => dispatch({ type: 'TOGGLE_KEY_CONTROLS' })}
                                     />
                                 </div>
                                 <div className='flex items-center justify-between'>
