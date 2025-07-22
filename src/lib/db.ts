@@ -403,13 +403,21 @@ export async function syncSetlist(setlistId: string, userId: string): Promise<vo
         if (count >= SYNC_LIMIT) {
             throw new Error("SYNC_LIMIT_REACHED");
         }
-        const newDocRef = doc(collection(firestoreDb, "setlists"));
-        await setDoc(newDocRef, dataToSync);
+        const newDocRef = await addDoc(collection(firestoreDb, "setlists"), dataToSync);
         setlist.firestoreId = newDocRef.id;
     }
-
+    
+    // After syncing, update the local setlist to mark it as synced and set the correct timestamp.
+    // We get the doc from the server again to get the server-generated timestamp.
+    const syncedDoc = await getDoc(doc(firestoreDb, 'setlists', setlist.firestoreId!));
+    const syncedData = syncedDoc.data();
+    if (syncedData && syncedData.syncedAt) {
+      setlist.updatedAt = (syncedData.syncedAt as Timestamp).toMillis();
+    } else {
+      setlist.updatedAt = Date.now();
+    }
+    
     setlist.isSynced = true;
-    setlist.updatedAt = Date.now();
     await db.put(SETLISTS_STORE, setlist);
 }
 
