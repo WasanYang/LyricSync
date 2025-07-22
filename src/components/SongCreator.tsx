@@ -36,13 +36,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -57,7 +50,6 @@ import LyricPlayer from './LyricPlayer';
 import {
   Eye,
   Save,
-  XCircle,
   HelpCircle,
   Database,
   ArrowLeft,
@@ -68,7 +60,8 @@ import { Skeleton } from './ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
-
+import { LyricsHelpDialog } from './LyricsHelpDialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
@@ -300,7 +293,7 @@ export default function SongCreator() {
       try {
         await uploadSongToCloud(newSongData as Song);
         toast({
-          title: `Song Saved`,
+          title: `Saved`,
           description: `"${newSongData.title}" has been saved to the cloud.`,
         });
         form.reset(data); // Reset form to make it not dirty
@@ -322,7 +315,7 @@ export default function SongCreator() {
         } as Song;
         await saveSong(localSong);
         toast({
-          title: `Song Saved`,
+          title: `Saved`,
           description: `"${localSong.title}" has been saved to your local library.`,
         });
         form.reset(data); // Reset form to make it not dirty
@@ -412,7 +405,7 @@ export default function SongCreator() {
       <div
         className={cn(
           'fixed inset-0 z-20 transition-opacity duration-300 pointer-events-none',
-          isLyricsFullscreen ? 'opacity-100 bg-black/80' : 'opacity-0'
+          isLyricsFullscreen ? 'opacity-100' : 'opacity-0'
         )}
         onClick={() => setIsLyricsFullscreen(false)}
       />
@@ -566,111 +559,21 @@ export default function SongCreator() {
                   className={cn(
                     'flex flex-col relative transition-all duration-300 w-full',
                     isLyricsFullscreen
-                      ? 'fixed bottom-0 left-0 right-0 z-30 h-[70vh] bg-background border-t'
+                      ? 'fixed bottom-0 left-0 right-0 z-30 h-[70vh] bg-background border-t p-4'
                       : 'flex-grow min-h-0',
                     isMobile && !isLyricsFullscreen && 'flex-grow min-h-[300px]'
                   )}
                 >
-                  <div className={cn('flex items-center justify-between gap-2', isLyricsFullscreen ? 'absolute -top-10 right-1 z-10' : 'mb-2')}>
-                    <FormLabel className={cn(isLyricsFullscreen ? 'text-background/70' : 'text-foreground')}>Lyrics &amp; Chords</FormLabel>
+                  <div className={cn('flex items-center justify-between gap-2 mb-2')}>
+                    <FormLabel>Lyrics &amp; Chords</FormLabel>
                     <div className='flex items-center gap-1'>
-                      <Dialog>
-                          <DialogTrigger asChild>
-                            <Button
-                              type='button'
-                              variant='ghost'
-                              size='icon'
-                              className={cn('h-5 w-5', isLyricsFullscreen ? 'text-background/70 hover:text-background' : 'text-muted-foreground')}
-                            >
-                              <HelpCircle className='h-4 w-4' />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className='sm:max-w-2xl'>
-                            <DialogHeader>
-                              <DialogTitle>
-                                How to Format Lyrics & Chords
-                              </DialogTitle>
-                              <p className='text-sm text-muted-foreground'>
-                                Follow this format to ensure your lyrics and chords
-                                display correctly in the player.
-                              </p>
-                            </DialogHeader>
-                            <div className='space-y-4 text-sm py-4'>
-                              <p>
-                                Each line must start with a number representing the number of measures (ห้อง), followed by
-                                a pipe `|`, and then the text content.
-                              </p>
-                              <div className='p-4 bg-muted rounded-md font-mono text-xs overflow-x-auto'>
-                                <p className='font-bold mb-2'>Format:</p>
-                                <p>
-                                  <code className='text-primary'>num_of_measures</code> |{' '}
-                                  <code className='text-primary'>[Chord]</code>Lyric
-                                  text...
-                                </p>
-                              </div>
-
-                              <div>
-                                <h4 className='font-semibold mb-2'>
-                                  Key Concepts:
-                                </h4>
-                                <ul className='list-disc pl-5 space-y-2'>
-                                  <li>
-                                    <strong>Number of Measures:</strong> Every line must
-                                    begin with a number representing how many measures/bars that line of lyric should last.
-                                  </li>
-                                  <li>
-                                    <strong>Line Duration:</strong> A line with `0` measures will be combined with the previous line and not advance the timeline. Use this for multi-line lyrics within the same set of measures.
-                                  </li>
-                                  <li>
-                                    <strong>Pipe Separator:</strong> A pipe
-                                    character `|` must follow the number to
-                                    separate it from the content.
-                                  </li>
-                                  <li>
-                                    <strong>Chords:</strong> Enclose chords in
-                                    square brackets, like{' '}
-                                    <code className='bg-muted px-1 py-0.5 rounded'>
-                                      [C]
-                                    </code>{' '}
-                                    or{' '}
-                                    <code className='bg-muted px-1 py-0.5 rounded'>
-                                      [G/B]
-                                    </code>
-                                    . Place them right before the syllable where the
-                                    chord change occurs.
-                                  </li>
-                                  <li>
-                                    <strong>Section Headers:</strong> To define
-                                    sections like (Intro), (Verse), or (Chorus), use
-                                    `0` for the number of measures.
-                                  </li>
-                                </ul>
-                              </div>
-
-                              <div className='p-4 bg-muted rounded-md font-mono text-xs overflow-x-auto'>
-                                <p className='font-bold mb-2'>Examples:</p>
-                                <p>0 | (Intro)</p>
-                                <p>4 | [Am] [G] [C] [F]</p>
-                                <p>4 | [C]This is a [G]line with chords.</p>
-                                <p>4 | This is a line with no chords.</p>
-                                <p>0 | (Verse 1)</p>
-                                <p>
-                                  4 | The quick [Am]brown fox [G]jumps over the
-                                  [C]lazy dog.[F]
-                                </p>
-                                 <p>
-                                  0 | This is the second line of lyrics for the 4 measures above.
-                                </p>
-                              </div>
-                            </div>
-                          </DialogContent>
-                      </Dialog>
+                      <LyricsHelpDialog />
                       <Button
                           type='button'
                           variant='ghost'
                           size='icon'
                           onClick={() => setIsLyricsFullscreen(!isLyricsFullscreen)}
-                          className={cn('h-5 w-5', isLyricsFullscreen ? 'text-background/70 hover:text-background' : 'text-muted-foreground')}
+                          className={cn('h-5 w-5', 'text-muted-foreground')}
                       >
                           {isLyricsFullscreen ? <Shrink className='h-4 w-4' /> : <Expand className='h-4 w-4'/>}
                       </Button>
@@ -683,7 +586,7 @@ export default function SongCreator() {
                       className={cn(
                         'text-sm font-mono resize-none overflow-y-auto transition-all duration-300 w-full',
                          isLyricsFullscreen 
-                          ? 'h-full bg-zinc-900 text-background border-zinc-700 focus-visible:ring-offset-zinc-900 focus-visible:ring-primary rounded-lg p-4' 
+                          ? 'h-full bg-background text-foreground border-border focus-visible:ring-offset-background focus-visible:ring-primary rounded-lg p-2' 
                           : 'min-h-full md:flex-grow'
                       )}
                        onInput={(e) => {
