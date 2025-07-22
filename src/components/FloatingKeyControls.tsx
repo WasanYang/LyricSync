@@ -37,7 +37,10 @@ export default function FloatingKeyControls({
   onTransposeUp,
   onTransposeDown,
   onClose,
-  initialPosition = { x: window.innerWidth - 200, y: 80 },
+  initialPosition = {
+    x: Math.max(16, window.innerWidth / 2 - 200),
+    y: Math.max(80, window.innerHeight / 2 - 100),
+  },
 }: FloatingKeyControlsProps) {
   const keyControlsRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);

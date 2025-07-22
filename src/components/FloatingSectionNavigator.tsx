@@ -71,12 +71,13 @@ export default function FloatingSectionNavigator({
         let newX = e.clientX - dragOffset.x;
         let newY = e.clientY - dragOffset.y;
 
-        // Constrain to viewport bounds
+        // Constrain to viewport bounds (with navbar consideration)
+        const navbarHeight = 64; // Assume navbar height is 64px
         const maxX = window.innerWidth - rect.width;
         const maxY = window.innerHeight - rect.height;
 
         newX = Math.max(0, Math.min(newX, maxX));
-        newY = Math.max(0, Math.min(newY, maxY));
+        newY = Math.max(navbarHeight, Math.min(newY, maxY));
 
         // Convert left position to right position for styling
         const newRight = window.innerWidth - newX - rect.width;
@@ -141,12 +142,13 @@ export default function FloatingSectionNavigator({
         let newX = touch.clientX - dragOffset.x;
         let newY = touch.clientY - dragOffset.y;
 
-        // Constrain to viewport bounds
+        // Constrain to viewport bounds (with navbar consideration)
+        const navbarHeight = 64; // Assume navbar height is 64px
         const maxX = window.innerWidth - rect.width;
         const maxY = window.innerHeight - rect.height;
 
         newX = Math.max(0, Math.min(newX, maxX));
-        newY = Math.max(0, Math.min(newY, maxY));
+        newY = Math.max(navbarHeight, Math.min(newY, maxY));
 
         // Convert left position to right position for styling
         const newRight = window.innerWidth - newX - rect.width;

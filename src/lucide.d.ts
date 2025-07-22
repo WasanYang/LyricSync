@@ -30,12 +30,16 @@ declare module 'lucide-react' {
   export const ChevronDown: FC<SVGProps<SVGSVGElement>>;
   export const ArrowUp: FC<SVGProps<SVGSVGElement>>;
   export const ArrowDown: FC<SVGProps<SVGSVGElement>>;
+  export const Search: FC<SVGProps<SVGSVGElement>>;
+  export const PlusCircle: FC<SVGProps<SVGSVGElement>>;
+  export const Edit: FC<SVGProps<SVGSVGElement>>;
+  export const Trash2: FC<SVGProps<SVGSVGElement>>;
+  export const Eye: FC<SVGProps<SVGSVGElement>>;
 
   // Add other icons you use here to avoid TypeScript errors
   // if they are not directly in the main library type definitions.
   // For example:
   // export const Home: FC<SVGProps<SVGSVGElement>>;
-  // export const Search: FC<SVGProps<SVGSVGElement>>;
 
   // You can re-export all from the original module if needed
   export * from 'lucide-react/dist/lucide-react';
