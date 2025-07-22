@@ -64,20 +64,20 @@ const parseLyricsForDisplay = (
 
 const LyricLineDisplay = ({ line, showChords }: { line: LyricLine, showChords: boolean }) => {
     const parsedLine = useMemo(() => parseLyricsForDisplay(line.text), [line.text]);
-    const cleanLyricText = useMemo(() => line.text.replace(/\[[^\]]+\]/g, ' ').replace(/\s+/g, ' ').trim(), [line.text]);
+    const cleanLyricText = useMemo(() => line.text.replace(/\[[^\]]+\]/g, '').trim(), [line.text]);
     const isSectionHeader = line.text.startsWith('(') && line.text.endsWith(')');
     const hasChords = parsedLine.some(p => p.chord);
 
     if (isSectionHeader) {
-        return <h3 className="font-bold text-lg mt-6 mb-2">{line.text.substring(1, line.text.length - 1)}</h3>
+        return <p className="italic text-muted-foreground my-4">{`[ ${line.text.substring(1, line.text.length - 1)} ]`}</p>
     }
 
     if (!showChords || !hasChords) {
-         return <div className="min-h-[1.5rem]">{cleanLyricText}</div>;
+         return <div className="min-h-[1.5rem] whitespace-pre-wrap">{cleanLyricText}</div>;
     }
 
     return (
-        <div className="flex flex-col items-start leading-tight mb-3">
+        <div className="flex flex-col items-start leading-tight mb-4">
             {/* Chord Line */}
             <div className="text-primary font-semibold text-sm -mb-1">
                 {parsedLine.map((part, index) => (
@@ -88,7 +88,7 @@ const LyricLineDisplay = ({ line, showChords }: { line: LyricLine, showChords: b
                 ))}
             </div>
              {/* Lyric Line */}
-            <div>{cleanLyricText}</div>
+            <div className="whitespace-pre-wrap">{cleanLyricText}</div>
         </div>
     );
 };
@@ -164,7 +164,7 @@ function SharedSongContent() {
             </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <div className="flex items-center gap-2">
                  <Button onClick={handleCopy} variant="outline" className="w-32">
                     {isCopied ? <Check className="mr-2 h-4 w-4 text-green-500"/> : <Copy className="mr-2 h-4 w-4"/>}
@@ -183,7 +183,7 @@ function SharedSongContent() {
             </div>
         </div>
         
-        <div className="p-4 sm:p-6 bg-muted/30 rounded-lg whitespace-pre-wrap leading-relaxed">
+        <div className="p-4 sm:p-6 bg-muted/30 rounded-lg leading-relaxed font-body">
              {song.lyrics.map((line, index) => (
                 <LyricLineDisplay key={index} line={line} showChords={showChords} />
              ))}
