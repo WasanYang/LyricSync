@@ -69,7 +69,7 @@ type FontWeight = 400 | 600 | 700;
 type State = {
   isPlaying: boolean;
   currentTime: number;
-  currentBarIndex: number;
+  currentLineIndex: number;
   isFinished: boolean;
   fontSize: number;
   fontWeight: FontWeight;
@@ -84,7 +84,7 @@ type State = {
 type Action =
   | { type: 'TOGGLE_PLAY' }
   | { type: 'SET_TIME'; payload: number }
-  | { type: 'SET_BAR'; payload: number }
+  | { type: 'SET_LINE_INDEX'; payload: number }
   | { type: 'FINISH' }
   | { type: 'RESET' }
   | { type: 'SET_FONT_SIZE'; payload: number }
@@ -103,7 +103,7 @@ type Action =
 const initialState: State = {
   isPlaying: false,
   currentTime: 0,
-  currentBarIndex: 0,
+  currentLineIndex: 0,
   isFinished: false,
   fontSize: 16,
   fontWeight: 400,
@@ -124,14 +124,14 @@ function lyricPlayerReducer(state: State, action: Action): State {
           isPlaying: true,
           isFinished: false,
           currentTime: 0,
-          currentBarIndex: 0,
+          currentLineIndex: 0,
         };
       }
       return { ...state, isPlaying: !state.isPlaying };
     case 'SET_TIME':
       return { ...state, currentTime: action.payload };
-    case 'SET_BAR':
-      return { ...state, currentBarIndex: action.payload };
+    case 'SET_LINE_INDEX':
+      return { ...state, currentLineIndex: action.payload };
     case 'FINISH':
       return { ...state, isPlaying: false, isFinished: true };
     case 'RESET':
@@ -140,7 +140,7 @@ function lyricPlayerReducer(state: State, action: Action): State {
         isPlaying: false,
         isFinished: false,
         currentTime: 0,
-        currentBarIndex: 0,
+        currentLineIndex: 0,
       };
     case 'SET_FONT_SIZE':
       const newSize = Math.max(16, Math.min(48, action.payload));
@@ -316,6 +316,12 @@ interface LyricPlayerProps {
   onClose?: () => void;
 }
 
+type ProcessedLyricLine = LyricLine & {
+    originalIndex: number;
+    startTimeSeconds: number;
+    endTimeSeconds: number;
+}
+
 export default function LyricPlayer({
   song,
   isSetlistMode = false,
@@ -330,7 +336,7 @@ export default function LyricPlayer({
   const {
     isPlaying,
     currentTime,
-    currentBarIndex,
+    currentLineIndex,
     isFinished,
     fontSize,
     fontWeight,
@@ -356,25 +362,33 @@ export default function LyricPlayer({
 
   const [theme, setThemeState] = useState<'light' | 'dark'>('light');
 
-  const uniqueLyrics = useMemo(() => {
-    return song.lyrics
-      .map((line, index) => ({ ...line, originalIndex: index }))
-      .filter(line => {
-        const parsedLine = parseLyrics(line.text);
-        const hasText = parsedLine.some(p => p.text.trim() !== '');
-        const hasChords = parsedLine.some(p => p.chord);
-        return hasText || hasChords;
-      });
-  }, [song.lyrics]);
-
-  const totalDuration = useMemo(() => {
-    if (!bpm || bpm === 0 || uniqueLyrics.length === 0) return 100;
-    const lastBar = Math.max(...uniqueLyrics.map((l) => l.bar));
+  const { processedLyrics, totalDuration } = useMemo(() => {
+    let cumulativeTime = 0;
     const timeSignatureBeats = song.timeSignature
-      ? parseInt(song.timeSignature.split('/')[0])
-      : 4;
-    return (lastBar * timeSignatureBeats * 60) / bpm;
-  }, [bpm, uniqueLyrics, song.timeSignature]);
+        ? parseInt(song.timeSignature.split('/')[0], 10)
+        : 4;
+    const secondsPerMeasure = (60 / (bpm || 120)) * timeSignatureBeats;
+
+    const lyricsWithTiming = song.lyrics
+        .map((line, index) => {
+            const startTimeSeconds = cumulativeTime;
+            const durationSeconds = line.measures * secondsPerMeasure;
+            cumulativeTime += durationSeconds;
+            const endTimeSeconds = cumulativeTime;
+            
+            return {
+                ...line,
+                originalIndex: index,
+                startTimeSeconds,
+                endTimeSeconds
+            };
+        });
+    
+    return {
+        processedLyrics: lyricsWithTiming,
+        totalDuration: cumulativeTime,
+    };
+  }, [song.lyrics, bpm, song.timeSignature]);
 
   useEffect(() => {
     dispatch({ type: 'RESET_PLAYER_STATE', payload: { bpm: song.bpm } });
@@ -483,20 +497,19 @@ export default function LyricPlayer({
   ]);
 
   const sections = useMemo(() => {
-    return song.lyrics
-      .map((line, index) => ({ ...line, originalIndex: index }))
+    return processedLyrics
       .filter((line) => line.text.startsWith('(') && line.text.endsWith(')'))
       .map((line, index) => ({
         name: line.text.substring(1, line.text.length - 1),
-        bar: line.bar,
+        startTime: line.startTimeSeconds,
         index: line.originalIndex,
         uniqueKey: `${line.text.substring(1, line.text.length - 1)}-${index}`,
       }));
-  }, [song.lyrics]);
+  }, [processedLyrics]);
 
   const currentLine = useMemo(
-    () => uniqueLyrics[currentBarIndex],
-    [uniqueLyrics, currentBarIndex]
+    () => processedLyrics[currentLineIndex],
+    [processedLyrics, currentLineIndex]
   );
 
   const currentSection = useMemo(() => {
@@ -506,7 +519,7 @@ export default function LyricPlayer({
     return sections
       .slice()
       .reverse()
-      .find((s) => s.bar <= currentLine.bar);
+      .find((s) => s.startTime <= currentLine.startTimeSeconds);
   }, [currentLine, sections]);
 
   useEffect(() => {
@@ -521,35 +534,22 @@ export default function LyricPlayer({
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [isPlaying, currentTime]);
-
+  
+  // This effect updates the current line index based on the current time
   useEffect(() => {
-    if (currentTime >= totalDuration) {
+    if (currentTime >= totalDuration && totalDuration > 0) {
       dispatch({ type: 'FINISH' });
     } else {
-      const timePerBeat = 60 / bpm;
-      const timeSignatureBeats = song.timeSignature
-        ? parseInt(song.timeSignature.split('/')[0], 10)
-        : 4;
-      const timePerBar = timePerBeat * timeSignatureBeats;
+        const newIndex = processedLyrics.findIndex(
+            (line) => currentTime >= line.startTimeSeconds && currentTime < line.endTimeSeconds && line.measures > 0
+        );
 
-      const currentBarNumber = Math.floor(currentTime / timePerBar) + 1;
-
-      const newIndex = uniqueLyrics.findIndex(
-        (l) => l.bar >= currentBarNumber && !l.text.startsWith('(')
-      );
-
-      if (newIndex !== -1 && newIndex !== currentBarIndex) {
-        dispatch({ type: 'SET_BAR', payload: newIndex });
-      }
+        if (newIndex !== -1 && newIndex !== currentLineIndex) {
+            dispatch({ type: 'SET_LINE_INDEX', payload: newIndex });
+        }
     }
-  }, [
-    currentTime,
-    bpm,
-    totalDuration,
-    uniqueLyrics,
-    currentBarIndex,
-    song.timeSignature,
-  ]);
+  }, [currentTime, totalDuration, processedLyrics, currentLineIndex]);
+
 
   const scrollToLine = useCallback(
     (index: number) => {
@@ -575,61 +575,55 @@ export default function LyricPlayer({
   );
 
   useEffect(() => {
-    scrollToLine(currentBarIndex);
-  }, [currentBarIndex, scrollToLine]);
+    scrollToLine(currentLineIndex);
+  }, [currentLineIndex, scrollToLine]);
 
   const handleSliderChange = (value: number[]) => {
     const newTime = value[0];
     dispatch({ type: 'SET_TIME', payload: newTime });
 
-    const timePerBeat = 60 / bpm;
-    const timeSignatureBeats = song.timeSignature
-      ? parseInt(song.timeSignature.split('/')[0], 10)
-      : 4;
-    const timePerBar = timePerBeat * timeSignatureBeats;
-    const currentBarNumber = Math.floor(newTime / timePerBar) + 1;
-    const newIndex = uniqueLyrics.findIndex(
-      (l) => l.bar >= currentBarNumber && !l.text.startsWith('(')
+    const newIndex = processedLyrics.findIndex(
+        (line) => newTime >= line.startTimeSeconds && newTime < line.endTimeSeconds && line.measures > 0
     );
 
     if (newIndex !== -1) {
-      dispatch({ type: 'SET_BAR', payload: newIndex });
+      dispatch({ type: 'SET_LINE_INDEX', payload: newIndex });
     }
   };
+  
+  const handleSetLine = useCallback((index: number) => {
+    if (index >= 0 && index < processedLyrics.length) {
+      const targetLine = processedLyrics[index];
+      dispatch({ type: 'SET_TIME', payload: targetLine.startTimeSeconds });
+      dispatch({ type: 'SET_LINE_INDEX', payload: index });
+      scrollToLine(index);
+    }
+  }, [processedLyrics, scrollToLine]);
 
-  const handleSetBar = useCallback(
-    (index: number) => {
-      if (index >= 0 && index < uniqueLyrics.length) {
-        const targetLine = uniqueLyrics[index];
-        const timePerBeat = 60 / bpm;
-        const timeSignatureBeats = song.timeSignature
-          ? parseInt(song.timeSignature.split('/')[0], 10)
-          : 4;
-        const timePerBar = timePerBeat * timeSignatureBeats;
-        const newTime = (targetLine.bar - 1) * timePerBar;
+  const handleNextLine = useCallback(() => {
+    const nextPlayableIndex = processedLyrics.findIndex((line, idx) => idx > currentLineIndex && line.measures > 0);
+    if (nextPlayableIndex !== -1) {
+        handleSetLine(nextPlayableIndex);
+    }
+  }, [currentLineIndex, processedLyrics, handleSetLine]);
 
-        dispatch({ type: 'SET_TIME', payload: newTime });
-        dispatch({ type: 'SET_BAR', payload: index });
-        scrollToLine(index);
-      }
-    },
-    [uniqueLyrics, bpm, song.timeSignature, scrollToLine]
-  );
+  const handlePrevLine = useCallback(() => {
+    const prevPlayableIndices = processedLyrics
+        .map((line, idx) => ({...line, originalIndex: idx}))
+        .filter(line => line.originalIndex < currentLineIndex && line.measures > 0);
+    
+    if (prevPlayableIndices.length > 0) {
+        const prevIndex = prevPlayableIndices[prevPlayableIndices.length - 1].originalIndex;
+        handleSetLine(prevIndex);
+    }
+  }, [currentLineIndex, processedLyrics, handleSetLine]);
 
-  const handleNextBar = useCallback(() => {
-    handleSetBar(currentBarIndex + 1);
-  }, [currentBarIndex, handleSetBar]);
-
-  const handlePrevBar = useCallback(() => {
-    handleSetBar(currentBarIndex - 1);
-  }, [currentBarIndex, handleSetBar]);
-
-  const handleSectionJump = (bar: number) => {
-    const targetIndex = uniqueLyrics.findIndex(
-      (l) => l.bar >= bar && !l.text.startsWith('(')
+  const handleSectionJump = (startTime: number) => {
+    const targetIndex = processedLyrics.findIndex(
+      (l) => l.startTimeSeconds >= startTime && l.measures > 0
     );
     if (targetIndex !== -1) {
-      handleSetBar(targetIndex);
+      handleSetLine(targetIndex);
     }
   };
 
@@ -746,7 +740,7 @@ export default function LyricPlayer({
               {sections.map((section, index) => (
                 <button
                   key={section.uniqueKey}
-                  onClick={() => handleSectionJump(section.bar)}
+                  onClick={() => handleSectionJump(section.startTime)}
                   className={cn(
                     'text-xs font-bold py-1 px-3 rounded-full shadow-md transition-all duration-300',
                     section.uniqueKey === currentSection?.uniqueKey
@@ -772,7 +766,7 @@ export default function LyricPlayer({
             )}
             style={{ fontSize: `${fontSize}px` }}
           >
-            {uniqueLyrics.map((line, index) => {
+            {processedLyrics.map((line, index) => {
               const parsedLine = parseLyrics(line.text);
               const hasText = parsedLine.some((p) => p.text.trim() !== '');
               const hasChords = parsedLine.some((p) => p.chord);
@@ -812,7 +806,7 @@ export default function LyricPlayer({
 
               const isHighlighted =
                 highlightMode !== 'none' &&
-                ((highlightMode === 'line' && index === currentBarIndex) ||
+                ((highlightMode === 'line' && index === currentLineIndex) ||
                   (highlightMode === 'section' && isLineInCurrentSection));
 
               return (
@@ -882,8 +876,8 @@ export default function LyricPlayer({
                 <Button
                   variant='ghost'
                   size='icon'
-                  onClick={handlePrevBar}
-                  disabled={currentBarIndex <= 0}
+                  onClick={handlePrevLine}
+                  disabled={currentLineIndex <= 0}
                 >
                   <SkipBack />
                 </Button>
@@ -904,8 +898,8 @@ export default function LyricPlayer({
                 <Button
                   variant='ghost'
                   size='icon'
-                  onClick={handleNextBar}
-                  disabled={currentBarIndex >= uniqueLyrics.length - 1}
+                  onClick={handleNextLine}
+                  disabled={currentLineIndex >= processedLyrics.length - 1}
                 >
                   <SkipForward />
                 </Button>

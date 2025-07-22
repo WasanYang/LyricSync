@@ -88,19 +88,19 @@ const parseLyricsFromString = (lyricString: string): LyricLine[] => {
     .split('\n')
     .map((line) => {
       const parts = line.split('|');
+      // If there's no '|', treat the whole line as text with 0 measures
       if (parts.length < 2) {
-        return { bar: 0, text: line.trim() };
+        return { measures: 0, text: line.trim() };
       }
-      const bar = parseInt(parts[0].trim(), 10);
+      const measures = parseInt(parts[0].trim(), 10);
       const text = parts.slice(1).join('|').trim();
-      return { bar: isNaN(bar) ? 0 : bar, text };
+      return { measures: isNaN(measures) ? 0 : measures, text };
     })
-    .filter((line) => line.bar > 0 || line.text !== '') // Keep section headers or lines with a bar number
-    .sort((a, b) => a.bar - b.bar);
+    .filter((line) => line.measures > 0 || line.text !== ''); // Keep section headers or lines with measures
 };
 
 const formatLyricsToString = (lyrics: LyricLine[]): string => {
-  return lyrics.map((line) => `${line.bar} | ${line.text}`).join('\n');
+  return lyrics.map((line) => `${line.measures} | ${line.text}`).join('\n');
 };
 
 const TIME_SIGNATURES = [
@@ -576,13 +576,13 @@ export default function SongCreator() {
                           </DialogHeader>
                           <div className='space-y-4 text-sm py-4'>
                             <p>
-                              Each line must start with a bar number, followed by
+                              Each line must start with a number representing the number of measures (ห้อง), followed by
                               a pipe `|`, and then the text content.
                             </p>
                             <div className='p-4 bg-muted rounded-md font-mono text-xs overflow-x-auto'>
                               <p className='font-bold mb-2'>Format:</p>
                               <p>
-                                <code className='text-primary'>bar_number</code> |{' '}
+                                <code className='text-primary'>num_of_measures</code> |{' '}
                                 <code className='text-primary'>[Chord]</code>Lyric
                                 text...
                               </p>
@@ -594,14 +594,15 @@ export default function SongCreator() {
                               </h4>
                               <ul className='list-disc pl-5 space-y-2'>
                                 <li>
-                                  <strong>Bar Number:</strong> Every line must
-                                  begin with a number representing the bar
-                                  (measure) of the song. Use `0` for intros or
-                                  elements before the first bar.
+                                  <strong>Number of Measures:</strong> Every line must
+                                  begin with a number representing how many measures/bars that line of lyric should last.
+                                </li>
+                                <li>
+                                  <strong>Line Duration:</strong> A line with `0` measures will be combined with the previous line and not advance the timeline. Use this for multi-line lyrics within the same set of measures.
                                 </li>
                                 <li>
                                   <strong>Pipe Separator:</strong> A pipe
-                                  character `|` must follow the bar number to
+                                  character `|` must follow the number to
                                   separate it from the content.
                                 </li>
                                 <li>
@@ -620,8 +621,7 @@ export default function SongCreator() {
                                 <li>
                                   <strong>Section Headers:</strong> To define
                                   sections like (Intro), (Verse), or (Chorus), use
-                                  a bar number of `0` and enclose the text in
-                                  parentheses.
+                                  `0` for the number of measures.
                                 </li>
                               </ul>
                             </div>
@@ -629,14 +629,16 @@ export default function SongCreator() {
                             <div className='p-4 bg-muted rounded-md font-mono text-xs overflow-x-auto'>
                               <p className='font-bold mb-2'>Examples:</p>
                               <p>0 | (Intro)</p>
-                              <p>1 | [Am] [G] [C] [F]</p>
-                              <p>2 | [C]This is a [G]line with chords.</p>
-                              <p>3 | This is a line with no chords.</p>
-                              <p>4 | </p>
-                              <p>5 | (Verse 1)</p>
+                              <p>4 | [Am] [G] [C] [F]</p>
+                              <p>4 | [C]This is a [G]line with chords.</p>
+                              <p>4 | This is a line with no chords.</p>
+                              <p>0 | (Verse 1)</p>
                               <p>
-                                6 | The quick [Am]brown fox [G]jumps over the
+                                4 | The quick [Am]brown fox [G]jumps over the
                                 [C]lazy dog.[F]
+                              </p>
+                               <p>
+                                0 | This is the second line of lyrics for the 4 measures above.
                               </p>
                             </div>
                           </div>
@@ -656,7 +658,7 @@ export default function SongCreator() {
                 <FormControl>
                   <Textarea
                     ref={textareaRef}
-                    placeholder='1 | [C]Lyrics for bar one...'
+                    placeholder='4 | [C]Lyrics for the first four measures...'
                     className={cn(
                       'text-sm font-mono resize-none overflow-hidden transition-all duration-300',
                       isLyricsFullscreen ? 'bg-zinc-900 text-background border-zinc-700 h-full w-full focus-visible:ring-offset-zinc-900 focus-visible:ring-primary' : 'min-h-48'
