@@ -10,7 +10,7 @@ import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Library, Trash2, Edit, RefreshCw, UploadCloud, PlusCircle, Eye, Cloud, ArrowUpCircle } from 'lucide-react';
+import { Music, Trash2, Edit, RefreshCw, UploadCloud, PlusCircle, Eye, Cloud, ArrowUpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -279,7 +279,7 @@ export default function LibraryPage() {
             </div>
           ) : (
             <div className="text-center py-16 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full">
-                <Library className="h-12 w-12 text-muted-foreground mb-4" />
+                <Music className="h-12 w-12 text-muted-foreground mb-4" />
                 <h2 className="text-xl font-headline font-semibold">Your Library is Empty</h2>
                 <p className="text-muted-foreground">You haven't saved any songs for offline use yet.</p>
                 <Button variant="link" asChild>
