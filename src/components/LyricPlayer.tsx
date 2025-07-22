@@ -352,7 +352,7 @@ export default function LyricPlayer({
 
   const navigatorRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 16, y: 150 }); // x is right offset
+  const [position, setPosition] = useState({ x: 16, y: 300 }); // x is right offset
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   const [theme, setThemeState] = useState<'light' | 'dark'>('light');
@@ -388,7 +388,7 @@ export default function LyricPlayer({
   useEffect(() => {
     dispatch({ type: 'RESET_PLAYER_STATE', payload: { bpm: song.bpm } });
     if (isSetlistMode) {
-      setPosition({ x: 16, y: 150 });
+      setPosition({ x: 16, y: 300 });
     } else {
       setPosition({ x: 16, y: 100 });
     }
@@ -684,8 +684,149 @@ const handleDragTouchMove = useCallback(
                 </h1>
               </div>
 
-              <div className='absolute right-2 top-1/2 -translate-y-1/2 w-9'>
-                 {/* Placeholder for symmetry, button is in control bar */}
+              <div className='absolute right-2 top-1/2 -translate-y-1/2'>
+                 <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                    <SheetTrigger asChild>
+                      <Button variant='ghost' size='icon'>
+                        <Settings />
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent
+                      side='right'
+                      className='p-0 flex flex-col max-h-screen w-full max-w-xs'
+                      onOpenAutoFocus={(e) => e.preventDefault()}
+                    >
+                      <SheetHeader className='p-4 border-b'>
+                        <SheetTitle>Settings</SheetTitle>
+                      </SheetHeader>
+                      <ScrollArea className='flex-grow'>
+                        <div className='p-4 space-y-6'>
+                            {/* Chords Settings */}
+                            <div className='space-y-4'>
+                                <Label className="text-base font-semibold">Chords</Label>
+                                <div className='flex items-center justify-between'>
+                                    <Label htmlFor='show-chords-settings' className="cursor-pointer">Show Chords</Label>
+                                    <Switch
+                                    id='show-chords-settings'
+                                    checked={showChords}
+                                    onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
+                                    />
+                                </div>
+                                <div className='flex items-center justify-between'>
+                                    <Label>Key</Label>
+                                    <div className="flex items-center gap-1">
+                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => dispatch({type: 'TRANSPOSE_DOWN'})}><Minus className="h-4 w-4" /></Button>
+                                        <Select value={currentKey} onValueChange={handleKeyChange}>
+                                            <SelectTrigger className="w-[80px] h-7 text-xs">
+                                                <SelectValue placeholder='Key' />
+                                            </SelectTrigger>
+                                            <SelectContent align="start">
+                                                {ALL_NOTES.map((note) => (
+                                                <SelectItem key={note} value={note} className='text-xs'>
+                                                    {note}
+                                                </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => dispatch({type: 'TRANSPOSE_UP'})}><Plus className="h-4 w-4" /></Button>
+                                    </div>
+                                </div>
+                            </div>
+                           
+                            <Separator />
+                            
+                            {/* Display Settings */}
+                            <div className='space-y-4'>
+                                <Label className="text-base font-semibold">Display</Label>
+                                 <div className='flex items-center justify-between'>
+                                    <Label>Font Size</Label>
+                                     <div className="flex items-center gap-1">
+                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16}><Minus className="h-4 w-4" /></Button>
+                                        <span className="w-10 text-center text-sm font-mono">{fontSize}px</span>
+                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => changeFontSize(2)} disabled={fontSize >= 48}><Plus className="h-4 w-4" /></Button>
+                                     </div>
+                                </div>
+                                <div className='flex items-center justify-between'>
+                                    <Label>Highlight</Label>
+                                    <RadioGroup
+                                    value={highlightMode}
+                                    onValueChange={(value: HighlightMode) =>
+                                        dispatch({
+                                        type: 'SET_HIGHLIGHT_MODE',
+                                        payload: value,
+                                        })
+                                    }
+                                    className='flex items-center gap-1'
+                                    >
+                                    {HIGHLIGHT_OPTIONS.map((option) => (
+                                        <Label
+                                        key={option.value}
+                                        className={cn(
+                                            'flex h-7 w-14 items-center justify-center cursor-pointer rounded-md border text-xs opacity-75 hover:bg-accent hover:text-accent-foreground',
+                                            highlightMode === option.value &&
+                                            'border-primary bg-primary/10 text-primary opacity-100'
+                                        )}
+                                        >
+                                        <RadioGroupItem
+                                            value={option.value}
+                                            id={`highlight-${option.value}`}
+                                            className='sr-only'
+                                        />
+                                        {option.label}
+                                        </Label>
+                                    ))}
+                                    </RadioGroup>
+                                </div>
+                                <div className='flex items-center justify-between'>
+                                    <Label htmlFor='show-section-nav'>Navigator</Label>
+                                    <Switch
+                                    id='show-section-nav'
+                                    checked={showSectionNavigator}
+                                    onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
+                                    />
+                                </div>
+                                <div className='flex items-center justify-between'>
+                                    <Label htmlFor='dark-mode'>Theme</Label>
+                                    <Switch
+                                    id='dark-mode'
+                                    checked={theme === 'dark'}
+                                    onCheckedChange={toggleTheme}
+                                    />
+                                </div>
+                            </div>
+
+                            <Separator />
+                             {/* Other Settings */}
+                            <div className='space-y-4'>
+                                <Label className="text-base font-semibold">Playback</Label>
+                                <div className='flex items-center justify-between'>
+                                    <Label>BPM</Label>
+                                    <div className="flex items-center gap-1">
+                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 5 })}><Minus className="h-4 w-4" /></Button>
+                                        <Input
+                                            type='number'
+                                            className='w-16 h-7 text-center'
+                                            value={bpm}
+                                            onChange={(e) =>
+                                                dispatch({
+                                                type: 'SET_BPM',
+                                                payload: parseInt(e.target.value, 10) || bpm,
+                                                })
+                                            }
+                                        />
+                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 5 })}><Plus className="h-4 w-4" /></Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                      </ScrollArea>
+                       <div className="p-4 border-t">
+                            <Button variant="outline" className="w-full" onClick={() => dispatch({ type: 'RESET_PLAYER_STATE', payload: { bpm: song.bpm } })}>
+                                <RotateCcw className="mr-2 h-4 w-4" /> Reset All Settings
+                            </Button>
+                        </div>
+                    </SheetContent>
+                  </Sheet>
               </div>
             </div>
           </header>
@@ -760,7 +901,7 @@ const handleDragTouchMove = useCallback(
                             <SelectTrigger className="w-[60px] h-6 text-xs font-bold">
                                 <SelectValue placeholder='Key' />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent align="start">
                                 {ALL_NOTES.map((note) => (
                                 <SelectItem key={note} value={note} className='text-xs'>
                                     {note}
@@ -958,7 +1099,7 @@ const handleDragTouchMove = useCallback(
                                             <SelectTrigger className="w-[80px] h-7 text-xs">
                                                 <SelectValue placeholder='Key' />
                                             </SelectTrigger>
-                                            <SelectContent>
+                                            <SelectContent align="start">
                                                 {ALL_NOTES.map((note) => (
                                                 <SelectItem key={note} value={note} className='text-xs'>
                                                     {note}
