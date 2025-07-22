@@ -820,7 +820,7 @@ export default function LyricPlayer({
                   key={`${song.id}-${line.originalIndex}`}
                   ref={(el) => (lineRefs.current[index] = el)}
                   className={cn(
-                    'rounded-md transition-all duration-300 text-left flex justify-start items-center py-1',
+                    'rounded-md transition-all duration-300 text-left flex justify-start items-center py-1 transform-origin-left',
                     isSectionBreak ? 'h-[0.5em]' : '',
                     isHighlighted
                       ? 'text-foreground scale-105'
