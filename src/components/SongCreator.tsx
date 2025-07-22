@@ -357,14 +357,14 @@ export default function SongCreator() {
       return (
         <Button type='submit' form='song-creator-form' size='lg'>
           <Database className='mr-2 h-4 w-4' />
-          Save to Cloud
+          Save
         </Button>
       );
     }
     return (
       <Button type='submit' form='song-creator-form' size='lg'>
         <Save className='mr-2 h-4 w-4' />
-        Save Song
+        Save
       </Button>
     );
   };
@@ -701,7 +701,7 @@ export default function SongCreator() {
 
           </div>
 
-          <div className={cn('flex-shrink-0 sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t z-10', isLyricsFullscreen ? 'opacity-0 h-0 p-0 border-0' : 'h-auto')}>
+          <div className={cn('sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t z-10', isLyricsFullscreen ? 'opacity-0 h-0 p-0 border-0' : 'h-auto')}>
             <div className='w-full max-w-2xl mx-auto flex items-center justify-end gap-4'>
               {getSubmitButton()}
             </div>
