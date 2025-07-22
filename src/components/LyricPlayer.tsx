@@ -352,7 +352,7 @@ export default function LyricPlayer({
 
   const navigatorRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 16, y: 150 }); // x is now right offset
+  const [position, setPosition] = useState({ x: 32, y: 150 }); // x is right offset
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   const [theme, setThemeState] = useState<'light' | 'dark'>('light');
@@ -388,7 +388,9 @@ export default function LyricPlayer({
   useEffect(() => {
     dispatch({ type: 'RESET_PLAYER_STATE', payload: { bpm: song.bpm } });
     if (isSetlistMode) {
-      setPosition({ x: 16, y: 150 });
+      setPosition({ x: 32, y: 150 });
+    } else {
+      setPosition({ x: 16, y: 100 });
     }
   }, [song.id, song.bpm, isSetlistMode]);
 
@@ -734,6 +736,44 @@ const handleDragTouchMove = useCallback(
           </div>
         )}
 
+        {/* Floating Chord/Key Controls */}
+        <div className={cn("fixed z-20 pointer-events-auto flex flex-col items-end gap-2", 
+          isSetlistMode ? 'top-24' : 'top-16',
+          'right-4'
+        )}>
+            <div className="flex flex-col gap-2 p-2 bg-background/40 backdrop-blur-sm rounded-lg shadow-md border">
+                 <div className='flex items-center justify-between gap-4'>
+                    <Label htmlFor='show-chords-quick' className="cursor-pointer text-xs font-semibold">CHORDS</Label>
+                    <Switch
+                    id='show-chords-quick'
+                    checked={showChords}
+                    onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
+                    className="h-5 w-9 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input"
+                    thumbClassName="h-4 w-4 data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0"
+                    />
+                </div>
+                <div className='flex items-center justify-between gap-4'>
+                    <Label className="text-xs font-semibold">KEY</Label>
+                    <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => dispatch({type: 'TRANSPOSE_DOWN'})}><Minus className="h-3 w-3" /></Button>
+                        <Select value={currentKey} onValueChange={handleKeyChange}>
+                            <SelectTrigger className="w-[60px] h-6 text-xs font-bold">
+                                <SelectValue placeholder='Key' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {ALL_NOTES.map((note) => (
+                                <SelectItem key={note} value={note} className='text-xs'>
+                                    {note}
+                                </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => dispatch({type: 'TRANSPOSE_UP'})}><Plus className="h-3 w-3" /></Button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div
           ref={scrollContainerRef}
           className='w-full h-full relative overflow-y-auto'
@@ -903,9 +943,9 @@ const handleDragTouchMove = useCallback(
                             <div className='space-y-4'>
                                 <Label className="text-base font-semibold">Chords</Label>
                                 <div className='flex items-center justify-between'>
-                                    <Label htmlFor='show-chords' className="cursor-pointer">Show Chords</Label>
+                                    <Label htmlFor='show-chords-settings' className="cursor-pointer">Show Chords</Label>
                                     <Switch
-                                    id='show-chords'
+                                    id='show-chords-settings'
                                     checked={showChords}
                                     onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
                                     />
