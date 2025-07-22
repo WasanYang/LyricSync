@@ -364,10 +364,9 @@ export default function LyricPlayer({
 
   const { processedLyrics, totalDuration } = useMemo(() => {
     let cumulativeTime = 0;
-    const timeSignatureBeats = song.timeSignature
-        ? parseInt(song.timeSignature.split('/')[0], 10)
-        : 4;
     const currentBpm = typeof bpm === 'number' && bpm > 0 ? bpm : 120;
+    const timeSignature = song.timeSignature || '4/4';
+    const timeSignatureBeats = parseInt(timeSignature.split('/')[0], 10) || 4;
     const secondsPerMeasure = (60 / currentBpm) * timeSignatureBeats;
 
     const lyricsWithTiming = song.lyrics
@@ -582,14 +581,6 @@ export default function LyricPlayer({
   const handleSliderChange = (value: number[]) => {
     const newTime = value[0];
     dispatch({ type: 'SET_TIME', payload: newTime });
-
-    const newIndex = processedLyrics.findIndex(
-        (line) => newTime >= line.startTimeSeconds && newTime < line.endTimeSeconds && line.measures > 0
-    );
-
-    if (newIndex !== -1) {
-      dispatch({ type: 'SET_LINE_INDEX', payload: newIndex });
-    }
   };
   
   const handleSetLine = useCallback((index: number) => {
@@ -673,6 +664,7 @@ export default function LyricPlayer({
   };
 
   const formatTime = (seconds: number) => {
+    if (isNaN(seconds)) return "0:00";
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
