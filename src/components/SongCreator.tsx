@@ -235,6 +235,8 @@ export default function SongCreator() {
         setIsLoading(false);
       };
       fetchSong();
+    } else {
+      setIsLoading(false);
     }
   }, [songId, isCloudMode, isSuperAdmin, form, router, toast]);
 
