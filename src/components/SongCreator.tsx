@@ -174,7 +174,7 @@ export default function SongCreator() {
 
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isLyricsFullscreen, setIsLyricsFullscreen] = useState(false);
-  const [isLoading, setIsLoading] = useState(!!songId);
+  const [isLoading, setIsLoading] = useState(true);
 
   const form = useForm<SongFormValues>({
     resolver: zodResolver(songFormSchema),
@@ -190,14 +190,17 @@ export default function SongCreator() {
 
   const adjustTextareaHeight = (element: HTMLTextAreaElement | null) => {
     if (element) {
-      element.style.height = 'auto';
-      element.style.height = `${element.scrollHeight}px`;
+      element.style.height = 'auto'; // Reset height
+      element.style.height = `${element.scrollHeight}px`; // Set to scroll height
     }
   };
 
   useEffect(() => {
-    adjustTextareaHeight(textareaRef.current);
-  }, [form.watch('lyrics')]);
+    // Re-adjust on lyrics change, but only if not in fullscreen
+    if (!isLyricsFullscreen) {
+      adjustTextareaHeight(textareaRef.current);
+    }
+  }, [form.watch('lyrics'), isLyricsFullscreen]);
 
   useEffect(() => {
     // If it's cloud mode but user isn't an admin, redirect.
@@ -206,33 +209,43 @@ export default function SongCreator() {
       return;
     }
 
+    // Don't wait for allSongs anymore, fetch directly.
     if (songId) {
+      setIsLoading(true);
       const fetchSong = async () => {
-        setIsLoading(true);
-        // If in cloud mode, fetch from firestore. Otherwise, check local DB.
-        const existingSong = isCloudMode
-          ? await getCloudSongById(songId)
-          : await getSongFromDb(songId);
+        try {
+          const existingSong = isCloudMode
+            ? await getCloudSongById(songId)
+            : await getSongFromDb(songId);
 
-        if (existingSong) {
-          form.reset({
-            title: existingSong.title,
-            artist: existingSong.artist,
-            lyrics: formatLyricsToString(existingSong.lyrics),
-            originalKey: existingSong.originalKey || 'C',
-            bpm: existingSong.bpm || 120,
-            timeSignature: existingSong.timeSignature || '4/4',
-          });
-          setTimeout(() => adjustTextareaHeight(textareaRef.current), 0);
-        } else {
-          toast({
-            title: 'Song not found',
-            description: 'The requested song could not be found.',
+          if (existingSong) {
+            form.reset({
+              title: existingSong.title,
+              artist: existingSong.artist,
+              lyrics: formatLyricsToString(existingSong.lyrics),
+              originalKey: existingSong.originalKey || 'C',
+              bpm: existingSong.bpm || 120,
+              timeSignature: existingSong.timeSignature || '4/4',
+            });
+            setTimeout(() => adjustTextareaHeight(textareaRef.current), 0);
+          } else {
+            toast({
+              title: 'Song not found',
+              description: 'The requested song could not be found.',
+              variant: 'destructive',
+            });
+            router.push(isCloudMode ? '/admin/songs' : '/library');
+          }
+        } catch (error) {
+           toast({
+            title: 'Error loading song',
+            description: 'There was a problem fetching the song data.',
             variant: 'destructive',
           });
-          router.push(isCloudMode ? '/admin/songs' : '/library');
+          console.error("Failed to fetch song:", error);
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
       };
       fetchSong();
     } else {
@@ -662,10 +675,16 @@ export default function SongCreator() {
                     ref={textareaRef}
                     placeholder='4 | [C]Lyrics for the first four measures...'
                     className={cn(
-                      'text-sm font-mono resize-none overflow-hidden transition-all duration-300',
-                      isLyricsFullscreen ? 'bg-zinc-900 text-background border-zinc-700 h-full w-full focus-visible:ring-offset-zinc-900 focus-visible:ring-primary' : 'min-h-48'
+                      'text-sm font-mono resize-none transition-all duration-300',
+                       isLyricsFullscreen 
+                        ? 'bg-zinc-900 text-background border-zinc-700 h-full w-full focus-visible:ring-offset-zinc-900 focus-visible:ring-primary' 
+                        : 'min-h-[200px]'
                     )}
-                    onInput={(e) => adjustTextareaHeight(e.currentTarget)}
+                    onInput={(e) => {
+                      if (!isLyricsFullscreen) {
+                        adjustTextareaHeight(e.currentTarget);
+                      }
+                    }}
                     {...field}
                   />
                 </FormControl>
