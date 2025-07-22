@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import SongStatusButton from '@/components/SongStatusButton';
-import { Play, ArrowLeft } from 'lucide-react';
+import { Play, ArrowLeft, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
@@ -134,6 +134,13 @@ function SongDetailContent() {
                         </Link>
                     </Button>
                     <SongStatusButton song={song} />
+                     {song.source === 'system' && (
+                        <Button asChild variant="outline" size="icon">
+                            <Link href={`/songs/share/${song.id}`}>
+                                <Share2 className="h-4 w-4" />
+                            </Link>
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>
