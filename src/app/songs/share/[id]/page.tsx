@@ -37,55 +37,24 @@ function LoadingSkeleton() {
     )
 }
 
-const LyricLineDisplay = ({
-  line,
-}: {
-  line: LyricLine;
-}) => {
-  const cleanLyricText = line.text.replace(/\[[^\]]+\]/g, '').trim();
-  const hasChords = /\[[^\]]+\]/.test(line.text);
-  
-  if (!hasChords) {
-      return <p>{cleanLyricText}</p>
-  }
-  
-  const parsedLine = line.text.split(/(\[[^\]]+\])/g).filter(Boolean).map((part, index) => {
-    if (part.startsWith('[') && part.endsWith(']')) {
-        return { type: 'chord', content: part.slice(1, -1) };
-    }
-    return { type: 'text', content: part };
-  });
-
-  return (
-    <div className='flex flex-col items-start leading-tight -mt-1'>
-      {parsedLine.map((part, index) => (
-        <span key={index} className="inline-block">
-          {part.type === 'chord' ? (
-              <span className="text-primary font-bold text-sm transform -translate-y-1 inline-block">{part.content}</span>
-          ) : (
-             <span>{part.content}</span>
-          )}
-        </span>
-      ))}
-    </div>
-  );
-};
-
 const LyricSection = ({ text, isHeader }: { text: string; isHeader: boolean; }) => {
     if (isHeader) {
         return <h3 className="font-bold text-lg mt-6 mb-2">{text}</h3>
     }
     
+    // Remove chords and split into lines
     const lines = text.split('\n').map(line => {
-      const parts = line.split('|');
-      return { measures: parseInt(parts[0], 10), text: parts.slice(1).join('|').trim() };
+      // Remove the measure number and pipe: "4 | [C]Hello" -> "[C]Hello"
+      const textOnly = line.split('|').slice(1).join('|').trim();
+      // Remove chords: "[C]Hello" -> "Hello"
+      return textOnly.replace(/\[[^\]]+\]/g, '').trim();
     });
 
     return (
         <div className="whitespace-pre-wrap leading-relaxed">
             {lines.map((line, idx) => (
                 <div key={idx} className="min-h-[1.5em]">
-                    {transposeChord(line.text, 0)}
+                    {line}
                 </div>
             ))}
         </div>
