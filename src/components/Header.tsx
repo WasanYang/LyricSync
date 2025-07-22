@@ -237,7 +237,7 @@ export default function Header() {
                           className={cn(
                             'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
                             pathname === link.href
-                              ? 'bg-accent text-accent-foreground'
+                              ? 'text-primary'
                               : 'text-muted-foreground'
                           )}
                         >
@@ -256,7 +256,7 @@ export default function Header() {
                           className={cn(
                             'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
                             pathname.startsWith(link.href)
-                              ? 'bg-accent text-accent-foreground'
+                              ? 'text-primary'
                               : 'text-muted-foreground'
                           )}
                         >

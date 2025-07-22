@@ -189,13 +189,13 @@ const parseLyrics = (
     if (match.index > lastIndex) {
       parts.push({ chord: null, text: line.substring(lastIndex, match.index) });
     }
-    
+
     let text = match[2];
     // If the text part is empty and there's another chord immediately after, add a space.
     if (text === '' && line.substring(regex.lastIndex).startsWith('[')) {
-        text = ' ';
+      text = ' ';
     }
-    
+
     parts.push({ chord: match[1], text });
     lastIndex = regex.lastIndex;
   }
@@ -207,11 +207,11 @@ const parseLyrics = (
 
   // If the line was empty or only whitespace
   if (parts.length === 0 && line.trim() === '') {
-      return [{ chord: null, text: line }];
+    return [{ chord: null, text: line }];
   }
-  
+
   if (parts.length === 0) {
-      return [{ chord: null, text: line }];
+    return [{ chord: null, text: line }];
   }
 
   return parts;
@@ -236,7 +236,11 @@ const LyricLineDisplay = ({
     [parsedLine]
   );
   const cleanLyricText = useMemo(
-    () => line.text.replace(/\[[^\]]+\]/g, ''),
+    () =>
+      line.text
+        .replace(/\[[^\]]+\]/g, '')
+        .trimEnd()
+        .trimStart(),
     [line.text]
   );
 
@@ -253,8 +257,10 @@ const LyricLineDisplay = ({
       <div className='-mb-1' style={{ color: chordColor }}>
         {parsedLine.map((part, index) => (
           <span key={`chord-${index}`} className='whitespace-pre'>
-            <span className='font-bold'>
-              {part.chord ? transposeChord(part.chord, transpose).replace(/\|/g, ' | ') : ''}
+            <span>
+              {part.chord
+                ? transposeChord(part.chord, transpose).replace(/\|/g, ' | ')
+                : ''}
             </span>
             <span className='text-transparent' style={{ fontWeight }}>
               {part.text}
