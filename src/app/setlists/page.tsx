@@ -8,7 +8,6 @@ import {
   getSetlists, 
   deleteSetlist as deleteSetlistFromDb,
   syncSetlist,
-  unsyncSetlist,
   getSyncedSetlistsCount,
   type SetlistWithSyncStatus
 } from '@/lib/db';
@@ -93,29 +92,6 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
         setIsSyncing(false);
       }
     };
-    
-    const handleUnsync = async (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (!user || !setlist.firestoreId) return;
-        setIsSyncing(true);
-        try {
-            await unsyncSetlist(setlist.id, user.uid, setlist.firestoreId);
-            toast({
-                title: "Unsynced",
-                description: `"${setlist.title}" is no longer synced online.`
-            });
-            onSetlistChange();
-        } catch (error) {
-            toast({
-                title: "Error",
-                description: "Could not unsync the setlist.",
-                variant: "destructive"
-            });
-        } finally {
-            setIsSyncing(false);
-        }
-    }
 
     const getStatusIcon = () => {
         let icon: React.ReactNode;
@@ -205,12 +181,12 @@ function SetlistItem({ setlist, onSetlistChange, onSyncLimitReached }: { setlist
                         ) : (
                              <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <Button onClick={handleUnsync} disabled={isSyncing} variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground cursor-default hover:bg-transparent">
                                         <CheckCircle className="h-4 w-4 text-green-500" />
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                    <p>Unsync</p>
+                                    <p>Synced</p>
                                 </TooltipContent>
                             </Tooltip>
                         )
