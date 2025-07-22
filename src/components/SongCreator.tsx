@@ -50,18 +50,16 @@ import LyricPlayer from './LyricPlayer';
 import {
   Eye,
   Save,
-  HelpCircle,
   Database,
   ArrowLeft,
   Expand,
-  Shrink,
 } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { LyricsHelpDialog } from './LyricsHelpDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Drawer, DrawerContent, DrawerTrigger, DrawerHeader, DrawerTitle } from './ui/drawer';
 
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
@@ -162,14 +160,12 @@ export default function SongCreator() {
   const searchParams = useSearchParams();
   const songId = searchParams.get('id');
   const mode = searchParams.get('mode'); // 'cloud' or null
-  const isMobile = useIsMobile();
 
   const isCloudMode = mode === 'cloud';
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { user, isSuperAdmin } = useAuth();
 
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [isLyricsFullscreen, setIsLyricsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const form = useForm<SongFormValues>({
@@ -192,11 +188,8 @@ export default function SongCreator() {
   };
 
   useEffect(() => {
-    // Re-adjust on lyrics change, but only if not in fullscreen
-    if (!isLyricsFullscreen) {
-      adjustTextareaHeight(textareaRef.current);
-    }
-  }, [form.watch('lyrics'), isLyricsFullscreen]);
+    adjustTextareaHeight(textareaRef.current);
+  }, [form.watch('lyrics')]);
 
   useEffect(() => {
     // If it's cloud mode but user isn't an admin, redirect.
@@ -400,19 +393,10 @@ export default function SongCreator() {
   };
 
   return (
-    <div className="relative h-full flex flex-col">
-       {/* Fullscreen Lyrics Editor Overlay */}
-      <div
-        className={cn(
-          'fixed inset-0 z-20 transition-opacity duration-300 pointer-events-none',
-          isLyricsFullscreen ? 'opacity-100' : 'opacity-0'
-        )}
-        onClick={() => setIsLyricsFullscreen(false)}
-      />
-
+    <div className="relative h-screen flex flex-col">
       <Form {...form}>
-        <div className={cn('flex flex-col h-full')}>
-          <header className={cn('flex-shrink-0 p-4 border-b bg-background flex items-center justify-between gap-4 z-10', isLyricsFullscreen ? 'opacity-0 h-0 p-0 border-0' : 'h-auto')}>
+        <div className='flex flex-col h-full'>
+          <header className='flex-shrink-0 p-4 border-b bg-background flex items-center justify-between gap-4 z-10'>
             <div className='flex items-center gap-2'>
               <CancelButton />
               <h1 className='text-xl md:text-2xl font-bold font-headline truncate'>
@@ -439,11 +423,11 @@ export default function SongCreator() {
             </Dialog>
           </header>
 
-          <div className={cn('flex-grow flex flex-col overflow-y-auto transition-all duration-300', isLyricsFullscreen ? '' : 'p-4 md:p-6 pb-24')}>
+          <div className='flex-grow flex flex-col overflow-y-auto p-4 md:p-6 pb-24'>
             <form
               id='song-creator-form'
               onSubmit={form.handleSubmit(handleSaveSong)}
-              className={cn('w-full max-w-2xl mx-auto flex flex-col space-y-6', isLyricsFullscreen ? 'opacity-0 h-0 overflow-hidden' : 'h-auto')}
+              className='w-full max-w-2xl mx-auto flex flex-col space-y-6 flex-grow'
             >
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <FormField
@@ -544,67 +528,61 @@ export default function SongCreator() {
                   )}
                 />
               </div>
-              
-               <div className='opacity-0 h-0'>
-                  {/* This is a hidden dummy field to prevent the lyrics field from stealing focus. */}
-              </div>
-            </form>
 
-            {/* Lyrics Form Field - rendered outside the form flow for positioning */}
-            <FormField
-              control={form.control}
-              name='lyrics'
-              render={({ field }) => (
-                <FormItem
-                  className={cn(
-                    'flex flex-col relative transition-all duration-300 w-full',
-                    isLyricsFullscreen
-                      ? 'fixed bottom-0 left-0 right-0 z-30 h-[70vh] bg-background border-t p-4'
-                      : 'flex-grow min-h-0',
-                    isMobile && !isLyricsFullscreen && 'flex-grow min-h-[300px]'
-                  )}
-                >
-                  <div className={cn('flex items-center justify-between gap-2 mb-2')}>
-                    <FormLabel>Lyrics &amp; Chords</FormLabel>
-                    <div className='flex items-center gap-1'>
-                      <LyricsHelpDialog />
-                      <Button
-                          type='button'
-                          variant='ghost'
-                          size='icon'
-                          onClick={() => setIsLyricsFullscreen(!isLyricsFullscreen)}
-                          className={cn('h-5 w-5', 'text-muted-foreground')}
-                      >
-                          {isLyricsFullscreen ? <Shrink className='h-4 w-4' /> : <Expand className='h-4 w-4'/>}
-                      </Button>
+              <FormField
+                control={form.control}
+                name='lyrics'
+                render={({ field }) => (
+                  <FormItem className='flex flex-col flex-grow'>
+                    <div className='flex items-center justify-between gap-2 mb-2'>
+                        <FormLabel>Lyrics &amp; Chords</FormLabel>
+                        <div className='flex items-center gap-1'>
+                            <LyricsHelpDialog />
+                             <Drawer>
+                                <DrawerTrigger asChild>
+                                    <Button
+                                        type='button'
+                                        variant='ghost'
+                                        size='icon'
+                                        className={cn('h-5 w-5', 'text-muted-foreground')}
+                                    >
+                                        <Expand className='h-4 w-4'/>
+                                    </Button>
+                                </DrawerTrigger>
+                                <DrawerContent className="h-[70vh]">
+                                     <DrawerHeader>
+                                        <DrawerTitle>Edit Lyrics &amp; Chords</DrawerTitle>
+                                    </DrawerHeader>
+                                    <div className="p-4 flex-grow">
+                                        <FormControl>
+                                            <Textarea
+                                                placeholder='4 | [C]Lyrics for the first four measures...'
+                                                className='text-sm font-mono resize-none h-full'
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                    </div>
+                                </DrawerContent>
+                            </Drawer>
+                        </div>
                     </div>
-                  </div>
-                  <FormControl>
-                    <Textarea
-                      ref={textareaRef}
-                      placeholder='4 | [C]Lyrics for the first four measures...'
-                      className={cn(
-                        'text-sm font-mono resize-none overflow-y-auto transition-all duration-300 w-full',
-                         isLyricsFullscreen 
-                          ? 'h-full bg-background text-foreground border-border focus-visible:ring-offset-background focus-visible:ring-primary rounded-lg p-2' 
-                          : 'min-h-full md:flex-grow'
-                      )}
-                       onInput={(e) => {
-                          if (!isLyricsFullscreen) {
-                            adjustTextareaHeight(e.currentTarget);
-                          }
-                       }}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage className={cn(isLyricsFullscreen ? 'absolute bottom-4 left-4' : '')}/>
-                </FormItem>
-              )}
-            />
-
+                    <FormControl>
+                      <Textarea
+                        ref={textareaRef}
+                        placeholder='4 | [C]Lyrics for the first four measures...'
+                        className={cn('text-sm font-mono resize-none overflow-y-auto flex-grow min-h-[12rem]')}
+                        onInput={(e) => adjustTextareaHeight(e.currentTarget)}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </form>
           </div>
 
-          <div className={cn('sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t z-10', isLyricsFullscreen ? 'opacity-0 h-0 p-0 border-0' : 'h-auto')}>
+          <div className='sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t z-10'>
             <div className='w-full max-w-2xl mx-auto flex items-center justify-end gap-4'>
               {getSubmitButton()}
             </div>
