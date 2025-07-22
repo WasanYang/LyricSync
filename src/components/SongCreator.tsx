@@ -573,11 +573,11 @@ export default function SongCreator() {
                   className={cn(
                     'flex flex-col relative transition-all duration-300 w-full',
                     isLyricsFullscreen
-                      ? 'fixed inset-4 z-30'
+                      ? 'fixed bottom-0 left-0 right-0 z-30 h-[70vh] bg-background border-t'
                       : 'flex-grow min-h-0' 
                   )}
                 >
-                  <div className={cn('flex items-center justify-between gap-2', isLyricsFullscreen ? 'absolute -top-1 right-1 z-10' : 'mb-2')}>
+                  <div className={cn('flex items-center justify-between gap-2', isLyricsFullscreen ? 'absolute -top-10 right-1 z-10' : 'mb-2')}>
                     <FormLabel className={cn(isLyricsFullscreen ? 'text-background/70' : 'text-foreground')}>Lyrics &amp; Chords</FormLabel>
                     <div className='flex items-center gap-1'>
                       <Dialog>
@@ -689,8 +689,8 @@ export default function SongCreator() {
                       className={cn(
                         'text-sm font-mono resize-none transition-all duration-300 w-full',
                         isLyricsFullscreen 
-                          ? 'bg-zinc-900 text-background border-zinc-700 h-full focus-visible:ring-offset-zinc-900 focus-visible:ring-primary rounded-lg' 
-                          : 'h-auto flex-grow md:h-[40vh]'
+                          ? 'h-full bg-zinc-900 text-background border-zinc-700 focus-visible:ring-offset-zinc-900 focus-visible:ring-primary rounded-lg p-4' 
+                          : 'min-h-[250px] md:h-auto md:flex-grow'
                       )}
                        onInput={(e) => {
                           if (!isLyricsFullscreen) {
