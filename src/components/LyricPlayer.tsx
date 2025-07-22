@@ -223,12 +223,14 @@ const LyricLineDisplay = ({
   chordColor,
   transpose,
   fontWeight,
+  fontSize,
 }: {
   line: LyricLine;
   showChords: boolean;
   chordColor: string;
   transpose: number;
   fontWeight: FontWeight;
+  fontSize: number;
 }) => {
   const parsedLine = useMemo(() => parseLyrics(line.text), [line.text]);
   const hasChords = useMemo(
@@ -254,7 +256,13 @@ const LyricLineDisplay = ({
   return (
     <div className='flex flex-col items-start leading-tight'>
       {/* Chord Line */}
-      <div className='-mb-1' style={{ color: chordColor }}>
+      <div
+        className='-mb-1'
+        style={{
+          color: chordColor,
+          fontSize: `calc(${fontSize}px - 2px)`,
+        }}
+      >
         {parsedLine.map((part, index) => (
           <span key={`chord-${index}`} className='whitespace-pre'>
             <span>
@@ -838,6 +846,7 @@ export default function LyricPlayer({
                       chordColor={chordColor}
                       transpose={transpose}
                       fontWeight={fontWeight}
+                      fontSize={fontSize}
                     />
                   )}
                 </li>
