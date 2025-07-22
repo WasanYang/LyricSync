@@ -300,12 +300,10 @@ export default function SongCreator() {
       try {
         await uploadSongToCloud(newSongData as Song);
         toast({
-          title: `Song ${
-            isUpdating ? 'Updated in Cloud' : 'Uploaded to Cloud'
-          }`,
-          description: `"${newSongData.title}" is now available to all users.`,
+          title: `Song Saved`,
+          description: `"${newSongData.title}" has been saved to the cloud.`,
         });
-        router.push('/admin/songs'); // Go back to cloud management list
+        form.reset(data); // Reset form to make it not dirty
       } catch (error) {
         toast({
           title: 'Error',
@@ -324,14 +322,10 @@ export default function SongCreator() {
         } as Song;
         await saveSong(localSong);
         toast({
-          title: `Song ${isUpdating ? 'Updated' : 'Saved'}`,
+          title: `Song Saved`,
           description: `"${localSong.title}" has been saved to your local library.`,
         });
-        form.reset(
-          {},
-          { keepValues: false, keepDirty: false, keepDefaultValues: false }
-        );
-        router.push('/library');
+        form.reset(data); // Reset form to make it not dirty
       } catch (error) {
         toast({
           title: 'Error',
@@ -359,19 +353,18 @@ export default function SongCreator() {
   };
 
   const getSubmitButton = () => {
-    const isUpdating = !!songId;
     if (isSuperAdmin && isCloudMode) {
       return (
         <Button type='submit' form='song-creator-form' size='lg'>
-          <Database className='mr-2 h-4 w-4' />{' '}
-          {isUpdating ? 'Update Cloud Song' : 'Save to Cloud'}
+          <Database className='mr-2 h-4 w-4' />
+          Save to Cloud
         </Button>
       );
     }
     return (
       <Button type='submit' form='song-creator-form' size='lg'>
-        <Save className='mr-2 h-4 w-4' />{' '}
-        {isUpdating ? 'Update Song' : 'Save Song'}
+        <Save className='mr-2 h-4 w-4' />
+        Save Song
       </Button>
     );
   };
@@ -574,7 +567,8 @@ export default function SongCreator() {
                     'flex flex-col relative transition-all duration-300 w-full',
                     isLyricsFullscreen
                       ? 'fixed bottom-0 left-0 right-0 z-30 h-[70vh] bg-background border-t'
-                      : 'flex-grow min-h-0' 
+                      : 'flex-grow min-h-0',
+                    isMobile && !isLyricsFullscreen && 'flex-grow min-h-[300px]'
                   )}
                 >
                   <div className={cn('flex items-center justify-between gap-2', isLyricsFullscreen ? 'absolute -top-10 right-1 z-10' : 'mb-2')}>
@@ -687,10 +681,10 @@ export default function SongCreator() {
                       ref={textareaRef}
                       placeholder='4 | [C]Lyrics for the first four measures...'
                       className={cn(
-                        'text-sm font-mono resize-none transition-all duration-300 w-full',
-                        isLyricsFullscreen 
+                        'text-sm font-mono resize-none overflow-y-auto transition-all duration-300 w-full',
+                         isLyricsFullscreen 
                           ? 'h-full bg-zinc-900 text-background border-zinc-700 focus-visible:ring-offset-zinc-900 focus-visible:ring-primary rounded-lg p-4' 
-                          : 'min-h-[250px] md:h-auto md:flex-grow'
+                          : 'min-h-full md:flex-grow'
                       )}
                        onInput={(e) => {
                           if (!isLyricsFullscreen) {
