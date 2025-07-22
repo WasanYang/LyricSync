@@ -357,19 +357,14 @@ export default function LyricPlayer({
   const [theme, setThemeState] = useState<'light' | 'dark'>('light');
 
   const uniqueLyrics = useMemo(() => {
-    const unique: (LyricLine & { originalIndex: number })[] = [];
-    const seenBars = new Set<number>();
-    song.lyrics.forEach((line, index) => {
-      if (line.bar > 0 && !seenBars.has(line.bar)) {
-        unique.push({ ...line, originalIndex: index });
-        seenBars.add(line.bar);
-      } else if (line.text.startsWith('(')) {
-        unique.push({ ...line, originalIndex: index });
-      }
-    });
-    return unique.sort(
-      (a, b) => a.bar - b.bar || a.originalIndex - b.originalIndex
-    );
+    return song.lyrics
+      .map((line, index) => ({ ...line, originalIndex: index }))
+      .filter(line => {
+        const parsedLine = parseLyrics(line.text);
+        const hasText = parsedLine.some(p => p.text.trim() !== '');
+        const hasChords = parsedLine.some(p => p.chord);
+        return hasText || hasChords;
+      });
   }, [song.lyrics]);
 
   const totalDuration = useMemo(() => {
