@@ -352,7 +352,7 @@ export default function LyricPlayer({
 
   const navigatorRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 16, y: 300 }); // x is right offset
+  const [position, setPosition] = useState({ x: 16, y: 450 }); // x is right offset
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   const [theme, setThemeState] = useState<'light' | 'dark'>('light');
@@ -388,7 +388,7 @@ export default function LyricPlayer({
   useEffect(() => {
     dispatch({ type: 'RESET_PLAYER_STATE', payload: { bpm: song.bpm } });
     if (isSetlistMode) {
-      setPosition({ x: 16, y: 300 });
+      setPosition({ x: 16, y: 450 });
     } else {
       setPosition({ x: 16, y: 100 });
     }
