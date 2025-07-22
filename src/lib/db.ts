@@ -368,39 +368,32 @@ export async function syncSetlist(setlistId: string, userId: string): Promise<vo
     if (!setlist) throw new Error("Setlist not found locally.");
     if (setlist.userId !== userId) throw new Error("Unauthorized");
 
-    // Check for custom songs
     if (setlist.songIds.some(id => id.startsWith('custom-'))) {
         throw new Error("Cannot sync setlists with custom songs.");
     }
-    
-    const dataToSync: { title: string; songIds: string[]; userId: string; syncedAt: any } = {
+
+    const dataToSync = {
         title: setlist.title,
         songIds: setlist.songIds,
         userId: setlist.userId,
-        syncedAt: serverTimestamp() // This is Firestore's server-side timestamp
+        syncedAt: serverTimestamp(),
     };
 
     if (setlist.isSynced && setlist.firestoreId) {
-        // It's an update to an existing synced setlist
         const docRef = doc(firestoreDb, "setlists", setlist.firestoreId);
-        await updateDoc(docRef, dataToSync); // userId is now included here
+        await updateDoc(docRef, dataToSync);
     } else {
-        // It's a new sync
-        // Check sync limit
         const count = await getSyncedSetlistsCount(userId);
         if (count >= SYNC_LIMIT) {
             throw new Error("SYNC_LIMIT_REACHED");
         }
-        // Use a generated Firestore ID if none exists, or the existing one
-        const firestoreId = setlist.firestoreId || doc(collection(firestoreDb, "setlists")).id;
-        const docRef = doc(firestoreDb, "setlists", firestoreId);
-        await setDoc(docRef, dataToSync);
-        setlist.firestoreId = firestoreId;
+        const newDocRef = doc(collection(firestoreDb, "setlists"));
+        await setDoc(newDocRef, dataToSync);
+        setlist.firestoreId = newDocRef.id;
     }
-    
-    // Update local setlist
+
     setlist.isSynced = true;
-    setlist.updatedAt = Date.now(); // Mark local as up-to-date with this sync
+    setlist.updatedAt = Date.now();
     await db.put(SETLISTS_STORE, setlist);
 }
 
