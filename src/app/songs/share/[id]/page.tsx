@@ -1,22 +1,20 @@
+
 // src/app/songs/share/[id]/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import { getCloudSongById, type Song, type LyricLine } from '@/lib/db';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Copy, Check, Music } from 'lucide-react';
+import { Copy, Check, Music, Guitar } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { transposeChord } from '@/lib/chords';
 
 function LoadingSkeleton() {
     return (
@@ -36,28 +34,65 @@ function LoadingSkeleton() {
     )
 }
 
-const LyricSection = ({ text, isHeader }: { text: string; isHeader: boolean; }) => {
-    if (isHeader) {
-        return <h3 className="font-bold text-lg mt-6 mb-2">{text}</h3>
+const parseLyricsForDisplay = (
+  line: string
+): Array<{ chord: string | null; text: string }> => {
+  const regex = /\[([^\]]+)\]([^\[]*)/g;
+  const parts: Array<{ chord: string | null; text: string }> = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = regex.exec(line)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ chord: null, text: line.substring(lastIndex, match.index) });
     }
-    
-    const lines = text.split('\n').map(line => {
-      // Remove the measure number and pipe: "4 | [C]Hello" -> "[C]Hello"
-      const textOnly = line.split('|').slice(1).join('|').trim();
-      // Remove chords: "[C]Hello" -> "Hello"
-      return textOnly.replace(/\[[^\]]+\]/g, '').trim();
-    });
+    parts.push({ chord: match[1], text: match[2] });
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < line.length) {
+    parts.push({ chord: null, text: line.substring(lastIndex) });
+  }
+  
+  if (parts.length === 0) {
+    return [{ chord: null, text: line }];
+  }
+
+  return parts;
+};
+
+
+const LyricLineDisplay = ({ line, showChords }: { line: LyricLine, showChords: boolean }) => {
+    const parsedLine = useMemo(() => parseLyricsForDisplay(line.text), [line.text]);
+    const cleanLyricText = useMemo(() => line.text.replace(/\[[^\]]+\]/g, ' ').replace(/\s+/g, ' ').trim(), [line.text]);
+    const isSectionHeader = line.text.startsWith('(') && line.text.endsWith(')');
+    const hasChords = parsedLine.some(p => p.chord);
+
+    if (isSectionHeader) {
+        return <h3 className="font-bold text-lg mt-6 mb-2">{line.text.substring(1, line.text.length - 1)}</h3>
+    }
+
+    if (!showChords || !hasChords) {
+         return <div className="min-h-[1.5rem]">{cleanLyricText}</div>;
+    }
 
     return (
-        <div className="whitespace-pre-wrap leading-relaxed">
-            {lines.map((line, idx) => (
-                <div key={idx} className="min-h-[1.5em]">
-                    {line}
-                </div>
-            ))}
+        <div className="flex flex-col items-start leading-tight mb-3">
+            {/* Chord Line */}
+            <div className="text-primary font-semibold text-sm -mb-1">
+                {parsedLine.map((part, index) => (
+                    <span key={`chord-${index}`} className="whitespace-pre">
+                        <span>{part.chord ? transposeChord(part.chord, 0) : ''}</span>
+                        <span className="text-transparent">{part.text}</span>
+                    </span>
+                ))}
+            </div>
+             {/* Lyric Line */}
+            <div>{cleanLyricText}</div>
         </div>
     );
-}
+};
+
 
 function SharedSongContent() {
     const params = useParams();
@@ -67,6 +102,7 @@ function SharedSongContent() {
     const [song, setSong] = useState<Song | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isCopied, setIsCopied] = useState(false);
+    const [showChords, setShowChords] = useState(true);
     
     const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
 
@@ -115,10 +151,6 @@ function SharedSongContent() {
     if (!song) {
         return notFound();
     }
-    
-    const formattedLyrics = song.lyrics.map(l => `${l.measures} | ${l.text}`).join('\n');
-    const sections = formattedLyrics.split(/\n(?=0\s*\|\s*\()/g);
-
 
     return (
       <div className="space-y-8 max-w-2xl mx-auto">
@@ -132,31 +164,29 @@ function SharedSongContent() {
             </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 justify-center">
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button onClick={handleCopy} variant="outline">
-                            {isCopied ? <Check className="mr-2 h-4 w-4 text-green-500"/> : <Copy className="mr-2 h-4 w-4"/>}
-                            {isCopied ? 'Copied!' : 'Copy Link'}
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent><p>{shareUrl}</p></TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-            <Button asChild>
-                <Link href={`/lyrics/${song.id}/player`}>
-                    <Music className="mr-2 h-4 w-4" /> Open in Player
-                </Link>
-            </Button>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+            <div className="flex items-center gap-2">
+                 <Button onClick={handleCopy} variant="outline" className="w-32">
+                    {isCopied ? <Check className="mr-2 h-4 w-4 text-green-500"/> : <Copy className="mr-2 h-4 w-4"/>}
+                    {isCopied ? 'Copied!' : 'Copy Link'}
+                 </Button>
+                <Button asChild className="w-36">
+                    <Link href={`/lyrics/${song.id}/player`}>
+                        <Music className="mr-2 h-4 w-4" /> Open in Player
+                    </Link>
+                </Button>
+            </div>
+             <div className="flex items-center space-x-2 p-2 rounded-lg bg-muted/50">
+                <Guitar className="h-4 w-4 text-muted-foreground" />
+                <Label htmlFor="show-chords" className="text-sm font-medium">Show Chords</Label>
+                <Switch id="show-chords" checked={showChords} onCheckedChange={setShowChords} />
+            </div>
         </div>
         
-        <div className="p-4 sm:p-6 bg-muted/30 rounded-lg">
-             {sections.map((section, index) => {
-                const isHeader = section.startsWith('0 | (');
-                const text = isHeader ? section.replace(/0\s*\|\s*\((.*)\)/, '$1') : section;
-                return <LyricSection key={index} text={text} isHeader={isHeader} />
-             })}
+        <div className="p-4 sm:p-6 bg-muted/30 rounded-lg whitespace-pre-wrap leading-relaxed">
+             {song.lyrics.map((line, index) => (
+                <LyricLineDisplay key={index} line={line} showChords={showChords} />
+             ))}
         </div>
       </div>
     );
