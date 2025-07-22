@@ -7,10 +7,9 @@ import { getCloudSongById, type Song, type LyricLine } from '@/lib/db';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Copy, Check, Music, ArrowLeft } from 'lucide-react';
+import { Copy, Check, Music } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
-import { transposeChord } from '@/lib/chords';
 import { cn } from '@/lib/utils';
 import {
   Tooltip,
@@ -42,7 +41,6 @@ const LyricSection = ({ text, isHeader }: { text: string; isHeader: boolean; }) 
         return <h3 className="font-bold text-lg mt-6 mb-2">{text}</h3>
     }
     
-    // Remove chords and split into lines
     const lines = text.split('\n').map(line => {
       // Remove the measure number and pipe: "4 | [C]Hello" -> "[C]Hello"
       const textOnly = line.split('|').slice(1).join('|').trim();
