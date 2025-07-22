@@ -401,6 +401,16 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   
   const addSongContent = <AddSongComponent availableSongs={availableSongs} onAddSong={handleAddSong} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} onSongStatusChange={handleSongStatusChange} />;
 
+  const getSourceIcon = (song: Song) => {
+    if (song.source === 'system') {
+        return <Cloud className="h-3 w-3 text-muted-foreground flex-shrink-0" />;
+    }
+    if (song.source === 'user') {
+        return <UserIcon className="h-3 w-3 text-muted-foreground flex-shrink-0" />;
+    }
+    return null;
+  }
+
   return (
     <div className="relative w-full max-w-lg mx-auto">
         <div className="absolute top-1 -left-1 z-10">
@@ -473,9 +483,12 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
                         onDragLeave={handleDragLeave}
                     >
                         <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab mr-2" />
-                        <div className="flex-grow">
-                        <p className="font-semibold">{song.title}</p>
-                        <p className="text-sm text-muted-foreground">{song.artist}</p>
+                        <div className="flex-grow min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold truncate">{song.title}</p>
+                            {getSourceIcon(song)}
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
                         </div>
                         <Button variant="ghost" size="icon" onClick={() => removeSong(song.id)} className="text-muted-foreground hover:text-destructive h-8 w-8">
                         <Trash2 className="h-4 w-4" />
