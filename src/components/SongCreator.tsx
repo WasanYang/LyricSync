@@ -1,7 +1,7 @@
 // src/components/SongCreator.tsx
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -61,9 +61,12 @@ import {
   HelpCircle,
   Database,
   ArrowLeft,
+  Expand,
+  Shrink,
 } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
+import { cn } from '@/lib/utils';
 
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
@@ -166,10 +169,11 @@ export default function SongCreator() {
   const mode = searchParams.get('mode'); // 'cloud' or null
 
   const isCloudMode = mode === 'cloud';
-
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { user, isSuperAdmin } = useAuth();
 
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isLyricsFullscreen, setIsLyricsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(!!songId);
 
   const form = useForm<SongFormValues>({
@@ -183,6 +187,17 @@ export default function SongCreator() {
       timeSignature: '4/4',
     },
   });
+
+  const adjustTextareaHeight = (element: HTMLTextAreaElement | null) => {
+    if (element) {
+      element.style.height = 'auto';
+      element.style.height = `${element.scrollHeight}px`;
+    }
+  };
+
+  useEffect(() => {
+    adjustTextareaHeight(textareaRef.current);
+  }, [form.watch('lyrics')]);
 
   useEffect(() => {
     // If it's cloud mode but user isn't an admin, redirect.
@@ -208,6 +223,7 @@ export default function SongCreator() {
             bpm: existingSong.bpm || 120,
             timeSignature: existingSong.timeSignature || '4/4',
           });
+          setTimeout(() => adjustTextareaHeight(textareaRef.current), 0);
         } else {
           toast({
             title: 'Song not found',
@@ -382,8 +398,8 @@ export default function SongCreator() {
 
   return (
     <Form {...form}>
-      <div className='flex flex-col h-full'>
-        <header className='flex-shrink-0 p-4 border-b bg-background flex items-center justify-between gap-4'>
+      <div className={cn('flex flex-col h-full transition-all duration-300', isLyricsFullscreen ? 'bg-background' : '')}>
+        <header className={cn('flex-shrink-0 p-4 border-b bg-background flex items-center justify-between gap-4 transition-all duration-300', isLyricsFullscreen ? 'opacity-0 h-0 p-0 border-0' : 'h-auto')}>
           <div className='flex items-center gap-2'>
             <CancelButton />
             <h1 className='text-xl md:text-2xl font-bold font-headline truncate'>
@@ -410,11 +426,11 @@ export default function SongCreator() {
           </Dialog>
         </header>
 
-        <div className='flex-grow overflow-y-auto'>
+        <div className={cn('flex-grow overflow-y-auto transition-all duration-300', isLyricsFullscreen ? 'p-0' : '')}>
           <form
             id='song-creator-form'
             onSubmit={form.handleSubmit(handleSaveSong)}
-            className='p-4 md:p-6 pb-24 w-full max-w-2xl mx-auto flex flex-col space-y-6'
+            className={cn('w-full max-w-2xl mx-auto flex flex-col space-y-6 transition-all duration-300', isLyricsFullscreen ? 'opacity-0 h-0' : 'p-4 md:p-6 pb-24 h-auto')}
           >
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <FormField
@@ -515,119 +531,147 @@ export default function SongCreator() {
                 )}
               />
             </div>
-
-            <FormField
-              control={form.control}
-              name='lyrics'
-              render={({ field }) => (
-                <FormItem className='flex-grow flex flex-col'>
-                  <div className='flex items-center gap-2'>
-                    <FormLabel>Lyrics &amp; Chords</FormLabel>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          type='button'
-                          variant='ghost'
-                          size='icon'
-                          className='h-5 w-5 text-muted-foreground'
-                        >
-                          <HelpCircle className='h-4 w-4' />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className='sm:max-w-2xl'>
-                        <DialogHeader>
-                          <DialogTitle>
-                            How to Format Lyrics & Chords
-                          </DialogTitle>
-                          <p className='text-sm text-muted-foreground'>
-                            Follow this format to ensure your lyrics and chords
-                            display correctly in the player.
-                          </p>
-                        </DialogHeader>
-                        <div className='space-y-4 text-sm py-4'>
-                          <p>
-                            Each line must start with a bar number, followed by
-                            a pipe `|`, and then the text content.
-                          </p>
-                          <div className='p-4 bg-muted rounded-md font-mono text-xs overflow-x-auto'>
-                            <p className='font-bold mb-2'>Format:</p>
-                            <p>
-                              <code className='text-primary'>bar_number</code> |{' '}
-                              <code className='text-primary'>[Chord]</code>Lyric
-                              text...
-                            </p>
-                          </div>
-
-                          <div>
-                            <h4 className='font-semibold mb-2'>
-                              Key Concepts:
-                            </h4>
-                            <ul className='list-disc pl-5 space-y-2'>
-                              <li>
-                                <strong>Bar Number:</strong> Every line must
-                                begin with a number representing the bar
-                                (measure) of the song. Use `0` for intros or
-                                elements before the first bar.
-                              </li>
-                              <li>
-                                <strong>Pipe Separator:</strong> A pipe
-                                character `|` must follow the bar number to
-                                separate it from the content.
-                              </li>
-                              <li>
-                                <strong>Chords:</strong> Enclose chords in
-                                square brackets, like{' '}
-                                <code className='bg-muted px-1 py-0.5 rounded'>
-                                  [C]
-                                </code>{' '}
-                                or{' '}
-                                <code className='bg-muted px-1 py-0.5 rounded'>
-                                  [G/B]
-                                </code>
-                                . Place them right before the syllable where the
-                                chord change occurs.
-                              </li>
-                              <li>
-                                <strong>Section Headers:</strong> To define
-                                sections like (Intro), (Verse), or (Chorus), use
-                                a bar number of `0` and enclose the text in
-                                parentheses.
-                              </li>
-                            </ul>
-                          </div>
-
-                          <div className='p-4 bg-muted rounded-md font-mono text-xs overflow-x-auto'>
-                            <p className='font-bold mb-2'>Examples:</p>
-                            <p>0 | (Intro)</p>
-                            <p>1 | [Am] [G] [C] [F]</p>
-                            <p>2 | [C]This is a [G]line with chords.</p>
-                            <p>3 | This is a line with no chords.</p>
-                            <p>4 | </p>
-                            <p>5 | (Verse 1)</p>
-                            <p>
-                              6 | The quick [Am]brown fox [G]jumps over the
-                              [C]lazy dog.[F]
-                            </p>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                  <FormControl>
-                    <Textarea
-                      placeholder='1 | [C]Lyrics for bar one...'
-                      className='flex-grow text-sm font-mono resize-auto min-h-64'
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            
+            <div className='opacity-0 h-0'>
+                {/* This is a hidden dummy field to prevent the lyrics field from stealing focus. */}
+            </div>
           </form>
+
+          {/* Lyrics Form Field - outside the main form structure for fullscreen effect */}
+          <FormField
+            control={form.control}
+            name='lyrics'
+            render={({ field }) => (
+              <FormItem
+                className={cn(
+                  'flex-grow flex flex-col relative transition-all duration-300 w-full',
+                  isLyricsFullscreen
+                    ? 'h-full max-w-full p-4'
+                    : 'h-auto max-w-2xl mx-auto px-4 md:px-6'
+                )}
+              >
+                <div className={cn('flex items-center justify-between gap-2', isLyricsFullscreen ? 'absolute top-4 left-4 z-10' : 'mb-2')}>
+                  <FormLabel className={cn(isLyricsFullscreen ? 'text-background/70' : 'text-foreground')}>Lyrics &amp; Chords</FormLabel>
+                  <div className='flex items-center gap-1'>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            type='button'
+                            variant='ghost'
+                            size='icon'
+                            className={cn('h-5 w-5', isLyricsFullscreen ? 'text-background/70 hover:text-background' : 'text-muted-foreground')}
+                          >
+                            <HelpCircle className='h-4 w-4' />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className='sm:max-w-2xl'>
+                          <DialogHeader>
+                            <DialogTitle>
+                              How to Format Lyrics & Chords
+                            </DialogTitle>
+                            <p className='text-sm text-muted-foreground'>
+                              Follow this format to ensure your lyrics and chords
+                              display correctly in the player.
+                            </p>
+                          </DialogHeader>
+                          <div className='space-y-4 text-sm py-4'>
+                            <p>
+                              Each line must start with a bar number, followed by
+                              a pipe `|`, and then the text content.
+                            </p>
+                            <div className='p-4 bg-muted rounded-md font-mono text-xs overflow-x-auto'>
+                              <p className='font-bold mb-2'>Format:</p>
+                              <p>
+                                <code className='text-primary'>bar_number</code> |{' '}
+                                <code className='text-primary'>[Chord]</code>Lyric
+                                text...
+                              </p>
+                            </div>
+
+                            <div>
+                              <h4 className='font-semibold mb-2'>
+                                Key Concepts:
+                              </h4>
+                              <ul className='list-disc pl-5 space-y-2'>
+                                <li>
+                                  <strong>Bar Number:</strong> Every line must
+                                  begin with a number representing the bar
+                                  (measure) of the song. Use `0` for intros or
+                                  elements before the first bar.
+                                </li>
+                                <li>
+                                  <strong>Pipe Separator:</strong> A pipe
+                                  character `|` must follow the bar number to
+                                  separate it from the content.
+                                </li>
+                                <li>
+                                  <strong>Chords:</strong> Enclose chords in
+                                  square brackets, like{' '}
+                                  <code className='bg-muted px-1 py-0.5 rounded'>
+                                    [C]
+                                  </code>{' '}
+                                  or{' '}
+                                  <code className='bg-muted px-1 py-0.5 rounded'>
+                                    [G/B]
+                                  </code>
+                                  . Place them right before the syllable where the
+                                  chord change occurs.
+                                </li>
+                                <li>
+                                  <strong>Section Headers:</strong> To define
+                                  sections like (Intro), (Verse), or (Chorus), use
+                                  a bar number of `0` and enclose the text in
+                                  parentheses.
+                                </li>
+                              </ul>
+                            </div>
+
+                            <div className='p-4 bg-muted rounded-md font-mono text-xs overflow-x-auto'>
+                              <p className='font-bold mb-2'>Examples:</p>
+                              <p>0 | (Intro)</p>
+                              <p>1 | [Am] [G] [C] [F]</p>
+                              <p>2 | [C]This is a [G]line with chords.</p>
+                              <p>3 | This is a line with no chords.</p>
+                              <p>4 | </p>
+                              <p>5 | (Verse 1)</p>
+                              <p>
+                                6 | The quick [Am]brown fox [G]jumps over the
+                                [C]lazy dog.[F]
+                              </p>
+                            </div>
+                          </div>
+                        </DialogContent>
+                    </Dialog>
+                    <Button
+                        type='button'
+                        variant='ghost'
+                        size='icon'
+                        onClick={() => setIsLyricsFullscreen(!isLyricsFullscreen)}
+                        className={cn('h-5 w-5', isLyricsFullscreen ? 'text-background/70 hover:text-background' : 'text-muted-foreground')}
+                    >
+                        {isLyricsFullscreen ? <Shrink className='h-4 w-4' /> : <Expand className='h-4 w-4'/>}
+                    </Button>
+                  </div>
+                </div>
+                <FormControl>
+                  <Textarea
+                    ref={textareaRef}
+                    placeholder='1 | [C]Lyrics for bar one...'
+                    className={cn(
+                      'text-sm font-mono resize-none overflow-hidden transition-all duration-300',
+                      isLyricsFullscreen ? 'bg-zinc-900 text-background border-zinc-700 h-full w-full focus-visible:ring-offset-zinc-900 focus-visible:ring-primary' : 'min-h-48'
+                    )}
+                    onInput={(e) => adjustTextareaHeight(e.currentTarget)}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage className={cn(isLyricsFullscreen ? 'absolute bottom-4 left-4' : '')}/>
+              </FormItem>
+            )}
+          />
         </div>
 
-        <div className='flex-shrink-0 sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t'>
+        <div className={cn('flex-shrink-0 sticky bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t transition-all duration-300', isLyricsFullscreen ? 'opacity-0 h-0 p-0 border-0' : 'h-auto')}>
           <div className='w-full max-w-2xl mx-auto flex items-center justify-end gap-4'>
             {getSubmitButton()}
           </div>
