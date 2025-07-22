@@ -261,6 +261,7 @@ const LyricLineDisplay = ({
         style={{
           color: chordColor,
           fontSize: `calc(${fontSize}px - 2px)`,
+          marginBottom: '-1px',
         }}
       >
         {parsedLine.map((part, index) => (
@@ -824,8 +825,8 @@ export default function LyricPlayer({
                   key={`${song.id}-${line.originalIndex}`}
                   ref={(el) => (lineRefs.current[index] = el)}
                   className={cn(
-                    'rounded-md transition-all duration-300 text-left flex justify-start items-center',
-                    isSectionBreak ? 'h-[1.2em]' : 'min-h-[2.5rem] py-2',
+                    'rounded-md transition-all duration-300 text-left flex justify-start items-center py-1',
+                    isSectionBreak ? 'h-[0.5em]' : '',
                     isHighlighted
                       ? 'text-foreground scale-105'
                       : 'text-muted-foreground/40',
@@ -836,7 +837,7 @@ export default function LyricPlayer({
                   style={{
                     minHeight: isSectionBreak
                       ? 'auto'
-                      : `calc(${fontSize}px * 1.5)`,
+                      : `calc(${fontSize}px * 1.2)`,
                   }}
                 >
                   {!isSectionBreak && (
