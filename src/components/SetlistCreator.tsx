@@ -5,8 +5,15 @@ import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { getSongs, type Song } from '@/lib/songs';
-import { saveSetlist, getSetlist as getSetlistFromDb, getSong as getSongFromDb, getAllSavedSongIds } from '@/lib/db';
+import { getSongs as getStaticSongs, type Song } from '@/lib/songs';
+import { 
+    saveSetlist, 
+    getSetlist as getSetlistFromDb, 
+    getSong as getSongFromDb, 
+    getAllSavedSongs, 
+    getAllCloudSongs, 
+    getAllSavedSongIds 
+} from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
@@ -16,10 +23,9 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { GripVertical, PlusCircle, Search, Trash2, ArrowLeft, Edit } from 'lucide-react';
+import { GripVertical, PlusCircle, Search, Trash2, ArrowLeft, Edit, Cloud, User as UserIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { getAllSavedSongs } from '@/lib/db';
 import { v4 as uuidv4 } from 'uuid';
 import { Skeleton } from './ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -75,11 +81,13 @@ function AddSongComponent({
     onAddSong, 
     searchTerm, 
     onSearchTermChange,
+    onSongStatusChange
 }: { 
     availableSongs: Song[], 
     onAddSong: (song: Song) => void, 
     searchTerm: string, 
     onSearchTermChange: (term: string) => void,
+    onSongStatusChange: () => void,
 }) {
 
   const handleButtonClick = (e: React.MouseEvent, song: Song) => {
@@ -88,6 +96,16 @@ function AddSongComponent({
     onAddSong(song);
   };
   
+  const getSourceIcon = (song: Song) => {
+    if (song.source === 'system') {
+        return <Cloud className="h-3 w-3 text-muted-foreground" />;
+    }
+    if (song.source === 'user') {
+        return <UserIcon className="h-3 w-3 text-muted-foreground" />;
+    }
+    return null;
+  }
+
   return (
     <>
       <div className="p-4">
@@ -111,7 +129,10 @@ function AddSongComponent({
                     className="flex-grow text-left flex items-start min-w-0"
                 >
                     <div className="min-w-0">
-                        <p className="font-semibold text-sm truncate">{song.title}</p>
+                        <div className="flex items-center gap-2">
+                           <p className="font-semibold text-sm truncate">{song.title}</p>
+                           {getSourceIcon(song)}
+                        </div>
                         <p className="text-xs text-muted-foreground truncate">{song.artist} • Key: {song.originalKey || 'N/A'}</p>
                     </div>
                 </button>
@@ -139,7 +160,8 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [allSongs, setAllSongs] = useState<Song[]>([]);
-  const [isLoading, setIsLoading] = useState(!!setlistId);
+  const [savedSongIds, setSavedSongIds] = useState<Set<string>>(new Set());
+  const [isLoading, setIsLoading] = useState(true);
   
   const isMobile = useIsMobile();
   
@@ -152,16 +174,44 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
 
   const { formState: { isDirty } } = form;
 
-  // Fetch all songs (official + custom) on component mount
-  useMemo(() => {
-    const fetchSongs = async () => {
-        const officialSongs = getSongs();
-        const customSongs = await getAllSavedSongs();
-        const combined = [...officialSongs, ...customSongs.filter(cs => cs.id.startsWith('custom-'))];
-        const uniqueSongs = Array.from(new Map(combined.map(song => [song.id, song])).values());
-        setAllSongs(uniqueSongs.sort((a,b) => a.title.localeCompare(b.title)));
-    };
-    fetchSongs();
+  const fetchAllSongs = async () => {
+    const staticSongs = getStaticSongs();
+    const localSongs = await getAllSavedSongs(); // Includes custom user songs
+    const cloudSongs = await getAllCloudSongs();
+    const savedIds = await getAllSavedSongIds();
+    
+    setSavedSongIds(new Set(savedIds));
+
+    // Combine all songs, giving priority to local, then cloud, then static
+    const songMap = new Map<string, Song>();
+    
+    // 1. Add static songs
+    staticSongs.forEach(song => songMap.set(song.id, song));
+    
+    // 2. Add cloud songs (will overwrite static if ID matches)
+    cloudSongs.forEach(song => songMap.set(song.id, song));
+    
+    // 3. Add local songs (will overwrite cloud/static if ID matches)
+    localSongs.forEach(song => songMap.set(song.id, song));
+
+    const combinedSongs = Array.from(songMap.values());
+
+    // Sort: Saved songs first, then by title
+    combinedSongs.sort((a, b) => {
+        const aIsSaved = savedIds.includes(a.id);
+        const bIsSaved = savedIds.includes(b.id);
+
+        if (aIsSaved && !bIsSaved) return -1;
+        if (!aIsSaved && bIsSaved) return 1;
+        return a.title.localeCompare(b.title);
+    });
+    
+    setAllSongs(combinedSongs);
+  };
+  
+  // Fetch all songs on component mount
+  useEffect(() => {
+    fetchAllSongs();
   }, []);
 
   useEffect(() => {
@@ -173,7 +223,11 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
           form.reset({ title: existingSetlist.title });
           
           const songPromises = existingSetlist.songIds.map(async (id) => {
-             const officialSong = getSongs().find(s => s.id === id);
+             const songFromAll = allSongs.find(s => s.id === id);
+             if (songFromAll) return songFromAll;
+             
+             // Fallback if allSongs isn't populated yet
+             const officialSong = getStaticSongs().find(s => s.id === id);
              if (officialSong) return officialSong;
              const customSong = await getSongFromDb(id);
              return customSong;
@@ -188,9 +242,13 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
         }
         setIsLoading(false);
       }
-      fetchSetlist();
+      if (allSongs.length > 0) {
+        fetchSetlist();
+      }
+    } else {
+        setIsLoading(false);
     }
-  }, [setlistId, form, router, toast]);
+  }, [setlistId, form, router, toast, allSongs]);
 
   const availableSongs = useMemo(() => {
     return allSongs
@@ -209,7 +267,14 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   const handleAddSong = (song: Song) => {
     addSong(song);
     setSearchTerm('');
-    setIsPopoverOpen(false); // Works for both Drawer and Popover
+    // Keep popover open on desktop to add multiple songs easily
+    if(isMobile) {
+       setIsPopoverOpen(false);
+    }
+  }
+  
+  const handleSongStatusChange = () => {
+      fetchAllSongs(); // Re-fetch and re-sort
   }
 
   const removeSong = (songId: string) => {
@@ -334,7 +399,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
       </Button>
   );
   
-  const addSongContent = <AddSongComponent availableSongs={availableSongs} onAddSong={handleAddSong} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} />;
+  const addSongContent = <AddSongComponent availableSongs={availableSongs} onAddSong={handleAddSong} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} onSongStatusChange={handleSongStatusChange} />;
 
   return (
     <div className="relative w-full max-w-lg mx-auto">
@@ -381,7 +446,13 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
                         <PopoverTrigger asChild>
                             {addSongTrigger}
                         </PopoverTrigger>
-                        <PopoverContent className="w-[350px] p-0" align="end">
+                        <PopoverContent className="w-[350px] p-0" align="end" onInteractOutside={(e) => {
+                            // This prevents the popover from closing when interacting with the SongStatusButton which might show a toast.
+                            const target = e.target as HTMLElement;
+                            if (target.closest('[data-radix-toast-provider]')) {
+                                e.preventDefault();
+                            }
+                        }}>
                             {addSongContent}
                         </PopoverContent>
                     </Popover>
