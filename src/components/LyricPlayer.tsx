@@ -65,6 +65,8 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Separator } from './ui/separator';
+import FloatingKeyControls from './FloatingKeyControls';
+import FloatingSectionNavigator from './FloatingSectionNavigator';
 
 type HighlightMode = 'line' | 'section' | 'none';
 type FontWeight = 400 | 600 | 700;
@@ -162,7 +164,7 @@ function lyricPlayerReducer(state: State, action: Action): State {
     case 'TOGGLE_SECTION_NAVIGATOR':
       return { ...state, showSectionNavigator: !state.showSectionNavigator };
     case 'TOGGLE_KEY_CONTROLS':
-        return { ...state, showKeyControls: !state.showKeyControls };
+      return { ...state, showKeyControls: !state.showKeyControls };
     case 'SET_TRANSPOSE':
       return { ...state, transpose: action.payload };
     case 'TRANSPOSE_UP':
@@ -320,10 +322,10 @@ interface LyricPlayerProps {
 }
 
 type ProcessedLyricLine = LyricLine & {
-    originalIndex: number;
-    startTimeSeconds: number;
-    endTimeSeconds: number;
-}
+  originalIndex: number;
+  startTimeSeconds: number;
+  endTimeSeconds: number;
+};
 
 export default function LyricPlayer({
   song,
@@ -357,19 +359,14 @@ export default function LyricPlayer({
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // States for Draggable Navigator
-  const navigatorRef = useRef<HTMLDivElement>(null);
-  const [isNavDragging, setIsNavDragging] = useState(false);
-  const [navPosition, setNavPosition] = useState({ x: 16, y: 450 });
-  const [navDragOffset, setNavDragOffset] = useState({ x: 0, y: 0 });
-
-  // States for Draggable Key Controls
-  const keyControlsRef = useRef<HTMLDivElement>(null);
-  const [isKeyControlsDragging, setIsKeyControlsDragging] = useState(false);
-  const [keyControlsPosition, setKeyControlsPosition] = useState({ x: 16, y: 90 });
-  const [keyControlsDragOffset, setKeyControlsDragOffset] = useState({ x: 0, y: 0 });
-
   const [theme, setThemeState] = useState<'light' | 'dark'>('light');
+
+  const [keyControlsPosition, setKeyControlsPosition] = useState({
+    x: 16,
+    y: 90,
+  });
+
+  const [navPosition, setNavPosition] = useState({ x: 16, y: 300 });
 
   const { processedLyrics, totalDuration } = useMemo(() => {
     let cumulativeTime = 0;
@@ -378,24 +375,23 @@ export default function LyricPlayer({
     const timeSignatureBeats = parseInt(timeSignature.split('/')[0], 10) || 4;
     const secondsPerMeasure = (60 / currentBpm) * timeSignatureBeats;
 
-    const lyricsWithTiming = song.lyrics
-        .map((line, index) => {
-            const startTimeSeconds = cumulativeTime;
-            const durationSeconds = line.measures * secondsPerMeasure;
-            cumulativeTime += durationSeconds;
-            const endTimeSeconds = cumulativeTime;
-            
-            return {
-                ...line,
-                originalIndex: index,
-                startTimeSeconds,
-                endTimeSeconds
-            };
-        });
-    
+    const lyricsWithTiming = song.lyrics.map((line, index) => {
+      const startTimeSeconds = cumulativeTime;
+      const durationSeconds = line.measures * secondsPerMeasure;
+      cumulativeTime += durationSeconds;
+      const endTimeSeconds = cumulativeTime;
+
+      return {
+        ...line,
+        originalIndex: index,
+        startTimeSeconds,
+        endTimeSeconds,
+      };
+    });
+
     return {
-        processedLyrics: lyricsWithTiming,
-        totalDuration: cumulativeTime,
+      processedLyrics: lyricsWithTiming,
+      totalDuration: cumulativeTime,
     };
   }, [song.lyrics, bpm, song.timeSignature]);
 
@@ -405,7 +401,7 @@ export default function LyricPlayer({
       setNavPosition({ x: 16, y: 450 });
       setKeyControlsPosition({ x: 16, y: 90 });
     } else {
-      setNavPosition({ x: 16, y: 100 });
+      setNavPosition({ x: 16, y: 300 });
       setKeyControlsPosition({ x: 16, y: 90 });
     }
   }, [song.id, song.bpm, isSetlistMode]);
@@ -425,100 +421,6 @@ export default function LyricPlayer({
     setThemeState((prevTheme) => (prevTheme === 'dark' ? 'light' : 'dark'));
   };
 
-  // --- Drag and Drop Logic for Navigator ---
-  const handleNavDragMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    if (navigatorRef.current) {
-        setIsNavDragging(true);
-        const rect = navigatorRef.current.getBoundingClientRect();
-        setNavDragOffset({ x: window.innerWidth - e.clientX - rect.width, y: e.clientY - rect.top });
-    }
-  }, []);
-
-  const handleNavDragTouchStart = useCallback((e: React.TouchEvent<HTMLButtonElement>) => {
-    if (navigatorRef.current) {
-        setIsNavDragging(true);
-        const touch = e.touches[0];
-        const rect = navigatorRef.current.getBoundingClientRect();
-        setNavDragOffset({ x: window.innerWidth - touch.clientX - rect.width, y: touch.clientY - rect.top });
-    }
-  }, []);
-  
-  // --- Drag and Drop Logic for Key Controls ---
-  const handleKeyControlsDragMouseDown = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    if (keyControlsRef.current) {
-        setIsKeyControlsDragging(true);
-        const rect = keyControlsRef.current.getBoundingClientRect();
-        setKeyControlsDragOffset({ x: window.innerWidth - e.clientX - rect.width, y: e.clientY - rect.top });
-    }
-  }, []);
-
-  const handleKeyControlsDragTouchStart = useCallback((e: React.TouchEvent<HTMLButtonElement>) => {
-    if (keyControlsRef.current) {
-        setIsKeyControlsDragging(true);
-        const touch = e.touches[0];
-        const rect = keyControlsRef.current.getBoundingClientRect();
-        setKeyControlsDragOffset({ x: window.innerWidth - touch.clientX - rect.width, y: touch.clientY - rect.top });
-    }
-  }, []);
-
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (isNavDragging && navigatorRef.current) {
-        const newRight = window.innerWidth - e.clientX - navDragOffset.x;
-        setNavPosition({ x: newRight, y: e.clientY - navDragOffset.y });
-    }
-    if (isKeyControlsDragging && keyControlsRef.current) {
-        const newRight = window.innerWidth - e.clientX - keyControlsDragOffset.x;
-        setKeyControlsPosition({ x: newRight, y: e.clientY - keyControlsDragOffset.y });
-    }
-  }, [isNavDragging, navDragOffset, isKeyControlsDragging, keyControlsDragOffset]);
-  
-  const handleTouchMove = useCallback((e: TouchEvent) => {
-      if (isNavDragging && navigatorRef.current) {
-          const touch = e.touches[0];
-          const newRight = window.innerWidth - touch.clientX - navDragOffset.x;
-          setNavPosition({ x: newRight, y: touch.clientY - navDragOffset.y });
-      }
-      if (isKeyControlsDragging && keyControlsRef.current) {
-          const touch = e.touches[0];
-          const newRight = window.innerWidth - touch.clientX - keyControlsDragOffset.x;
-          setKeyControlsPosition({ x: newRight, y: touch.clientY - keyControlsDragOffset.y });
-      }
-  }, [isNavDragging, navDragOffset, isKeyControlsDragging, keyControlsDragOffset]);
-  
-  const handleMouseUp = useCallback(() => {
-      setIsNavDragging(false);
-      setIsKeyControlsDragging(false);
-  }, []);
-  
-  const handleTouchEnd = useCallback(() => {
-      setIsNavDragging(false);
-      setIsKeyControlsDragging(false);
-  }, []);
-  
-  useEffect(() => {
-      const isDragging = isNavDragging || isKeyControlsDragging;
-      if (isDragging) {
-          window.addEventListener('mousemove', handleMouseMove);
-          window.addEventListener('mouseup', handleMouseUp);
-          window.addEventListener('touchmove', handleTouchMove);
-          window.addEventListener('touchend', handleTouchEnd);
-      } else {
-          window.removeEventListener('mousemove', handleMouseMove);
-          window.removeEventListener('mouseup', handleMouseUp);
-          window.removeEventListener('touchmove', handleTouchMove);
-          window.removeEventListener('touchend', handleTouchEnd);
-      }
-  
-      return () => {
-          window.removeEventListener('mousemove', handleMouseMove);
-          window.removeEventListener('mouseup', handleMouseUp);
-          window.removeEventListener('touchmove', handleTouchMove);
-          window.removeEventListener('touchend', handleTouchEnd);
-      };
-  }, [isNavDragging, isKeyControlsDragging, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
-
-
   const sections = useMemo(() => {
     return processedLyrics
       .filter((line) => line.text.startsWith('(') && line.text.endsWith(')'))
@@ -526,7 +428,9 @@ export default function LyricPlayer({
         name: line.text.substring(1, line.text.length - 1),
         startTime: line.startTimeSeconds,
         index: line.originalIndex,
-        uniqueKey: `${line.text.substring(1, line.text.length - 1)}-${line.originalIndex}`,
+        uniqueKey: `${line.text.substring(1, line.text.length - 1)}-${
+          line.originalIndex
+        }`,
       }));
   }, [processedLyrics]);
 
@@ -557,22 +461,24 @@ export default function LyricPlayer({
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [isPlaying, currentTime]);
-  
+
   // This effect updates the current line index based on the current time
   useEffect(() => {
     if (currentTime >= totalDuration && totalDuration > 0) {
       dispatch({ type: 'FINISH' });
     } else {
-        const newIndex = processedLyrics.findIndex(
-            (line) => currentTime >= line.startTimeSeconds && currentTime < line.endTimeSeconds && line.measures > 0
-        );
+      const newIndex = processedLyrics.findIndex(
+        (line) =>
+          currentTime >= line.startTimeSeconds &&
+          currentTime < line.endTimeSeconds &&
+          line.measures > 0
+      );
 
-        if (newIndex !== -1 && newIndex !== currentLineIndex) {
-            dispatch({ type: 'SET_LINE_INDEX', payload: newIndex });
-        }
+      if (newIndex !== -1 && newIndex !== currentLineIndex) {
+        dispatch({ type: 'SET_LINE_INDEX', payload: newIndex });
+      }
     }
   }, [currentTime, totalDuration, processedLyrics, currentLineIndex]);
-
 
   const scrollToLine = useCallback(
     (index: number) => {
@@ -605,44 +511,59 @@ export default function LyricPlayer({
     const newTime = value[0];
     dispatch({ type: 'SET_TIME', payload: newTime });
   };
-  
-  const handleSetLine = useCallback((index: number) => {
-    if (index >= 0 && index < processedLyrics.length) {
-      const targetLine = processedLyrics[index];
-      dispatch({ type: 'SET_TIME', payload: targetLine.startTimeSeconds });
-      dispatch({ type: 'SET_LINE_INDEX', payload: index });
-      scrollToLine(index);
-    }
-  }, [processedLyrics, scrollToLine]);
+
+  const handleSetLine = useCallback(
+    (index: number) => {
+      if (index >= 0 && index < processedLyrics.length) {
+        const targetLine = processedLyrics[index];
+        dispatch({ type: 'SET_TIME', payload: targetLine.startTimeSeconds });
+        dispatch({ type: 'SET_LINE_INDEX', payload: index });
+        scrollToLine(index);
+      }
+    },
+    [processedLyrics, scrollToLine]
+  );
 
   const handleNextLine = useCallback(() => {
-    const nextPlayableIndex = processedLyrics.findIndex((line, idx) => idx > currentLineIndex && line.measures > 0);
+    const nextPlayableIndex = processedLyrics.findIndex(
+      (line, idx) => idx > currentLineIndex && line.measures > 0
+    );
     if (nextPlayableIndex !== -1) {
-        handleSetLine(nextPlayableIndex);
+      handleSetLine(nextPlayableIndex);
     }
   }, [currentLineIndex, processedLyrics, handleSetLine]);
 
   const handlePrevLine = useCallback(() => {
     const prevPlayableIndices = processedLyrics
-        .map((line, idx) => ({...line, originalIndex: idx}))
-        .filter(line => line.originalIndex < currentLineIndex && line.measures > 0);
-    
+      .map((line, idx) => ({ ...line, originalIndex: idx }))
+      .filter(
+        (line) => line.originalIndex < currentLineIndex && line.measures > 0
+      );
+
     if (prevPlayableIndices.length > 0) {
-        const prevIndex = prevPlayableIndices[prevPlayableIndices.length - 1].originalIndex;
-        handleSetLine(prevIndex);
+      const prevIndex =
+        prevPlayableIndices[prevPlayableIndices.length - 1].originalIndex;
+      handleSetLine(prevIndex);
     }
   }, [currentLineIndex, processedLyrics, handleSetLine]);
 
   const handleSectionJump = (sectionIndex: number) => {
-    const targetLine = processedLyrics.find(l => l.originalIndex === sectionIndex);
+    const targetLine = processedLyrics.find(
+      (l) => l.originalIndex === sectionIndex
+    );
     if (targetLine) {
-        const firstPlayableLineIndex = processedLyrics.findIndex(l => l.startTimeSeconds >= targetLine.startTimeSeconds && l.measures > 0);
-        if (firstPlayableLineIndex !== -1) {
-            handleSetLine(firstPlayableLineIndex);
-        } else {
-            // Fallback: just jump to the section header time if no playable line is after it
-            handleSetLine(processedLyrics.findIndex(l => l.originalIndex === sectionIndex));
-        }
+      const firstPlayableLineIndex = processedLyrics.findIndex(
+        (l) =>
+          l.startTimeSeconds >= targetLine.startTimeSeconds && l.measures > 0
+      );
+      if (firstPlayableLineIndex !== -1) {
+        handleSetLine(firstPlayableLineIndex);
+      } else {
+        // Fallback: just jump to the section header time if no playable line is after it
+        handleSetLine(
+          processedLyrics.findIndex((l) => l.originalIndex === sectionIndex)
+        );
+      }
     }
   };
 
@@ -669,7 +590,7 @@ export default function LyricPlayer({
   }, [transpose, song.originalKey]);
 
   const formatTime = (seconds: number) => {
-    if (isNaN(seconds)) return "0:00";
+    if (isNaN(seconds)) return '0:00';
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
@@ -706,115 +627,36 @@ export default function LyricPlayer({
               </div>
 
               <div className='absolute right-2 top-1/2 -translate-y-1/2'>
-                 {/* This space is now empty, settings are at the bottom */}
+                {/* This space is now empty, settings are at the bottom */}
               </div>
             </div>
           </header>
         )}
 
-        {showSectionNavigator && sections.length > 0 && (
-          <div
-            ref={navigatorRef}
-            className='fixed z-20 pointer-events-auto flex flex-col items-center gap-2'
-            style={{ top: `${navPosition.y}px`, right: `${navPosition.x}px` }}
-          >
-            <div className='flex items-center gap-1'>
-              <Button
-                variant='ghost'
-                size='icon'
-                className='h-6 w-6 cursor-grab active:cursor-grabbing bg-transparent text-muted-foreground/60'
-                onMouseDown={handleNavDragMouseDown}
-                onTouchStart={handleNavDragTouchStart}
-              >
-                <Move className='h-3 w-3' />
-              </Button>
-              <Button
-                variant='ghost'
-                size='icon'
-                className='h-6 w-6 bg-transparent text-muted-foreground/60'
-                onClick={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
-              >
-                <X className='h-3 w-3' />
-              </Button>
-            </div>
-
-            <div className='flex flex-col gap-2'>
-              {sections.map((section, index) => (
-                <button
-                  key={section.uniqueKey}
-                  onClick={() => handleSectionJump(section.index)}
-                  className={cn(
-                    'text-xs font-bold py-1 px-3 rounded-full shadow-md transition-all duration-300',
-                    section.uniqueKey === currentSection?.uniqueKey
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-background/40 text-muted-foreground/60 hover:bg-muted/80 hover:text-muted-foreground'
-                  )}
-                >
-                  {section.name}
-                </button>
-              ))}
-            </div>
-          </div>
+        {/* Floating Section Navigator */}
+        {showSectionNavigator && (
+          <FloatingSectionNavigator
+            sections={sections}
+            currentSection={currentSection}
+            onSectionJump={handleSectionJump}
+            onClose={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
+            initialPosition={navPosition}
+          />
         )}
 
         {/* Floating Chord/Key Controls */}
         {showKeyControls && (
-            <div
-                ref={keyControlsRef}
-                className={cn("fixed z-20 pointer-events-auto flex flex-col items-end gap-2")}
-                style={{ top: `${keyControlsPosition.y}px`, right: `${keyControlsPosition.x}px` }}
-            >
-                <div className="flex items-center gap-1">
-                    <Button
-                        variant='ghost'
-                        size='icon'
-                        className='h-6 w-6 cursor-grab active:cursor-grabbing bg-transparent text-muted-foreground/60'
-                        onMouseDown={handleKeyControlsDragMouseDown}
-                        onTouchStart={handleKeyControlsDragTouchStart}
-                    >
-                        <Move className='h-3 w-3' />
-                    </Button>
-                    <Button
-                        variant='ghost'
-                        size='icon'
-                        className='h-6 w-6 bg-transparent text-muted-foreground/60'
-                        onClick={() => dispatch({ type: 'TOGGLE_KEY_CONTROLS' })}
-                    >
-                        <X className='h-3 w-3' />
-                    </Button>
-                </div>
-                <div className="flex flex-col gap-2 p-2 bg-background/40 backdrop-blur-sm rounded-lg shadow-md border">
-                    <div className='flex items-center justify-between gap-4'>
-                        <Label htmlFor='show-chords-quick' className="cursor-pointer text-xs font-semibold">CHORDS</Label>
-                        <Switch
-                            id='show-chords-quick'
-                            checked={showChords}
-                            onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
-                            className="h-5 w-9 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input"
-                            thumbClassName="h-4 w-4 data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0"
-                        />
-                    </div>
-                    <div className='flex items-center justify-between gap-4'>
-                        <Label className="text-xs font-semibold">KEY</Label>
-                        <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => dispatch({ type: 'TRANSPOSE_DOWN' })}><Minus className="h-3 w-3" /></Button>
-                            <Select value={currentKey} onValueChange={handleKeyChange}>
-                                <SelectTrigger className="w-[60px] h-6 text-xs font-bold">
-                                    <SelectValue placeholder='Key' />
-                                </SelectTrigger>
-                                <SelectContent align="start">
-                                    {ALL_NOTES.map((note) => (
-                                        <SelectItem key={note} value={note} className='text-xs'>
-                                            {note}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => dispatch({ type: 'TRANSPOSE_UP' })}><Plus className="h-3 w-3" /></Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+          <FloatingKeyControls
+            showChords={showChords}
+            currentKey={currentKey}
+            transpose={transpose}
+            onToggleChords={() => dispatch({ type: 'TOGGLE_CHORDS' })}
+            onKeyChange={handleKeyChange}
+            onTransposeUp={() => dispatch({ type: 'TRANSPOSE_UP' })}
+            onTransposeDown={() => dispatch({ type: 'TRANSPOSE_DOWN' })}
+            onClose={() => dispatch({ type: 'TOGGLE_KEY_CONTROLS' })}
+            initialPosition={keyControlsPosition}
+          />
         )}
 
         <div
@@ -840,7 +682,9 @@ export default function LyricPlayer({
                 return (
                   <li
                     key={`${song.id}-${line.originalIndex}-header`}
-                    ref={(el) => (lineRefs.current[index] = el)}
+                    ref={(el) => {
+                      lineRefs.current[index] = el;
+                    }}
                     className='pt-4 pb-2 text-left'
                   >
                     <p
@@ -874,7 +718,9 @@ export default function LyricPlayer({
               return (
                 <li
                   key={`${song.id}-${line.originalIndex}`}
-                  ref={(el) => (lineRefs.current[index] = el)}
+                  ref={(el) => {
+                    lineRefs.current[index] = el;
+                  }}
                   className={cn(
                     'rounded-md transition-all duration-300 text-left flex justify-start items-center py-1 transform-origin-left',
                     isSectionBreak ? 'h-[0.5em]' : '',
@@ -906,7 +752,7 @@ export default function LyricPlayer({
             })}
           </ul>
         </div>
-        
+
         <div
           className={cn(
             'fixed bottom-0 left-0 right-0 pointer-events-none',
@@ -966,7 +812,7 @@ export default function LyricPlayer({
                   <SkipForward />
                 </Button>
                 <div className='absolute right-0 top-1/2 -translate-y-1/2 flex items-center'>
-                    <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                  <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                     <SheetTrigger asChild>
                       <Button variant='ghost' size='icon'>
                         <Settings />
@@ -982,138 +828,237 @@ export default function LyricPlayer({
                       </SheetHeader>
                       <ScrollArea className='flex-grow'>
                         <div className='p-4 space-y-6'>
-                            {/* Chords Settings */}
-                            <div className='space-y-4'>
-                                <Label className="text-base font-semibold">Chords</Label>
-                                <div className='flex items-center justify-between'>
-                                    <Label htmlFor='show-chords-settings' className="cursor-pointer">Show Chords</Label>
-                                    <Switch
-                                    id='show-chords-settings'
-                                    checked={showChords}
-                                    onCheckedChange={() => dispatch({ type: 'TOGGLE_CHORDS' })}
-                                    />
-                                </div>
-                                <div className='flex items-center justify-between'>
-                                    <Label>Key</Label>
-                                    <div className="flex items-center gap-1">
-                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => dispatch({type: 'TRANSPOSE_DOWN'})}><Minus className="h-4 w-4" /></Button>
-                                        <Select value={currentKey} onValueChange={handleKeyChange}>
-                                            <SelectTrigger className="w-[80px] h-7 text-xs">
-                                                <SelectValue placeholder='Key' />
-                                            </SelectTrigger>
-                                            <SelectContent align="start">
-                                                {ALL_NOTES.map((note) => (
-                                                <SelectItem key={note} value={note} className='text-xs'>
-                                                    {note}
-                                                </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => dispatch({type: 'TRANSPOSE_UP'})}><Plus className="h-4 w-4" /></Button>
-                                    </div>
-                                </div>
+                          {/* Chords Settings */}
+                          <div className='space-y-4'>
+                            <Label className='text-base font-semibold'>
+                              Chords
+                            </Label>
+                            <div className='flex items-center justify-between'>
+                              <Label
+                                htmlFor='show-chords-settings'
+                                className='cursor-pointer'
+                              >
+                                Show Chords
+                              </Label>
+                              <Switch
+                                id='show-chords-settings'
+                                checked={showChords}
+                                onCheckedChange={() =>
+                                  dispatch({ type: 'TOGGLE_CHORDS' })
+                                }
+                              />
                             </div>
-                           
-                            <Separator />
-                            
-                            {/* Display Settings */}
-                            <div className='space-y-4'>
-                                <Label className="text-base font-semibold">Display</Label>
-                                 <div className='flex items-center justify-between'>
-                                    <Label>Font Size</Label>
-                                     <div className="flex items-center gap-1">
-                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => changeFontSize(-2)} disabled={fontSize <= 16}><Minus className="h-4 w-4" /></Button>
-                                        <span className="w-10 text-center text-sm font-mono">{fontSize}px</span>
-                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => changeFontSize(2)} disabled={fontSize >= 48}><Plus className="h-4 w-4" /></Button>
-                                     </div>
-                                </div>
-                                <div className='flex items-center justify-between'>
-                                    <Label>Highlight</Label>
-                                    <RadioGroup
-                                    value={highlightMode}
-                                    onValueChange={(value: HighlightMode) =>
-                                        dispatch({
-                                        type: 'SET_HIGHLIGHT_MODE',
-                                        payload: value,
-                                        })
-                                    }
-                                    className='flex items-center gap-1'
-                                    >
-                                    {HIGHLIGHT_OPTIONS.map((option) => (
-                                        <Label
-                                        key={option.value}
-                                        className={cn(
-                                            'flex h-7 w-14 items-center justify-center cursor-pointer rounded-md border text-xs opacity-75 hover:bg-accent hover:text-accent-foreground',
-                                            highlightMode === option.value &&
-                                            'border-primary bg-primary/10 text-primary opacity-100'
-                                        )}
-                                        >
-                                        <RadioGroupItem
-                                            value={option.value}
-                                            id={`highlight-${option.value}`}
-                                            className='sr-only'
-                                        />
-                                        {option.label}
-                                        </Label>
+                            <div className='flex items-center justify-between'>
+                              <Label>Key</Label>
+                              <div className='flex items-center gap-1'>
+                                <Button
+                                  variant='outline'
+                                  size='icon'
+                                  className='h-7 w-7'
+                                  onClick={() =>
+                                    dispatch({ type: 'TRANSPOSE_DOWN' })
+                                  }
+                                >
+                                  <Minus className='h-4 w-4' />
+                                </Button>
+                                <Select
+                                  value={currentKey}
+                                  onValueChange={handleKeyChange}
+                                >
+                                  <SelectTrigger className='w-[80px] h-7 text-xs'>
+                                    <SelectValue placeholder='Key' />
+                                  </SelectTrigger>
+                                  <SelectContent align='start'>
+                                    {ALL_NOTES.map((note) => (
+                                      <SelectItem
+                                        key={note}
+                                        value={note}
+                                        className='text-xs'
+                                      >
+                                        {note}
+                                      </SelectItem>
                                     ))}
-                                    </RadioGroup>
-                                </div>
-                                <div className='flex items-center justify-between'>
-                                    <Label htmlFor='show-section-nav'>Navigator</Label>
-                                    <Switch
-                                    id='show-section-nav'
-                                    checked={showSectionNavigator}
-                                    onCheckedChange={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
-                                    />
-                                </div>
-                                <div className='flex items-center justify-between'>
-                                    <Label htmlFor='show-key-controls'>Quick Controls</Label>
-                                    <Switch
-                                    id='show-key-controls'
-                                    checked={showKeyControls}
-                                    onCheckedChange={() => dispatch({ type: 'TOGGLE_KEY_CONTROLS' })}
-                                    />
-                                </div>
-                                <div className='flex items-center justify-between'>
-                                    <Label htmlFor='dark-mode'>Theme</Label>
-                                    <Switch
-                                    id='dark-mode'
-                                    checked={theme === 'dark'}
-                                    onCheckedChange={toggleTheme}
-                                    />
-                                </div>
+                                  </SelectContent>
+                                </Select>
+                                <Button
+                                  variant='outline'
+                                  size='icon'
+                                  className='h-7 w-7'
+                                  onClick={() =>
+                                    dispatch({ type: 'TRANSPOSE_UP' })
+                                  }
+                                >
+                                  <Plus className='h-4 w-4' />
+                                </Button>
+                              </div>
                             </div>
+                          </div>
 
-                            <Separator />
-                             {/* Other Settings */}
-                            <div className='space-y-4'>
-                                <Label className="text-base font-semibold">Playback</Label>
-                                <div className='flex items-center justify-between'>
-                                    <Label>BPM</Label>
-                                    <div className="flex items-center gap-1">
-                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm - 5 })}><Minus className="h-4 w-4" /></Button>
-                                        <Input
-                                            type='number'
-                                            className='w-16 h-7 text-center'
-                                            value={bpm}
-                                            onChange={(e) =>
-                                                dispatch({
-                                                type: 'SET_BPM',
-                                                payload: parseInt(e.target.value, 10) || bpm,
-                                                })
-                                            }
-                                        />
-                                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => dispatch({ type: 'SET_BPM', payload: bpm + 5 })}><Plus className="h-4 w-4" /></Button>
-                                    </div>
-                                </div>
+                          <Separator />
+
+                          {/* Display Settings */}
+                          <div className='space-y-4'>
+                            <Label className='text-base font-semibold'>
+                              Display
+                            </Label>
+                            <div className='flex items-center justify-between'>
+                              <Label>Font Size</Label>
+                              <div className='flex items-center gap-1'>
+                                <Button
+                                  variant='outline'
+                                  size='icon'
+                                  className='h-7 w-7'
+                                  onClick={() => changeFontSize(-2)}
+                                  disabled={fontSize <= 16}
+                                >
+                                  <Minus className='h-4 w-4' />
+                                </Button>
+                                <span className='w-10 text-center text-sm font-mono'>
+                                  {fontSize}px
+                                </span>
+                                <Button
+                                  variant='outline'
+                                  size='icon'
+                                  className='h-7 w-7'
+                                  onClick={() => changeFontSize(2)}
+                                  disabled={fontSize >= 48}
+                                >
+                                  <Plus className='h-4 w-4' />
+                                </Button>
+                              </div>
                             </div>
+                            <div className='flex items-center justify-between'>
+                              <Label>Highlight</Label>
+                              <RadioGroup
+                                value={highlightMode}
+                                onValueChange={(value: HighlightMode) =>
+                                  dispatch({
+                                    type: 'SET_HIGHLIGHT_MODE',
+                                    payload: value,
+                                  })
+                                }
+                                className='flex items-center gap-1'
+                              >
+                                {HIGHLIGHT_OPTIONS.map((option) => (
+                                  <Label
+                                    key={option.value}
+                                    className={cn(
+                                      'flex h-7 w-14 items-center justify-center cursor-pointer rounded-md border text-xs opacity-75 hover:bg-accent hover:text-accent-foreground',
+                                      highlightMode === option.value &&
+                                        'border-primary bg-primary/10 text-primary opacity-100'
+                                    )}
+                                  >
+                                    <RadioGroupItem
+                                      value={option.value}
+                                      id={`highlight-${option.value}`}
+                                      className='sr-only'
+                                    />
+                                    {option.label}
+                                  </Label>
+                                ))}
+                              </RadioGroup>
+                            </div>
+                            <div className='flex items-center justify-between'>
+                              <Label htmlFor='show-section-nav'>
+                                Navigator
+                              </Label>
+                              <Switch
+                                id='show-section-nav'
+                                checked={showSectionNavigator}
+                                onCheckedChange={() =>
+                                  dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })
+                                }
+                              />
+                            </div>
+                            <div className='flex items-center justify-between'>
+                              <Label htmlFor='show-key-controls'>
+                                Quick Controls
+                              </Label>
+                              <Switch
+                                id='show-key-controls'
+                                checked={showKeyControls}
+                                onCheckedChange={() =>
+                                  dispatch({ type: 'TOGGLE_KEY_CONTROLS' })
+                                }
+                              />
+                            </div>
+                            <div className='flex items-center justify-between'>
+                              <Label htmlFor='dark-mode'>Theme</Label>
+                              <Switch
+                                id='dark-mode'
+                                checked={theme === 'dark'}
+                                onCheckedChange={toggleTheme}
+                              />
+                            </div>
+                          </div>
+
+                          <Separator />
+                          {/* Other Settings */}
+                          <div className='space-y-4'>
+                            <Label className='text-base font-semibold'>
+                              Playback
+                            </Label>
+                            <div className='flex items-center justify-between'>
+                              <Label>BPM</Label>
+                              <div className='flex items-center gap-1'>
+                                <Button
+                                  variant='outline'
+                                  size='icon'
+                                  className='h-7 w-7'
+                                  onClick={() =>
+                                    dispatch({
+                                      type: 'SET_BPM',
+                                      payload: bpm - 5,
+                                    })
+                                  }
+                                >
+                                  <Minus className='h-4 w-4' />
+                                </Button>
+                                <Input
+                                  type='number'
+                                  className='w-16 h-7 text-center'
+                                  value={bpm}
+                                  onChange={(e) =>
+                                    dispatch({
+                                      type: 'SET_BPM',
+                                      payload:
+                                        parseInt(e.target.value, 10) || bpm,
+                                    })
+                                  }
+                                />
+                                <Button
+                                  variant='outline'
+                                  size='icon'
+                                  className='h-7 w-7'
+                                  onClick={() =>
+                                    dispatch({
+                                      type: 'SET_BPM',
+                                      payload: bpm + 5,
+                                    })
+                                  }
+                                >
+                                  <Plus className='h-4 w-4' />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </ScrollArea>
-                       <div className="p-4 border-t">
-                            <Button variant="outline" className="w-full" onClick={() => dispatch({ type: 'RESET_PLAYER_STATE', payload: { bpm: song.bpm } })}>
-                                <RotateCcw className="mr-2 h-4 w-4" /> Reset All Settings
-                            </Button>
-                        </div>
+                      <div className='p-4 border-t'>
+                        <Button
+                          variant='outline'
+                          className='w-full'
+                          onClick={() =>
+                            dispatch({
+                              type: 'RESET_PLAYER_STATE',
+                              payload: { bpm: song.bpm },
+                            })
+                          }
+                        >
+                          <RotateCcw className='mr-2 h-4 w-4' /> Reset All
+                          Settings
+                        </Button>
+                      </div>
                     </SheetContent>
                   </Sheet>
                 </div>
