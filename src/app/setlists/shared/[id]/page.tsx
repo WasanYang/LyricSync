@@ -195,7 +195,7 @@ function SharedSetlistContent() {
     if (isOwner) {
        return (
         <Button asChild size='lg'>
-          <Link href={`/setlists/${id}/player`}>
+          <Link href={`/setlists/shared/${id}/player`}>
             <Play className='mr-2 h-5 w-5' /> View in Player
           </Link>
         </Button>
@@ -237,10 +237,10 @@ function SharedSetlistContent() {
       </div>
 
       <div className='space-y-2'>
-        {songs.map((song) => (
+        {!isLoading && songs.map((song) => (
           <SongItem key={song.id} song={song} />
         ))}
-        {songs.length === 0 && (
+        {!isLoading && songs.length === 0 && (
           <div className='text-center py-10 text-muted-foreground'>
             <p>This setlist is empty or the songs could not be loaded.</p>
           </div>
