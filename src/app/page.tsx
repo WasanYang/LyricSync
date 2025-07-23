@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -229,7 +230,9 @@ export default function Home() {
 
       try {
         const publicLists = await getPublicSetlists();
-        setPublicSetlists(publicLists);
+        // Filter out the user's own setlists from recommendations
+        const recommendedSetlists = publicLists.filter(sl => sl.userId !== user.uid);
+        setPublicSetlists(recommendedSetlists);
       } catch (error) {
         console.error('Failed to load public setlists', error);
       } finally {
@@ -323,6 +326,7 @@ export default function Home() {
         )}
 
         {/* Recommended Setlists */}
+        {publicSetlists.length > 0 && (
         <section>
           <h2 className='text-xl font-headline font-semibold mb-4'>
             Recommended Setlists
@@ -370,6 +374,7 @@ export default function Home() {
             </div>
           )}
         </section>
+        )}
 
         {/* Recommended Songs */}
         <section>
