@@ -1,29 +1,32 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Songs can be read by anyone, but only written by a super admin.
-    match /songs/{songId} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.token.email == 'esxy26@gmail.com';
+
+    // Users can only read and update their own profile.
+    match /users/{userId} {
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null;
     }
 
-    // Setlists can only be accessed by the user who owns them.
+    // Songs can be read by any authenticated user.
+    // Only super admins can write (create, update, delete) songs.
+    match /songs/{songId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isSuperAdmin == true;
+    }
+
+    // Setlists can be read if they are public or if the user is the owner.
+    // Users can only create, update, and delete their own setlists.
     match /setlists/{setlistId} {
-      // Allow reading a single document if the user is the owner.
-      allow get: if request.auth != null && request.auth.uid == resource.data.userId;
-
-      // Allow listing documents only when the query is filtered by the user's own ID.
-      // This prevents users from listing all setlists in the database.
-      allow list: if request.auth != null && request.query.where.userId == request.auth.uid;
-      
-      // Allow creation if the new document's userId matches the user's ID.
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-
-      // Allow updates and deletes if the user is the owner of the document being changed.
+      allow read: if (resource.data.isPublic == true) || (request.auth != null && request.auth.uid == resource.data.userId);
+      allow create: if request.auth != null;
       allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // Users can only manage their own setlist references in the sub-collection.
+    match /users/{userId}/userSetlists/{setlistId} {
+        allow read, write, delete, create: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
