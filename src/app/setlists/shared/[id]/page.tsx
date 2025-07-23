@@ -16,6 +16,7 @@ import {
   getSong as getSongFromLocalDb,
   getCloudSongById,
   saveSetlist,
+  getSetlists,
 } from '@/lib/db';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -98,6 +99,19 @@ function SharedSetlistContent() {
         const loadedSetlist = await getSetlistByFirestoreId(id);
         if (loadedSetlist) {
           setSetlist(loadedSetlist);
+
+          // If the logged-in user is the owner, redirect them to their own setlist page.
+          if (user && loadedSetlist.userId === user.uid) {
+            const userSetlists = await getSetlists(user.uid);
+            const localSetlist = userSetlists.find(
+              (sl) => sl.firestoreId === loadedSetlist.firestoreId
+            );
+            if (localSetlist) {
+              router.replace(`/setlists/${localSetlist.id}`);
+              return; // Stop further execution in this component
+            }
+          }
+
           const songPromises = loadedSetlist.songIds.map(findSong);
           const loadedSongs = (await Promise.all(songPromises)).filter(
             Boolean
@@ -114,7 +128,7 @@ function SharedSetlistContent() {
       }
     }
     loadSetlist();
-  }, [id]);
+  }, [id, user, router]);
 
   const handleSaveToLibrary = async () => {
     if (!user || !setlist) {
@@ -158,15 +172,12 @@ function SharedSetlistContent() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !setlist) {
     return <LoadingSkeleton />;
   }
 
-  if (!setlist) {
-    return notFound();
-  }
-
-  const isOwner = user && setlist.userId === user.uid;
+  // After redirect logic, if we are still here, it means user is not owner or not logged in.
+  const isOwner = false;
 
   const renderActionButtons = () => {
     if (isAdminMode) {
@@ -176,15 +187,6 @@ function SharedSetlistContent() {
       return (
         <Button asChild size='lg'>
           <Link href={`/setlists/shared/${id}/player`}>
-            <Play className='mr-2 h-5 w-5' /> View in Player
-          </Link>
-        </Button>
-      );
-    }
-    if (isOwner) {
-      return (
-        <Button asChild size='lg'>
-          <Link href={`/setlists/${setlist.id}/player`}>
             <Play className='mr-2 h-5 w-5' /> View in Player
           </Link>
         </Button>
@@ -216,7 +218,8 @@ function SharedSetlistContent() {
       <div className='space-y-2 pt-8 text-center'>
         <h1 className='text-4xl font-bold font-headline'>{setlist.title}</h1>
         <p className='text-muted-foreground'>
-          {songs.length} {songs.length === 1 ? 'song' : 'songs'}
+          {songs.length} {songs.length === 1 ? 'song' : 'songs'} • By{' '}
+          {setlist.authorName}
         </p>
       </div>
 

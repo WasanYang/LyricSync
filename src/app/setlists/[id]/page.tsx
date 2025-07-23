@@ -94,17 +94,19 @@ function SetlistDetailContent() {
 
     useEffect(() => {
         async function loadSetlist() {
-            if (!id) return;
+            if (!id || !user) return;
             try {
                 setIsLoading(true);
                 const loadedSetlist = await getSetlistFromDb(id);
-                if (loadedSetlist) {
+                // Ensure the user viewing this local setlist is the owner
+                if (loadedSetlist && loadedSetlist.userId === user.uid) {
                     setSetlist(loadedSetlist);
                     const songPromises = loadedSetlist.songIds.map(findSong);
                     const loadedSongs = (await Promise.all(songPromises)).filter(Boolean) as Song[];
                     setSongs(loadedSongs);
                 } else {
-                    notFound();
+                    toast({ title: "Not Found", description: "Setlist not found in your library.", variant: "destructive" });
+                    router.replace('/setlists');
                 }
             } catch (err) {
                 console.error("Failed to load setlist", err);
@@ -114,7 +116,7 @@ function SetlistDetailContent() {
             }
         }
         loadSetlist();
-    }, [id]);
+    }, [id, user, router, toast]);
 
     const handleDelete = async () => {
         if (!user || !setlist) return;
@@ -139,7 +141,7 @@ function SetlistDetailContent() {
     }
 
     if (!setlist) {
-        return notFound();
+        return null; // Should be redirected, but as a fallback.
     }
     
     const isOwner = user && setlist.userId === user.uid;
