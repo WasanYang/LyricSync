@@ -1,4 +1,3 @@
-
 // src/components/SetlistCreator.tsx
 'use client';
 
@@ -345,6 +344,10 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
 
       if (!isEditing) {
         router.push('/setlists');
+      } else {
+        // After saving, reset the form state with the new data
+        // This marks the form as not dirty
+        form.reset(data);
       }
 
     } catch (error) {
