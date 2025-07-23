@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { offlineDataService } from '@/lib/offline-service';
@@ -54,13 +54,15 @@ export function useSafeDataLoader() {
   const { user } = useAuth();
   const isOnline = useOnlineStatus();
 
-  const loadSong = async (songId: string) => {
+  const loadSong = useCallback(async (songId: string) => {
     return offlineDataService.getSongWithFallback(songId, !!user);
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, isOnline]);
 
-  const loadSetlist = async (setlistId: string, isFirestoreId = false) => {
+  const loadSetlist = useCallback(async (setlistId: string, isFirestoreId = false) => {
     return offlineDataService.getSetlistWithFallback(setlistId, isFirestoreId);
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnline]);
 
   return {
     loadSong,
