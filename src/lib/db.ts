@@ -23,7 +23,7 @@ import {
   type DocumentData,
 } from 'firebase/firestore';
 
-const DB_NAME = 'WorshipFlowDB';
+const DB_NAME = 'LyricSyncDB';
 const DB_VERSION = 2; // Incremented version
 const SONGS_STORE = 'songs';
 const SETLISTS_STORE = 'setlists';
@@ -47,7 +47,7 @@ export type SetlistWithSyncStatus = Setlist & {
   needsSync: boolean; // Local is newer than cloud
 };
 
-interface WorshipFlowDB extends DBSchema {
+interface LyricSyncDB extends DBSchema {
   [SONGS_STORE]: {
     key: string;
     value: Song;
@@ -59,11 +59,11 @@ interface WorshipFlowDB extends DBSchema {
   };
 }
 
-let dbPromise: Promise<IDBPDatabase<WorshipFlowDB>> | null = null;
+let dbPromise: Promise<IDBPDatabase<LyricSyncDB>> | null = null;
 
-function getDb(): Promise<IDBPDatabase<WorshipFlowDB>> {
+function getDb(): Promise<IDBPDatabase<LyricSyncDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<WorshipFlowDB>(DB_NAME, DB_VERSION, {
+    dbPromise = openDB<LyricSyncDB>(DB_NAME, DB_VERSION, {
       upgrade(db, oldVersion, newVersion, transaction) {
         if (oldVersion < 1) {
           if (!db.objectStoreNames.contains(SONGS_STORE)) {
@@ -184,45 +184,54 @@ export async function uploadSongToCloud(song: Song): Promise<void> {
 }
 
 export async function getPaginatedCloudSongs(
-    pageSize: number,
-    startAfterDoc?: DocumentSnapshot<DocumentData>
-): Promise<{ songs: Song[], lastVisible: DocumentSnapshot<DocumentData> | null }> {
-    if (!firestoreDb) throw new Error('Firebase is not configured.');
+  pageSize: number,
+  startAfterDoc?: DocumentSnapshot<DocumentData>
+): Promise<{
+  songs: Song[];
+  lastVisible: DocumentSnapshot<DocumentData> | null;
+}> {
+  if (!firestoreDb) throw new Error('Firebase is not configured.');
 
-    const songsCollection = collection(firestoreDb, 'songs');
-    let q;
+  const songsCollection = collection(firestoreDb, 'songs');
+  let q;
 
-    if (startAfterDoc) {
-        q = query(songsCollection, orderBy('title'), startAfter(startAfterDoc), limit(pageSize));
-    } else {
-        q = query(songsCollection, orderBy('title'), limit(pageSize));
-    }
+  if (startAfterDoc) {
+    q = query(
+      songsCollection,
+      orderBy('title'),
+      startAfter(startAfterDoc),
+      limit(pageSize)
+    );
+  } else {
+    q = query(songsCollection, orderBy('title'), limit(pageSize));
+  }
 
-    const documentSnapshots = await getDocs(q);
+  const documentSnapshots = await getDocs(q);
 
-    const songs: Song[] = [];
-    documentSnapshots.forEach((doc) => {
-        const data = doc.data();
-        const updatedAt = data.updatedAt;
-        songs.push({
-            id: doc.id,
-            title: data.title,
-            artist: data.artist,
-            lyrics: data.lyrics,
-            originalKey: data.originalKey,
-            bpm: data.bpm,
-            timeSignature: data.timeSignature,
-            userId: data.userId,
-            uploaderName: data.uploaderName,
-            uploaderEmail: data.uploaderEmail,
-            source: data.source,
-            updatedAt: updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
-        } as Song);
-    });
+  const songs: Song[] = [];
+  documentSnapshots.forEach((doc) => {
+    const data = doc.data();
+    const updatedAt = data.updatedAt;
+    songs.push({
+      id: doc.id,
+      title: data.title,
+      artist: data.artist,
+      lyrics: data.lyrics,
+      originalKey: data.originalKey,
+      bpm: data.bpm,
+      timeSignature: data.timeSignature,
+      userId: data.userId,
+      uploaderName: data.uploaderName,
+      uploaderEmail: data.uploaderEmail,
+      source: data.source,
+      updatedAt:
+        updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
+    } as Song);
+  });
 
-    const lastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
+  const lastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
 
-    return { songs, lastVisible: lastVisible || null };
+  return { songs, lastVisible: lastVisible || null };
 }
 
 export async function getAllCloudSongs(): Promise<Song[]> {
@@ -520,7 +529,7 @@ export async function syncSetlist(
       throw new Error('SYNC_LIMIT_REACHED');
     }
     // New setlists are not public by default
-    dataToSync.isPublic = false; 
+    dataToSync.isPublic = false;
     const newDocRef = await addDoc(
       collection(firestoreDb, 'setlists'),
       dataToSync
@@ -543,10 +552,13 @@ export async function syncSetlist(
   await db.put(SETLISTS_STORE, setlist);
 }
 
-export async function updateSetlistPublicStatus(firestoreId: string, isPublic: boolean): Promise<void> {
-    if (!firestoreDb) throw new Error('Firebase is not configured.');
-    const docRef = doc(firestoreDb, 'setlists', firestoreId);
-    await updateDoc(docRef, { isPublic });
+export async function updateSetlistPublicStatus(
+  firestoreId: string,
+  isPublic: boolean
+): Promise<void> {
+  if (!firestoreDb) throw new Error('Firebase is not configured.');
+  const docRef = doc(firestoreDb, 'setlists', firestoreId);
+  await updateDoc(docRef, { isPublic });
 }
 
 export async function getPublicSetlists(): Promise<Setlist[]> {
@@ -579,7 +591,6 @@ export async function getPublicSetlists(): Promise<Setlist[]> {
   return setlists;
 }
 
-
 export async function unsyncSetlist(
   localId: string,
   userId: string,
@@ -601,7 +612,6 @@ export async function unsyncSetlist(
   setlist.firestoreId = null;
   await db.put(SETLISTS_STORE, setlist);
 }
-
 
 export async function getAllCloudSetlists(): Promise<Setlist[]> {
   if (!firestoreDb) throw new Error('Firebase is not configured.');

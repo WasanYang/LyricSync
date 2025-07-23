@@ -237,11 +237,11 @@ export default function SharedSongPage() {
           <Link href='/' className='flex items-center space-x-2'>
             <Image
               src='/icons/logo.png'
-              alt='WorshipFlow'
+              alt='LyricSync'
               width={24}
               height={24}
             />
-            <span className='font-bold font-headline text-lg'>WorshipFlow</span>
+            <span className='font-bold font-headline text-lg'>LyricSync</span>
           </Link>
         </div>
       </header>

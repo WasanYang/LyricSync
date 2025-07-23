@@ -84,7 +84,7 @@ export default function WelcomePage() {
         <section className='text-center mb-16 sm:mb-24'>
           <Music className='w-16 h-16 text-primary mx-auto mb-6' />
           <h1 className='text-4xl sm:text-5xl font-bold font-headline mb-4'>
-            Welcome to WorshipFlow
+            Welcome to LyricSync
           </h1>
           <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
             Your personal companion for synchronized song lyrics. Enjoy

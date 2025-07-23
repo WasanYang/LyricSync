@@ -1,10 +1,10 @@
-# WorshipFlow
+# LyricSync
 
 A powerful Progressive Web App (PWA) designed for synchronized worship song lyrics with auto-scrolling, chord display, and comprehensive setlist management.
 
-## 🎵 About WorshipFlow
+## 🎵 About LyricSync
 
-WorshipFlow is a modern worship companion that revolutionizes how worship teams and congregations interact with song lyrics and chords. Built with Next.js and designed as a PWA, it provides seamless offline access and responsive design across all devices.
+LyricSync is a modern worship companion that revolutionizes how worship teams and congregations interact with song lyrics and chords. Built with Next.js and designed as a PWA, it provides seamless offline access and responsive design across all devices.
 
 ## ✨ Key Features
 

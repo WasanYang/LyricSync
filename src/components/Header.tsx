@@ -198,11 +198,18 @@ export default function Header() {
           <Link href='/' className='flex items-center space-x-2'>
             <Image
               src='/icons/logo.png'
-              alt='WorshipFlow'
+              alt='LyricSync'
               width={24}
               height={24}
             />
-            <span className='font-bold font-headline text-lg'>WorshipFlow</span>
+            <div className='flex flex-col'>
+              <span className='font-bold font-headline text-lg leading-tight'>
+                LyricSync
+              </span>
+              <span className='text-xs text-muted-foreground leading-tight hidden sm:block'>
+                Synchronized Worship Lyrics
+              </span>
+            </div>
           </Link>
         </div>
 
@@ -223,13 +230,18 @@ export default function Header() {
                   <Link href='/' className='flex items-center space-x-2'>
                     <Image
                       src='/icons/logo.png'
-                      alt='WorshipFlow'
+                      alt='LyricSync'
                       width={24}
                       height={24}
                     />
-                    <span className='font-bold font-headline text-lg'>
-                      WorshipFlow
-                    </span>
+                    <div className='flex flex-col'>
+                      <span className='font-bold font-headline text-lg leading-tight'>
+                        LyricSync
+                      </span>
+                      <span className='text-xs text-muted-foreground leading-tight'>
+                        Synchronized Worship Lyrics
+                      </span>
+                    </div>
                   </Link>
                 </SheetHeader>
                 <div className='p-4 space-y-4'>

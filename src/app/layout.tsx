@@ -13,9 +13,9 @@ import { useEffect, useState } from 'react';
 // Metadata cannot be exported from a client component.
 // We can define it here and then use it in the component.
 const metadataConfig: Metadata = {
-  title: 'WorshipFlow',
+  title: 'LyricSync',
   description:
-    'A powerful PWA for synchronized worship song lyrics with auto-scrolling, chord display, and setlist management.',
+    'Synchronized worship song lyrics with auto-scrolling, chord display, and setlist management.',
   manifest: '/manifest.json',
 };
 

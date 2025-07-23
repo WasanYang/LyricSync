@@ -1,4 +1,4 @@
-# **App Name**: WorshipFlow
+# **App Name**: LyricSync
 
 ## Core Features:
 
@@ -24,10 +24,11 @@
 
 ## Style Guidelines:
 
-- Primary color: A vibrant purple (#9400D3), reminiscent of the creative atmosphere of music and arts, lending the app a sophisticated, contemporary aesthetic. Avoid literal 'music' colors.
-- Background color: A light purple (#F0E6F5), closely related to the primary, providing a gentle contrast and modern, on-trend look.
-- Accent color: A pink-toned red (#D3004E), positioned in a vibrant and energizing way analogous to the primary purple, to draw attention to key interactive elements.
-- Headline font: 'Poppins', sans-serif, known for its geometric shapes that provide clarity on titles and subtitles. Body font: 'PT Sans', a warmer and legible font suitable for song lyrics and blocks of text. Together, the duo provides a friendly but modern UI
+- Primary color: A calming teal (#3AAFA9), inspired by peaceful waters and nature, providing a serene and modern aesthetic that's perfect for worship environments. This color evokes tranquility and spiritual reflection.
+- Background color: A very light mint green (#DEF2F1), closely related to the primary, providing gentle contrast and a fresh, clean feeling that works well in both light and dark environments.
+- Accent color: A deeper teal (#2B7A78), used strategically to draw attention to key interactive elements and create visual hierarchy while maintaining the peaceful color palette.
+- Text color: A deep blue-green (#17252A), ensuring excellent readability and accessibility while complementing the overall color scheme.
+- Headline font: 'Noto Sans Thai', sans-serif, providing excellent readability and international character support. Body font: 'Noto Sans Thai', maintaining consistency and ensuring clear legibility for song lyrics and content.
 - Use minimalist icons that complement the clean design and represent different actions or content categories within the app.
 - Maintain a clean and intuitive layout with clear visual hierarchy, making it easy for users to navigate and focus on the lyrics.
 - Use subtle animations for scrolling lyrics and interactive elements to enhance user engagement without being distracting.
