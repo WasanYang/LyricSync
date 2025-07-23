@@ -1,3 +1,4 @@
+
 // src/app/admin/user-setlists/page.tsx
 'use client';
 
@@ -72,17 +73,14 @@ export default function AdminUserSetlistsPage() {
     const SetlistList = ({ setlists }: { setlists: Setlist[] }) => (
         <ul className="space-y-3">
             {setlists.map(setlist => (
-                <li key={setlist.firestoreId} className="p-4 rounded-lg bg-muted/50 transition-colors hover:bg-muted/80 group">
-                    <Link href={`/setlists/shared/${setlist.firestoreId}?mode=admin`} className="flex flex-col space-y-2">
-                       <div>
-                           <p className="font-semibold hover:underline">{setlist.title}</p>
-                           <p className="text-sm text-muted-foreground">
+                <li key={setlist.firestoreId} className="bg-muted/50 transition-colors hover:bg-muted/80 rounded-lg">
+                    <Link href={`/setlists/shared/${setlist.firestoreId}?mode=admin`} className="block p-4">
+                       <div className="min-w-0">
+                           <p className="font-semibold truncate hover:underline">{setlist.title}</p>
+                           <p className="text-sm text-muted-foreground truncate">
                                 {setlist.songIds.length} {setlist.songIds.length === 1 ? 'song' : 'songs'} • By: {setlist.authorName || 'Unknown'}
                            </p>
                         </div>
-                        <p className="text-xs text-muted-foreground/80 pt-1">
-                            Updated on {new Date(setlist.updatedAt || setlist.createdAt).toLocaleDateString()}
-                        </p>
                     </Link>
                 </li>
             ))}
