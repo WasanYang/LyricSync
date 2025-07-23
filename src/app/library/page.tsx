@@ -37,7 +37,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
   
   const handleDelete = async () => {
     try {
-        await deleteSongFromDb(song.id, song.source === 'user' ? user?.uid : undefined);
+        await deleteSongFromDb(song.id);
         onDelete(song.id, song.source);
         toast({
             title: `Song "${song.title}" deleted.`,
@@ -116,6 +116,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
           <div className="flex items-center gap-2">
             <Link href={`/lyrics/${song.id}`} className="font-semibold font-headline truncate hover:underline">{song.title}</Link>
             {isCloudSong && <Cloud className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
+            {isUserSong && <Cloud className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
           </div>
           <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
           {song.updatedAt && (
@@ -157,7 +158,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                                     <UploadCloud className="h-4 w-4" />
                                 </Button>
                             </TooltipTrigger>
-                            <TooltipContent><p>Promote to Cloud</p></TooltipContent>
+                            <TooltipContent><p>Promote to System Song</p></TooltipContent>
                         </Tooltip>
                     )}
                 </>
