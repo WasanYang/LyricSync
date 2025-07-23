@@ -289,7 +289,11 @@ export default function SongCreator() {
           title: `Saved`,
           description: `"${newSongData.title}" has been saved to the cloud.`,
         });
-        form.reset(data); // Reset form to make it not dirty
+        if (isUpdating) {
+          form.reset(data); // Stay on page and reset dirty state
+        } else {
+          router.push('/admin/songs'); // Go back to list on creation
+        }
       } catch (error) {
         toast({
           title: 'Error',
@@ -311,7 +315,11 @@ export default function SongCreator() {
           title: `Saved`,
           description: `"${localSong.title}" has been saved to your local library.`,
         });
-        form.reset(data); // Reset form to make it not dirty
+        if (isUpdating) {
+          form.reset(data); // Stay on page and reset dirty state
+        } else {
+          router.push('/library'); // Go back to list on creation
+        }
       } catch (error) {
         toast({
           title: 'Error',
