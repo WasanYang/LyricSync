@@ -11,7 +11,7 @@ import { getSetlistByFirestoreId, getSong as getSongFromLocalDb, getCloudSongByI
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Library, ArrowLeft, Download, Check } from 'lucide-react';
+import { Library, ArrowLeft, Download, Check, Play } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -151,6 +151,8 @@ function SharedSetlistContent() {
     if (!setlist) {
         return notFound();
     }
+    
+    const isOwner = user && setlist.userId === user.uid;
 
     return (
       <div className="space-y-8">
@@ -160,10 +162,18 @@ function SharedSetlistContent() {
         </div>
 
         <div className="flex flex-wrap gap-2 justify-center">
-            <Button onClick={handleSaveToLibrary} size="lg" disabled={isSaving || isSaved}>
-                {isSaved ? <Check className="mr-2 h-5 w-5" /> : <Download className="mr-2 h-5 w-5" />}
-                {isSaving ? 'Saving...' : (isSaved ? 'Saved to Library' : 'Save to My Library')}
-            </Button>
+             {isOwner ? (
+                <Button asChild size="lg">
+                    <Link href={`/setlists/shared/${id}/player`}>
+                        <Play className="mr-2 h-5 w-5" /> Start Setlist
+                    </Link>
+                </Button>
+            ) : (
+                <Button onClick={handleSaveToLibrary} size="lg" disabled={isSaving || isSaved}>
+                    {isSaved ? <Check className="mr-2 h-5 w-5" /> : <Download className="mr-2 h-5 w-5" />}
+                    {isSaving ? 'Saving...' : (isSaved ? 'Saved to Library' : 'Save to My Library')}
+                </Button>
+            )}
         </div>
         
         <div className="space-y-2">
