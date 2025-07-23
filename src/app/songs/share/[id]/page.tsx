@@ -7,7 +7,7 @@ import { getCloudSongById, type Song, type LyricLine } from '@/lib/db';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Copy, Check, Music, Guitar } from 'lucide-react';
+import { Share2, Check, Music, Guitar } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -216,7 +216,7 @@ function SharedSongContent() {
                   {isCopied ? (
                     <Check className='h-4 w-4 text-green-500' />
                   ) : (
-                    <Copy className='h-4 w-4' />
+                    <Share2 className='h-4 w-4' />
                   )}
                 </Button>
               </TooltipTrigger>
