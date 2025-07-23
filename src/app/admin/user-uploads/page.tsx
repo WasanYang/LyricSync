@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { getAllCloudSongs, type Song } from '@/lib/db';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Edit, ListMusic, Eye, Users } from 'lucide-react';
+import { Search, Edit, ListMusic, Eye, Users, KeyRound, Clock, Music4 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
@@ -26,9 +26,9 @@ function LoadingSkeleton() {
                     </div>
                     <Skeleton className="h-10 w-full" />
                     <div className="space-y-2">
-                        <Skeleton className="h-14 w-full" />
-                        <Skeleton className="h-14 w-full" />
-                        <Skeleton className="h-14 w-full" />
+                        <Skeleton className="h-20 w-full" />
+                        <Skeleton className="h-20 w-full" />
+                        <Skeleton className="h-20 w-full" />
                     </div>
                 </div>
             </main>
@@ -77,14 +77,21 @@ export default function AdminUserUploadsPage() {
     }
     
     const SongList = ({ songs }: { songs: Song[] }) => (
-        <ul className="space-y-2">
+        <ul className="space-y-3">
             {songs.map(song => (
-                <li key={song.id} className="flex items-center p-3 rounded-lg bg-muted/50 transition-colors hover:bg-muted/80 group">
-                    <div className="flex-grow">
-                        <Link href={`/lyrics/${song.id}`} className="font-semibold hover:underline">{song.title}</Link>
-                        <p className="text-sm text-muted-foreground">{song.artist}</p>
-                        <p className="text-xs text-muted-foreground/80">
-                            Uploaded by: {song.uploaderName || song.uploaderEmail || 'Unknown'}
+                <li key={song.id} className="flex items-center p-4 rounded-lg bg-muted/50 transition-colors hover:bg-muted/80 group">
+                    <div className="flex-grow space-y-2">
+                        <div>
+                            <Link href={`/lyrics/${song.id}`} className="font-semibold hover:underline">{song.title}</Link>
+                            <p className="text-sm text-muted-foreground">{song.artist}</p>
+                        </div>
+                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            {song.originalKey && <span className="flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5" /> {song.originalKey}</span>}
+                            {song.bpm && <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {song.bpm} BPM</span>}
+                            {song.timeSignature && <span className="flex items-center gap-1.5"><Music4 className="h-3.5 w-3.5" /> {song.timeSignature}</span>}
+                        </div>
+                        <p className="text-xs text-muted-foreground/80 pt-1">
+                            Uploaded by: {song.uploaderName || song.uploaderEmail || 'Unknown'} on {new Date(song.updatedAt).toLocaleDateString()}
                         </p>
                     </div>
                     <div className="flex items-center gap-1">
@@ -125,9 +132,9 @@ export default function AdminUserUploadsPage() {
                     </div>
                     {isLoading ? (
                         <div className="space-y-2">
-                            <Skeleton className="h-16 w-full" />
-                            <Skeleton className="h-16 w-full" />
-                            <Skeleton className="h-16 w-full" />
+                            <Skeleton className="h-20 w-full" />
+                            <Skeleton className="h-20 w-full" />
+                            <Skeleton className="h-20 w-full" />
                         </div>
                     ) : (songs.length > 0 || searchTerm) ? (
                         <div className="space-y-6">
