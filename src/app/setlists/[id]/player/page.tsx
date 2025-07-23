@@ -6,7 +6,6 @@ import { useParams, notFound, useRouter } from 'next/navigation';
 import type { Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import { getSetlist as getSetlistFromDb, getSong as getSongFromLocalDb, getCloudSongById } from '@/lib/db';
-import { getSongById as getSongFromStatic } from '@/lib/songs';
 import { ALL_NOTES } from '@/lib/chords';
 import { useAuth } from '@/context/AuthContext';
 
@@ -56,7 +55,6 @@ const getTransposedKey = (transpose: number): string => {
 export default function SetlistPlayerPage() {
     const params = useParams();
     const router = useRouter();
-    const { user } = useAuth();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
     
     const [setlist, setSetlist] = useState<Setlist | null>(null);
@@ -80,10 +78,6 @@ export default function SetlistPlayerPage() {
                 setIsLoading(true);
                 const loadedSetlist = await getSetlistFromDb(id);
                 if (loadedSetlist) {
-                    if (!user && !loadedSetlist.isSynced) {
-                        router.replace('/login');
-                        return;
-                    }
                     setSetlist(loadedSetlist);
                     const songPromises = loadedSetlist.songIds.map(findSong);
                     const loadedSongs = (await Promise.all(songPromises)).filter(Boolean) as Song[];
@@ -99,7 +93,7 @@ export default function SetlistPlayerPage() {
             }
         }
         loadSetlist();
-    }, [id, user, router]);
+    }, [id]);
 
     const handleNextSong = useCallback(() => {
         setCurrentIndex(prev => (prev + 1 < songs.length ? prev + 1 : prev));
