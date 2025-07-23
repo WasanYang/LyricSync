@@ -322,7 +322,7 @@ export async function saveSetlist(setlist: Setlist): Promise<void> {
 export async function getSetlists(
   userId: string
 ): Promise<SetlistWithSyncStatus[]> {
-  const db = await getDb();
+  const db = await getDb(); // This `db` is for IndexedDB
 
   // If firestore isn't configured, just return local results.
   if (!firestoreDb) {
@@ -339,7 +339,7 @@ export async function getSetlists(
   }
 
   // 1. Fetch user's setlist references from sub-collection
-  const userSetlistsRef = collection(db, 'users', userId, 'userSetlists');
+  const userSetlistsRef = collection(firestoreDb, 'users', userId, 'userSetlists');
   const userSetlistsSnapshot = await getDocs(query(userSetlistsRef, orderBy('syncedAt', 'desc')));
   const syncedSetlistIds = userSetlistsSnapshot.docs.map(doc => doc.id);
 
