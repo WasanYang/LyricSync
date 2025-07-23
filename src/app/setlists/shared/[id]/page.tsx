@@ -1,9 +1,8 @@
-
 // src/app/setlists/shared/[id]/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, notFound, useRouter } from 'next/navigation';
+import { useParams, notFound, useRouter, useSearchParams } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
 import type { Setlist, saveSetlist as saveSetlistType } from '@/lib/db';
 import type { Song } from '@/lib/songs';
@@ -60,9 +59,11 @@ function SongItem({ song }: { song: Song }) {
 function SharedSetlistContent() {
     const params = useParams();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { user } = useAuth();
     const { toast } = useToast();
     const id = Array.isArray(params.id) ? params.id[0] : params.id;
+    const isAdminMode = searchParams.get('mode') === 'admin';
     
     const [setlist, setSetlist] = useState<Setlist | null>(null);
     const [songs, setSongs] = useState<Song[]>([]);
@@ -154,6 +155,37 @@ function SharedSetlistContent() {
     
     const isOwner = user && setlist.userId === user.uid;
 
+    const renderActionButtons = () => {
+        if (isAdminMode) {
+            return null; // No buttons in admin mode
+        }
+        if (!user) {
+            return (
+                <Button asChild size="lg">
+                    <Link href={`/setlists/shared/${id}/player`}>
+                        <Play className="mr-2 h-5 w-5" /> View in Player
+                    </Link>
+                </Button>
+            );
+        }
+        if (isOwner) {
+             return (
+                <Button asChild size="lg">
+                    <Link href={`/setlists/shared/${id}/player`}>
+                        <Play className="mr-2 h-5 w-5" /> View in Player
+                    </Link>
+                </Button>
+            );
+        }
+        // Logged in, but not the owner
+        return (
+            <Button onClick={handleSaveToLibrary} size="lg" disabled={isSaving || isSaved}>
+                {isSaved ? <Check className="mr-2 h-5 w-5" /> : <Download className="mr-2 h-5 w-5" />}
+                {isSaving ? 'Saving...' : (isSaved ? 'Saved to Library' : 'Save to My Library')}
+            </Button>
+        );
+    }
+
     return (
       <div className="space-y-8">
         <div className="space-y-2 pt-8 text-center">
@@ -162,24 +194,7 @@ function SharedSetlistContent() {
         </div>
 
         <div className="flex flex-wrap gap-2 justify-center">
-            {!user ? (
-                <Button asChild size="lg">
-                    <Link href={`/setlists/shared/${id}/player`}>
-                        <Play className="mr-2 h-5 w-5" /> View in Player
-                    </Link>
-                </Button>
-            ) : isOwner ? (
-                <Button asChild size="lg">
-                    <Link href={`/setlists/${setlist.id}/player`}>
-                        <Play className="mr-2 h-5 w-5" /> View in Player
-                    </Link>
-                </Button>
-            ) : (
-                 <Button onClick={handleSaveToLibrary} size="lg" disabled={isSaving || isSaved}>
-                    {isSaved ? <Check className="mr-2 h-5 w-5" /> : <Download className="mr-2 h-5 w-5" />}
-                    {isSaving ? 'Saving...' : (isSaved ? 'Saved to Library' : 'Save to My Library')}
-                </Button>
-            )}
+            {renderActionButtons()}
         </div>
         
         <div className="space-y-2">

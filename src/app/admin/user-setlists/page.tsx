@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getAllCloudSetlists, type Setlist } from '@/lib/db';
 import { Input } from '@/components/ui/input';
-import { Search, ListMusic, Eye, Users, Clock } from 'lucide-react';
+import { Search, ListMusic } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
@@ -72,21 +72,18 @@ export default function AdminUserSetlistsPage() {
     const SetlistList = ({ setlists }: { setlists: Setlist[] }) => (
         <ul className="space-y-3">
             {setlists.map(setlist => (
-                <li key={setlist.firestoreId} className="flex items-center p-4 rounded-lg bg-muted/50 transition-colors hover:bg-muted/80 group">
-                    <div className="flex-grow space-y-2">
-                        <div>
-                           <Link href={`/setlists/shared/${setlist.firestoreId}`} className="font-semibold hover:underline">{setlist.title}</Link>
-                           <p className="text-sm text-muted-foreground">{setlist.songIds.length} songs</p>
+                <li key={setlist.firestoreId} className="p-4 rounded-lg bg-muted/50 transition-colors hover:bg-muted/80 group">
+                    <Link href={`/setlists/shared/${setlist.firestoreId}?mode=admin`} className="flex flex-col space-y-2">
+                       <div>
+                           <p className="font-semibold hover:underline">{setlist.title}</p>
+                           <p className="text-sm text-muted-foreground">
+                                {setlist.songIds.length} {setlist.songIds.length === 1 ? 'song' : 'songs'} • By: {setlist.authorName || 'Unknown'}
+                           </p>
                         </div>
                         <p className="text-xs text-muted-foreground/80 pt-1">
-                            By: {setlist.authorName || 'Unknown'} on {new Date(setlist.updatedAt || setlist.createdAt).toLocaleDateString()}
+                            Updated on {new Date(setlist.updatedAt || setlist.createdAt).toLocaleDateString()}
                         </p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                        <Link href={`/setlists/shared/${setlist.firestoreId}`} className="flex items-center text-sm text-muted-foreground hover:text-primary">
-                            <Eye className="mr-2 h-4 w-4" /> View Details
-                        </Link>
-                    </div>
+                    </Link>
                 </li>
             ))}
         </ul>
