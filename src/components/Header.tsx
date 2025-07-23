@@ -198,7 +198,7 @@ export default function Header() {
         <div className='flex items-center'>
           <Link href='/' className='flex items-center space-x-2'>
             <Image
-              src='/icons/logo.png'
+              src='/logo/logo.png'
               alt='LyricSync'
               width={24}
               height={24}
@@ -230,7 +230,7 @@ export default function Header() {
                   <SheetTitle className='sr-only'>Main Menu</SheetTitle>
                   <Link href='/' className='flex items-center space-x-2'>
                     <Image
-                      src='/icons/logo.png'
+                      src='/logo/logo.png'
                       alt='LyricSync'
                       width={24}
                       height={24}

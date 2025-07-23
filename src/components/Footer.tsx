@@ -30,7 +30,7 @@ export default function Footer() {
             <Link href='/' className='flex items-center space-x-2 mb-4'>
               {/* <Music className="h-6 w-6 text-primary" /> */}
               <Image
-                src='/icons/logo.png'
+                src='/logo/logo.png'
                 alt='LyricSync'
                 width={24}
                 height={24}

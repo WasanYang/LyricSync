@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -19,10 +18,12 @@ export default function BottomNavBar() {
   const pathname = usePathname();
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/80 backdrop-blur-sm supports-[backdrop-filter]:bg-background/50 md:hidden">
-      <nav className="flex items-center justify-around h-16 max-w-[768px] mx-auto">
+    <footer className='fixed bottom-0 left-0 right-0 z-50 border-t bg-background/80 backdrop-blur-sm supports-[backdrop-filter]:bg-background/50 md:hidden'>
+      <nav className='flex items-center justify-around h-16 max-w-[768px] mx-auto'>
         {navLinks.map((link) => {
-          const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+          const isActive =
+            pathname === link.href ||
+            (link.href !== '/' && pathname.startsWith(link.href));
           const IconComponent = link.icon;
           return (
             <Link
@@ -34,11 +35,22 @@ export default function BottomNavBar() {
               )}
             >
               {link.icon === 'logo' ? (
-                 <Image src="/icons/logo.png" alt="Library" width={24} height={24} className={cn("h-6 w-6", !isActive && "opacity-60")} />
+                <Image
+                  src='/logo/logo.png'
+                  alt='Library'
+                  width={24}
+                  height={24}
+                  className={cn('h-6 w-6', !isActive && 'opacity-60')}
+                />
               ) : link.isCustom ? (
-                 <IconComponent className="h-6 w-6" isActive={isActive} />
+                <IconComponent className='h-6 w-6' isActive={isActive} />
               ) : (
-                 <IconComponent className={cn("h-6 w-6", isActive ? "text-primary" : "text-muted-foreground")} />
+                <IconComponent
+                  className={cn(
+                    'h-6 w-6',
+                    isActive ? 'text-primary' : 'text-muted-foreground'
+                  )}
+                />
               )}
               <span>{link.label}</span>
             </Link>

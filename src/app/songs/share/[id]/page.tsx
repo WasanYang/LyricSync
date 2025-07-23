@@ -236,7 +236,7 @@ export default function SharedSongPage() {
         <div className='flex h-16 items-center justify-between px-4 max-w-4xl mx-auto'>
           <Link href='/' className='flex items-center space-x-2'>
             <Image
-              src='/icons/logo.png'
+              src='/logo/logo.png'
               alt='LyricSync'
               width={24}
               height={24}
