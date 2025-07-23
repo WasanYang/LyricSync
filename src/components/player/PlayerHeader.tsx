@@ -43,7 +43,7 @@ export default function PlayerHeader({
           <h1 className='font-headline text-xl font-bold truncate'>{title}</h1>
         </div>
 
-        <div className='absolute right-2 top-1/2 -translate-y-1/2'>
+        <div className='absolute right-2 top-1/2 -translate-y-1/2 w-9'>
           {/* This space is now empty, settings are at the bottom */}
         </div>
       </div>
