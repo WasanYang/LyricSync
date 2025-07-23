@@ -17,6 +17,8 @@ import { ALL_NOTES } from '@/lib/chords';
 import { Separator } from './ui/separator';
 import FloatingKeyControls from './FloatingKeyControls';
 import FloatingSectionNavigator from './FloatingSectionNavigator';
+import { useFloatingControls } from '@/hooks/use-floating-controls';
+import { useFloatingNavigator } from '@/hooks/use-floating-navigator';
 import {
   PlayerHeader,
   PlayerControls,
@@ -248,6 +250,12 @@ export default function LyricPlayer({
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Use floating controls hook for persistent visibility and position
+  const floatingControls = useFloatingControls();
+
+  // Use floating navigator hook for persistent visibility and position
+  const floatingNavigator = useFloatingNavigator();
 
   const [theme, setThemeState] = useState<'light' | 'dark'>('light');
 
@@ -496,30 +504,30 @@ export default function LyricPlayer({
         />
 
         {/* Floating Section Navigator */}
-        {showSectionNavigator && (
-          <FloatingSectionNavigator
-            sections={sections}
-            currentSection={currentSection}
-            onSectionJump={handleSectionJump}
-            onClose={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
-            initialPosition={navPosition}
-          />
-        )}
+        <FloatingSectionNavigator
+          sections={sections}
+          currentSection={currentSection}
+          onSectionJump={handleSectionJump}
+          onClose={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
+          initialPosition={navPosition}
+          isVisible={floatingNavigator.isVisible}
+          onToggleVisibility={floatingNavigator.toggleVisibility}
+        />
 
         {/* Floating Chord/Key Controls */}
-        {showKeyControls && (
-          <FloatingKeyControls
-            showChords={showChords}
-            currentKey={currentKey}
-            transpose={transpose}
-            onToggleChords={() => dispatch({ type: 'TOGGLE_CHORDS' })}
-            onKeyChange={handleKeyChange}
-            onTransposeUp={() => dispatch({ type: 'TRANSPOSE_UP' })}
-            onTransposeDown={() => dispatch({ type: 'TRANSPOSE_DOWN' })}
-            onClose={() => dispatch({ type: 'TOGGLE_KEY_CONTROLS' })}
-            initialPosition={keyControlsPosition}
-          />
-        )}
+        <FloatingKeyControls
+          showChords={showChords}
+          currentKey={currentKey}
+          transpose={transpose}
+          onToggleChords={() => dispatch({ type: 'TOGGLE_CHORDS' })}
+          onKeyChange={handleKeyChange}
+          onTransposeUp={() => dispatch({ type: 'TRANSPOSE_UP' })}
+          onTransposeDown={() => dispatch({ type: 'TRANSPOSE_DOWN' })}
+          onClose={() => dispatch({ type: 'TOGGLE_KEY_CONTROLS' })}
+          initialPosition={keyControlsPosition}
+          isVisible={floatingControls.isVisible}
+          onToggleVisibility={floatingControls.toggleVisibility}
+        />
 
         <div
           ref={scrollContainerRef}
@@ -641,6 +649,8 @@ export default function LyricPlayer({
           highlightMode={highlightMode}
           showSectionNavigator={showSectionNavigator}
           showKeyControls={showKeyControls}
+          showFloatingControls={floatingControls.isVisible}
+          showFloatingNavigator={floatingNavigator.isVisible}
           theme={theme}
           bpm={bpm}
           onToggleChords={() => dispatch({ type: 'TOGGLE_CHORDS' })}
@@ -655,6 +665,8 @@ export default function LyricPlayer({
             dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })
           }
           onToggleKeyControls={() => dispatch({ type: 'TOGGLE_KEY_CONTROLS' })}
+          onToggleFloatingControls={floatingControls.toggleVisibility}
+          onToggleFloatingNavigator={floatingNavigator.toggleVisibility}
           onToggleTheme={toggleTheme}
           onBpmChange={(bpm: number) =>
             dispatch({ type: 'SET_BPM', payload: bpm })

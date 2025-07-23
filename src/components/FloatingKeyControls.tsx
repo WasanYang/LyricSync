@@ -26,6 +26,8 @@ interface FloatingKeyControlsProps {
   onTransposeDown: () => void;
   onClose: () => void;
   initialPosition?: { x: number; y: number };
+  isVisible?: boolean;
+  onToggleVisibility?: () => void;
 }
 
 export default function FloatingKeyControls({
@@ -41,11 +43,34 @@ export default function FloatingKeyControls({
     x: Math.max(16, window.innerWidth / 2 - 200),
     y: Math.max(80, window.innerHeight / 2 - 100),
   },
+  isVisible = true,
+  onToggleVisibility,
 }: FloatingKeyControlsProps) {
   const keyControlsRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState(initialPosition);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  // Load position from localStorage on mount
+  useEffect(() => {
+    const savedPosition = localStorage.getItem('floatingKeyControls-position');
+    if (savedPosition) {
+      try {
+        const parsedPosition = JSON.parse(savedPosition);
+        setPosition(parsedPosition);
+      } catch (error) {
+        console.warn('Failed to parse saved position:', error);
+      }
+    }
+  }, []);
+
+  // Save position to localStorage when position changes
+  useEffect(() => {
+    localStorage.setItem(
+      'floatingKeyControls-position',
+      JSON.stringify(position)
+    );
+  }, [position]);
 
   const handleDragMouseDown = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -225,8 +250,20 @@ export default function FloatingKeyControls({
 
   // Update position when initialPosition changes
   useEffect(() => {
-    setPosition(initialPosition);
+    if (!localStorage.getItem('floatingKeyControls-position')) {
+      setPosition(initialPosition);
+    }
   }, [initialPosition]);
+
+  const handleClose = () => {
+    if (onToggleVisibility) {
+      onToggleVisibility();
+    } else {
+      onClose();
+    }
+  };
+
+  if (!isVisible) return null;
 
   return (
     <div
@@ -244,7 +281,7 @@ export default function FloatingKeyControls({
           variant='ghost'
           size='icon'
           className='h-6 w-6 bg-transparent text-muted-foreground/60 '
-          onClick={onClose}
+          onClick={handleClose}
         >
           <X className='h-3 w-3' />
         </Button>

@@ -19,6 +19,8 @@ interface FloatingSectionNavigatorProps {
   onSectionJump: (sectionIndex: number) => void;
   onClose: () => void;
   initialPosition?: { x: number; y: number };
+  isVisible?: boolean;
+  onToggleVisibility?: () => void;
 }
 
 export default function FloatingSectionNavigator({
@@ -27,11 +29,36 @@ export default function FloatingSectionNavigator({
   onSectionJump,
   onClose,
   initialPosition = { x: 16, y: 300 },
+  isVisible = true,
+  onToggleVisibility,
 }: FloatingSectionNavigatorProps) {
   const navigatorRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState(initialPosition);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  // Load position from localStorage on mount
+  useEffect(() => {
+    const savedPosition = localStorage.getItem(
+      'floatingSectionNavigator-position'
+    );
+    if (savedPosition) {
+      try {
+        const parsedPosition = JSON.parse(savedPosition);
+        setPosition(parsedPosition);
+      } catch (error) {
+        console.warn('Failed to parse saved position:', error);
+      }
+    }
+  }, []);
+
+  // Save position to localStorage when position changes
+  useEffect(() => {
+    localStorage.setItem(
+      'floatingSectionNavigator-position',
+      JSON.stringify(position)
+    );
+  }, [position]);
 
   const handleDragMouseDown = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -199,11 +226,21 @@ export default function FloatingSectionNavigator({
 
   // Update position when initialPosition changes
   useEffect(() => {
-    setPosition(initialPosition);
+    if (!localStorage.getItem('floatingSectionNavigator-position')) {
+      setPosition(initialPosition);
+    }
   }, [initialPosition]);
 
-  // Don't render if no sections
-  if (!sections || sections.length === 0) {
+  const handleClose = () => {
+    if (onToggleVisibility) {
+      onToggleVisibility();
+    } else {
+      onClose();
+    }
+  };
+
+  // Don't render if no sections or not visible
+  if (!sections || sections.length === 0 || !isVisible) {
     return null;
   }
 
@@ -211,19 +248,18 @@ export default function FloatingSectionNavigator({
     <div
       ref={navigatorRef}
       className={cn(
-        'fixed z-20 pointer-events-auto flex flex-col items-center gap-0 cursor-grab active:cursor-grabbing',
-        isDragging && 'cursor-grabbing'
+        'fixed z-20 pointer-events-auto flex flex-col items-center gap-0 '
       )}
       style={{ top: `${position.y}px`, right: `${position.x}px` }}
-      onMouseDown={handleContainerDragMouseDown}
-      onTouchStart={handleContainerDragTouchStart}
+      //   onMouseDown={handleContainerDragMouseDown}
+      //   onTouchStart={handleContainerDragTouchStart}
     >
       <div className='flex items-center gap-1'>
         <Button
           variant='ghost'
           size='icon'
           className='h-6 w-6 bg-transparent text-muted-foreground/60'
-          onClick={onClose}
+          onClick={handleClose}
         >
           <X className='h-3 w-3' />
         </Button>
@@ -245,6 +281,14 @@ export default function FloatingSectionNavigator({
           </button>
         ))}
       </div>
+      {/* Drag handle */}
+      <span
+        className='h-6 w-[50px] text-muted-foreground/60 transition-all duration-300 cursor-move flex items-center justify-center '
+        onMouseDown={handleDragMouseDown}
+        onTouchStart={handleDragTouchStart}
+      >
+        <Move className='h-3 w-3' />
+      </span>
     </div>
   );
 }
