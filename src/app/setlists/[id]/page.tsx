@@ -6,7 +6,6 @@ import { useParams, notFound, useRouter } from 'next/navigation';
 import type { Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import { getSetlist as getSetlistFromDb, getSong as getSongFromLocalDb, getCloudSongById } from '@/lib/db';
-import { getSongById as getSongFromStatic } from '@/lib/songs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -100,12 +99,6 @@ function SetlistDetailContent() {
                 setIsLoading(true);
                 const loadedSetlist = await getSetlistFromDb(id);
                 if (loadedSetlist) {
-                    // If user is not logged in, but this setlist is not synced, they can't see it.
-                    if (!user && !loadedSetlist.isSynced) {
-                        router.replace('/login');
-                        return;
-                    }
-                    
                     setSetlist(loadedSetlist);
                     const songPromises = loadedSetlist.songIds.map(findSong);
                     const loadedSongs = (await Promise.all(songPromises)).filter(Boolean) as Song[];
@@ -121,7 +114,7 @@ function SetlistDetailContent() {
             }
         }
         loadSetlist();
-    }, [id, user, router]);
+    }, [id]);
 
     const handleDelete = async () => {
         if (!user || !setlist) return;
