@@ -28,6 +28,23 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
 
 function LoadingSkeleton() {
   return (
@@ -178,12 +195,12 @@ function SharedSetlistContent() {
   if (isLoading) {
     return <LoadingSkeleton />;
   }
-  
+
   if (!setlist) {
     return (
-       <div className='container mx-auto px-4 py-8 pb-24 md:pb-8 text-center'>
-            <p>Setlist not found.</p>
-       </div>
+      <div className='container mx-auto px-4 py-8 pb-24 md:pb-8 text-center'>
+        <p>Setlist not found.</p>
+      </div>
     );
   }
 
@@ -195,7 +212,8 @@ function SharedSetlistContent() {
       return null; // No buttons in admin mode
     }
     if (isOwner) {
-       return ( // Should not happen often due to redirect, but as a fallback
+      return (
+        // Should not happen often due to redirect, but as a fallback
         <Button asChild size='lg'>
           <Link href={`/setlists/${setlist.id}/player`}>
             <Play className='mr-2 h-5 w-5' /> View in Player
@@ -205,30 +223,53 @@ function SharedSetlistContent() {
     }
     // Not owner (guest or another user)
     return (
-      <>
-        <Button asChild size='lg'>
+      <TooltipProvider>
+        <div className='flex items-center gap-2'>
+          <Button asChild size='lg'>
             <Link href={`/setlists/shared/${id}/player`}>
-                <Play className='mr-2 h-5 w-5' /> View in Player
+              <Play className='mr-2 h-5 w-5' /> View in Player
             </Link>
-        </Button>
-        <Button
-            onClick={handleCopyToLibrary}
-            size='lg'
-            variant="outline"
-            disabled={isSaving || isSaved}
-        >
-            {isSaved ? (
-            <Check className='mr-2 h-5 w-5' />
-            ) : (
-            <Download className='mr-2 h-5 w-5' />
-            )}
-            {isSaving
-            ? 'Copying...'
-            : isSaved
-            ? 'Copied'
-            : 'Copy to Library'}
-        </Button>
-      </>
+          </Button>
+          <AlertDialog>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    size='icon'
+                    variant='outline'
+                    disabled={isSaving || isSaved}
+                    aria-label='Copy to My Library'
+                  >
+                    {isSaved ? (
+                      <Check className='h-5 w-5 text-green-500' />
+                    ) : (
+                      <Download className='h-5 w-5' />
+                    )}
+                  </Button>
+                </AlertDialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Copy to Library</p>
+              </TooltipContent>
+            </Tooltip>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Copy Setlist?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Copy "{setlist.title}" to your personal library? You will be
+                  able to edit it and use it offline.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleCopyToLibrary}>
+                  Copy
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </TooltipProvider>
     );
   };
 
@@ -247,9 +288,9 @@ function SharedSetlistContent() {
       </div>
 
       <div className='space-y-2'>
-        {!isLoading && songs.length > 0 && songs.map((song) => (
-          <SongItem key={song.id} song={song} />
-        ))}
+        {!isLoading &&
+          songs.length > 0 &&
+          songs.map((song) => <SongItem key={song.id} song={song} />)}
         {!isLoading && songs.length === 0 && (
           <div className='text-center py-10 text-muted-foreground'>
             <p>This setlist is empty or the songs could not be loaded.</p>
@@ -284,7 +325,7 @@ export default function SharedSetlistPage() {
       )}
       <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8 relative'>
         {user && (
-           <Button
+          <Button
             variant='ghost'
             size='icon'
             className='absolute top-4 left-4'
