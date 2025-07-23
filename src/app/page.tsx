@@ -1,6 +1,11 @@
 'use client';
 
-import { getSetlists, type Setlist, getAllCloudSongs } from '@/lib/db';
+import {
+  getSetlists,
+  type Setlist,
+  getAllCloudSongs,
+  getPublicSetlists,
+} from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import SongCard from '@/components/SongCard';
 import Header from '@/components/Header';
@@ -20,40 +25,6 @@ import { ListMusic, ChevronRight, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
-
-// Mock data for recommended setlists
-const recommendedSetlists: (Setlist & { description: string })[] = [
-  {
-    id: 'rec-worship',
-    title: 'Worship Classics',
-    description: 'Timeless songs of praise.',
-    songIds: ['4', '1'],
-    userId: 'system',
-    createdAt: Date.now(),
-    isSynced: true,
-    firestoreId: 'rec-worship',
-  },
-  {
-    id: 'rec-acoustic',
-    title: 'Acoustic Cafe',
-    description: 'Chill vibes for a relaxed set.',
-    songIds: ['2', '3'],
-    userId: 'system',
-    createdAt: Date.now(),
-    isSynced: true,
-    firestoreId: 'rec-acoustic',
-  },
-  {
-    id: 'rec-upbeat',
-    title: 'Upbeat Hits',
-    description: 'Get the energy flowing.',
-    songIds: ['2', '1', '3'],
-    userId: 'system',
-    createdAt: Date.now(),
-    isSynced: true,
-    firestoreId: 'rec-upbeat',
-  },
-];
 
 function SongCarousel({
   songs,
@@ -134,12 +105,15 @@ function RecentSetlistItem({ setlist }: { setlist: Setlist }) {
 function RecommendedSetlistCard({
   setlist,
 }: {
-  setlist: Setlist & { description: string };
+  setlist: Setlist & { description?: string };
 }) {
   const songCount = setlist.songIds.length;
 
   return (
-    <Link href={`/setlists/shared/${setlist.id}`} className='block group'>
+    <Link
+      href={`/setlists/shared/${setlist.firestoreId}`}
+      className='block group'
+    >
       <div className='group relative space-y-1.5'>
         <div className='aspect-square w-full overflow-hidden rounded-md transition-all duration-300 ease-in-out group-hover:shadow-lg group-hover:shadow-primary/20'>
           <Image
@@ -210,8 +184,10 @@ export default function Home() {
   const router = useRouter();
   const [recentSetlists, setRecentSetlists] = useState<Setlist[]>([]);
   const [systemSongs, setSystemSongs] = useState<Song[]>([]);
+  const [publicSetlists, setPublicSetlists] = useState<Setlist[]>([]);
   const [isLoadingSetlists, setIsLoadingSetlists] = useState(true);
   const [isLoadingSongs, setIsLoadingSongs] = useState(true);
+  const [isLoadingPublicSetlists, setIsLoadingPublicSetlists] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -225,6 +201,7 @@ export default function Home() {
 
       setIsLoadingSetlists(true);
       setIsLoadingSongs(true);
+      setIsLoadingPublicSetlists(true);
 
       try {
         const allSetlists = await getSetlists(user.uid);
@@ -248,6 +225,15 @@ export default function Home() {
         console.error('Failed to load system songs', error);
       } finally {
         setIsLoadingSongs(false);
+      }
+
+      try {
+        const publicLists = await getPublicSetlists();
+        setPublicSetlists(publicLists);
+      } catch (error) {
+        console.error('Failed to load public setlists', error);
+      } finally {
+        setIsLoadingPublicSetlists(false);
       }
     }
     if (user) {
@@ -341,20 +327,48 @@ export default function Home() {
           <h2 className='text-xl font-headline font-semibold mb-4'>
             Recommended Setlists
           </h2>
-          <div className='w-full max-w-full -mr-4'>
-            <Carousel opts={{ align: 'start', loop: false }} className='w-full'>
-              <CarouselContent className='-ml-4'>
-                {recommendedSetlists.map((setlist) => (
-                  <CarouselItem
-                    key={setlist.id}
-                    className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'
-                  >
-                    <RecommendedSetlistCard setlist={setlist} />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-            </Carousel>
-          </div>
+          {isLoadingPublicSetlists ? (
+            <div className='flex space-x-4 -ml-4 w-full max-w-full'>
+              <div className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'>
+                <Skeleton className='aspect-square w-full' />
+                <Skeleton className='h-4 w-3/4 mt-2' />
+                <Skeleton className='h-3 w-1/2 mt-1' />
+              </div>
+              <div className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'>
+                <Skeleton className='aspect-square w-full' />
+                <Skeleton className='h-4 w-3/4 mt-2' />
+                <Skeleton className='h-3 w-1/2 mt-1' />
+              </div>
+              <div className='hidden sm:block sm:basis-1/4 md:basis-1/5 pl-4'>
+                <Skeleton className='aspect-square w-full' />
+                <Skeleton className='h-4 w-3/4 mt-2' />
+                <Skeleton className='h-3 w-1/2 mt-1' />
+              </div>
+              <div className='hidden md:block md:basis-1/5 pl-4'>
+                <Skeleton className='aspect-square w-full' />
+                <Skeleton className='h-4 w-3/4 mt-2' />
+                <Skeleton className='h-3 w-1/2 mt-1' />
+              </div>
+            </div>
+          ) : (
+            <div className='w-full max-w-full -mr-4'>
+              <Carousel
+                opts={{ align: 'start', loop: false }}
+                className='w-full'
+              >
+                <CarouselContent className='-ml-4'>
+                  {publicSetlists.map((setlist) => (
+                    <CarouselItem
+                      key={setlist.firestoreId}
+                      className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'
+                    >
+                      <RecommendedSetlistCard setlist={setlist} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
+            </div>
+          )}
         </section>
 
         {/* Recommended Songs */}
