@@ -162,9 +162,15 @@ function SharedSetlistContent() {
         </div>
 
         <div className="flex flex-wrap gap-2 justify-center">
-             {isOwner ? (
+            {!user ? (
                 <Button asChild size="lg">
                     <Link href={`/setlists/shared/${id}/player`}>
+                        <Play className="mr-2 h-5 w-5" /> Go to Player
+                    </Link>
+                </Button>
+            ) : isOwner ? (
+                <Button asChild size="lg">
+                    <Link href={`/setlists/${setlist.id}/player`}>
                         <Play className="mr-2 h-5 w-5" /> Start Setlist
                     </Link>
                 </Button>
@@ -191,19 +197,22 @@ function SharedSetlistContent() {
 }
 
 export default function SharedSetlistPage() {
+    const { user } = useAuth();
     return (
         <div className="flex-grow flex flex-col">
-            <Header />
+            {user && <Header />}
             <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8 relative">
-                <Button asChild variant="ghost" size="icon" className="absolute top-4 left-4">
-                    <Link href="/setlists">
-                        <ArrowLeft className="h-5 w-5" />
-                        <span className="sr-only">Back to Setlists</span>
-                    </Link>
-                </Button>
+                {user && (
+                  <Button asChild variant="ghost" size="icon" className="absolute top-4 left-4">
+                      <Link href="/setlists">
+                          <ArrowLeft className="h-5 w-5" />
+                          <span className="sr-only">Back to Setlists</span>
+                      </Link>
+                  </Button>
+                )}
                 <SharedSetlistContent />
             </main>
-            <BottomNavBar />
+            {user && <BottomNavBar />}
         </div>
     );
 }
