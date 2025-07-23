@@ -200,7 +200,21 @@ export default function SharedSetlistPage() {
     const { user } = useAuth();
     return (
         <div className="flex-grow flex flex-col">
-            {user && <Header />}
+            {user ? <Header /> : (
+                 <header className='sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+                    <div className='flex h-16 items-center justify-between px-4 max-w-4xl mx-auto'>
+                    <Link href='/welcome' className='flex items-center space-x-2'>
+                        <Image
+                        src='/icons/logo.png'
+                        alt='WorshipFlow'
+                        width={24}
+                        height={24}
+                        />
+                        <span className='font-bold font-headline text-lg'>WorshipFlow</span>
+                    </Link>
+                    </div>
+                </header>
+            )}
             <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8 relative">
                 {user && (
                   <Button asChild variant="ghost" size="icon" className="absolute top-4 left-4">
