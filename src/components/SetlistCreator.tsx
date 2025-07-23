@@ -320,8 +320,10 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
       });
       return;
     }
+    
+    const isEditing = !!setlistId;
 
-    const existingSetlist = setlistId ? await getSetlistFromDb(setlistId) : null;
+    const existingSetlist = isEditing ? await getSetlistFromDb(setlistId) : null;
     
     try {
       await saveSetlist({
@@ -336,11 +338,13 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
       });
       
       toast({
-        title: `Setlist ${setlistId ? 'Updated' : 'Saved'}`,
+        title: `Setlist ${isEditing ? 'Updated' : 'Saved'}`,
         description: `"${data.title}" has been saved.`,
       });
 
-      router.push('/setlists');
+      if (!isEditing) {
+        router.push('/setlists');
+      }
 
     } catch (error) {
        toast({
