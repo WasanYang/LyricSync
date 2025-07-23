@@ -3,14 +3,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAllSavedSongs, deleteSong as deleteSongFromDb, updateSong, type Song, uploadSongToCloud } from '@/lib/db';
-import { getSongById } from '@/lib/songs';
+import { getAllSavedSongs, deleteSong as deleteSongFromDb, updateSong, type Song, uploadSongToCloud, getCloudSongById } from '@/lib/db';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Music, Trash2, Edit, RefreshCw, UploadCloud, PlusCircle, Eye, Cloud, ArrowUpCircle } from 'lucide-react';
+import { Music, Trash2, Edit, RefreshCw, UploadCloud, PlusCircle, Eye, Cloud, ArrowDownCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -55,7 +54,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
   const handleUpdate = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const latestSong = getSongById(song.id);
+    const latestSong = await getCloudSongById(song.id);
     if (!latestSong) {
       toast({
         title: "Error",
