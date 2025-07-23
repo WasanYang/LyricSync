@@ -163,7 +163,7 @@ function SharedSetlistContent() {
       // Create a new local copy
       const newLocalSetlist: Setlist = {
         ...setlist,
-        id: `local-${uuidv4()}`, // Generate a new local-only ID
+        id: uuidv4(), // Generate a new local-only ID
         userId: user.uid,
         firestoreId: null,
         isSynced: false,

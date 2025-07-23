@@ -441,7 +441,7 @@ export async function getSetlists(
             const data = docSnap.data();
             const syncedAt = data.syncedAt as Timestamp;
             syncedSetlistsData.push({
-                id: `local-${docSnap.id}`, // Create a predictable local ID
+                id: docSnap.id, // Use the firestore ID as the main ID
                 firestoreId: docSnap.id,
                 title: data.title,
                 songIds: data.songIds,
@@ -519,7 +519,7 @@ export async function getSetlistByFirestoreId(
       const data = docSnap.data();
       const syncedAt = data.syncedAt as Timestamp;
       return {
-        id: `shared-${docSnap.id}`, // Temporary ID for display
+        id: docSnap.id,
         firestoreId: docSnap.id,
         title: data.title,
         songIds: data.songIds,
@@ -652,7 +652,7 @@ export async function getPublicSetlists(): Promise<Setlist[]> {
     const data = doc.data();
     const syncedAt = data.syncedAt as Timestamp;
     setlists.push({
-      id: `shared-${doc.id}`, // Use a unique prefix for display
+      id: doc.id,
       firestoreId: doc.id,
       title: data.title,
       songIds: data.songIds,
@@ -707,7 +707,7 @@ export async function getAllCloudSetlists(): Promise<Setlist[]> {
     const data = doc.data();
     const syncedAt = data.syncedAt as Timestamp;
     setlists.push({
-      id: `cloud-${doc.id}`, // Use a unique prefix for display
+      id: doc.id,
       firestoreId: doc.id,
       title: data.title,
       songIds: data.songIds,

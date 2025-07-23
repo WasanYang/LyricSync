@@ -315,7 +315,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
     
     try {
       await saveSetlist({
-        id: existingSetlist?.id || `local-${uuidv4()}`,
+        id: existingSetlist?.id || uuidv4(),
         firestoreId: existingSetlist?.firestoreId || null,
         isSynced: existingSetlist?.isSynced || false,
         createdAt: existingSetlist?.createdAt || Date.now(),
