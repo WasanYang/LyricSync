@@ -601,3 +601,34 @@ export async function unsyncSetlist(
   setlist.firestoreId = null;
   await db.put(SETLISTS_STORE, setlist);
 }
+
+
+export async function getAllCloudSetlists(): Promise<Setlist[]> {
+  if (!firestoreDb) throw new Error('Firebase is not configured.');
+
+  const q = query(
+    collection(firestoreDb, 'setlists'),
+    orderBy('syncedAt', 'desc')
+  );
+
+  const querySnapshot = await getDocs(q);
+  const setlists: Setlist[] = [];
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    const syncedAt = data.syncedAt as Timestamp;
+    setlists.push({
+      id: `cloud-${doc.id}`, // Use a unique prefix for display
+      firestoreId: doc.id,
+      title: data.title,
+      songIds: data.songIds,
+      userId: data.userId,
+      createdAt: syncedAt?.toMillis() || Date.now(),
+      updatedAt: syncedAt?.toMillis() || Date.now(),
+      isSynced: true,
+      isPublic: data.isPublic || false,
+      authorName: data.authorName || 'Anonymous',
+    });
+  });
+
+  return setlists;
+}

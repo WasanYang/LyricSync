@@ -157,6 +157,12 @@ function UserNav() {
                 <span>User Uploads</span>
               </Link>
             </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href='/admin/user-setlists'>
+                <ListMusic className='mr-2 h-4 w-4' />
+                <span>User Setlists</span>
+              </Link>
+            </DropdownMenuItem>
           </DropdownMenuGroup>
         )}
         <DropdownMenuSeparator />
@@ -298,6 +304,15 @@ export default function Header() {
                             >
                               <Users className='h-5 w-5' />
                               <span>User Uploads</span>
+                            </Link>
+                          </SheetClose>
+                          <SheetClose asChild>
+                            <Link
+                              href='/admin/user-setlists'
+                              className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
+                            >
+                              <ListMusic className='h-5 w-5' />
+                              <span>User Setlists</span>
                             </Link>
                           </SheetClose>
                         </>
