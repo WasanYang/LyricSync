@@ -101,7 +101,7 @@ function SharedSetlistContent() {
           setSetlist(loadedSetlist);
 
           // If the logged-in user is the owner, redirect them to their own setlist page.
-          if (user && loadedSetlist.userId === user.uid) {
+          if (user && loadedSetlist.userId === user.uid && !isAdminMode) {
             const userSetlists = await getSetlists(user.uid);
             const localSetlist = userSetlists.find(
               (sl) => sl.firestoreId === loadedSetlist.firestoreId
@@ -128,7 +128,7 @@ function SharedSetlistContent() {
       }
     }
     loadSetlist();
-  }, [id, user, router]);
+  }, [id, user, router, isAdminMode]);
 
   const handleSaveToLibrary = async () => {
     if (!user || !setlist) {
@@ -177,7 +177,7 @@ function SharedSetlistContent() {
   }
 
   // After redirect logic, if we are still here, it means user is not owner or not logged in.
-  const isOwner = false;
+  const isOwner = user && setlist.userId === user.uid;
 
   const renderActionButtons = () => {
     if (isAdminMode) {
@@ -187,6 +187,15 @@ function SharedSetlistContent() {
       return (
         <Button asChild size='lg'>
           <Link href={`/setlists/shared/${id}/player`}>
+            <Play className='mr-2 h-5 w-5' /> View in Player
+          </Link>
+        </Button>
+      );
+    }
+    if (isOwner) {
+       return (
+        <Button asChild size='lg'>
+          <Link href={`/setlists/${id}/player`}>
             <Play className='mr-2 h-5 w-5' /> View in Player
           </Link>
         </Button>
