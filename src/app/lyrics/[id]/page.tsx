@@ -1,4 +1,3 @@
-
 'use client';
 
 import { getSong as getSongFromDb, getCloudSongById } from '@/lib/db';
@@ -9,11 +8,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import SongStatusButton from '@/components/SongStatusButton';
-import { ArrowLeft, Play, Share2 } from 'lucide-react';
+import { ArrowLeft, Play, Music } from 'lucide-react';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import { useAuth } from '@/context/AuthContext';
+import { useSafeDataLoader } from '@/hooks/use-offline-storage';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 function LoadingSkeleton() {
   return (
@@ -65,41 +66,39 @@ function SongDetailContent() {
   const [song, setSong] = useState<Song | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth(); // Still need auth context for conditional UI
+  const { user } = useAuth();
+  const { loadSong, isOnline } = useSafeDataLoader();
 
   useEffect(() => {
     async function fetchSong() {
       if (!id) return;
       try {
         setIsLoading(true);
-        // Priority: Local DB > Cloud.
-        // Local DB access requires user interaction/login in some cases, but checking it first is fine.
-        let fetchedSong: Song | null | undefined = null;
+        setError(null);
 
-        if (user) {
-          // Only check local DB if user is logged in
-          fetchedSong = await getSongFromDb(id);
-        }
-
-        if (!fetchedSong) {
-          fetchedSong = await getCloudSongById(id);
-        }
+        const fetchedSong = await loadSong(id);
 
         if (fetchedSong) {
           setSong(fetchedSong);
         } else {
-          setError('Song not found.');
+          setError(
+            isOnline
+              ? 'Song not found.'
+              : 'Song not available offline. Please connect to the internet to download it.'
+          );
         }
       } catch (err) {
         console.error('Failed to load song', err);
-        setError('Could not load the song.');
+        setError(
+          isOnline ? 'Could not load the song.' : 'Song not available offline.'
+        );
       } finally {
         setIsLoading(false);
       }
     }
 
     fetchSong();
-  }, [id, user]);
+  }, [id, loadSong, isOnline]);
 
   const lyricPreview = useMemo(() => {
     return song ? getLyricPreview(song.lyrics) : '';
@@ -110,7 +109,28 @@ function SongDetailContent() {
   }
 
   if (error || !song) {
-    notFound();
+    return (
+      <div className='container mx-auto px-4 py-8 pb-24 md:pb-8'>
+        <div className='max-w-2xl mx-auto text-center space-y-4'>
+          {!isOnline && (
+            <Alert className='border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200'>
+              <Music className='h-4 w-4' />
+              <AlertDescription>
+                You're currently offline. This song may not be available without
+                an internet connection.
+              </AlertDescription>
+            </Alert>
+          )}
+          <div className='text-muted-foreground'>
+            <Music className='w-16 h-16 mx-auto mb-4' />
+            <p className='text-lg'>{error || 'Song not found'}</p>
+            <Button asChild className='mt-4'>
+              <Link href='/library'>Back to Library</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -146,7 +166,7 @@ function SongDetailContent() {
             {song.source === 'system' && (
               <Button asChild variant='outline' size='icon'>
                 <Link href={`/songs/share/${song.id}`}>
-                  <Share2 className='h-4 w-4' />
+                  <Play className='h-4 w-4' />
                 </Link>
               </Button>
             )}
@@ -172,15 +192,15 @@ export default function SongDetailPage() {
       {user && <Header />}
       <main className='container relative mx-auto flex-grow px-4 py-8 pb-24 md:pb-8'>
         {user && (
-            <Button
+          <Button
             variant='ghost'
             size='icon'
             className='absolute top-4 left-4'
             onClick={() => router.back()}
-            >
-                <ArrowLeft className='h-5 w-5' />
-                <span className='sr-only'>Back</span>
-            </Button>
+          >
+            <ArrowLeft className='h-5 w-5' />
+            <span className='sr-only'>Back</span>
+          </Button>
         )}
         <SongDetailContent />
       </main>

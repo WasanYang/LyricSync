@@ -3,8 +3,8 @@
   "short_name": "LyricSync",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F0E6F5",
-  "theme_color": "#9400D3",
+  "background_color": "#DEF2F1",
+  "theme_color": "#3AAFA9",
   "description": "Synchronized worship song lyrics with auto-scrolling and chord display.",
   "icons": [
     {

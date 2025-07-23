@@ -43,6 +43,7 @@ import {
   DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu';
 import { useOnlineStatus } from '@/hooks/use-online-status';
+import { OfflineIndicator } from '@/components/OfflineIndicator';
 import Image from 'next/image';
 
 const navLinks = [
@@ -399,6 +400,7 @@ export default function Header() {
           <div className='hidden md:flex'>
             <UserNav />
           </div>
+          <OfflineIndicator showBanner={true} />
         </div>
       </div>
     </header>
