@@ -14,6 +14,12 @@ import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { transposeChord } from '@/lib/chords';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 function LoadingSkeleton() {
   return (
@@ -192,32 +198,49 @@ function SharedSongContent() {
       </div>
 
       <div className='flex flex-col sm:flex-row items-center justify-center gap-4'>
-        <div className='flex items-center gap-2'>
-          <Button onClick={handleCopy} variant='outline' className='w-32'>
-            {isCopied ? (
-              <Check className='mr-2 h-4 w-4 text-green-500' />
-            ) : (
-              <Copy className='mr-2 h-4 w-4' />
-            )}
-            {isCopied ? 'Copied!' : 'Copy Link'}
-          </Button>
-          <Button asChild className='w-36'>
-            <Link href={`/lyrics/${song.id}/player`}>
-              <Music className='mr-2 h-4 w-4' /> Open in Player
-            </Link>
-          </Button>
-        </div>
-        <div className='flex items-center space-x-2 p-2 rounded-lg bg-muted/50'>
-          <Guitar className='h-4 w-4 text-muted-foreground' />
-          <Label htmlFor='show-chords' className='text-sm font-medium'>
-            Show Chords
-          </Label>
-          <Switch
-            id='show-chords'
-            checked={showChords}
-            onCheckedChange={setShowChords}
-          />
-        </div>
+        <TooltipProvider>
+          <div className='flex items-center gap-2'>
+            <Button asChild className='w-36'>
+              <Link href={`/lyrics/${song.id}/player`}>
+                <Music className='mr-2 h-4 w-4' /> Open in Player
+              </Link>
+            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={handleCopy}
+                  variant='outline'
+                  size='icon'
+                  aria-label='Copy share link'
+                >
+                  {isCopied ? (
+                    <Check className='h-4 w-4 text-green-500' />
+                  ) : (
+                    <Copy className='h-4 w-4' />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Copy Link</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <div className='flex items-center space-x-2 p-2 rounded-lg bg-muted/50'>
+            <Tooltip>
+              <TooltipTrigger>
+                <Guitar className='h-4 w-4 text-muted-foreground' />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Show Chords</p>
+              </TooltipContent>
+            </Tooltip>
+            <Switch
+              id='show-chords'
+              checked={showChords}
+              onCheckedChange={setShowChords}
+            />
+          </div>
+        </TooltipProvider>
       </div>
 
       <div className='p-4 sm:p-6 bg-muted/30 rounded-lg leading-relaxed font-body'>
