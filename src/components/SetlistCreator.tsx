@@ -177,41 +177,26 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
 
   const fetchAllSongs = async () => {
     if (!user) return;
-    const localSongs = await getAllSavedSongs(user.uid); // Includes custom user songs
-    const cloudSongs = await getAllCloudSongs();
-    const savedIds = await getAllSavedSongIds();
+    const localSongs = await getAllSavedSongs(user.uid); // Includes system and user songs
     
-    setSavedSongIds(new Set(savedIds));
-
-    // Combine all songs, giving priority to local, then cloud
-    const songMap = new Map<string, Song>();
-    
-    // 1. Add cloud songs
-    cloudSongs.forEach(song => songMap.set(song.id, song));
-    
-    // 2. Add local songs (will overwrite cloud if ID matches, e.g. custom song with same ID as a system song)
-    localSongs.forEach(song => songMap.set(song.id, song));
-
-    const combinedSongs = Array.from(songMap.values());
-
     // Sort: Saved songs first, then by title
-    combinedSongs.sort((a, b) => {
-        const aIsSaved = savedIds.includes(a.id);
-        const bIsSaved = savedIds.includes(b.id);
+    localSongs.sort((a, b) => {
+        const aIsUser = a.source === 'user';
+        const bIsUser = b.source === 'user';
 
-        if (aIsSaved && !bIsSaved) return -1;
-        if (!aIsSaved && bIsSaved) return 1;
+        if (aIsUser && !bIsUser) return -1;
+        if (!aIsUser && bIsUser) return 1;
         return a.title.localeCompare(b.title);
     });
     
-    setAllSongs(combinedSongs);
+    setAllSongs(localSongs);
   };
   
   // Fetch all songs on component mount
   useEffect(() => {
     fetchAllSongs();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (setlistId) {
@@ -226,8 +211,8 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
              if (songFromAll) return songFromAll;
              
              // Fallback if allSongs isn't populated yet
-             const customSong = await getSongFromDb(id);
-             return customSong;
+             const songFromDb = await getSongFromDb(id);
+             return songFromDb;
           });
           
           const loadedSongs = (await Promise.all(songPromises)).filter(Boolean) as Song[];

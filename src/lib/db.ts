@@ -104,18 +104,28 @@ export async function saveSong(song: Song): Promise<void> {
   // Save to local IndexedDB
   await db.put(SONGS_STORE, songToSave);
 
-  // If it's a user-created song, also save/update it in their Firestore sub-collection
+  // If it's a user-created song, also save/update it in Firestore
   if (song.source === 'user' && song.userId && firestoreDb) {
     try {
-      const userSongRef = doc(
-        firestoreDb,
-        'users',
-        song.userId,
-        'userSongs',
-        song.id
-      );
-      // Use setDoc with merge to create or update
-      await setDoc(userSongRef, { ...song, updatedAt: serverTimestamp() }, { merge: true });
+        const batch = writeBatch(firestoreDb);
+
+        // 1. Create/Update the main song document in the 'songs' collection
+        const mainSongRef = doc(firestoreDb, 'songs', song.id);
+        const { updatedAt, ...songDataForFirestore } = songToSave; // Exclude local date
+        batch.set(mainSongRef, {
+            ...songDataForFirestore,
+            updatedAt: serverTimestamp() // Use server timestamp
+        }, { merge: true });
+
+        // 2. Create/Update the reference document in the user's 'userSongs' sub-collection
+        const userSongRef = doc(firestoreDb, 'users', song.userId, 'userSongs', song.id);
+        batch.set(userSongRef, {
+            title: song.title,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        await batch.commit();
+
     } catch (error) {
       console.error("Error syncing user song to Firestore:", error);
       // Decide if we should re-throw or just log the error
@@ -150,19 +160,25 @@ export async function deleteSong(id: string): Promise<void> {
       return;
   }
 
-  // Delete from local IndexedDB
-  await db.delete(SONGS_STORE, id);
-
-  // If it was a user-synced song, delete from Firestore sub-collection as well
+  // If it was a user-synced song, delete from Firestore as well
   if (songToDelete.source === 'user' && songToDelete.userId && firestoreDb) {
       try {
+          const batch = writeBatch(firestoreDb);
+          // Delete from main 'songs' collection
+          const mainSongRef = doc(firestoreDb, 'songs', id);
+          batch.delete(mainSongRef);
+          // Delete from user's sub-collection
           const userSongRef = doc(firestoreDb, 'users', songToDelete.userId, 'userSongs', id);
-          await deleteDoc(userSongRef);
+          batch.delete(userSongRef);
+          await batch.commit();
       } catch (error) {
           console.error("Error deleting user song from Firestore:", error);
           // Optional: handle error, e.g., re-add to local DB or notify user
       }
   }
+
+  // Delete from local IndexedDB
+  await db.delete(SONGS_STORE, id);
 }
 
 
@@ -176,9 +192,8 @@ export async function isSongSaved(
     return { saved: false, needsUpdate: false };
   }
 
-  // For user-created songs, they are "saved" by definition.
-  // Update checks for user songs should be handled differently if they can be edited on other devices.
-  // For now, if it exists locally, it's considered up-to-date.
+  // For user-created songs, they are "saved" by definition if they exist locally.
+  // We rely on the sync process in getAllSavedSongs to keep them updated.
   if (savedSong.source === 'user') {
     return { saved: true, needsUpdate: false };
   }
@@ -204,30 +219,27 @@ export async function getAllSavedSongs(userId: string): Promise<Song[]> {
 
   // Sync user songs from Firestore to IndexedDB first
   if (firestoreDb) {
-      const userSongsRef = collection(firestoreDb, "users", userId, "userSongs");
-      const q = query(userSongsRef, orderBy("title"));
-      const querySnapshot = await getDocs(q);
-      
-      const tx = db.transaction(SONGS_STORE, 'readwrite');
-      const store = tx.objectStore(SONGS_STORE);
-      
-      const firestoreWrites = querySnapshot.docs.map(doc => {
-          const data = doc.data();
-          const updatedAt = data.updatedAt as Timestamp;
-          const song = {
-              ...data,
-              id: doc.id,
-              updatedAt: updatedAt.toDate(),
-          } as Song;
-          return store.put(song); // put will add or update
-      });
-      
-      await Promise.all(firestoreWrites);
-      await tx.done;
+    const userSongsRef = collection(firestoreDb, 'users', userId, 'userSongs');
+    const q = query(userSongsRef);
+    const userSongsSnapshot = await getDocs(q);
+
+    const songIds = userSongsSnapshot.docs.map(doc => doc.id);
+    const songPromises = songIds.map(id => getCloudSongById(id));
+    const cloudSongs = (await Promise.all(songPromises)).filter(Boolean) as Song[];
+
+    // Update local IndexedDB with the latest from the cloud
+    const tx = db.transaction(SONGS_STORE, 'readwrite');
+    const store = tx.objectStore(SONGS_STORE);
+    
+    // Efficiently update local store with latest cloud versions of user songs
+    const writePromises = cloudSongs.map(song => store.put(song));
+
+    await Promise.all(writePromises);
+    await tx.done;
   }
   
   // Return all songs from IndexedDB. This will include system songs
-  // that were downloaded manually and all of the user's own songs.
+  // that were downloaded manually and all of the user's own songs synced from the cloud.
   return db.getAll(SONGS_STORE);
 }
 
@@ -567,10 +579,13 @@ export async function syncSetlist(
   if (!setlist) throw new Error('Setlist not found locally.');
   if (setlist.userId !== userId) throw new Error('Unauthorized');
   
+  // Check if any song in the setlist is a 'user' song.
   const allSongs = await db.getAll(SONGS_STORE);
-  const songsInSetlist = setlist.songIds.map(id => allSongs.find(s => s.id === id));
-  if (songsInSetlist.some(s => !s || s.source !== 'system')) {
-     throw new Error('Cannot sync setlists with custom songs.');
+  const songSourceMap = new Map(allSongs.map(s => [s.id, s.source]));
+  const containsUserSongs = setlist.songIds.some(id => songSourceMap.get(id) === 'user');
+
+  if (containsUserSongs) {
+     throw new Error("Cannot sync setlists with custom songs. All songs must be system songs.");
   }
 
   const now = serverTimestamp();

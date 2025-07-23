@@ -9,7 +9,7 @@ import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Music, Trash2, Edit, RefreshCw, UploadCloud, PlusCircle, Eye, Cloud, ArrowDownCircle } from 'lucide-react';
+import { Music, Trash2, Edit, RefreshCw, UploadCloud, PlusCircle, Eye, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -79,21 +79,22 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
     }
   }
 
-  const handleUpload = async (e: React.MouseEvent) => {
+  const handlePromoteToSystem = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     try {
-      // This function should now probably be reserved for promoting a user song to a system song
+      // This function promotes a user song to a system song
       await uploadSongToCloud({ ...song, source: 'system' });
       toast({
         title: "Song Promoted",
         description: `"${song.title}" has been promoted to a system song.`
       });
-      // Optionally, you might want to refresh the list or change the song's state
+      // Refresh the list to show the change in status/behavior
+      onUpdate(song.id);
     } catch (error) {
        toast({
-        title: "Upload Error",
-        description: error instanceof Error ? error.message : "Could not upload song.",
+        title: "Promotion Error",
+        description: error instanceof Error ? error.message : "Could not promote song.",
         variant: "destructive"
        })
     }
@@ -115,8 +116,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <Link href={`/lyrics/${song.id}`} className="font-semibold font-headline truncate hover:underline">{song.title}</Link>
-            {isCloudSong && <Cloud className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
-            {isUserSong && <Cloud className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
+            {(isCloudSong || isUserSong) && <Cloud className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
           </div>
           <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
           {song.updatedAt && (
@@ -154,7 +154,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                     {isSuperAdmin && (
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={handleUpload}>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={handlePromoteToSystem}>
                                     <UploadCloud className="h-4 w-4" />
                                 </Button>
                             </TooltipTrigger>

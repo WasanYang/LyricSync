@@ -1,48 +1,64 @@
-
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-  
+    
     function isSuperAdmin() {
-      // Check if the user is the designated super admin.
       return request.auth.token.email == 'esxy26@gmail.com' && request.auth.token.email_verified;
     }
 
     match /users/{userId} {
-      // Users can create their own profile, and only they can read/update it.
       allow read, update: if request.auth != null && request.auth.uid == userId;
       allow create: if request.auth != null;
 
-      // Allow user to manage their own custom songs
-      match /userSongs/{songId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
-
-      // Allow user to manage references to their own synced setlists
+      // Rules for user-specific sub-collections
       match /userSetlists/{setlistId} {
-        allow read, write, delete: if request.auth.uid == userId;
+        // Only the user themselves can manage their setlist references
+        allow read, create, delete: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      match /userSongs/{songId} {
+        // Only the user themselves can manage their song references
+        allow read, create, delete: if request.auth != null && request.auth.uid == userId;
       }
     }
 
     match /songs/{songId} {
-      // Any authenticated user can read system songs.
-      allow read: if request.auth != null;
-      // Only super admins can write to the central song collection.
-      allow write: if isSuperAdmin();
+        // Any authenticated user can read any song.
+        allow read: if request.auth != null;
+        
+        // Rules for writing (creating, updating, deleting) songs.
+        allow write: if request.auth != null && 
+                     (
+                       // Super Admins can write anything (system songs).
+                       isSuperAdmin() || 
+                       // Users can create their own songs.
+                       (request.resource.data.userId == request.auth.uid && request.resource.data.source == 'user')
+                     );
+
+        // Allow users to update or delete ONLY their own songs.
+        allow update, delete: if request.auth != null && 
+                              (
+                                // Super Admins can update/delete anything.
+                                isSuperAdmin() ||
+                                // Users can update/delete a song if they are the owner.
+                                resource.data.userId == request.auth.uid
+                              );
     }
     
     match /setlists/{setlistId} {
-       // Allow read if the setlist is public, or if the user is the owner, or if the user is a super admin
-      allow read: if resource.data.isPublic == true || 
-                   (request.auth != null && request.auth.uid == resource.data.userId) ||
-                   isSuperAdmin();
-                   
-      // Any authenticated user can create a setlist document.
-      allow create: if request.auth != null;
-      
-      // Only the owner can update or delete their setlist.
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+        // Read access is granted if:
+        // 1. The setlist is marked as public.
+        // 2. The user is the owner of the setlist.
+        // 3. The user is a Super Admin.
+        allow read: if resource.data.isPublic == true || 
+                       (request.auth != null && resource.data.userId == request.auth.uid) ||
+                       isSuperAdmin();
+
+        // Any authenticated user can create a setlist.
+        allow create: if request.auth != null;
+
+        // Only the owner of the setlist can update or delete it.
+        allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
   }
 }
