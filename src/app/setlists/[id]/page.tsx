@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -139,6 +140,7 @@ function SetlistDetailContent({
       }
     }
     loadSetlist();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user, router, toast]);
 
   const handleDelete = async () => {
@@ -234,6 +236,7 @@ function SetlistDetailContent({
 export default function SetlistDetailPage() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = React.useState(true);
+  const router = useRouter();
 
   return (
     <div className='flex-grow flex flex-col'>
@@ -241,15 +244,13 @@ export default function SetlistDetailPage() {
       <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8 relative'>
         {!isLoading && (
           <Button
-            asChild
             variant='ghost'
             size='icon'
             className='absolute top-4 left-4'
+            onClick={() => router.back()}
           >
-            <Link href='#' onClick={() => window.history.back()}>
-              <ArrowLeft className='h-5 w-5' />
-              <span className='sr-only'>Back to Setlists</span>
-            </Link>
+            <ArrowLeft className='h-5 w-5' />
+            <span className='sr-only'>Back to Setlists</span>
           </Button>
         )}
         <SetlistDetailContent onLoadingChange={setIsLoading} />

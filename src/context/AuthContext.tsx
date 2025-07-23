@@ -4,7 +4,8 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup, signInAnonymously as firebaseSignInAnonymously, type User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const SUPER_ADMIN_EMAIL = 'esxy26@gmail.com';
@@ -27,10 +28,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     // Only subscribe if auth is initialized
-    if (auth) {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (auth && db) {
+      const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (user && !user.isAnonymous) {
+            // If user is logged in and not a guest, create/update their doc in Firestore
+            const userRef = doc(db, "users", user.uid);
+            try {
+                await setDoc(userRef, { 
+                    uid: user.uid,
+                    displayName: user.displayName,
+                    email: user.email,
+                    photoURL: user.photoURL,
+                    lastLoginAt: serverTimestamp(),
+                    isSuperAdmin: user.email === SUPER_ADMIN_EMAIL,
+                }, { merge: true });
+                 setIsSuperAdmin(user.email === SUPER_ADMIN_EMAIL);
+            } catch (error) {
+                console.error("Error updating user document:", error);
+            }
+        } else {
+            setIsSuperAdmin(false);
+        }
         setUser(user);
-        setIsSuperAdmin(user?.email === SUPER_ADMIN_EMAIL);
         setLoading(false);
       });
       return () => unsubscribe();
@@ -39,6 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // The user will be null, so public content is visible.
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const signInWithGoogle = async () => {

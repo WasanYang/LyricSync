@@ -1,3 +1,4 @@
+
 // src/app/setlists/shared/[id]/page.tsx
 'use client';
 
@@ -9,7 +10,7 @@ import {
   useSearchParams,
 } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
-import type { Setlist, saveSetlist as saveSetlistType } from '@/lib/db';
+import type { Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import {
   getSetlistByFirestoreId,
@@ -130,11 +131,11 @@ function SharedSetlistContent() {
     loadSetlist();
   }, [id, user, router, isAdminMode]);
 
-  const handleSaveToLibrary = async () => {
+  const handleCopyToLibrary = async () => {
     if (!user || !setlist) {
       toast({
         title: 'Please log in',
-        description: 'You need to be logged in to save a setlist.',
+        description: 'You need to be logged in to copy a setlist.',
         variant: 'destructive',
       });
       return;
@@ -147,24 +148,26 @@ function SharedSetlistContent() {
         ...setlist,
         id: `local-${uuidv4()}`, // Generate a new local-only ID
         userId: user.uid,
-        firestoreId: null, // This is a local copy, not synced under this user
+        firestoreId: null,
         isSynced: false,
         createdAt: Date.now(),
         updatedAt: Date.now(),
+        isPublic: false, // Copied setlists are private by default
+        sourceFirestoreId: setlist.firestoreId, // Keep track of original
       };
 
       await saveSetlist(newLocalSetlist);
 
       toast({
-        title: 'Setlist Saved!',
-        description: `"${setlist.title}" has been added to your library.`,
+        title: 'Setlist Copied!',
+        description: `"${setlist.title}" has been copied to your library.`,
       });
       setIsSaved(true);
     } catch (error) {
-      console.error('Failed to save setlist:', error);
+      console.error('Failed to copy setlist:', error);
       toast({
         title: 'Error',
-        description: 'Could not save the setlist to your library.',
+        description: 'Could not copy the setlist to your library.',
         variant: 'destructive',
       });
     } finally {
@@ -172,8 +175,16 @@ function SharedSetlistContent() {
     }
   };
 
-  if (isLoading || !setlist) {
+  if (isLoading) {
     return <LoadingSkeleton />;
+  }
+  
+  if (!setlist) {
+    return (
+       <div className='container mx-auto px-4 py-8 pb-24 md:pb-8 text-center'>
+            <p>Setlist not found.</p>
+       </div>
+    );
   }
 
   // After redirect logic, if we are still here, it means user is not owner or not logged in.
@@ -182,15 +193,6 @@ function SharedSetlistContent() {
   const renderActionButtons = () => {
     if (isAdminMode) {
       return null; // No buttons in admin mode
-    }
-    if (!user) {
-      return (
-        <Button asChild size='lg'>
-          <Link href={`/setlists/shared/${id}/player`}>
-            <Play className='mr-2 h-5 w-5' /> View in Player
-          </Link>
-        </Button>
-      );
     }
     if (isOwner) {
        return (
@@ -201,10 +203,10 @@ function SharedSetlistContent() {
         </Button>
       );
     }
-    // Logged in, but not the owner
+    // Not owner (guest or another user)
     return (
       <Button
-        onClick={handleSaveToLibrary}
+        onClick={handleCopyToLibrary}
         size='lg'
         disabled={isSaving || isSaved}
       >
@@ -214,10 +216,10 @@ function SharedSetlistContent() {
           <Download className='mr-2 h-5 w-5' />
         )}
         {isSaving
-          ? 'Saving...'
+          ? 'Copying...'
           : isSaved
-          ? 'Saved to Library'
-          : 'Save to My Library'}
+          ? 'Copied to Library'
+          : 'Copy to My Library'}
       </Button>
     );
   };
@@ -237,7 +239,7 @@ function SharedSetlistContent() {
       </div>
 
       <div className='space-y-2'>
-        {!isLoading && songs.map((song) => (
+        {!isLoading && songs.length > 0 && songs.map((song) => (
           <SongItem key={song.id} song={song} />
         ))}
         {!isLoading && songs.length === 0 && (
@@ -274,7 +276,7 @@ export default function SharedSetlistPage() {
       )}
       <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8 relative'>
         {user && (
-          <Button
+           <Button
             variant='ghost'
             size='icon'
             className='absolute top-4 left-4'

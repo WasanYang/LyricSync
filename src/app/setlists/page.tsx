@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,6 +8,7 @@ import {
   getSetlists,
   deleteSetlist as deleteSetlistFromDb,
   syncSetlist,
+  unsyncSetlist,
   getSyncedSetlistsCount,
   type SetlistWithSyncStatus,
 } from '@/lib/db';
@@ -24,6 +26,7 @@ import {
   RefreshCw,
   PlusCircle,
   Share2,
+  XCircle,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -110,6 +113,29 @@ function SetlistItem({
       setIsSyncing(false);
     }
   };
+
+  const handleUnsync = async () => {
+    if (!user || !setlist.firestoreId) return;
+    setIsSyncing(true);
+    try {
+      await unsyncSetlist(setlist.id, user.uid, setlist.firestoreId);
+      toast({
+        title: 'Unsynced',
+        description: `"${setlist.title}" is now local only.`,
+      });
+      onSetlistChange();
+    } catch (error: any) {
+      console.error('Unsync error:', error);
+      toast({
+        title: 'Unsync Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
 
   const getStatusIcon = () => {
     let icon: React.ReactNode;
@@ -237,17 +263,34 @@ function SetlistItem({
                 </Tooltip>
               ) : (
                 <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant='ghost'
-                      size='icon'
-                      className='h-8 w-8 text-muted-foreground cursor-default hover:bg-transparent'
-                    >
-                      <CheckCircle className='h-4 w-4 text-green-500' />
-                    </Button>
-                  </TooltipTrigger>
+                  <AlertDialog>
+                     <AlertDialogTrigger asChild>
+                        <TooltipTrigger asChild>
+                             <Button
+                              variant='ghost'
+                              size='icon'
+                              className='h-8 w-8 text-green-500 hover:text-destructive'
+                              disabled={isSyncing}
+                            >
+                              {isSyncing ? <RefreshCw className='h-4 w-4 animate-spin' /> : <CheckCircle className='h-4 w-4' />}
+                            </Button>
+                        </TooltipTrigger>
+                     </AlertDialogTrigger>
+                     <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Stop Syncing?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This will remove "{setlist.title}" from the cloud and make it local-only. Other users will no longer be able to access it via shared links.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                           <AlertDialogCancel>Cancel</AlertDialogCancel>
+                           <AlertDialogAction onClick={handleUnsync} className="bg-destructive hover:bg-destructive/90">Unsync</AlertDialogAction>
+                        </AlertDialogFooter>
+                     </AlertDialogContent>
+                   </AlertDialog>
                   <TooltipContent>
-                    <p>Synced</p>
+                    <p>Synced. Click to unsync.</p>
                   </TooltipContent>
                 </Tooltip>
               )
@@ -332,12 +375,6 @@ export default function SetlistsPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace('/welcome');
-    }
-  }, [user, authLoading, router]);
-
   const loadData = async () => {
     if (!user) return;
     setIsLoading(true);
@@ -364,9 +401,17 @@ export default function SetlistsPage() {
   };
 
   useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/welcome');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authLoading]);
+
+  useEffect(() => {
     if (!authLoading && user) {
       loadData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading]);
 
   const handleSyncLimitReached = () => {
