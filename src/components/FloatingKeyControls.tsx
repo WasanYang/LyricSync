@@ -239,11 +239,11 @@ export default function FloatingKeyControls({
       onMouseDown={handleContainerDragMouseDown}
       onTouchStart={handleContainerDragTouchStart}
     >
-      <div className='flex items-center gap-1 mb-1'>
+      <div className='flex items-center '>
         <Button
           variant='ghost'
           size='icon'
-          className='h-6 w-6 bg-transparent text-muted-foreground/60 shadow-sm hover:shadow-md transition-shadow'
+          className='h-6 w-6 bg-transparent text-muted-foreground/60 '
           onClick={onClose}
         >
           <X className='h-3 w-3' />
@@ -257,7 +257,7 @@ export default function FloatingKeyControls({
           checked={showChords}
           onCheckedChange={onToggleChords}
           className={cn(
-            'w-[50px] h-6 transition-all duration-300 shadow-md',
+            'w-[55px] h-6 transition-all duration-300 shadow-md',
             showChords ? 'bg-primary' : 'bg-background/40 hover:bg-muted/80'
           )}
         />
@@ -266,7 +266,7 @@ export default function FloatingKeyControls({
         <Select value={currentKey} onValueChange={onKeyChange}>
           <SelectTrigger
             className={cn(
-              'w-[50px] h-6 text-xs font-bold transition-all duration-300 border-0 bg-background/40 hover:bg-muted/80 shadow-md'
+              'w-[55px] h-6 text-xs font-bold transition-all duration-300 border-0 bg-background/40 hover:bg-muted/80 shadow-md'
             )}
           >
             <SelectValue placeholder='Key' />
@@ -283,6 +283,17 @@ export default function FloatingKeyControls({
             ))}
           </SelectContent>
         </Select>
+
+        {/* Transpose controls */}
+
+        {/* Drag handle */}
+        <span
+          className='h-6 w-[50px] text-muted-foreground/60 transition-all duration-300 cursor-move flex items-center justify-center '
+          onMouseDown={handleDragMouseDown}
+          onTouchStart={handleDragTouchStart}
+        >
+          <Move className='h-3 w-3' />
+        </span>
       </div>
     </div>
   );

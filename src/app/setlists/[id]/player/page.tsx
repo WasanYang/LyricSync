@@ -147,11 +147,11 @@ export default function SetlistPlayerPage() {
                     <p className='font-bold truncate leading-tight text-xs sm:text-sm max-w-[100px] sm:max-w-none'>
                       {nextSong ? nextSong.title : 'End of list'}
                     </p>
-                    {nextSong && (
+                    {/* {nextSong && (
                       <p className='text-xs text-muted-foreground truncate sm:block'>
                         {nextSong.artist}
                       </p>
-                    )}
+                    )} */}
                   </div>
                   {nextSong && (
                     <div className='flex-shrink-0 text-center'>
