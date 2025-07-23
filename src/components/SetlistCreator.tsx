@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { getSongs as getStaticSongs, type Song } from '@/lib/songs';
+import type { Song } from '@/lib/songs';
 import { 
     saveSetlist, 
     getSetlist as getSetlistFromDb, 
@@ -175,23 +175,19 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   const { formState: { isDirty } } = form;
 
   const fetchAllSongs = async () => {
-    const staticSongs = getStaticSongs();
     const localSongs = await getAllSavedSongs(); // Includes custom user songs
     const cloudSongs = await getAllCloudSongs();
     const savedIds = await getAllSavedSongIds();
     
     setSavedSongIds(new Set(savedIds));
 
-    // Combine all songs, giving priority to local, then cloud, then static
+    // Combine all songs, giving priority to local, then cloud
     const songMap = new Map<string, Song>();
     
-    // 1. Add static songs
-    staticSongs.forEach(song => songMap.set(song.id, song));
-    
-    // 2. Add cloud songs (will overwrite static if ID matches)
+    // 1. Add cloud songs
     cloudSongs.forEach(song => songMap.set(song.id, song));
     
-    // 3. Add local songs (will overwrite cloud/static if ID matches)
+    // 2. Add local songs (will overwrite cloud if ID matches, e.g. custom song with same ID as a system song)
     localSongs.forEach(song => songMap.set(song.id, song));
 
     const combinedSongs = Array.from(songMap.values());
@@ -227,8 +223,6 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
              if (songFromAll) return songFromAll;
              
              // Fallback if allSongs isn't populated yet
-             const officialSong = getStaticSongs().find(s => s.id === id);
-             if (officialSong) return officialSong;
              const customSong = await getSongFromDb(id);
              return customSong;
           });
