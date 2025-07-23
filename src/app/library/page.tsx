@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAllSavedSongs, deleteSong as deleteSongFromDb, updateSong, type Song, uploadSongToCloud, getCloudSongById } from '@/lib/db';
 import Header from '@/components/Header';
@@ -37,7 +37,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
   
   const handleDelete = async () => {
     try {
-        await deleteSongFromDb(song.id);
+        await deleteSongFromDb(song.id, song.source === 'user' ? user?.uid : undefined);
         onDelete(song.id, song.source);
         toast({
             title: `Song "${song.title}" deleted.`,
@@ -296,3 +296,5 @@ export default function LibraryPage() {
     </div>
   );
 }
+
+    
