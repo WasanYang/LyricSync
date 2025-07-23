@@ -168,6 +168,12 @@ function SharedSetlistContent() {
                         <Play className="mr-2 h-5 w-5" /> View in Player
                     </Link>
                 </Button>
+            ) : isOwner ? (
+                <Button asChild size="lg">
+                    <Link href={`/setlists/${setlist.id}/player`}>
+                        <Play className="mr-2 h-5 w-5" /> View in Player
+                    </Link>
+                </Button>
             ) : (
                  <Button onClick={handleSaveToLibrary} size="lg" disabled={isSaving || isSaved}>
                     {isSaved ? <Check className="mr-2 h-5 w-5" /> : <Download className="mr-2 h-5 w-5" />}

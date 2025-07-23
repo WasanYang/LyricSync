@@ -154,7 +154,7 @@ function SetlistDetailContent() {
         <div className="flex flex-wrap gap-2 justify-center">
             <Button asChild size="lg">
                 <Link href={`/setlists/${setlist.id}/player`}>
-                    <Play className="mr-2 h-5 w-5" /> Start Setlist
+                    <Play className="mr-2 h-5 w-5" /> View in Player
                 </Link>
             </Button>
             {isOwner && (
