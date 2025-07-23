@@ -1,3 +1,4 @@
+
 // src/components/SetlistCreator.tsx
 'use client';
 
@@ -486,7 +487,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
                             <p className="font-semibold truncate">{song.title}</p>
                             {getSourceIcon(song)}
                           </div>
-                          <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
+                          <p className="text-sm text-muted-foreground truncate">{song.artist} • Key: {song.originalKey || 'N/A'}</p>
                         </div>
                         <Button variant="ghost" size="icon" onClick={() => removeSong(song.id)} className="text-muted-foreground hover:text-destructive h-8 w-8">
                         <Trash2 className="h-4 w-4" />
