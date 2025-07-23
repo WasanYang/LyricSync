@@ -1,13 +1,14 @@
+
 // src/app/admin/songs/page.tsx
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback }from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { getAllCloudSongs, deleteCloudSong } from '@/lib/db';
+import { getPaginatedCloudSongs, deleteCloudSong } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, ListMusic, Search } from 'lucide-react';
+import { PlusCircle, ListMusic, Search, RefreshCw } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
@@ -15,6 +16,9 @@ import { SongList } from '@/components/admin';
 import { EmptyState, SearchInput, LoadingSkeleton } from '@/components/shared';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import type { DocumentSnapshot, DocumentData } from 'firebase/firestore';
+
+const PAGE_SIZE = 15;
 
 export default function AdminSongsPage() {
   const { user, isSuperAdmin, loading: authLoading } = useAuth();
@@ -23,15 +27,35 @@ export default function AdminSongsPage() {
   const [songs, setSongs] = useState<Song[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [lastVisible, setLastVisible] = useState<DocumentSnapshot<DocumentData> | null>(null);
+  const [hasMore, setHasMore] = useState(true);
 
-  async function loadSongs() {
-    setIsLoading(true);
-    const cloudSongs = await getAllCloudSongs();
-    // Filter to only show system songs
-    const systemSongs = cloudSongs.filter((s) => s.source === 'system');
-    setSongs(systemSongs);
-    setIsLoading(false);
-  }
+  const loadSongs = useCallback(async (loadMore = false) => {
+    if (loadMore) {
+        setIsLoadingMore(true);
+    } else {
+        setIsLoading(true);
+    }
+
+    try {
+        const result = await getPaginatedCloudSongs(PAGE_SIZE, loadMore ? lastVisible : undefined);
+        const systemSongs = result.songs.filter((s) => s.source === 'system');
+
+        setSongs(prevSongs => loadMore ? [...prevSongs, ...systemSongs] : systemSongs);
+        setLastVisible(result.lastVisible);
+        setHasMore(result.songs.length === PAGE_SIZE);
+    } catch (error) {
+        toast({
+            title: 'Error',
+            description: 'Could not fetch songs.',
+            variant: 'destructive',
+        });
+    } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
+    }
+  }, [lastVisible, toast]);
 
   useEffect(() => {
     if (!authLoading) {
@@ -41,9 +65,13 @@ export default function AdminSongsPage() {
         loadSongs();
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isSuperAdmin, authLoading, router]);
 
   const filteredSongs = useMemo(() => {
+    if (!searchTerm) {
+        return songs;
+    }
     return songs.filter(
       (song) =>
         song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -95,11 +123,12 @@ export default function AdminSongsPage() {
           <SearchInput
             value={searchTerm}
             onChange={setSearchTerm}
-            placeholder='Search songs...'
+            placeholder='Search loaded songs...'
           />
 
           {isLoading ? (
             <div className='space-y-2'>
+              <Skeleton className='h-16 w-full' />
               <Skeleton className='h-16 w-full' />
               <Skeleton className='h-16 w-full' />
               <Skeleton className='h-16 w-full' />
@@ -118,6 +147,14 @@ export default function AdminSongsPage() {
                   searchTerm={searchTerm}
                 />
               )}
+               {hasMore && !searchTerm && (
+                    <div className="text-center">
+                        <Button onClick={() => loadSongs(true)} disabled={isLoadingMore}>
+                            {isLoadingMore ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : null}
+                            {isLoadingMore ? 'Loading...' : 'Load More'}
+                        </Button>
+                    </div>
+                )}
             </div>
           ) : (
             <EmptyState

@@ -16,7 +16,11 @@ import {
   updateDoc,
   setDoc,
   orderBy,
+  limit,
+  startAfter,
   Timestamp,
+  type DocumentSnapshot,
+  type DocumentData,
 } from 'firebase/firestore';
 
 const DB_NAME = 'WorshipFlowDB';
@@ -177,6 +181,48 @@ export async function uploadSongToCloud(song: Song): Promise<void> {
     }
     throw new Error('Failed to upload song to the cloud.');
   }
+}
+
+export async function getPaginatedCloudSongs(
+    pageSize: number,
+    startAfterDoc?: DocumentSnapshot<DocumentData>
+): Promise<{ songs: Song[], lastVisible: DocumentSnapshot<DocumentData> | null }> {
+    if (!firestoreDb) throw new Error('Firebase is not configured.');
+
+    const songsCollection = collection(firestoreDb, 'songs');
+    let q;
+
+    if (startAfterDoc) {
+        q = query(songsCollection, orderBy('title'), startAfter(startAfterDoc), limit(pageSize));
+    } else {
+        q = query(songsCollection, orderBy('title'), limit(pageSize));
+    }
+
+    const documentSnapshots = await getDocs(q);
+
+    const songs: Song[] = [];
+    documentSnapshots.forEach((doc) => {
+        const data = doc.data();
+        const updatedAt = data.updatedAt;
+        songs.push({
+            id: doc.id,
+            title: data.title,
+            artist: data.artist,
+            lyrics: data.lyrics,
+            originalKey: data.originalKey,
+            bpm: data.bpm,
+            timeSignature: data.timeSignature,
+            userId: data.userId,
+            uploaderName: data.uploaderName,
+            uploaderEmail: data.uploaderEmail,
+            source: data.source,
+            updatedAt: updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
+        } as Song);
+    });
+
+    const lastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
+
+    return { songs, lastVisible: lastVisible || null };
 }
 
 export async function getAllCloudSongs(): Promise<Song[]> {
