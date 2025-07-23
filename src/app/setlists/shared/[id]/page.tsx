@@ -195,9 +195,9 @@ function SharedSetlistContent() {
       return null; // No buttons in admin mode
     }
     if (isOwner) {
-       return (
+       return ( // Should not happen often due to redirect, but as a fallback
         <Button asChild size='lg'>
-          <Link href={`/setlists/shared/${id}/player`}>
+          <Link href={`/setlists/${setlist.id}/player`}>
             <Play className='mr-2 h-5 w-5' /> View in Player
           </Link>
         </Button>
@@ -205,22 +205,30 @@ function SharedSetlistContent() {
     }
     // Not owner (guest or another user)
     return (
-      <Button
-        onClick={handleCopyToLibrary}
-        size='lg'
-        disabled={isSaving || isSaved}
-      >
-        {isSaved ? (
-          <Check className='mr-2 h-5 w-5' />
-        ) : (
-          <Download className='mr-2 h-5 w-5' />
-        )}
-        {isSaving
-          ? 'Copying...'
-          : isSaved
-          ? 'Copied to Library'
-          : 'Copy to My Library'}
-      </Button>
+      <>
+        <Button asChild size='lg'>
+            <Link href={`/setlists/shared/${id}/player`}>
+                <Play className='mr-2 h-5 w-5' /> View in Player
+            </Link>
+        </Button>
+        <Button
+            onClick={handleCopyToLibrary}
+            size='lg'
+            variant="outline"
+            disabled={isSaving || isSaved}
+        >
+            {isSaved ? (
+            <Check className='mr-2 h-5 w-5' />
+            ) : (
+            <Download className='mr-2 h-5 w-5' />
+            )}
+            {isSaving
+            ? 'Copying...'
+            : isSaved
+            ? 'Copied'
+            : 'Copy to Library'}
+        </Button>
+      </>
     );
   };
 
