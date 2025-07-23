@@ -4,9 +4,9 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { type Song, getAllCloudSongs } from '@/lib/db';
+import { type Song, getAllCloudSongs, type Setlist, getPublicSetlists } from '@/lib/db';
 import { Input } from '@/components/ui/input';
-import { SearchIcon, Music2 } from 'lucide-react';
+import { SearchIcon, Music2, ListMusic } from 'lucide-react';
 import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import SongStatusButton from '@/components/SongStatusButton';
 import Header from '@/components/Header';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from '@/components/ui/card';
 
 
 function SongListItem({ song }: { song: Song }) {
@@ -42,6 +43,27 @@ function SongListItem({ song }: { song: Song }) {
   );
 }
 
+function SetlistCard({ setlist }: { setlist: Setlist }) {
+    const songCount = setlist.songIds.length;
+    return (
+        <Link href={`/setlists/shared/${setlist.firestoreId}`} className="block">
+            <Card className="hover:bg-muted/50 transition-colors">
+                <CardContent className="p-4 flex items-center gap-4">
+                    <div className="p-3 bg-muted rounded-md">
+                        <ListMusic className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <div>
+                        <p className="font-semibold font-headline truncate">{setlist.title}</p>
+                        <p className="text-sm text-muted-foreground truncate">
+                            {songCount} {songCount === 1 ? 'song' : 'songs'} • by {setlist.authorName}
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+        </Link>
+    )
+}
+
 function SearchCategory({ title, songs, isLoading }: { title: string; songs: Song[], isLoading?: boolean }) {
     if (isLoading) {
         return (
@@ -55,6 +77,8 @@ function SearchCategory({ title, songs, isLoading }: { title: string; songs: Son
             </section>
         )
     }
+
+    if (songs.length === 0) return null;
 
     return (
         <section>
@@ -73,7 +97,8 @@ export default function SearchPage() {
   const router = useRouter();
 
   const [allSongs, setAllSongs] = useState<Song[]>([]);
-  const [isLoadingSongs, setIsLoadingSongs] = useState(true);
+  const [publicSetlists, setPublicSetlists] = useState<Setlist[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -82,39 +107,47 @@ export default function SearchPage() {
   }, [user, authLoading, router]);
 
   useEffect(() => {
-    const fetchSongs = async () => {
-      setIsLoadingSongs(true);
+    const fetchAllData = async () => {
+      setIsLoading(true);
       try {
-        const cloudSongs = await getAllCloudSongs();
-        // Only show system songs in public search
+        const [cloudSongs, publicLists] = await Promise.all([
+            getAllCloudSongs(),
+            getPublicSetlists()
+        ]);
         const systemSongs = cloudSongs.filter(s => s.source === 'system');
         setAllSongs(systemSongs);
+        setPublicSetlists(publicLists);
       } catch (error) {
-        console.error("Failed to load songs for search:", error);
-        // Optionally show a toast or error message
+        console.error("Failed to load search data:", error);
       } finally {
-        setIsLoadingSongs(false);
+        setIsLoading(false);
       }
     };
     if(user) {
-      fetchSongs();
+      fetchAllData();
     }
   }, [user]);
 
   const filteredSongs = useMemo(() => {
-    if (!searchTerm) {
-      return [];
-    }
+    if (!searchTerm) return [];
     return allSongs.filter(
       (song) =>
         song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         song.artist.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm, allSongs]);
+  
+  const filteredSetlists = useMemo(() => {
+    if (!searchTerm) return [];
+    return publicSetlists.filter(
+      (setlist) =>
+        setlist.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        setlist.authorName?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, publicSetlists]);
 
   const newReleases = useMemo(() => [...allSongs].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 4), [allSongs]);
   const trendingHits = useMemo(() => [...allSongs].sort(() => 0.5 - Math.random()).slice(0, 4), [allSongs]); // Placeholder
-  const forYou = useMemo(() => [...allSongs].sort(() => 0.7 - Math.random()).slice(0, 4), [allSongs]); // Placeholder
 
   if (authLoading || !user) {
     return (
@@ -148,7 +181,7 @@ export default function SearchPage() {
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
             <Input
               type="search"
-              placeholder="Search songs and artists..."
+              placeholder="Search songs, artists, and public setlists..."
               className="pl-10 text-base bg-muted focus-visible:ring-0 focus-visible:ring-offset-0"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -156,30 +189,56 @@ export default function SearchPage() {
           </div>
           
           {searchTerm ? (
-              <section>
-                <div className="flex flex-col space-y-1">
-                  {filteredSongs.length > 0 ? (
-                    filteredSongs.map((song) => (
-                      <SongListItem key={song.id} song={song} />
-                    ))
-                  ) : !isLoadingSongs ? (
+              <div className="space-y-8">
+                 {filteredSetlists.length > 0 && (
+                     <section>
+                         <h2 className="text-xl font-bold font-headline mb-4">Setlists</h2>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             {filteredSetlists.map((setlist) => <SetlistCard key={setlist.firestoreId} setlist={setlist} />)}
+                         </div>
+                     </section>
+                 )}
+                 {filteredSongs.length > 0 && (
+                      <section>
+                         <h2 className="text-xl font-bold font-headline mb-4">Songs</h2>
+                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                            {filteredSongs.map((song) => <SongListItem key={song.id} song={song} />)}
+                         </div>
+                      </section>
+                 )}
+                 {!isLoading && filteredSongs.length === 0 && filteredSetlists.length === 0 && (
                     <div className="text-center py-16">
-                      <p className="text-muted-foreground">No songs found for &quot;{searchTerm}&quot;.</p>
+                      <p className="text-muted-foreground">No results for &quot;{searchTerm}&quot;.</p>
                     </div>
-                  ) : null }
-                </div>
-                {isLoadingSongs && (
+                 )}
+                 {isLoading && (
                     <div className="space-y-2 mt-4">
                         <Skeleton className="h-14 w-full" />
                         <Skeleton className="h-14 w-full" />
                     </div>
                 )}
-              </section>
+              </div>
           ) : (
             <div className="space-y-10">
-                <SearchCategory title="New Releases" songs={newReleases} isLoading={isLoadingSongs} />
-                <SearchCategory title="Trending Hits" songs={trendingHits} isLoading={isLoadingSongs} />
-                <SearchCategory title="For You" songs={forYou} isLoading={isLoadingSongs} />
+                <SearchCategory title="New Releases" songs={newReleases} isLoading={isLoading} />
+                <SearchCategory title="Trending Hits" songs={trendingHits} isLoading={isLoading} />
+                <section>
+                   <h2 className="text-xl font-bold font-headline mb-4">Browse Public Setlists</h2>
+                    {isLoading ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Skeleton className="h-20 w-full" />
+                            <Skeleton className="h-20 w-full" />
+                        </div>
+                    ) : publicSetlists.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             {publicSetlists.slice(0, 4).map((setlist) => <SetlistCard key={setlist.firestoreId} setlist={setlist} />)}
+                        </div>
+                    ) : (
+                        <div className="text-center py-10 border-2 border-dashed rounded-lg">
+                            <p className="text-muted-foreground">No public setlists available yet.</p>
+                        </div>
+                    )}
+                </section>
             </div>
           )}
 

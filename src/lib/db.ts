@@ -34,6 +34,8 @@ export type Setlist = {
   updatedAt?: number; // timestamp for local updates
   isSynced: boolean;
   firestoreId: string | null; // ID from Firestore after syncing
+  isPublic?: boolean; // New field for public setlists
+  authorName?: string; // To display who created the setlist
 };
 
 export type SetlistWithSyncStatus = Setlist & {
@@ -96,8 +98,11 @@ export async function saveSong(song: Song): Promise<void> {
 
 export async function updateSong(song: Song): Promise<void> {
   const db = await getDb();
-  const songToUpdate = { ...song, updatedAt: new Date() };
-  await db.put(SONGS_STORE, songToUpdate);
+  const latestSong = await getCloudSongById(song.id);
+  if (!latestSong) {
+    throw new Error('Could not find the latest version of this song.');
+  }
+  await db.put(SONGS_STORE, { ...latestSong, updatedAt: new Date() });
 }
 
 export async function getSong(id: string): Promise<Song | undefined> {
@@ -312,6 +317,8 @@ export async function getSetlists(
         (firestoreDoc.syncedAt as Timestamp)?.toMillis() || 0;
       results.push({
         ...local,
+        isPublic: firestoreDoc.isPublic || false,
+        authorName: firestoreDoc.authorName || '',
         containsCustomSongs: local.songIds.some((id) =>
           id.startsWith('custom-')
         ),
@@ -325,6 +332,7 @@ export async function getSetlists(
         ...local,
         isSynced: false,
         firestoreId: null,
+        isPublic: false,
         containsCustomSongs: local.songIds.some((id) =>
           id.startsWith('custom-')
         ),
@@ -346,6 +354,8 @@ export async function getSetlists(
       createdAt: firestoreTimestamp,
       updatedAt: firestoreTimestamp,
       isSynced: true,
+      isPublic: firestoreDoc.isPublic || false,
+      authorName: firestoreDoc.authorName || '',
     };
 
     await db.put(SETLISTS_STORE, newLocalSetlist);
@@ -385,6 +395,8 @@ export async function getSetlistByFirestoreId(
         createdAt: syncedAt.toMillis(),
         updatedAt: syncedAt.toMillis(),
         isSynced: true,
+        isPublic: data.isPublic || false,
+        authorName: data.authorName || 'Unknown',
       };
     } else {
       return null;
@@ -428,7 +440,8 @@ export async function getSyncedSetlistsCount(userId: string): Promise<number> {
 
 export async function syncSetlist(
   setlistId: string,
-  userId: string
+  userId: string,
+  authorName?: string
 ): Promise<void> {
   if (!firestoreDb) throw new Error('Firebase is not configured.');
 
@@ -442,11 +455,12 @@ export async function syncSetlist(
     throw new Error('Cannot sync setlists with custom songs.');
   }
 
-  const dataToSync = {
+  const dataToSync: any = {
     title: setlist.title,
     songIds: setlist.songIds,
     userId: setlist.userId,
     syncedAt: serverTimestamp(),
+    authorName: authorName || 'Anonymous',
   };
 
   if (setlist.isSynced && setlist.firestoreId) {
@@ -459,6 +473,8 @@ export async function syncSetlist(
     if (count >= SYNC_LIMIT) {
       throw new Error('SYNC_LIMIT_REACHED');
     }
+    // New setlists are not public by default
+    dataToSync.isPublic = false; 
     const newDocRef = await addDoc(
       collection(firestoreDb, 'setlists'),
       dataToSync
@@ -467,7 +483,6 @@ export async function syncSetlist(
   }
 
   // After syncing, update the local setlist to mark it as synced and set the correct timestamp.
-  // We get the doc from the server again to get the server-generated timestamp.
   const syncedDoc = await getDoc(
     doc(firestoreDb, 'setlists', setlist.firestoreId!)
   );
@@ -481,6 +496,43 @@ export async function syncSetlist(
   setlist.isSynced = true;
   await db.put(SETLISTS_STORE, setlist);
 }
+
+export async function updateSetlistPublicStatus(firestoreId: string, isPublic: boolean): Promise<void> {
+    if (!firestoreDb) throw new Error('Firebase is not configured.');
+    const docRef = doc(firestoreDb, 'setlists', firestoreId);
+    await updateDoc(docRef, { isPublic });
+}
+
+export async function getPublicSetlists(): Promise<Setlist[]> {
+  if (!firestoreDb) throw new Error('Firebase is not configured.');
+
+  const q = query(
+    collection(firestoreDb, 'setlists'),
+    where('isPublic', '==', true),
+    orderBy('title')
+  );
+
+  const querySnapshot = await getDocs(q);
+  const setlists: Setlist[] = [];
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    const syncedAt = data.syncedAt as Timestamp;
+    setlists.push({
+      id: `shared-${doc.id}`, // Use a unique prefix for display
+      firestoreId: doc.id,
+      title: data.title,
+      songIds: data.songIds,
+      userId: data.userId,
+      createdAt: syncedAt?.toMillis() || Date.now(),
+      isSynced: true,
+      isPublic: true,
+      authorName: data.authorName || 'Anonymous',
+    });
+  });
+
+  return setlists;
+}
+
 
 export async function unsyncSetlist(
   localId: string,

@@ -89,7 +89,7 @@ function SetlistItem({
     setIsSyncing(true);
 
     try {
-      await syncSetlist(setlist.id, user.uid);
+      await syncSetlist(setlist.id, user.uid, user.displayName || 'Anonymous');
       toast({
         title: 'Setlist Synced',
         description: `"${setlist.title}" is now available online.`,
@@ -317,6 +317,7 @@ function SetlistItem({
           isOpen={isShareOpen}
           onOpenChange={setIsShareOpen}
           setlist={setlist}
+          onStatusChange={onSetlistChange}
         />
       )}
     </>
@@ -423,7 +424,11 @@ export default function SetlistsPage() {
           </div>
 
           {isLoading ? (
-            <p>Loading setlists...</p>
+            <div className='space-y-3'>
+                <Skeleton className='h-16 w-full' />
+                <Skeleton className='h-16 w-full' />
+                <Skeleton className='h-16 w-full' />
+            </div>
           ) : setlists.length > 0 ? (
             <TooltipProvider>
               <div className='space-y-3'>
