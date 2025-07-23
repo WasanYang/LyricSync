@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 import type { Setlist, saveSetlist as saveSetlistType } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import { getSetlistByFirestoreId, getSong as getSongFromLocalDb, getCloudSongById, saveSetlist } from '@/lib/db';
-import { getSongById as getSongFromStatic } from '@/lib/songs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -73,9 +72,6 @@ function SharedSetlistContent() {
 
     const findSong = async (songId: string): Promise<Song | null> => {
         let song = await getSongFromLocalDb(songId);
-        if (song) return song;
-
-        song = getSongFromStatic(songId);
         if (song) return song;
 
         song = await getCloudSongById(songId);

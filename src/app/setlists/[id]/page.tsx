@@ -89,9 +89,6 @@ function SetlistDetailContent() {
         let song = await getSongFromLocalDb(songId);
         if (song) return song;
 
-        song = getSongFromStatic(songId);
-        if (song) return song;
-
         song = await getCloudSongById(songId);
         return song;
     }
@@ -103,6 +100,12 @@ function SetlistDetailContent() {
                 setIsLoading(true);
                 const loadedSetlist = await getSetlistFromDb(id);
                 if (loadedSetlist) {
+                    // If user is not logged in, but this setlist is not synced, they can't see it.
+                    if (!user && !loadedSetlist.isSynced) {
+                        router.replace('/login');
+                        return;
+                    }
+                    
                     setSetlist(loadedSetlist);
                     const songPromises = loadedSetlist.songIds.map(findSong);
                     const loadedSongs = (await Promise.all(songPromises)).filter(Boolean) as Song[];
@@ -118,7 +121,7 @@ function SetlistDetailContent() {
             }
         }
         loadSetlist();
-    }, [id]);
+    }, [id, user, router]);
 
     const handleDelete = async () => {
         if (!user || !setlist) return;
@@ -145,6 +148,8 @@ function SetlistDetailContent() {
     if (!setlist) {
         return notFound();
     }
+    
+    const isOwner = user && setlist.userId === user.uid;
 
     return (
       <div className="space-y-8">
@@ -159,32 +164,36 @@ function SetlistDetailContent() {
                     <Play className="mr-2 h-5 w-5" /> Start Setlist
                 </Link>
             </Button>
-            <Button asChild variant="outline" size="icon">
-                <Link href={`/setlists/edit/${setlist.id}`}>
-                    <Edit className="h-5 w-5" />
-                    <span className="sr-only">Edit Setlist</span>
-                </Link>
-            </Button>
-            <AlertDialog>
-                <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="icon">
-                        <Trash2 className="h-5 w-5" />
-                        <span className="sr-only">Delete Setlist</span>
+            {isOwner && (
+                <>
+                    <Button asChild variant="outline" size="icon">
+                        <Link href={`/setlists/edit/${setlist.id}`}>
+                            <Edit className="h-5 w-5" />
+                            <span className="sr-only">Edit Setlist</span>
+                        </Link>
                     </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete the setlist &quot;{setlist.title}&quot;.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="icon">
+                                <Trash2 className="h-5 w-5" />
+                                <span className="sr-only">Delete Setlist</span>
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the setlist &quot;{setlist.title}&quot;.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </>
+            )}
         </div>
         
         <div className="space-y-2">
@@ -197,9 +206,10 @@ function SetlistDetailContent() {
 }
 
 export default function SetlistDetailPage() {
+    const { user } = useAuth();
     return (
         <div className="flex-grow flex flex-col">
-            <Header />
+            {user && <Header />}
             <main className="flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8 relative">
                 <Button asChild variant="ghost" size="icon" className="absolute top-4 left-4">
                     <Link href="/setlists">
@@ -209,7 +219,7 @@ export default function SetlistDetailPage() {
                 </Button>
                 <SetlistDetailContent />
             </main>
-            <BottomNavBar />
+            {user && <BottomNavBar />}
         </div>
     );
 }

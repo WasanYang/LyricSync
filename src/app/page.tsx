@@ -1,7 +1,6 @@
 
 'use client'
 
-import { getSongs as getStaticSongs } from '@/lib/songs';
 import { getSetlists, type Setlist, getAllCloudSongs } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import SongCard from '@/components/SongCard';
@@ -106,8 +105,7 @@ function RecentSetlistItem({ setlist }: {setlist: Setlist}) {
 
 function RecommendedSetlistCard({ setlist }: { setlist: Setlist & { description: string } }) {
     const songCount = setlist.songIds.length;
-    const firstSong = getStaticSongs().find(s => s.id === setlist.songIds[0]);
-
+    
     return (
          <Link href={`/setlists/shared/${setlist.id}`} className="block group">
             <div className="group relative space-y-1.5">

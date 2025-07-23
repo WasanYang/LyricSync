@@ -1,3 +1,4 @@
+
 export type LyricLine = {
   measures: number; // Number of measures this line lasts for
   text: string; // Chords can be embedded like [Am]this.
@@ -18,13 +19,3 @@ export type Song = {
   uploaderName?: string;
   uploaderEmail?: string;
 };
-
-const songs: Song[] = [];
-
-export function getSongs(): Song[] {
-  return songs;
-}
-
-export function getSongById(id: string): Song | undefined {
-  return songs.find((song) => song.id === id);
-}
