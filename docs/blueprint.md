@@ -1,4 +1,16 @@
-# **App Name**: Rhythmic Reads
+# **App Name**: WorshipFlow
+
+## Core Features:
+
+- Curated Song Display: Display a curated list of worship songs on the home page with interactive cards.
+- Song Search: Provide a search bar to find songs by title or artist, displaying results as a list or grid.
+- Lyric Display & Control: Show the lyrics of a selected song with auto-scrolling and highlighting of the current line/phrase based on pre-set timestamps. Includes Play/Pause scrolling, Skip, and Restart controls.
+- Chord Display & Transpose: Display chords above lyrics with transpose functionality for different keys.
+- Setlist Management: Create, edit, and manage worship setlists with multiple songs.
+- Lyric Customization: Allow users to customize the lyric display (font size, Dark/Light Mode, highlight modes).
+- Offline Access: Enable offline access to cached songs and their synchronized lyrics.
+- Installable PWA: Allow the app to be installed to the user's home screen/desktop.
+- Enhanced Lyric Layout: A tool which uses an LLM to review a text file to suggest optimal line breaks to use during lyric creation and edit page.e\*\*: Rhythmic Reads
 
 ## Core Features:
 

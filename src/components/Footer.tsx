@@ -31,16 +31,16 @@ export default function Footer() {
               {/* <Music className="h-6 w-6 text-primary" /> */}
               <Image
                 src='/icons/logo.png'
-                alt='Rhythmic Reads'
+                alt='WorshipFlow'
                 width={24}
                 height={24}
               />
               <span className='font-bold font-headline text-lg'>
-                Rhythmic Reads
+                WorshipFlow
               </span>
             </Link>
             <p className='text-sm text-muted-foreground'>
-              Your personal companion for synchronized song lyrics.
+              Your companion for synchronized worship song lyrics and setlists.
             </p>
           </div>
 
@@ -63,7 +63,7 @@ export default function Footer() {
         </div>
         <Separator className='my-8' />
         <div className='text-center text-sm text-muted-foreground'>
-          © {new Date().getFullYear()} Rhythmic Reads. All Rights Reserved.
+          © {new Date().getFullYear()} WorshipFlow. All Rights Reserved.
         </div>
       </div>
     </footer>

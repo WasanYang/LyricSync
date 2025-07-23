@@ -1,11 +1,11 @@
 {
-  "name": "Rhythmic Reads",
-  "short_name": "Rhythmic",
+  "name": "WorshipFlow",
+  "short_name": "WorshipFlow",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F0E6F5",
   "theme_color": "#9400D3",
-  "description": "Your personal companion for synchronized song lyrics.",
+  "description": "Your companion for synchronized worship song lyrics and setlists.",
   "icons": [
     {
       "src": "/icons/logo.png",

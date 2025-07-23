@@ -192,13 +192,11 @@ export default function Header() {
           <Link href='/' className='flex items-center space-x-2'>
             <Image
               src='/icons/logo.png'
-              alt='Rhythmic Reads'
+              alt='WorshipFlow'
               width={24}
               height={24}
             />
-            <span className='font-bold font-headline text-lg'>
-              Rhythmic Reads
-            </span>
+            <span className='font-bold font-headline text-lg'>WorshipFlow</span>
           </Link>
         </div>
 
@@ -219,12 +217,12 @@ export default function Header() {
                   <Link href='/' className='flex items-center space-x-2'>
                     <Image
                       src='/icons/logo.png'
-                      alt='Rhythmic Reads'
+                      alt='WorshipFlow'
                       width={24}
                       height={24}
                     />
                     <span className='font-bold font-headline text-lg'>
-                      Rhythmic Reads
+                      WorshipFlow
                     </span>
                   </Link>
                 </SheetHeader>

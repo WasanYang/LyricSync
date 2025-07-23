@@ -79,7 +79,7 @@ export default function LoginPage() {
       <div className='w-full max-w-sm flex flex-col items-center text-center'>
         <Music className='h-12 w-12 text-primary mb-4' />
         <h1 className='text-2xl font-bold font-headline mb-2'>
-          Welcome to Rhythmic Reads
+          Welcome to WorshipFlow
         </h1>
         <p className='text-muted-foreground mb-8'>
           Sign in to save your setlists and access your songs anywhere.

@@ -19,7 +19,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 
-const DB_NAME = 'RhythmicReadsDB';
+const DB_NAME = 'WorshipFlowDB';
 const DB_VERSION = 2; // Incremented version
 const SONGS_STORE = 'songs';
 const SETLISTS_STORE = 'setlists';
@@ -41,7 +41,7 @@ export type SetlistWithSyncStatus = Setlist & {
   needsSync: boolean; // Local is newer than cloud
 };
 
-interface RhythmicReadsDB extends DBSchema {
+interface WorshipFlowDB extends DBSchema {
   [SONGS_STORE]: {
     key: string;
     value: Song;
@@ -53,11 +53,11 @@ interface RhythmicReadsDB extends DBSchema {
   };
 }
 
-let dbPromise: Promise<IDBPDatabase<RhythmicReadsDB>> | null = null;
+let dbPromise: Promise<IDBPDatabase<WorshipFlowDB>> | null = null;
 
-function getDb(): Promise<IDBPDatabase<RhythmicReadsDB>> {
+function getDb(): Promise<IDBPDatabase<WorshipFlowDB>> {
   if (!dbPromise) {
-    dbPromise = openDB<RhythmicReadsDB>(DB_NAME, DB_VERSION, {
+    dbPromise = openDB<WorshipFlowDB>(DB_NAME, DB_VERSION, {
       upgrade(db, oldVersion, newVersion, transaction) {
         if (oldVersion < 1) {
           if (!db.objectStoreNames.contains(SONGS_STORE)) {
