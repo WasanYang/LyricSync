@@ -165,7 +165,7 @@ function SharedSetlistContent() {
             {!user ? (
                 <Button asChild size="lg">
                     <Link href={`/setlists/shared/${id}/player`}>
-                        <Play className="mr-2 h-5 w-5" /> Go to Player
+                        <Play className="mr-2 h-5 w-5" /> View in Player
                     </Link>
                 </Button>
             ) : isOwner ? (
