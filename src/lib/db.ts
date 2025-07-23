@@ -100,8 +100,30 @@ function getDb(): Promise<IDBPDatabase<LyricSyncDB>> {
 export async function saveSong(song: Song): Promise<void> {
   const db = await getDb();
   const songToSave = { ...song, updatedAt: new Date() };
+
+  // Save to local IndexedDB
   await db.put(SONGS_STORE, songToSave);
+
+  // If it's a user-created song, also save/update it in their Firestore sub-collection
+  if (song.source === 'user' && song.userId && firestoreDb) {
+    try {
+      const userSongRef = doc(
+        firestoreDb,
+        'users',
+        song.userId,
+        'userSongs',
+        song.id
+      );
+      // Use setDoc with merge to create or update
+      await setDoc(userSongRef, { ...song, updatedAt: serverTimestamp() }, { merge: true });
+    } catch (error) {
+      console.error("Error syncing user song to Firestore:", error);
+      // Decide if we should re-throw or just log the error
+      // For now, we'll let the local save succeed and just log the cloud error
+    }
+  }
 }
+
 
 export async function updateSong(song: Song): Promise<void> {
   const db = await getDb();
@@ -109,6 +131,8 @@ export async function updateSong(song: Song): Promise<void> {
   if (!latestSong) {
     throw new Error('Could not find the latest version of this song.');
   }
+  // This function is for updating a locally-cached SYSTEM song.
+  // The main saveSong handles user-created songs.
   await db.put(SONGS_STORE, { ...latestSong, updatedAt: new Date() });
 }
 
@@ -119,8 +143,28 @@ export async function getSong(id: string): Promise<Song | undefined> {
 
 export async function deleteSong(id: string): Promise<void> {
   const db = await getDb();
+  const songToDelete = await db.get(SONGS_STORE, id);
+  
+  if (!songToDelete) {
+      // If not found locally, just return. Maybe it was already deleted.
+      return;
+  }
+
+  // Delete from local IndexedDB
   await db.delete(SONGS_STORE, id);
+
+  // If it was a user-synced song, delete from Firestore sub-collection as well
+  if (songToDelete.source === 'user' && songToDelete.userId && firestoreDb) {
+      try {
+          const userSongRef = doc(firestoreDb, 'users', songToDelete.userId, 'userSongs', id);
+          await deleteDoc(userSongRef);
+      } catch (error) {
+          console.error("Error deleting user song from Firestore:", error);
+          // Optional: handle error, e.g., re-add to local DB or notify user
+      }
+  }
 }
+
 
 export async function isSongSaved(
   id: string
@@ -132,16 +176,18 @@ export async function isSongSaved(
     return { saved: false, needsUpdate: false };
   }
 
-  // Custom songs created by the user don't need updates from the cloud.
+  // For user-created songs, they are "saved" by definition.
+  // Update checks for user songs should be handled differently if they can be edited on other devices.
+  // For now, if it exists locally, it's considered up-to-date.
   if (savedSong.source === 'user') {
     return { saved: true, needsUpdate: false };
   }
 
-  // For system songs, check against the cloud version.
+  // For system songs, check against the cloud version for updates.
   const latestSong = await getCloudSongById(id);
 
-  // If the song doesn't exist in the cloud anymore, it can't be updated.
   if (!latestSong) {
+    // The system song was removed from the cloud.
     return { saved: true, needsUpdate: false };
   }
 
@@ -153,10 +199,38 @@ export async function isSongSaved(
   return { saved: true, needsUpdate: cloudVersionDate > localVersionDate };
 }
 
-export async function getAllSavedSongs(): Promise<Song[]> {
+export async function getAllSavedSongs(userId: string): Promise<Song[]> {
   const db = await getDb();
+
+  // Sync user songs from Firestore to IndexedDB first
+  if (firestoreDb) {
+      const userSongsRef = collection(firestoreDb, "users", userId, "userSongs");
+      const q = query(userSongsRef, orderBy("title"));
+      const querySnapshot = await getDocs(q);
+      
+      const tx = db.transaction(SONGS_STORE, 'readwrite');
+      const store = tx.objectStore(SONGS_STORE);
+      
+      const firestoreWrites = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          const updatedAt = data.updatedAt as Timestamp;
+          const song = {
+              ...data,
+              id: doc.id,
+              updatedAt: updatedAt.toDate(),
+          } as Song;
+          return store.put(song); // put will add or update
+      });
+      
+      await Promise.all(firestoreWrites);
+      await tx.done;
+  }
+  
+  // Return all songs from IndexedDB. This will include system songs
+  // that were downloaded manually and all of the user's own songs.
   return db.getAll(SONGS_STORE);
 }
+
 
 export async function getAllSavedSongIds(): Promise<string[]> {
   const db = await getDb();
@@ -172,6 +246,7 @@ export async function uploadSongToCloud(song: Song): Promise<void> {
   const dataToUpload = {
     ...songData,
     updatedAt: serverTimestamp(), // Use Firestore server timestamp for consistency
+    source: 'system', // Ensure source is 'system' when using this function
   };
 
   try {
@@ -388,10 +463,14 @@ export async function getSetlists(
 
   // 4. Get all setlists (synced + local-only) for the user from local DB
   const finalUserSetlists = await localDb.getAllFromIndex(SETLISTS_STORE, 'by-userId', userId);
+  
+  // 5. Fetch all songs to check source
+  const allLocalSongs = await db.getAll(SONGS_STORE);
+  const songSourceMap = new Map(allLocalSongs.map(s => [s.id, s.source]));
 
-  // 5. Calculate sync status
+  // 6. Calculate sync status
   const results = finalUserSetlists.map(local => {
-    const containsCustomSongs = local.songIds.some(id => id.startsWith('custom-'));
+    const containsCustomSongs = local.songIds.some(id => songSourceMap.get(id) === 'user');
     let needsSync = false;
     if (local.isSynced && local.firestoreId) {
        const firestoreDoc = syncedSetlistsData.find(d => d.firestoreId === local.firestoreId);
@@ -487,9 +566,11 @@ export async function syncSetlist(
 
   if (!setlist) throw new Error('Setlist not found locally.');
   if (setlist.userId !== userId) throw new Error('Unauthorized');
-
-  if (setlist.songIds.some((id) => id.startsWith('custom-'))) {
-    throw new Error('Cannot sync setlists with custom songs.');
+  
+  const allSongs = await db.getAll(SONGS_STORE);
+  const songsInSetlist = setlist.songIds.map(id => allSongs.find(s => s.id === id));
+  if (songsInSetlist.some(s => !s || s.source !== 'system')) {
+     throw new Error('Cannot sync setlists with custom songs.');
   }
 
   const now = serverTimestamp();

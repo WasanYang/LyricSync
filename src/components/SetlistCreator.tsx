@@ -1,3 +1,4 @@
+
 // src/components/SetlistCreator.tsx
 'use client';
 
@@ -175,7 +176,8 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   const { formState: { isDirty } } = form;
 
   const fetchAllSongs = async () => {
-    const localSongs = await getAllSavedSongs(); // Includes custom user songs
+    if (!user) return;
+    const localSongs = await getAllSavedSongs(user.uid); // Includes custom user songs
     const cloudSongs = await getAllCloudSongs();
     const savedIds = await getAllSavedSongIds();
     
@@ -208,6 +210,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   // Fetch all songs on component mount
   useEffect(() => {
     fetchAllSongs();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

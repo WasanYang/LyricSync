@@ -1,3 +1,4 @@
+
 // src/components/SongCreator.tsx
 'use client';
 
@@ -302,18 +303,17 @@ export default function SongCreator() {
         });
       }
     } else {
-      // Regular user saving to local IndexedDB
+      // Regular user saving to local IndexedDB and their userSongs subcollection
       try {
         const localSong = {
           ...newSongData,
-          id: isUpdating ? songId : `custom-${uuidv4()}`,
           source: 'user', // Local custom songs are always from user
           updatedAt: new Date(),
         } as Song;
         await saveSong(localSong);
         toast({
           title: `Saved`,
-          description: `"${localSong.title}" has been saved to your local library.`,
+          description: `"${localSong.title}" has been saved to your library.`,
         });
         if (isUpdating) {
           form.reset(data); // Stay on page and reset dirty state

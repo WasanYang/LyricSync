@@ -28,17 +28,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import SongStatusButton from '@/components/SongStatusButton';
 
-function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (songId: string) => void, onUpdate: (songId: string) => void }) {
+function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (songId: string, source: 'user' | 'system') => void, onUpdate: (songId: string) => void }) {
   const { user, isSuperAdmin } = useAuth();
   const { toast } = useToast();
 
-  const isCustomSong = song.id.startsWith('custom-');
+  const isUserSong = song.source === 'user';
   const isCloudSong = song.source === 'system';
   
   const handleDelete = async () => {
     try {
         await deleteSongFromDb(song.id);
-        onDelete(song.id);
+        onDelete(song.id, song.source);
         toast({
             title: `Song "${song.title}" deleted.`,
         });
@@ -83,10 +83,11 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
     e.preventDefault();
     e.stopPropagation();
     try {
-      await uploadSongToCloud(song);
+      // This function should now probably be reserved for promoting a user song to a system song
+      await uploadSongToCloud({ ...song, source: 'system' });
       toast({
-        title: "Song Uploaded",
-        description: `"${song.title}" has been uploaded to the cloud.`
+        title: "Song Promoted",
+        description: `"${song.title}" has been promoted to a system song.`
       });
       // Optionally, you might want to refresh the list or change the song's state
     } catch (error) {
@@ -137,7 +138,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                 <TooltipContent><p>View in Player</p></TooltipContent>
             </Tooltip>
 
-            {isCustomSong && (
+            {isUserSong && (
                 <>
                     <Tooltip>
                         <TooltipTrigger asChild>
@@ -156,35 +157,36 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                                     <UploadCloud className="h-4 w-4" />
                                 </Button>
                             </TooltipTrigger>
-                            <TooltipContent><p>Upload to Cloud</p></TooltipContent>
+                            <TooltipContent><p>Promote to Cloud</p></TooltipContent>
                         </Tooltip>
                     )}
-                    <Tooltip>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete "{song.title}" from your library.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                        <TooltipContent><p>Delete</p></TooltipContent>
-                    </Tooltip>
                 </>
             )}
             
-            {!isCustomSong && (
+            <Tooltip>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                             <Trash2 className="h-4 w-4" />
+                         </Button>
+                    </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete "{song.title}" from your library {isUserSong ? 'and the cloud' : ''}.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                <TooltipContent><p>Delete</p></TooltipContent>
+            </Tooltip>
+
+            {!isUserSong && (
               <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
                 <SongStatusButton song={song} />
               </div>
@@ -201,24 +203,26 @@ export default function LibraryPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
+  const loadSongs = useCallback(async () => {
+    if (!user) return;
+    setIsLoading(true);
+    const loadedSongs = await getAllSavedSongs(user.uid);
+    setSongs(loadedSongs);
+    setIsLoading(false);
+  }, [user]);
+
   useEffect(() => {
     if (!authLoading && !user) {
       router.replace('/welcome');
     }
   }, [user, authLoading, router]);
 
-  async function loadSongs() {
-    setIsLoading(true);
-    const loadedSongs = await getAllSavedSongs();
-    setSongs(loadedSongs);
-    setIsLoading(false);
-  }
 
   useEffect(() => {
     if (user) {
         loadSongs();
     }
-  }, [user]);
+  }, [user, loadSongs]);
 
   const handleSongDeleted = (deletedId: string) => {
     setSongs(prevSongs => prevSongs.filter(song => song.id !== deletedId));
@@ -280,7 +284,7 @@ export default function LibraryPage() {
             <div className="text-center py-16 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full">
                 <Music className="h-12 w-12 text-muted-foreground mb-4" />
                 <h2 className="text-xl font-headline font-semibold">Your Library is Empty</h2>
-                <p className="text-muted-foreground">You haven't saved any songs for offline use yet.</p>
+                <p className="text-muted-foreground">Create a song or find songs in Search to add to your library.</p>
                 <Button variant="link" asChild>
                     <Link href="/search">Find songs to add</Link>
                 </Button>
