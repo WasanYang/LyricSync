@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { type Song } from '@/lib/songs';
 import { saveSong, updateSong, isSongSaved, getCloudSongById } from '@/lib/db';
-import { Download, Check, ArrowUpCircle } from 'lucide-react';
+import { Download, Check, ArrowDownCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from './ui/skeleton';
@@ -91,7 +91,7 @@ export default function SongStatusButton({ song }: SongStatusButtonProps) {
         className="h-7 w-7 text-blue-500 hover:text-blue-600"
         aria-label="Update song"
       >
-        <ArrowUpCircle className="h-5 w-5" />
+        <ArrowDownCircle className="h-5 w-5" />
       </Button>
     );
   }
