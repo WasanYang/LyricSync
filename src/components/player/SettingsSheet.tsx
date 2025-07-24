@@ -1,3 +1,4 @@
+
 // src/components/player/SettingsSheet.tsx
 'use client';
 
@@ -26,7 +27,6 @@ import { cn } from '@/lib/utils';
 import { ALL_NOTES } from '@/lib/chords';
 
 type HighlightMode = 'line' | 'section' | 'none';
-type FontWeight = 400 | 600 | 700;
 
 interface SettingsSheetProps {
   isOpen: boolean;
@@ -35,10 +35,8 @@ interface SettingsSheetProps {
   currentKey: string;
   fontSize: number;
   highlightMode: HighlightMode;
-  showSectionNavigator: boolean;
-  showKeyControls: boolean;
-  showFloatingControls?: boolean;
-  showFloatingNavigator?: boolean;
+  showFloatingControls: boolean;
+  showFloatingNavigator: boolean;
   theme: 'light' | 'dark';
   bpm: number;
   onToggleChords: () => void;
@@ -47,10 +45,8 @@ interface SettingsSheetProps {
   onKeyChange: (key: string) => void;
   onFontSizeChange: (amount: number) => void;
   onHighlightModeChange: (mode: HighlightMode) => void;
-  onToggleSectionNavigator: () => void;
-  onToggleKeyControls: () => void;
-  onToggleFloatingControls?: () => void;
-  onToggleFloatingNavigator?: () => void;
+  onToggleFloatingControls: () => void;
+  onToggleFloatingNavigator: () => void;
   onToggleTheme: () => void;
   onBpmChange: (bpm: number) => void;
   onResetSettings: () => void;
@@ -69,8 +65,6 @@ export default function SettingsSheet({
   currentKey,
   fontSize,
   highlightMode,
-  showSectionNavigator,
-  showKeyControls,
   showFloatingControls,
   showFloatingNavigator,
   theme,
@@ -81,8 +75,6 @@ export default function SettingsSheet({
   onKeyChange,
   onFontSizeChange,
   onHighlightModeChange,
-  onToggleSectionNavigator,
-  onToggleKeyControls,
   onToggleFloatingControls,
   onToggleFloatingNavigator,
   onToggleTheme,
@@ -209,46 +201,26 @@ export default function SettingsSheet({
                   ))}
                 </RadioGroup>
               </div>
-              {/* <div className='flex items-center justify-between'>
-                <Label htmlFor='show-section-nav'>Navigator</Label>
+              <div className='flex items-center justify-between'>
+                <Label htmlFor='show-floating-controls'>
+                  Floating Controls
+                </Label>
                 <Switch
-                  id='show-section-nav'
-                  checked={showSectionNavigator}
-                  onCheckedChange={onToggleSectionNavigator}
+                  id='show-floating-controls'
+                  checked={showFloatingControls}
+                  onCheckedChange={onToggleFloatingControls}
                 />
-              </div> */}
-              {/* <div className='flex items-center justify-between'>
-                <Label htmlFor='show-key-controls'>Quick Controls</Label>
+              </div>
+              <div className='flex items-center justify-between'>
+                <Label htmlFor='show-floating-navigator'>
+                  Floating Navigator
+                </Label>
                 <Switch
-                  id='show-key-controls'
-                  checked={showKeyControls}
-                  onCheckedChange={onToggleKeyControls}
+                  id='show-floating-navigator'
+                  checked={showFloatingNavigator}
+                  onCheckedChange={onToggleFloatingNavigator}
                 />
-              </div> */}
-              {onToggleFloatingControls && (
-                <div className='flex items-center justify-between'>
-                  <Label htmlFor='show-floating-controls'>
-                    Floating Controls
-                  </Label>
-                  <Switch
-                    id='show-floating-controls'
-                    checked={showFloatingControls}
-                    onCheckedChange={onToggleFloatingControls}
-                  />
-                </div>
-              )}
-              {onToggleFloatingNavigator && (
-                <div className='flex items-center justify-between'>
-                  <Label htmlFor='show-floating-navigator'>
-                    Floating Navigator
-                  </Label>
-                  <Switch
-                    id='show-floating-navigator'
-                    checked={showFloatingNavigator}
-                    onCheckedChange={onToggleFloatingNavigator}
-                  />
-                </div>
-              )}
+              </div>
               <div className='flex items-center justify-between'>
                 <Label htmlFor='dark-mode'>Theme</Label>
                 <Switch

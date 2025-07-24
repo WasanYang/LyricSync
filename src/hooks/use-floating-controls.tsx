@@ -1,40 +1,32 @@
+
 // src/hooks/use-floating-controls.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+
+const LOCAL_STORAGE_KEY = 'floatingKeyControls-visible';
 
 export function useFloatingControls() {
   const [isVisible, setIsVisible] = useState(false);
 
   // Load visibility state from localStorage on mount
   useEffect(() => {
-    const savedVisibility = localStorage.getItem('floatingKeyControls-visible');
-    if (savedVisibility !== null) {
-      setIsVisible(savedVisibility === 'true');
-    }
+    // This code runs only on the client
+    const savedVisibility = localStorage.getItem(LOCAL_STORAGE_KEY);
+    // Default to true if no value is saved yet
+    setIsVisible(savedVisibility !== 'false');
   }, []);
 
-  // Save visibility state to localStorage when it changes
-  useEffect(() => {
-    localStorage.setItem('floatingKeyControls-visible', isVisible.toString());
-  }, [isVisible]);
-
-  const toggleVisibility = () => {
-    setIsVisible((prev) => !prev);
-  };
-
-  const show = () => {
-    setIsVisible(true);
-  };
-
-  const hide = () => {
-    setIsVisible(false);
-  };
+  const toggleVisibility = useCallback(() => {
+    setIsVisible((prev) => {
+      const newState = !prev;
+      localStorage.setItem(LOCAL_STORAGE_KEY, newState.toString());
+      return newState;
+    });
+  }, []);
 
   return {
     isVisible,
     toggleVisibility,
-    show,
-    hide,
   };
 }

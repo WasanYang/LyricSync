@@ -1,3 +1,4 @@
+
 // src/components/LyricPlayer.tsx
 'use client';
 
@@ -11,10 +12,8 @@ import {
 } from 'react';
 import type { Song, LyricLine } from '@/lib/songs';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ALL_NOTES } from '@/lib/chords';
-import { Separator } from './ui/separator';
 import FloatingKeyControls from './FloatingKeyControls';
 import FloatingSectionNavigator from './FloatingSectionNavigator';
 import { useFloatingControls } from '@/hooks/use-floating-controls';
@@ -39,8 +38,6 @@ type State = {
   showChords: boolean;
   chordColor: string;
   highlightMode: HighlightMode;
-  showSectionNavigator: boolean;
-  showKeyControls: boolean;
   bpm: number;
   transpose: number;
 };
@@ -56,8 +53,6 @@ type Action =
   | { type: 'TOGGLE_CHORDS' }
   | { type: 'SET_CHORD_COLOR'; payload: string }
   | { type: 'SET_HIGHLIGHT_MODE'; payload: HighlightMode }
-  | { type: 'TOGGLE_SECTION_NAVIGATOR' }
-  | { type: 'TOGGLE_KEY_CONTROLS' }
   | { type: 'SET_TRANSPOSE'; payload: number }
   | { type: 'TRANSPOSE_UP' }
   | { type: 'TRANSPOSE_DOWN' }
@@ -75,8 +70,6 @@ const initialState: State = {
   showChords: true,
   chordColor: 'hsl(var(--primary))',
   highlightMode: 'line',
-  showSectionNavigator: true,
-  showKeyControls: true,
   bpm: 120,
   transpose: 0,
 };
@@ -119,10 +112,6 @@ function lyricPlayerReducer(state: State, action: Action): State {
       return { ...state, chordColor: action.payload };
     case 'SET_HIGHLIGHT_MODE':
       return { ...state, highlightMode: action.payload };
-    case 'TOGGLE_SECTION_NAVIGATOR':
-      return { ...state, showSectionNavigator: !state.showSectionNavigator };
-    case 'TOGGLE_KEY_CONTROLS':
-      return { ...state, showKeyControls: !state.showKeyControls };
     case 'SET_TRANSPOSE':
       return { ...state, transpose: action.payload };
     case 'TRANSPOSE_UP':
@@ -138,8 +127,6 @@ function lyricPlayerReducer(state: State, action: Action): State {
         ...initialState,
         transpose: state.transpose,
         bpm: action.payload.bpm || initialState.bpm,
-        showSectionNavigator: true, // always show on reset
-        showKeyControls: true,
       };
     default:
       return state;
@@ -240,8 +227,6 @@ export default function LyricPlayer({
     showChords,
     chordColor,
     highlightMode,
-    showSectionNavigator,
-    showKeyControls,
     bpm,
     transpose,
   } = state;
@@ -251,20 +236,10 @@ export default function LyricPlayer({
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // Use floating controls hook for persistent visibility and position
   const floatingControls = useFloatingControls();
-
-  // Use floating navigator hook for persistent visibility and position
   const floatingNavigator = useFloatingNavigator();
 
   const [theme, setThemeState] = useState<'light' | 'dark'>('light');
-
-  const [keyControlsPosition, setKeyControlsPosition] = useState({
-    x: 16,
-    y: 90,
-  });
-
-  const [navPosition, setNavPosition] = useState({ x: 16, y: 300 });
 
   const { processedLyrics, totalDuration } = useMemo(() => {
     let cumulativeTime = 0;
@@ -295,18 +270,11 @@ export default function LyricPlayer({
 
   useEffect(() => {
     dispatch({ type: 'RESET_PLAYER_STATE', payload: { bpm: song.bpm } });
-    if (isSetlistMode) {
-      setNavPosition({ x: 16, y: 450 });
-      setKeyControlsPosition({ x: 16, y: 90 });
-    } else {
-      setNavPosition({ x: 16, y: 300 });
-      setKeyControlsPosition({ x: 16, y: 90 });
-    }
-  }, [song.id, song.bpm, isSetlistMode]);
+  }, [song.id, song.bpm]);
 
   useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains('dark');
-    setThemeState(isDarkMode ? 'dark' : 'light');
+    setThemeState(isDarkMode ? 'dark' : 'dark');
   }, []);
 
   useEffect(() => {
@@ -360,7 +328,6 @@ export default function LyricPlayer({
     };
   }, [isPlaying, currentTime]);
 
-  // This effect updates the current line index based on the current time
   useEffect(() => {
     if (currentTime >= totalDuration && totalDuration > 0) {
       dispatch({ type: 'FINISH' });
@@ -457,7 +424,6 @@ export default function LyricPlayer({
       if (firstPlayableLineIndex !== -1) {
         handleSetLine(firstPlayableLineIndex);
       } else {
-        // Fallback: just jump to the section header time if no playable line is after it
         handleSetLine(
           processedLyrics.findIndex((l) => l.originalIndex === sectionIndex)
         );
@@ -503,18 +469,14 @@ export default function LyricPlayer({
           isSetlistMode={isSetlistMode}
         />
 
-        {/* Floating Section Navigator */}
         <FloatingSectionNavigator
           sections={sections}
           currentSection={currentSection}
           onSectionJump={handleSectionJump}
-          onClose={() => dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })}
-          initialPosition={navPosition}
+          onClose={floatingNavigator.toggleVisibility}
           isVisible={floatingNavigator.isVisible}
-          onToggleVisibility={floatingNavigator.toggleVisibility}
         />
 
-        {/* Floating Chord/Key Controls */}
         <FloatingKeyControls
           showChords={showChords}
           currentKey={currentKey}
@@ -523,10 +485,8 @@ export default function LyricPlayer({
           onKeyChange={handleKeyChange}
           onTransposeUp={() => dispatch({ type: 'TRANSPOSE_UP' })}
           onTransposeDown={() => dispatch({ type: 'TRANSPOSE_DOWN' })}
-          onClose={() => dispatch({ type: 'TOGGLE_KEY_CONTROLS' })}
-          initialPosition={keyControlsPosition}
+          onClose={floatingControls.toggleVisibility}
           isVisible={floatingControls.isVisible}
-          onToggleVisibility={floatingControls.toggleVisibility}
         />
 
         <div
@@ -647,8 +607,6 @@ export default function LyricPlayer({
           currentKey={currentKey}
           fontSize={fontSize}
           highlightMode={highlightMode}
-          showSectionNavigator={showSectionNavigator}
-          showKeyControls={showKeyControls}
           showFloatingControls={floatingControls.isVisible}
           showFloatingNavigator={floatingNavigator.isVisible}
           theme={theme}
@@ -661,10 +619,6 @@ export default function LyricPlayer({
           onHighlightModeChange={(mode: HighlightMode) =>
             dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: mode })
           }
-          onToggleSectionNavigator={() =>
-            dispatch({ type: 'TOGGLE_SECTION_NAVIGATOR' })
-          }
-          onToggleKeyControls={() => dispatch({ type: 'TOGGLE_KEY_CONTROLS' })}
           onToggleFloatingControls={floatingControls.toggleVisibility}
           onToggleFloatingNavigator={floatingNavigator.toggleVisibility}
           onToggleTheme={toggleTheme}
