@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import SongStatusButton from '@/components/SongStatusButton';
-import { ArrowLeft, Play, Music, Share2, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Play, Music, Share2, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
@@ -17,6 +17,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useSafeDataLoader } from '@/hooks/use-offline-storage';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useToast } from '@/hooks/use-toast';
 
 function LoadingSkeleton() {
   return (
@@ -77,8 +78,10 @@ function SongDetailContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLyricsExpanded, setIsLyricsExpanded] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const { user } = useAuth();
   const { loadSong, isOnline } = useSafeDataLoader();
+  const { toast } = useToast();
 
   useEffect(() => {
     async function fetchSong() {
@@ -110,6 +113,25 @@ function SongDetailContent() {
 
     fetchSong();
   }, [id, loadSong, isOnline]);
+  
+  const handleShare = () => {
+    if (!song) return;
+    const shareUrl = `${window.location.origin}/songs/share/${song.id}`;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setIsCopied(true);
+      toast({
+        title: 'Link Copied!',
+        description: 'A shareable link has been copied to your clipboard.',
+      });
+      setTimeout(() => setIsCopied(false), 2000);
+    }, (err) => {
+      toast({
+        title: 'Error',
+        description: 'Could not copy the link.',
+        variant: 'destructive'
+      });
+    });
+  };
 
   const lyricContent = useMemo(() => {
     return song ? getLyricPreview(song.lyrics, isLyricsExpanded) : '';
@@ -178,10 +200,8 @@ function SongDetailContent() {
               {song.source === 'system' && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button asChild variant='outline' size='icon'>
-                        <Link href={`/songs/share/${song.id}`}>
-                          <Share2 className='h-4 w-4' />
-                        </Link>
+                       <Button variant='outline' size='icon' onClick={handleShare}>
+                         {isCopied ? <Check className='h-4 w-4 text-green-500' /> : <Share2 className='h-4 w-4' />}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
