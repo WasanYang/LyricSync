@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -148,19 +147,19 @@ function UserNav() {
             <DropdownMenuSeparator />
             <DropdownMenuLabel>Admin</DropdownMenuLabel>
             <DropdownMenuItem asChild>
-              <Link href='/admin/songs'>
+              <Link href='/dashboard/songs'>
                 <Database className='mr-2 h-4 w-4' />
                 <span>Manage Cloud Songs</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href='/admin/user-uploads'>
+              <Link href='/dashboard/user-uploads'>
                 <Users className='mr-2 h-4 w-4' />
                 <span>User Uploads</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href='/admin/user-setlists'>
+              <Link href='/dashboard/user-setlists'>
                 <ListMusic className='mr-2 h-4 w-4' />
                 <span>User Setlists</span>
               </Link>
@@ -308,7 +307,7 @@ export default function Header() {
                           </p>
                           <SheetClose asChild>
                             <Link
-                              href='/admin/songs'
+                              href='/dashboard/songs'
                               className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                             >
                               <Database className='h-5 w-5' />
@@ -317,7 +316,7 @@ export default function Header() {
                           </SheetClose>
                           <SheetClose asChild>
                             <Link
-                              href='/admin/user-uploads'
+                              href='/dashboard/user-uploads'
                               className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                             >
                               <Users className='h-5 w-5' />
@@ -326,7 +325,7 @@ export default function Header() {
                           </SheetClose>
                           <SheetClose asChild>
                             <Link
-                              href='/admin/user-setlists'
+                              href='/dashboard/user-setlists'
                               className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                             >
                               <ListMusic className='h-5 w-5' />

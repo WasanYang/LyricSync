@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -117,7 +116,10 @@ function SetlistDetailContent({
         setIsLoading(true);
         const loadedSetlist = await getSetlistFromDb(id);
         // Ensure the user viewing this local setlist is the owner
-        if (loadedSetlist && loadedSetlist.userId === user.uid) {
+        if (
+          loadedSetlist &&
+          (loadedSetlist.userId === user.uid || loadedSetlist.isPublic)
+        ) {
           setSetlist(loadedSetlist);
           const songPromises = loadedSetlist.songIds.map(findSong);
           const loadedSongs = (await Promise.all(songPromises)).filter(
@@ -130,17 +132,17 @@ function SetlistDetailContent({
             description: 'Setlist not found in your library.',
             variant: 'destructive',
           });
-          router.replace('/setlists');
+          notFound();
         }
       } catch (err) {
         console.error('Failed to load setlist', err);
-        notFound();
+        return notFound();
       } finally {
         setIsLoading(false);
       }
     }
     loadSetlist();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user, router, toast]);
 
   const handleDelete = async () => {

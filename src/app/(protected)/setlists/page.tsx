@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -153,7 +152,7 @@ function SetlistItem({
   const songCount = setlist.songIds.length;
   const linkHref = isOwner
     ? `/setlists/${setlist.id}`
-    : `/setlists/shared/${setlist.firestoreId}`;
+    : `/shared/setlists/${setlist.firestoreId}`;
 
   return (
     <>

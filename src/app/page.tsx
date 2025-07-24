@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -22,7 +21,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ListMusic, ChevronRight, Music, Users } from 'lucide-react';
+import { ListMusic, ChevronRight, Music, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
@@ -86,7 +85,7 @@ function RecentSetlistItem({ setlist }: { setlist: Setlist }) {
   const songCount = setlist.songIds.length;
   const linkHref = isOwner
     ? `/setlists/${setlist.id}`
-    : `/setlists/shared/${setlist.firestoreId}`;
+    : `/setlists/${setlist.firestoreId}`;
 
   return (
     <Link
@@ -95,29 +94,27 @@ function RecentSetlistItem({ setlist }: { setlist: Setlist }) {
     >
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-3'>
-           {isOwner ? (
-                <ListMusic className='h-5 w-5 text-muted-foreground flex-shrink-0' />
-            ) : (
-                <Users className='h-5 w-5 text-purple-500 flex-shrink-0' />
-            )}
-            <div>
-              <p className='font-semibold font-headline truncate'>
-                {setlist.title}
-              </p>
-              <p className='text-sm text-muted-foreground'>
-                 {isOwner
-                    ? `${songCount} ${songCount === 1 ? 'song' : 'songs'}`
-                    : `By ${setlist.authorName}`
-                 }
-              </p>
-            </div>
+          {isOwner ? (
+            <ListMusic className='h-5 w-5 text-muted-foreground flex-shrink-0' />
+          ) : (
+            <User className='h-5 w-5 text-purple-500 flex-shrink-0' />
+          )}
+          <div>
+            <p className='font-semibold font-headline truncate'>
+              {setlist.title}
+            </p>
+            <p className='text-sm text-muted-foreground'>
+              {isOwner
+                ? `${songCount} ${songCount === 1 ? 'song' : 'songs'}`
+                : `By ${setlist.authorName}`}
+            </p>
+          </div>
         </div>
         <ChevronRight className='h-5 w-5 text-muted-foreground' />
       </div>
     </Link>
   );
 }
-
 
 function RecommendedSetlistCard({
   setlist,
@@ -127,10 +124,7 @@ function RecommendedSetlistCard({
   const songCount = setlist.songIds.length;
 
   return (
-    <Link
-      href={`/setlists/shared/${setlist.firestoreId}`}
-      className='block group'
-    >
+    <Link href={`/setlists/${setlist.firestoreId}`} className='block group'>
       <div className='group relative space-y-1.5'>
         <div className='aspect-square w-full overflow-hidden rounded-md transition-all duration-300 ease-in-out group-hover:shadow-lg group-hover:shadow-primary/20'>
           <Image
@@ -247,7 +241,9 @@ export default function Home() {
       try {
         const publicLists = await getPublicSetlists();
         // Filter out the user's own setlists from recommendations
-        const recommendedSetlists = publicLists.filter(sl => sl.userId !== user.uid);
+        const recommendedSetlists = publicLists.filter(
+          (sl) => sl.userId !== user.uid
+        );
         setPublicSetlists(recommendedSetlists);
       } catch (error) {
         console.error('Failed to load public setlists', error);
@@ -345,53 +341,53 @@ export default function Home() {
 
         {/* Recommended Setlists */}
         {publicSetlists.length > 0 && (
-        <section>
-          <h2 className='text-xl font-headline font-semibold mb-4'>
-            Recommended Setlists
-          </h2>
-          {isLoadingPublicSetlists ? (
-            <div className='flex space-x-4 -ml-4 w-full max-w-full'>
-              <div className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'>
-                <Skeleton className='aspect-square w-full' />
-                <Skeleton className='h-4 w-3/4 mt-2' />
-                <Skeleton className='h-3 w-1/2 mt-1' />
+          <section>
+            <h2 className='text-xl font-headline font-semibold mb-4'>
+              Recommended Setlists
+            </h2>
+            {isLoadingPublicSetlists ? (
+              <div className='flex space-x-4 -ml-4 w-full max-w-full'>
+                <div className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'>
+                  <Skeleton className='aspect-square w-full' />
+                  <Skeleton className='h-4 w-3/4 mt-2' />
+                  <Skeleton className='h-3 w-1/2 mt-1' />
+                </div>
+                <div className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'>
+                  <Skeleton className='aspect-square w-full' />
+                  <Skeleton className='h-4 w-3/4 mt-2' />
+                  <Skeleton className='h-3 w-1/2 mt-1' />
+                </div>
+                <div className='hidden sm:block sm:basis-1/4 md:basis-1/5 pl-4'>
+                  <Skeleton className='aspect-square w-full' />
+                  <Skeleton className='h-4 w-3/4 mt-2' />
+                  <Skeleton className='h-3 w-1/2 mt-1' />
+                </div>
+                <div className='hidden md:block md:basis-1/5 pl-4'>
+                  <Skeleton className='aspect-square w-full' />
+                  <Skeleton className='h-4 w-3/4 mt-2' />
+                  <Skeleton className='h-3 w-1/2 mt-1' />
+                </div>
               </div>
-              <div className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'>
-                <Skeleton className='aspect-square w-full' />
-                <Skeleton className='h-4 w-3/4 mt-2' />
-                <Skeleton className='h-3 w-1/2 mt-1' />
+            ) : (
+              <div className='w-full max-w-full -mr-4'>
+                <Carousel
+                  opts={{ align: 'start', loop: false }}
+                  className='w-full'
+                >
+                  <CarouselContent className='-ml-4'>
+                    {publicSetlists.map((setlist) => (
+                      <CarouselItem
+                        key={setlist.firestoreId}
+                        className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'
+                      >
+                        <RecommendedSetlistCard setlist={setlist} />
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                </Carousel>
               </div>
-              <div className='hidden sm:block sm:basis-1/4 md:basis-1/5 pl-4'>
-                <Skeleton className='aspect-square w-full' />
-                <Skeleton className='h-4 w-3/4 mt-2' />
-                <Skeleton className='h-3 w-1/2 mt-1' />
-              </div>
-              <div className='hidden md:block md:basis-1/5 pl-4'>
-                <Skeleton className='aspect-square w-full' />
-                <Skeleton className='h-4 w-3/4 mt-2' />
-                <Skeleton className='h-3 w-1/2 mt-1' />
-              </div>
-            </div>
-          ) : (
-            <div className='w-full max-w-full -mr-4'>
-              <Carousel
-                opts={{ align: 'start', loop: false }}
-                className='w-full'
-              >
-                <CarouselContent className='-ml-4'>
-                  {publicSetlists.map((setlist) => (
-                    <CarouselItem
-                      key={setlist.firestoreId}
-                      className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'
-                    >
-                      <RecommendedSetlistCard setlist={setlist} />
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-              </Carousel>
-            </div>
-          )}
-        </section>
+            )}
+          </section>
         )}
 
         {/* Recommended Songs */}

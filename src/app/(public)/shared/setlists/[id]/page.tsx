@@ -1,4 +1,3 @@
-
 // src/app/setlists/shared/[id]/page.tsx
 'use client';
 
@@ -105,14 +104,16 @@ function SharedSetlistContent() {
       try {
         setIsLoading(true);
         const loadedSetlist = await getSetlistByFirestoreId(id);
-        
+
         if (user && loadedSetlist) {
-            const alreadySaved = await getSetlist(loadedSetlist.firestoreId || '');
-            if (alreadySaved && alreadySaved.source === 'saved') {
-                setIsSaved(true);
-            }
+          const alreadySaved = await getSetlist(
+            loadedSetlist.firestoreId || ''
+          );
+          if (alreadySaved && alreadySaved.source === 'saved') {
+            setIsSaved(true);
+          }
         }
-        
+
         if (loadedSetlist) {
           setSetlist(loadedSetlist);
 
@@ -228,29 +229,31 @@ function SharedSetlistContent() {
       <TooltipProvider>
         <div className='flex items-center gap-2'>
           <Button asChild size='lg'>
-            <Link href={`/setlists/shared/${id}/player`}>
+            <Link href={`/shared/setlists/${id}/player`}>
               <Play className='mr-2 h-5 w-5' /> View in Player
             </Link>
           </Button>
           {!isAnonymous && (
             <Tooltip>
               <TooltipTrigger asChild>
-                  <Button
-                    size='icon'
-                    variant='outline'
-                    onClick={handleSaveToLibrary}
-                    disabled={isSaving || isSaved}
-                    aria-label='Save to My Setlists'
-                  >
-                    {isSaved ? (
-                      <Check className='h-5 w-5 text-green-500' />
-                    ) : (
-                      <Library className='h-5 w-5' />
-                    )}
-                  </Button>
+                <Button
+                  size='icon'
+                  variant='outline'
+                  onClick={handleSaveToLibrary}
+                  disabled={isSaving || isSaved}
+                  aria-label='Save to My Setlists'
+                >
+                  {isSaved ? (
+                    <Check className='h-5 w-5 text-green-500' />
+                  ) : (
+                    <Library className='h-5 w-5' />
+                  )}
+                </Button>
               </TooltipTrigger>
               <TooltipContent>
-                  <p>{isSaved ? 'Saved in your setlists' : 'Save to My Setlists'}</p>
+                <p>
+                  {isSaved ? 'Saved in your setlists' : 'Save to My Setlists'}
+                </p>
               </TooltipContent>
             </Tooltip>
           )}

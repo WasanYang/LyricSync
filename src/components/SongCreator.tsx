@@ -1,4 +1,3 @@
-
 // src/components/SongCreator.tsx
 'use client';
 
@@ -48,20 +47,25 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import LyricPlayer from './LyricPlayer';
-import {
-  Eye,
-  Save,
-  Database,
-  ArrowLeft,
-  Expand,
-  LogIn,
-} from 'lucide-react';
+import { Eye, Save, Database, ArrowLeft, Expand, LogIn } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { LyricsHelpDialog } from './LyricsHelpDialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
-import { Drawer, DrawerContent, DrawerTrigger, DrawerHeader, DrawerTitle } from './ui/drawer';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './ui/dialog';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTrigger,
+  DrawerHeader,
+  DrawerTitle,
+} from './ui/drawer';
 import Link from 'next/link';
 
 const songFormSchema = z.object({
@@ -225,17 +229,17 @@ export default function SongCreator() {
               description: 'The requested song could not be found.',
               variant: 'destructive',
             });
-            router.push(isCloudMode ? '/admin/songs' : '/library');
+            router.push(isCloudMode ? '/dashboard/songs' : '/library');
           }
         } catch (error) {
-           toast({
+          toast({
             title: 'Error loading song',
             description: 'There was a problem fetching the song data.',
             variant: 'destructive',
           });
-          console.error("Failed to fetch song:", error);
+          console.error('Failed to fetch song:', error);
         } finally {
-            setIsLoading(false);
+          setIsLoading(false);
         }
       };
       fetchSong();
@@ -270,10 +274,10 @@ export default function SongCreator() {
       toast({
         title: 'Please Sign In',
         description: 'You need to be signed in to create a song.',
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
-    };
+    }
 
     const isCloudAction = isCloudMode && isSuperAdmin;
     const isUpdating = !!songId;
@@ -302,7 +306,7 @@ export default function SongCreator() {
         if (isUpdating) {
           form.reset(data); // Stay on page and reset dirty state
         } else {
-          router.push('/admin/songs'); // Go back to list on creation
+          router.push('/dashboard/songs'); // Go back to list on creation
         }
       } catch (error) {
         toast({
@@ -347,25 +351,27 @@ export default function SongCreator() {
   if (isLoading) {
     return <LoadingScreen />;
   }
-  
+
   if (user && user.isAnonymous) {
-      return (
-        <div className='flex flex-col h-full items-center justify-center p-4 text-center'>
-            <LogIn className="h-12 w-12 text-muted-foreground mb-4" />
-            <h2 className="text-xl font-headline font-semibold">Please Sign In</h2>
-            <p className="text-muted-foreground">You need to sign in to create a custom song.</p>
-            <Button variant="link" asChild className="mt-2">
-                <Link href="/login">Sign In</Link>
-            </Button>
-        </div>
-      )
+    return (
+      <div className='flex flex-col h-full items-center justify-center p-4 text-center'>
+        <LogIn className='h-12 w-12 text-muted-foreground mb-4' />
+        <h2 className='text-xl font-headline font-semibold'>Please Sign In</h2>
+        <p className='text-muted-foreground'>
+          You need to sign in to create a custom song.
+        </p>
+        <Button variant='link' asChild className='mt-2'>
+          <Link href='/login'>Sign In</Link>
+        </Button>
+      </div>
+    );
   }
 
   const getPageTitle = () => {
     if (isSuperAdmin && isCloudMode) {
       return songId ? 'Edit Cloud Song' : 'Create Cloud Song';
     }
-    return songId ? 'Edit Song' : 'Create Custom Song';
+    return songId ? 'Edit Song' : 'Add New Song';
   };
 
   const getSubmitButton = () => {
@@ -423,7 +429,7 @@ export default function SongCreator() {
   };
 
   return (
-    <div className="relative h-screen flex flex-col">
+    <div className='relative h-screen flex flex-col'>
       <Form {...form}>
         <div className='flex flex-col h-full'>
           <header className='flex-shrink-0 p-4 border-b bg-background flex items-center justify-between gap-4 z-10'>
@@ -495,7 +501,10 @@ export default function SongCreator() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Original Key</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder='Select a key' />
@@ -539,7 +548,10 @@ export default function SongCreator() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Time Signature</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder='Select a time signature' />
@@ -565,42 +577,46 @@ export default function SongCreator() {
                 render={({ field }) => (
                   <FormItem className='flex flex-col flex-grow'>
                     <div className='flex items-center justify-between gap-2 mb-2'>
-                        <FormLabel>Lyrics &amp; Chords</FormLabel>
-                        <div className='flex items-center gap-1'>
-                            <LyricsHelpDialog />
-                             <Drawer>
-                                <DrawerTrigger asChild>
-                                    <Button
-                                        type='button'
-                                        variant='ghost'
-                                        size='icon'
-                                        className={cn('h-5 w-5', 'text-muted-foreground')}
-                                    >
-                                        <Expand className='h-4 w-4'/>
-                                    </Button>
-                                </DrawerTrigger>
-                                <DrawerContent className="h-[70vh]">
-                                     <DrawerHeader>
-                                        <DrawerTitle>Edit Lyrics &amp; Chords</DrawerTitle>
-                                    </DrawerHeader>
-                                    <div className="p-4 flex-grow">
-                                        <FormControl>
-                                            <Textarea
-                                                placeholder='4 | [C]Lyrics for the first four measures...'
-                                                className='text-sm font-mono resize-none h-full'
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                    </div>
-                                </DrawerContent>
-                            </Drawer>
-                        </div>
+                      <FormLabel>Lyrics &amp; Chords</FormLabel>
+                      <div className='flex items-center gap-1'>
+                        <LyricsHelpDialog />
+                        <Drawer>
+                          <DrawerTrigger asChild>
+                            <Button
+                              type='button'
+                              variant='ghost'
+                              size='icon'
+                              className={cn('h-5 w-5', 'text-muted-foreground')}
+                            >
+                              <Expand className='h-4 w-4' />
+                            </Button>
+                          </DrawerTrigger>
+                          <DrawerContent className='h-[70vh]'>
+                            <DrawerHeader>
+                              <DrawerTitle>
+                                Edit Lyrics &amp; Chords
+                              </DrawerTitle>
+                            </DrawerHeader>
+                            <div className='p-4 flex-grow'>
+                              <FormControl>
+                                <Textarea
+                                  placeholder='4 | [C]Lyrics for the first four measures...'
+                                  className='text-sm font-mono resize-none h-full'
+                                  {...field}
+                                />
+                              </FormControl>
+                            </div>
+                          </DrawerContent>
+                        </Drawer>
+                      </div>
                     </div>
                     <FormControl>
                       <Textarea
                         ref={textareaRef}
                         placeholder='4 | [C]Lyrics for the first four measures...'
-                        className={cn('text-sm font-mono resize-none overflow-y-auto flex-grow min-h-[12rem]')}
+                        className={cn(
+                          'text-sm font-mono resize-none overflow-y-auto flex-grow min-h-[12rem]'
+                        )}
                         onInput={(e) => adjustTextareaHeight(e.currentTarget)}
                         {...field}
                       />

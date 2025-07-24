@@ -1,4 +1,3 @@
-
 'use client';
 
 import { getSong as getSongFromDb, getCloudSongById } from '@/lib/db';
@@ -9,14 +8,27 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import SongStatusButton from '@/components/SongStatusButton';
-import { ArrowLeft, Play, Music, Share2, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import {
+  ArrowLeft,
+  Play,
+  Music,
+  Share2,
+  ChevronDown,
+  ChevronUp,
+  Check,
+} from 'lucide-react';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import { useAuth } from '@/context/AuthContext';
 import { useSafeDataLoader } from '@/hooks/use-offline-storage';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 
 function LoadingSkeleton() {
@@ -49,26 +61,27 @@ const parseLyrics = (line: string) => {
 };
 
 const getLyricPreview = (lyrics: LyricLine[], isExpanded: boolean) => {
-    let content = '';
-    let lineCount = 0;
-    const maxLines = isExpanded ? lyrics.length : 4;
+  let content = '';
+  let lineCount = 0;
+  const maxLines = isExpanded ? lyrics.length : 4;
 
-    for (const line of lyrics) {
-        if (line.text.startsWith('(')) { // Keep section headers
-             content += `${line.text}\n`;
-             continue;
-        }
-        const textOnly = parseLyrics(line.text);
-        if (textOnly) {
-            content += textOnly + '\n';
-            lineCount++;
-            if (lineCount >= maxLines) {
-                 if (!isExpanded) content += '...';
-                 break;
-            }
-        }
+  for (const line of lyrics) {
+    if (line.text.startsWith('(')) {
+      // Keep section headers
+      content += `${line.text}\n`;
+      continue;
     }
-    return content.trim();
+    const textOnly = parseLyrics(line.text);
+    if (textOnly) {
+      content += textOnly + '\n';
+      lineCount++;
+      if (lineCount >= maxLines) {
+        if (!isExpanded) content += '...';
+        break;
+      }
+    }
+  }
+  return content.trim();
 };
 
 function SongDetailContent() {
@@ -113,24 +126,27 @@ function SongDetailContent() {
 
     fetchSong();
   }, [id, loadSong, isOnline]);
-  
+
   const handleShare = () => {
     if (!song) return;
-    const shareUrl = `${window.location.origin}/songs/share/${song.id}`;
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      setIsCopied(true);
-      toast({
-        title: 'Link Copied!',
-        description: 'A shareable link has been copied to your clipboard.',
-      });
-      setTimeout(() => setIsCopied(false), 2000);
-    }, (err) => {
-      toast({
-        title: 'Error',
-        description: 'Could not copy the link.',
-        variant: 'destructive'
-      });
-    });
+    const shareUrl = `${window.location.origin}/shared/song/${song.id}`;
+    navigator.clipboard.writeText(shareUrl).then(
+      () => {
+        setIsCopied(true);
+        toast({
+          title: 'Link Copied!',
+          description: 'A shareable link has been copied to your clipboard.',
+        });
+        setTimeout(() => setIsCopied(false), 1000);
+      },
+      (err) => {
+        toast({
+          title: 'Error',
+          description: 'Could not copy the link.',
+          variant: 'destructive',
+        });
+      }
+    );
   };
 
   const lyricContent = useMemo(() => {
@@ -198,16 +214,20 @@ function SongDetailContent() {
               </Button>
               {user && <SongStatusButton song={song} />}
               {song.source === 'system' && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                       <Button variant='outline' size='icon' onClick={handleShare}>
-                         {isCopied ? <Check className='h-4 w-4 text-green-500' /> : <Share2 className='h-4 w-4' />}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Share Song</p>
-                    </TooltipContent>
-                  </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant='outline' size='icon' onClick={handleShare}>
+                      {isCopied ? (
+                        <Check className='h-4 w-4 text-green-500' />
+                      ) : (
+                        <Share2 className='h-4 w-4' />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Share Song</p>
+                  </TooltipContent>
+                </Tooltip>
               )}
             </div>
           </TooltipProvider>
@@ -218,20 +238,23 @@ function SongDetailContent() {
         <div className='whitespace-pre-wrap rounded-lg bg-muted/50 p-4 font-body text-muted-foreground'>
           {lyricContent}
         </div>
-        <div className="flex justify-center">
-            <Button variant="link" onClick={() => setIsLyricsExpanded(!isLyricsExpanded)}>
-                {isLyricsExpanded ? (
-                    <>
-                        <ChevronUp className="mr-2 h-4 w-4" />
-                        Show Less
-                    </>
-                ) : (
-                    <>
-                        <ChevronDown className="mr-2 h-4 w-4" />
-                        View More
-                    </>
-                )}
-            </Button>
+        <div className='flex justify-center'>
+          <Button
+            variant='link'
+            onClick={() => setIsLyricsExpanded(!isLyricsExpanded)}
+          >
+            {isLyricsExpanded ? (
+              <>
+                <ChevronUp className='mr-2 h-4 w-4' />
+                Show Less
+              </>
+            ) : (
+              <>
+                <ChevronDown className='mr-2 h-4 w-4' />
+                View More
+              </>
+            )}
+          </Button>
         </div>
       </div>
     </div>

@@ -1,4 +1,3 @@
-
 // src/lib/db.ts
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Song } from './songs';
@@ -338,8 +337,7 @@ export async function getPaginatedCloudSongs(
     } as Song);
   });
 
-  const lastVisible =
-    documentSnapshots.docs[documentSnapshots.docs.length - 1];
+  const lastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
 
   return { songs, lastVisible: lastVisible || null };
 }
@@ -690,10 +688,13 @@ export async function syncSetlist(
     );
     firestoreId = newDocRef.id;
     // Create reference in user's sub-collection
-    await setDoc(doc(firestoreDb, 'users', userId, 'userSetlists', firestoreId), {
-      title: setlist.title,
-      syncedAt: now,
-    });
+    await setDoc(
+      doc(firestoreDb, 'users', userId, 'userSetlists', firestoreId),
+      {
+        title: setlist.title,
+        syncedAt: now,
+      }
+    );
   }
 
   setlist.firestoreId = firestoreId;
