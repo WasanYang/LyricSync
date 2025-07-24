@@ -18,7 +18,6 @@ interface FloatingSectionNavigatorProps {
   currentSection: Section | null | undefined;
   onSectionJump: (sectionIndex: number) => void;
   onClose: () => void;
-  initialPosition?: { x: number; y: number };
   isVisible?: boolean;
   onToggleVisibility?: () => void;
 }
@@ -28,13 +27,14 @@ export default function FloatingSectionNavigator({
   currentSection,
   onSectionJump,
   onClose,
-  initialPosition = { x: 16, y: 300 },
   isVisible = true,
   onToggleVisibility,
 }: FloatingSectionNavigatorProps) {
   const navigatorRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState(initialPosition);
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(
+    null
+  );
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   // Load position from localStorage on mount
@@ -48,18 +48,21 @@ export default function FloatingSectionNavigator({
         setPosition(parsedPosition);
       } catch (error) {
         console.warn('Failed to parse saved position:', error);
-        setPosition(initialPosition);
       }
+    } else {
+      // Set initial position if nothing is saved
+      setPosition({ x: 16, y: 300 });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Save position to localStorage when position changes
   useEffect(() => {
-    localStorage.setItem(
-      'floatingSectionNavigator-position',
-      JSON.stringify(position)
-    );
+    if (position) {
+      localStorage.setItem(
+        'floatingSectionNavigator-position',
+        JSON.stringify(position)
+      );
+    }
   }, [position]);
 
   const handleDragMouseDown = useCallback(
@@ -234,8 +237,8 @@ export default function FloatingSectionNavigator({
     }
   };
 
-  // Don't render if no sections or not visible
-  if (!sections || sections.length === 0 || !isVisible) {
+  // Don't render if no sections, not visible, or position not set yet
+  if (!sections || sections.length === 0 || !isVisible || !position) {
     return null;
   }
 
