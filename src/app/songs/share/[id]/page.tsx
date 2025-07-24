@@ -118,15 +118,11 @@ const LyricLineDisplay = ({
 
 function SharedSongContent() {
   const params = useParams();
-  const { toast } = useToast();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const [song, setSong] = useState<Song | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCopied, setIsCopied] = useState(false);
   const [showChords, setShowChords] = useState(true);
-
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   useEffect(() => {
     async function loadSong() {
@@ -148,26 +144,6 @@ function SharedSongContent() {
     }
     loadSong();
   }, [id]);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(shareUrl).then(
-      () => {
-        setIsCopied(true);
-        toast({
-          title: 'Link Copied!',
-          description: 'The shareable link has been copied to your clipboard.',
-        });
-        setTimeout(() => setIsCopied(false), 2000);
-      },
-      (err) => {
-        toast({
-          title: 'Error',
-          description: 'Could not copy the link.',
-          variant: 'destructive',
-        });
-      }
-    );
-  };
 
   if (isLoading) {
     return <LoadingSkeleton />;
@@ -205,25 +181,6 @@ function SharedSongContent() {
                 <Music className='mr-2 h-4 w-4' /> Open in Player
               </Link>
             </Button>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={handleCopy}
-                  variant='outline'
-                  size='icon'
-                  aria-label='Copy share link'
-                >
-                  {isCopied ? (
-                    <Check className='h-4 w-4 text-green-500' />
-                  ) : (
-                    <Share2 className='h-4 w-4' />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Copy Link</p>
-              </TooltipContent>
-            </Tooltip>
           </div>
           <div className='flex items-center space-x-2 p-2 rounded-lg bg-muted/50'>
             <Tooltip>
