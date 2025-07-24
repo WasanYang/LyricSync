@@ -1,4 +1,3 @@
-
 // src/components/SetlistCreator.tsx
 'use client';
 
@@ -313,8 +312,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
 
     const existingSetlist = isEditing ? await getSetlistFromDb(setlistId) : null;
     
-    try {
-      await saveSetlist({
+    const newSetlist = {
         id: existingSetlist?.id || uuidv4(),
         firestoreId: existingSetlist?.firestoreId || null,
         isSynced: existingSetlist?.isSynced || false,
@@ -323,21 +321,24 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
         title: data.title,
         songIds: selectedSongs.map(s => s.id),
         userId: user.uid,
-      });
+        source: existingSetlist?.source || 'owner',
+        authorName: existingSetlist?.authorName || user.displayName,
+    };
+
+    try {
+      await saveSetlist(newSetlist);
       
       toast({
         title: `Setlist ${isEditing ? 'Updated' : 'Saved'}`,
-        description: `"${data.title}" has been saved.`,
+        description: `"${data.title}" has been successfully saved.`,
       });
 
       if (!isEditing) {
-        form.reset();
         router.push('/setlists');
       } else {
         // After saving, reset the form state with the new data
         // This marks the form as not dirty
-        form.reset(data);
-        setSelectedSongs(selectedSongs); // Re-set songs to keep them in the form
+        form.reset({ title: newSetlist.title });
       }
 
     } catch (error) {
