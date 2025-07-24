@@ -18,6 +18,7 @@ import FloatingKeyControls from './FloatingKeyControls';
 import FloatingSectionNavigator from './FloatingSectionNavigator';
 import { useFloatingControls } from '@/hooks/use-floating-controls';
 import { useFloatingNavigator } from '@/hooks/use-floating-navigator';
+import { useTheme } from 'next-themes';
 import {
   PlayerHeader,
   PlayerControls,
@@ -239,7 +240,7 @@ export default function LyricPlayer({
   const floatingControls = useFloatingControls();
   const floatingNavigator = useFloatingNavigator();
 
-  const [theme, setThemeState] = useState<'light' | 'dark'>('light');
+  const { theme, setTheme } = useTheme();
 
   const { processedLyrics, totalDuration } = useMemo(() => {
     let cumulativeTime = 0;
@@ -272,19 +273,8 @@ export default function LyricPlayer({
     dispatch({ type: 'RESET_PLAYER_STATE', payload: { bpm: song.bpm } });
   }, [song.id, song.bpm]);
 
-  useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    setThemeState(isDarkMode ? 'dark' : 'dark');
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.classList[theme === 'dark' ? 'add' : 'remove'](
-      'dark'
-    );
-  }, [theme]);
-
   const toggleTheme = () => {
-    setThemeState((prevTheme) => (prevTheme === 'dark' ? 'light' : 'dark'));
+    setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
   const sections = useMemo(() => {
@@ -475,6 +465,7 @@ export default function LyricPlayer({
           onSectionJump={handleSectionJump}
           onClose={floatingNavigator.toggleVisibility}
           isVisible={floatingNavigator.isVisible}
+          onToggleVisibility={floatingNavigator.toggleVisibility}
         />
 
         <FloatingKeyControls
@@ -487,6 +478,7 @@ export default function LyricPlayer({
           onTransposeDown={() => dispatch({ type: 'TRANSPOSE_DOWN' })}
           onClose={floatingControls.toggleVisibility}
           isVisible={floatingControls.isVisible}
+          onToggleVisibility={floatingControls.toggleVisibility}
         />
 
         <div
@@ -609,7 +601,7 @@ export default function LyricPlayer({
           highlightMode={highlightMode}
           showFloatingControls={floatingControls.isVisible}
           showFloatingNavigator={floatingNavigator.isVisible}
-          theme={theme}
+          theme={theme || 'light'}
           bpm={bpm}
           onToggleChords={() => dispatch({ type: 'TOGGLE_CHORDS' })}
           onTransposeDown={() => dispatch({ type: 'TRANSPOSE_DOWN' })}

@@ -37,7 +37,7 @@ interface SettingsSheetProps {
   highlightMode: HighlightMode;
   showFloatingControls: boolean;
   showFloatingNavigator: boolean;
-  theme: 'light' | 'dark';
+  theme: string;
   bpm: number;
   onToggleChords: () => void;
   onTransposeDown: () => void;
