@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -264,25 +265,29 @@ export default function Header() {
                       </SheetClose>
                     ))}
                   </nav>
-                  <Separator />
-                  <nav className='flex flex-col space-y-2'>
-                    {mobileOnlyLinks.map((link) => (
-                      <SheetClose asChild key={link.href}>
-                        <Link
-                          href={link.href}
-                          className={cn(
-                            'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
-                            pathname.startsWith(link.href)
-                              ? 'text-primary'
-                              : 'text-muted-foreground'
-                          )}
-                        >
-                          <link.icon className='h-5 w-5' />
-                          <span>{link.label}</span>
-                        </Link>
-                      </SheetClose>
-                    ))}
-                  </nav>
+                  {user && !user.isAnonymous && (
+                    <>
+                      <Separator />
+                      <nav className='flex flex-col space-y-2'>
+                        {mobileOnlyLinks.map((link) => (
+                          <SheetClose asChild key={link.href}>
+                            <Link
+                              href={link.href}
+                              className={cn(
+                                'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
+                                pathname.startsWith(link.href)
+                                  ? 'text-primary'
+                                  : 'text-muted-foreground'
+                              )}
+                            >
+                              <link.icon className='h-5 w-5' />
+                              <span>{link.label}</span>
+                            </Link>
+                          </SheetClose>
+                        ))}
+                      </nav>
+                    </>
+                  )}
                   <Separator />
                   {user ? (
                     <>

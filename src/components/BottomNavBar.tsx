@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -6,8 +7,9 @@ import { usePathname } from 'next/navigation';
 import { HomeIcon, SearchIcon, Library } from '@/components/NavIcons';
 import { cn } from '@/lib/utils';
 import { ListMusic } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
-const navLinks = [
+const allNavLinks = [
   { href: '/', label: 'Home', icon: HomeIcon, isCustom: true },
   { href: '/search', label: 'Search', icon: SearchIcon, isCustom: true },
   { href: '/library', label: 'Library', icon: 'logo', isCustom: true }, // Special case for logo
@@ -16,6 +18,17 @@ const navLinks = [
 
 export default function BottomNavBar() {
   const pathname = usePathname();
+  const { user } = useAuth();
+
+  const navLinks = user?.isAnonymous
+    ? allNavLinks.filter(
+        (link) => link.label !== 'Library' && link.label !== 'Setlists'
+      )
+    : allNavLinks;
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <footer className='fixed bottom-0 left-0 right-0 z-50 border-t bg-background/80 backdrop-blur-sm supports-[backdrop-filter]:bg-background/50 md:hidden'>
