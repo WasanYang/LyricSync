@@ -1,3 +1,4 @@
+
 'use client';
 
 import { getSong as getSongFromDb, getCloudSongById } from '@/lib/db';
@@ -8,13 +9,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import SongStatusButton from '@/components/SongStatusButton';
-import { ArrowLeft, Play, Music } from 'lucide-react';
+import { ArrowLeft, Play, Music, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import { useAuth } from '@/context/AuthContext';
 import { useSafeDataLoader } from '@/hooks/use-offline-storage';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 function LoadingSkeleton() {
   return (
@@ -156,21 +158,30 @@ function SongDetailContent() {
             {song.bpm && <span>BPM: {song.bpm}</span>}
             {song.timeSignature && <span>Time: {song.timeSignature}</span>}
           </div>
-          <div className='flex items-center justify-center gap-3 pt-4 sm:justify-start'>
-            <Button asChild size='lg'>
-              <Link href={`/lyrics/${song.id}/player`}>
-                <Play className='mr-2 h-5 w-5' /> Start Session
-              </Link>
-            </Button>
-            {user && <SongStatusButton song={song} />}
-            {song.source === 'system' && (
-              <Button asChild variant='outline' size='icon'>
-                <Link href={`/songs/share/${song.id}`}>
-                  <Play className='h-4 w-4' />
+          <TooltipProvider>
+            <div className='flex items-center justify-center gap-3 pt-4 sm:justify-start'>
+              <Button asChild size='lg'>
+                <Link href={`/lyrics/${song.id}/player`}>
+                  <Play className='mr-2 h-5 w-5' /> Start Session
                 </Link>
               </Button>
-            )}
-          </div>
+              {user && <SongStatusButton song={song} />}
+              {song.source === 'system' && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button asChild variant='outline' size='icon'>
+                        <Link href={`/songs/share/${song.id}`}>
+                          <Share2 className='h-4 w-4' />
+                        </Link>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Share Song</p>
+                    </TooltipContent>
+                  </Tooltip>
+              )}
+            </div>
+          </TooltipProvider>
         </div>
       </div>
       <div className='space-y-4'>
