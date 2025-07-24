@@ -8,7 +8,6 @@ import {
   getSetlists,
   deleteSetlist as deleteSetlistFromDb,
   syncSetlist,
-  unsyncSetlist,
   getSyncedSetlistsCount,
   type SetlistWithSyncStatus,
 } from '@/lib/db';
@@ -116,36 +115,13 @@ function SetlistItem({
     }
   };
 
-  const handleUnsync = async () => {
-    if (!user || !setlist.firestoreId) return;
-    setIsSyncing(true);
-    try {
-      await unsyncSetlist(setlist.id, user.uid, setlist.firestoreId);
-      toast({
-        title: 'Unsynced',
-        description: `"${setlist.title}" is now local only.`,
-      });
-      onSetlistChange();
-    } catch (error: any) {
-      console.error('Unsync error:', error);
-      toast({
-        title: 'Unsync Error',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-
   const getStatusIcon = () => {
     let icon: React.ReactNode;
     let tooltipText: string;
 
     if (!isOwner) {
-        icon = <Users className='h-5 w-5 text-purple-500 flex-shrink-0' />;
-        tooltipText = `Saved from ${setlist.authorName}`;
+      icon = <Users className='h-5 w-5 text-purple-500 flex-shrink-0' />;
+      tooltipText = `Saved from ${setlist.authorName}`;
     } else if (setlist.containsCustomSongs) {
       icon = <AlertTriangle className='h-5 w-5 text-amber-500 flex-shrink-0' />;
       tooltipText = 'Cannot sync setlists with custom songs.';
@@ -175,7 +151,9 @@ function SetlistItem({
   };
 
   const songCount = setlist.songIds.length;
-  const linkHref = isOwner ? `/setlists/${setlist.id}` : `/setlists/shared/${setlist.firestoreId}`;
+  const linkHref = isOwner
+    ? `/setlists/${setlist.id}`
+    : `/setlists/shared/${setlist.firestoreId}`;
 
   return (
     <>
@@ -196,10 +174,9 @@ function SetlistItem({
               {setlist.title}
             </h2>
             <p className='text-sm text-muted-foreground'>
-              {isOwner 
+              {isOwner
                 ? `${songCount} ${songCount === 1 ? 'song' : 'songs'}`
-                : `By ${setlist.authorName}`
-              }
+                : `By ${setlist.authorName}`}
             </p>
           </div>
         </Link>
@@ -274,34 +251,18 @@ function SetlistItem({
                     </Tooltip>
                   ) : (
                     <Tooltip>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <TooltipTrigger asChild>
-                                <Button
-                                  variant='ghost'
-                                  size='icon'
-                                  className='h-8 w-8 text-green-500 hover:text-destructive'
-                                  disabled={isSyncing}
-                                >
-                                  {isSyncing ? <RefreshCw className='h-4 w-4 animate-spin' /> : <CheckCircle className='h-4 w-4' />}
-                                </Button>
-                            </TooltipTrigger>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Stop Syncing?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This will remove "{setlist.title}" from the cloud and make it local-only. Other users will no longer be able to access it via shared links.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleUnsync} className="bg-destructive hover:bg-destructive/90">Unsync</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant='ghost'
+                          size='icon'
+                          className='h-8 w-8 text-green-500'
+                          disabled
+                        >
+                          <CheckCircle className='h-4 w-4' />
+                        </Button>
+                      </TooltipTrigger>
                       <TooltipContent>
-                        <p>Synced. Click to unsync.</p>
+                        <p>Synced</p>
                       </TooltipContent>
                     </Tooltip>
                   )
@@ -351,7 +312,8 @@ function SetlistItem({
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently {isOwner ? 'delete' : 'remove'}
+                  This action cannot be undone. This will permanently{' '}
+                  {isOwner ? 'delete' : 'remove'}
                   your setlist &quot;{setlist.title}&quot;.
                 </AlertDialogDescription>
               </AlertDialogHeader>
@@ -417,14 +379,14 @@ export default function SetlistsPage() {
     if (!authLoading && !user) {
       router.replace('/welcome');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading]);
 
   useEffect(() => {
     if (!authLoading && user) {
       loadData();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading]);
 
   const handleSyncLimitReached = () => {
@@ -476,20 +438,20 @@ export default function SetlistsPage() {
               )}
             </div>
             {!isAnonymous && (
-                <Button asChild>
-                  <Link href='/setlists/create'>
-                    <PlusCircle className='mr-2 h-4 w-4' />
-                    Create New
-                  </Link>
-                </Button>
+              <Button asChild>
+                <Link href='/setlists/create'>
+                  <PlusCircle className='mr-2 h-4 w-4' />
+                  Create New
+                </Link>
+              </Button>
             )}
           </div>
 
           {isLoading ? (
             <div className='space-y-3'>
-                <Skeleton className='h-16 w-full' />
-                <Skeleton className='h-16 w-full' />
-                <Skeleton className='h-16 w-full' />
+              <Skeleton className='h-16 w-full' />
+              <Skeleton className='h-16 w-full' />
+              <Skeleton className='h-16 w-full' />
             </div>
           ) : setlists.length > 0 ? (
             <TooltipProvider>
@@ -514,9 +476,9 @@ export default function SetlistsPage() {
                 You haven&apos;t created or saved any setlists yet.
               </p>
               {!isAnonymous && (
-                  <Button variant='link' asChild>
-                    <Link href='/setlists/create'>Create one now</Link>
-                  </Button>
+                <Button variant='link' asChild>
+                  <Link href='/setlists/create'>Create one now</Link>
+                </Button>
               )}
             </div>
           )}
