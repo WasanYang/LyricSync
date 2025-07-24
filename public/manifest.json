@@ -1,11 +1,31 @@
 {
-  "name": "LyricSync",
+  "name": "LyricSync - Worship Song Manager",
   "short_name": "LyricSync",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#DEF2F1",
   "theme_color": "#3AAFA9",
   "description": "Synchronized worship song lyrics with auto-scrolling and chord display.",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["music", "entertainment", "productivity"],
+  "shortcuts": [
+    {
+      "name": "My Library",
+      "url": "/library",
+      "icons": [{ "src": "/logo/logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Setlists",
+      "url": "/setlists",
+      "icons": [{ "src": "/logo/logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Add Song",
+      "url": "/song-editor",
+      "icons": [{ "src": "/logo/logo.png", "sizes": "192x192" }]
+    }
+  ],
   "icons": [
     {
       "src": "/logo/logo.png",

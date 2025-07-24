@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { PWAPromptCard } from '@/components/PWAInstallButton';
 
 function FeatureCard({
   icon: Icon,
@@ -188,6 +189,11 @@ export default function WelcomePage() {
               </ol>
             </div>
           </div>
+        </section>
+
+        {/* PWA Installation Prompt */}
+        <section className='mt-12 max-w-md mx-auto px-4'>
+          <PWAPromptCard />
         </section>
 
         <section className='text-center mt-16 sm:mt-24'>

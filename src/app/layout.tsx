@@ -9,6 +9,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/context/AuthContext';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { useEffect, useState } from 'react';
+import { registerSW } from '@/lib/pwa';
 
 // Metadata cannot be exported from a client component.
 // We can define it here and then use it in the component.
@@ -34,6 +35,11 @@ export default function RootLayout({
   useEffect(() => {
     setMounted(true);
     document.documentElement.classList.toggle('is-offline', !isOnline);
+
+    // Register service worker for PWA
+    if (process.env.NODE_ENV === 'production') {
+      registerSW();
+    }
   }, [isOnline]);
 
   return (
