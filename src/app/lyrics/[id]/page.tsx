@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import SongStatusButton from '@/components/SongStatusButton';
-import { ArrowLeft, Play, Music, Share2 } from 'lucide-react';
+import { ArrowLeft, Play, Music, Share2, ChevronDown, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
@@ -47,19 +47,27 @@ const parseLyrics = (line: string) => {
     .trim();
 };
 
-const getLyricPreview = (lyrics: LyricLine[]) => {
-  let preview = '';
-  let lineCount = 0;
-  for (const line of lyrics) {
-    if (line.text.startsWith('(')) continue; // Skip section headers
-    const textOnly = parseLyrics(line.text);
-    if (textOnly) {
-      preview += textOnly + (lineCount < 3 ? '\n' : '...');
-      lineCount++;
-      if (lineCount >= 4) break;
+const getLyricPreview = (lyrics: LyricLine[], isExpanded: boolean) => {
+    let content = '';
+    let lineCount = 0;
+    const maxLines = isExpanded ? lyrics.length : 4;
+
+    for (const line of lyrics) {
+        if (line.text.startsWith('(')) { // Keep section headers
+             content += `${line.text}\n`;
+             continue;
+        }
+        const textOnly = parseLyrics(line.text);
+        if (textOnly) {
+            content += textOnly + '\n';
+            lineCount++;
+            if (lineCount >= maxLines) {
+                 if (!isExpanded) content += '...';
+                 break;
+            }
+        }
     }
-  }
-  return preview;
+    return content.trim();
 };
 
 function SongDetailContent() {
@@ -68,6 +76,7 @@ function SongDetailContent() {
   const [song, setSong] = useState<Song | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLyricsExpanded, setIsLyricsExpanded] = useState(false);
   const { user } = useAuth();
   const { loadSong, isOnline } = useSafeDataLoader();
 
@@ -102,9 +111,9 @@ function SongDetailContent() {
     fetchSong();
   }, [id, loadSong, isOnline]);
 
-  const lyricPreview = useMemo(() => {
-    return song ? getLyricPreview(song.lyrics) : '';
-  }, [song]);
+  const lyricContent = useMemo(() => {
+    return song ? getLyricPreview(song.lyrics, isLyricsExpanded) : '';
+  }, [song, isLyricsExpanded]);
 
   if (isLoading) {
     return <LoadingSkeleton />;
@@ -162,7 +171,7 @@ function SongDetailContent() {
             <div className='flex items-center justify-center gap-3 pt-4 sm:justify-start'>
               <Button asChild size='lg'>
                 <Link href={`/lyrics/${song.id}/player`}>
-                  <Play className='mr-2 h-5 w-5' /> Start Session
+                  <Play className='mr-2 h-5 w-5' /> Open in Player
                 </Link>
               </Button>
               {user && <SongStatusButton song={song} />}
@@ -184,10 +193,25 @@ function SongDetailContent() {
           </TooltipProvider>
         </div>
       </div>
-      <div className='space-y-4'>
+      <div className='space-y-2'>
         <h2 className='font-headline text-2xl font-bold'>Lyrics</h2>
         <div className='whitespace-pre-wrap rounded-lg bg-muted/50 p-4 font-body text-muted-foreground'>
-          {lyricPreview}
+          {lyricContent}
+        </div>
+        <div className="flex justify-center">
+            <Button variant="link" onClick={() => setIsLyricsExpanded(!isLyricsExpanded)}>
+                {isLyricsExpanded ? (
+                    <>
+                        <ChevronUp className="mr-2 h-4 w-4" />
+                        Show Less
+                    </>
+                ) : (
+                    <>
+                        <ChevronDown className="mr-2 h-4 w-4" />
+                        View More
+                    </>
+                )}
+            </Button>
         </div>
       </div>
     </div>
