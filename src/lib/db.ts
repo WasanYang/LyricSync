@@ -42,7 +42,7 @@ export type Setlist = {
   firestoreId: string | null; // ID from Firestore after syncing
   isPublic?: boolean; // New field for public setlists
   authorName?: string; // To display who created the setlist
-  sourceFirestoreId?: string | null; // ID of the original cloud setlist if this was copied
+  source?: 'owner' | 'saved'; // 'owner' for user's own, 'saved' for bookmarked
 };
 
 export type SetlistWithSyncStatus = Setlist & {
@@ -218,7 +218,7 @@ export async function getAllSavedSongs(userId: string): Promise<Song[]> {
   const db = await getDb();
 
   // Sync user songs from Firestore to IndexedDB first
-  if (firestoreDb) {
+  if (firestoreDb && userId) {
     const userSongsRef = collection(firestoreDb, 'users', userId, 'userSongs');
     const q = query(userSongsRef);
     const userSongsSnapshot = await getDocs(q);
@@ -402,6 +402,7 @@ export async function saveSetlist(setlist: Setlist): Promise<void> {
   const setlistToSave: Setlist = {
     ...setlist,
     updatedAt: Date.now(), // Ensure updatedAt is always set on save/update
+    source: setlist.source || 'owner', // Default to owner
   };
   await db.put(SETLISTS_STORE, setlistToSave);
 }
@@ -420,12 +421,12 @@ export async function getSetlists(
     );
     return localSetlists.map((sl) => ({
       ...sl,
-      containsCustomSongs: sl.songIds.some((id) => id.startsWith('custom-')),
+      containsCustomSongs: false, // Cannot determine without song sources
       needsSync: false,
     }));
   }
 
-  // 1. Fetch user's setlist references from sub-collection
+  // 1. Fetch user's OWNED & SYNCED setlist references from sub-collection
   const userSetlistsRef = collection(firestoreDb, 'users', userId, 'userSetlists');
   const userSetlistsSnapshot = await getDocs(query(userSetlistsRef, orderBy('syncedAt', 'desc')));
   const syncedSetlistIds = userSetlistsSnapshot.docs.map(doc => doc.id);
@@ -441,7 +442,7 @@ export async function getSetlists(
             const data = docSnap.data();
             const syncedAt = data.syncedAt as Timestamp;
             syncedSetlistsData.push({
-                id: docSnap.id, // Use the firestore ID as the main ID
+                id: data.id || docSnap.id,
                 firestoreId: docSnap.id,
                 title: data.title,
                 songIds: data.songIds,
@@ -451,37 +452,48 @@ export async function getSetlists(
                 isSynced: true,
                 isPublic: data.isPublic || false,
                 authorName: data.authorName || '',
+                source: 'owner',
             });
         }
     });
   }
   
-  // 3. Update local DB with the latest from the cloud
+  // 3. Update local DB with the latest synced versions of owned setlists
   const localDb = await getDb();
   const tx = localDb.transaction(SETLISTS_STORE, 'readwrite');
   const store = tx.objectStore(SETLISTS_STORE);
-  // Clear old synced setlists for this user before adding new ones to prevent duplicates
+
   const allUserSetlists = await store.index('by-userId').getAll(userId);
   for (const sl of allUserSetlists) {
-    if (sl.isSynced) {
+    // Remove old synced versions to replace them with fresh data from cloud
+    if (sl.isSynced && sl.source === 'owner') {
       await store.delete(sl.id);
     }
   }
   // Add the fresh data from firestore
   for (const sl of syncedSetlistsData) {
-    await store.put(sl);
+     // Check if a local version already exists to preserve its local ID
+    const existingLocal = allUserSetlists.find(l => l.firestoreId === sl.firestoreId);
+    await store.put({
+      ...sl,
+      id: existingLocal?.id || sl.firestoreId || sl.id,
+    });
   }
   await tx.done;
 
-  // 4. Get all setlists (synced + local-only) for the user from local DB
+  // 4. Get all setlists (owned, local-only, and saved) for the user from local DB
   const finalUserSetlists = await localDb.getAllFromIndex(SETLISTS_STORE, 'by-userId', userId);
   
-  // 5. Fetch all songs to check source
+  // 5. Fetch all songs to check source for custom song validation
   const allLocalSongs = await db.getAll(SONGS_STORE);
   const songSourceMap = new Map(allLocalSongs.map(s => [s.id, s.source]));
 
-  // 6. Calculate sync status
+  // 6. Calculate sync status for owned setlists
   const results = finalUserSetlists.map(local => {
+    if (local.source === 'saved') {
+      return { ...local, containsCustomSongs: false, needsSync: false };
+    }
+
     const containsCustomSongs = local.songIds.some(id => songSourceMap.get(id) === 'user');
     let needsSync = false;
     if (local.isSynced && local.firestoreId) {
@@ -529,6 +541,7 @@ export async function getSetlistByFirestoreId(
         isSynced: true,
         isPublic: data.isPublic || false,
         authorName: data.authorName || 'Unknown',
+        source: 'saved', // A setlist retrieved by Firestore ID is always from another source
       };
     } else {
       return null;
@@ -546,8 +559,8 @@ export async function deleteSetlist(id: string, userId: string): Promise<void> {
   if (!setlistToDelete) throw new Error("Setlist not found in local DB.");
   if (setlistToDelete.userId !== userId) throw new Error('Unauthorized to delete this setlist.');
 
-  // If it's synced, delete from Firestore first
-  if (firestoreDb && setlistToDelete.isSynced && setlistToDelete.firestoreId) {
+  // If it's a synced, owned setlist, delete from Firestore first
+  if (firestoreDb && setlistToDelete.isSynced && setlistToDelete.firestoreId && setlistToDelete.source === 'owner') {
       const batch = writeBatch(firestoreDb);
       // Delete from main setlists collection
       batch.delete(doc(firestoreDb, 'setlists', setlistToDelete.firestoreId));
@@ -556,6 +569,7 @@ export async function deleteSetlist(id: string, userId: string): Promise<void> {
       await batch.commit();
   }
 
+  // Always delete from local DB (for both owned and saved setlists)
   await db.delete(SETLISTS_STORE, id);
 }
 
@@ -590,6 +604,7 @@ export async function syncSetlist(
 
   const now = serverTimestamp();
   const dataToSync: any = {
+    id: setlist.id,
     title: setlist.title,
     songIds: setlist.songIds,
     userId: setlist.userId,
@@ -661,6 +676,7 @@ export async function getPublicSetlists(): Promise<Setlist[]> {
       isSynced: true,
       isPublic: true,
       authorName: data.authorName || 'Anonymous',
+      source: 'saved',
     });
   });
 
@@ -717,6 +733,7 @@ export async function getAllCloudSetlists(): Promise<Setlist[]> {
       isSynced: true,
       isPublic: data.isPublic || false,
       authorName: data.authorName || 'Anonymous',
+      source: 'saved',
     });
   });
 

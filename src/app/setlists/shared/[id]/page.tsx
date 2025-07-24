@@ -18,27 +18,17 @@ import {
   getCloudSongById,
   saveSetlist,
   getSetlists,
+  getSetlist,
 } from '@/lib/db';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Library, ArrowLeft, Download, Check, Play } from 'lucide-react';
+import { Library, ArrowLeft, Check, Play, Users } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import {
   TooltipProvider,
   Tooltip,
@@ -115,6 +105,14 @@ function SharedSetlistContent() {
       try {
         setIsLoading(true);
         const loadedSetlist = await getSetlistByFirestoreId(id);
+        
+        if (user && loadedSetlist) {
+            const alreadySaved = await getSetlist(loadedSetlist.firestoreId || '');
+            if (alreadySaved && alreadySaved.source === 'saved') {
+                setIsSaved(true);
+            }
+        }
+        
         if (loadedSetlist) {
           setSetlist(loadedSetlist);
 
@@ -148,11 +146,11 @@ function SharedSetlistContent() {
     loadSetlist();
   }, [id, user, router, isAdminMode]);
 
-  const handleCopyToLibrary = async () => {
-    if (!user || !setlist) {
+  const handleSaveToLibrary = async () => {
+    if (!user || !setlist || !setlist.firestoreId) {
       toast({
         title: 'Please log in',
-        description: 'You need to be logged in to copy a setlist.',
+        description: 'You need to be logged in to save a setlist.',
         variant: 'destructive',
       });
       return;
@@ -160,31 +158,33 @@ function SharedSetlistContent() {
 
     setIsSaving(true);
     try {
-      // Create a new local copy
-      const newLocalSetlist: Setlist = {
-        ...setlist,
-        id: uuidv4(), // Generate a new local-only ID
-        userId: user.uid,
-        firestoreId: null,
-        isSynced: false,
+      // Create a reference, not a full copy
+      const savedSetlistReference: Setlist = {
+        id: setlist.firestoreId, // Use firestoreId as the local key for saved items
+        title: setlist.title,
+        songIds: setlist.songIds,
+        userId: user.uid, // Belongs to the current user now
         createdAt: Date.now(),
-        updatedAt: Date.now(),
-        isPublic: false, // Copied setlists are private by default
-        sourceFirestoreId: setlist.firestoreId, // Keep track of original
+        updatedAt: setlist.updatedAt,
+        isSynced: false, // It's not an owned, synced setlist
+        firestoreId: setlist.firestoreId,
+        isPublic: setlist.isPublic,
+        authorName: setlist.authorName,
+        source: 'saved',
       };
 
-      await saveSetlist(newLocalSetlist);
+      await saveSetlist(savedSetlistReference);
 
       toast({
-        title: 'Setlist Copied!',
-        description: `"${setlist.title}" has been copied to your library.`,
+        title: 'Setlist Saved!',
+        description: `"${setlist.title}" has been saved to your setlists.`,
       });
       setIsSaved(true);
     } catch (error) {
-      console.error('Failed to copy setlist:', error);
+      console.error('Failed to save setlist reference:', error);
       toast({
         title: 'Error',
-        description: 'Could not copy the setlist to your library.',
+        description: 'Could not save the setlist to your library.',
         variant: 'destructive',
       });
     } finally {
@@ -212,8 +212,8 @@ function SharedSetlistContent() {
       return null; // No buttons in admin mode
     }
     if (isOwner) {
+      // Should not happen often due to redirect, but as a fallback
       return (
-        // Should not happen often due to redirect, but as a fallback
         <Button asChild size='lg'>
           <Link href={`/setlists/${setlist.id}/player`}>
             <Play className='mr-2 h-5 w-5' /> View in Player
@@ -230,44 +230,26 @@ function SharedSetlistContent() {
               <Play className='mr-2 h-5 w-5' /> View in Player
             </Link>
           </Button>
-          <AlertDialog>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    size='icon'
-                    variant='outline'
-                    disabled={isSaving || isSaved}
-                    aria-label='Copy to My Library'
-                  >
-                    {isSaved ? (
-                      <Check className='h-5 w-5 text-green-500' />
-                    ) : (
-                      <Download className='h-5 w-5' />
-                    )}
-                  </Button>
-                </AlertDialogTrigger>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Copy to Library</p>
-              </TooltipContent>
-            </Tooltip>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Copy Setlist?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Copy "{setlist.title}" to your personal library? You will be
-                  able to edit it and use it offline.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleCopyToLibrary}>
-                  Copy
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <Tooltip>
+            <TooltipTrigger asChild>
+                <Button
+                  size='icon'
+                  variant='outline'
+                  onClick={handleSaveToLibrary}
+                  disabled={isSaving || isSaved}
+                  aria-label='Save to My Setlists'
+                >
+                  {isSaved ? (
+                    <Check className='h-5 w-5 text-green-500' />
+                  ) : (
+                    <Library className='h-5 w-5' />
+                  )}
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+                <p>{isSaved ? 'Saved in your setlists' : 'Save to My Setlists'}</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </TooltipProvider>
     );

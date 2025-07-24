@@ -27,6 +27,7 @@ import {
   PlusCircle,
   Share2,
   XCircle,
+  Users,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -66,20 +67,21 @@ function SetlistItem({
   const { user } = useAuth();
   const [isSyncing, setIsSyncing] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const isOwner = setlist.source === 'owner';
 
   const handleDelete = async () => {
     if (!user) return;
     try {
       await deleteSetlistFromDb(setlist.id, user.uid);
       toast({
-        title: 'Setlist Deleted',
+        title: 'Setlist Removed',
         description: `"${setlist.title}" has been removed.`,
       });
       onSetlistChange();
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Could not delete the setlist.',
+        description: 'Could not remove the setlist.',
         variant: 'destructive',
       });
     }
@@ -141,7 +143,10 @@ function SetlistItem({
     let icon: React.ReactNode;
     let tooltipText: string;
 
-    if (setlist.containsCustomSongs) {
+    if (!isOwner) {
+        icon = <Users className='h-5 w-5 text-purple-500 flex-shrink-0' />;
+        tooltipText = `Saved from ${setlist.authorName}`;
+    } else if (setlist.containsCustomSongs) {
       icon = <AlertTriangle className='h-5 w-5 text-amber-500 flex-shrink-0' />;
       tooltipText = 'Cannot sync setlists with custom songs.';
     } else if (setlist.needsSync) {
@@ -170,6 +175,7 @@ function SetlistItem({
   };
 
   const songCount = setlist.songIds.length;
+  const linkHref = isOwner ? `/setlists/${setlist.id}` : `/setlists/shared/${setlist.firestoreId}`;
 
   return (
     <>
@@ -180,7 +186,7 @@ function SetlistItem({
         )}
       >
         <Link
-          href={`/setlists/${setlist.id}`}
+          href={linkHref}
           key={setlist.id}
           className='flex-grow flex items-center gap-4 min-w-0'
         >
@@ -190,132 +196,139 @@ function SetlistItem({
               {setlist.title}
             </h2>
             <p className='text-sm text-muted-foreground'>
-              {songCount} {songCount === 1 ? 'song' : 'songs'}
+              {isOwner 
+                ? `${songCount} ${songCount === 1 ? 'song' : 'songs'}`
+                : `By ${setlist.authorName}`
+              }
             </p>
           </div>
         </Link>
         <div className='flex items-center gap-1 ml-2'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                asChild
-                variant='ghost'
-                size='icon'
-                className='h-8 w-8 text-muted-foreground'
-              >
-                <Link
-                  href={`/setlists/edit/${setlist.id}`}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Edit className='h-4 w-4' />
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Edit</p>
-            </TooltipContent>
-          </Tooltip>
-
-          {setlist.isSynced && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setIsShareOpen(true);
-                  }}
-                  variant='ghost'
-                  size='icon'
-                  className='h-8 w-8 text-muted-foreground'
-                >
-                  <Share2 className='h-4 w-4' />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Share</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-
-          {!setlist.containsCustomSongs &&
-            (setlist.isSynced ? (
-              setlist.needsSync ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={handleSync}
-                      disabled={isSyncing}
-                      variant='ghost'
-                      size='icon'
-                      className='h-8 w-8 text-muted-foreground'
-                    >
-                      {isSyncing ? (
-                        <RefreshCw className='h-4 w-4 animate-spin' />
-                      ) : (
-                        <UploadCloud className='h-4 w-4 text-blue-500' />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Sync Changes</p>
-                  </TooltipContent>
-                </Tooltip>
-              ) : (
-                <Tooltip>
-                  <AlertDialog>
-                     <AlertDialogTrigger asChild>
-                        <TooltipTrigger asChild>
-                             <Button
-                              variant='ghost'
-                              size='icon'
-                              className='h-8 w-8 text-green-500 hover:text-destructive'
-                              disabled={isSyncing}
-                            >
-                              {isSyncing ? <RefreshCw className='h-4 w-4 animate-spin' /> : <CheckCircle className='h-4 w-4' />}
-                            </Button>
-                        </TooltipTrigger>
-                     </AlertDialogTrigger>
-                     <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Stop Syncing?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This will remove "{setlist.title}" from the cloud and make it local-only. Other users will no longer be able to access it via shared links.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                           <AlertDialogAction onClick={handleUnsync} className="bg-destructive hover:bg-destructive/90">Unsync</AlertDialogAction>
-                        </AlertDialogFooter>
-                     </AlertDialogContent>
-                   </AlertDialog>
-                  <TooltipContent>
-                    <p>Synced. Click to unsync.</p>
-                  </TooltipContent>
-                </Tooltip>
-              )
-            ) : (
+          {isOwner && (
+            <>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={handleSync}
-                    disabled={isSyncing}
+                    asChild
                     variant='ghost'
                     size='icon'
                     className='h-8 w-8 text-muted-foreground'
                   >
-                    {isSyncing ? (
-                      <RefreshCw className='h-4 w-4 animate-spin' />
-                    ) : (
-                      <UploadCloud className='h-4 w-4' />
-                    )}
+                    <Link
+                      href={`/setlists/edit/${setlist.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Edit className='h-4 w-4' />
+                    </Link>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Sync to Cloud</p>
+                  <p>Edit</p>
                 </TooltipContent>
               </Tooltip>
-            ))}
+
+              {setlist.isSynced && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setIsShareOpen(true);
+                      }}
+                      variant='ghost'
+                      size='icon'
+                      className='h-8 w-8 text-muted-foreground'
+                    >
+                      <Share2 className='h-4 w-4' />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Share</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+
+              {!setlist.containsCustomSongs &&
+                (setlist.isSynced ? (
+                  setlist.needsSync ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={handleSync}
+                          disabled={isSyncing}
+                          variant='ghost'
+                          size='icon'
+                          className='h-8 w-8 text-muted-foreground'
+                        >
+                          {isSyncing ? (
+                            <RefreshCw className='h-4 w-4 animate-spin' />
+                          ) : (
+                            <UploadCloud className='h-4 w-4 text-blue-500' />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Sync Changes</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <Tooltip>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <TooltipTrigger asChild>
+                                <Button
+                                  variant='ghost'
+                                  size='icon'
+                                  className='h-8 w-8 text-green-500 hover:text-destructive'
+                                  disabled={isSyncing}
+                                >
+                                  {isSyncing ? <RefreshCw className='h-4 w-4 animate-spin' /> : <CheckCircle className='h-4 w-4' />}
+                                </Button>
+                            </TooltipTrigger>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Stop Syncing?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This will remove "{setlist.title}" from the cloud and make it local-only. Other users will no longer be able to access it via shared links.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleUnsync} className="bg-destructive hover:bg-destructive/90">Unsync</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                      <TooltipContent>
+                        <p>Synced. Click to unsync.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )
+                ) : (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={handleSync}
+                        disabled={isSyncing}
+                        variant='ghost'
+                        size='icon'
+                        className='h-8 w-8 text-muted-foreground'
+                      >
+                        {isSyncing ? (
+                          <RefreshCw className='h-4 w-4 animate-spin' />
+                        ) : (
+                          <UploadCloud className='h-4 w-4' />
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Sync to Cloud</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+            </>
+          )}
 
           <AlertDialog>
             <Tooltip>
@@ -331,14 +344,14 @@ function SetlistItem({
                 </AlertDialogTrigger>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Delete</p>
+                <p>{isOwner ? 'Delete' : 'Remove from my list'}</p>
               </TooltipContent>
             </Tooltip>
             <AlertDialogContent onClick={(e) => e.stopPropagation()}>
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete
+                  This action cannot be undone. This will permanently {isOwner ? 'delete' : 'remove'}
                   your setlist &quot;{setlist.title}&quot;.
                 </AlertDialogDescription>
               </AlertDialogHeader>
@@ -348,7 +361,7 @@ function SetlistItem({
                   onClick={handleDelete}
                   className='bg-destructive hover:bg-destructive/90'
                 >
-                  Delete
+                  {isOwner ? 'Delete' : 'Remove'}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -494,7 +507,7 @@ export default function SetlistsPage() {
                 No Setlists Found
               </h2>
               <p className='text-muted-foreground'>
-                You haven&apos;t created any setlists yet.
+                You haven&apos;t created or saved any setlists yet.
               </p>
               <Button variant='link' asChild>
                 <Link href='/setlists/create'>Create one now</Link>
