@@ -1,3 +1,4 @@
+
 // src/components/SongStatusButton.tsx
 'use client';
 
@@ -8,17 +9,23 @@ import { Download, Check, ArrowDownCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from './ui/skeleton';
+import { useAuth } from '@/context/AuthContext';
 
 interface SongStatusButtonProps {
   song: Song;
 }
 
 export default function SongStatusButton({ song }: SongStatusButtonProps) {
+  const { user } = useAuth();
   const [status, setStatus] = useState<{ saved: boolean; needsUpdate: boolean }>({ saved: false, needsUpdate: false });
   const [isChecking, setIsChecking] = useState(true);
   const { toast } = useToast();
 
   const checkSavedStatus = useCallback(async () => {
+    if (!user || user.isAnonymous) {
+        setIsChecking(false);
+        return;
+    }
     try {
       setIsChecking(true);
       const savedStatus = await isSongSaved(song.id);
@@ -28,7 +35,7 @@ export default function SongStatusButton({ song }: SongStatusButtonProps) {
     } finally {
       setIsChecking(false);
     }
-  }, [song.id]);
+  }, [song.id, user]);
 
   useEffect(() => {
     checkSavedStatus();
@@ -78,6 +85,10 @@ export default function SongStatusButton({ song }: SongStatusButtonProps) {
       console.error("Failed to update song:", error);
     }
   };
+
+  if (!user || user.isAnonymous) {
+      return null;
+  }
 
   if (isChecking) {
     return <Skeleton className="h-7 w-7 rounded-full" />;

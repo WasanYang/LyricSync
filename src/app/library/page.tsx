@@ -33,11 +33,10 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
   const { toast } = useToast();
 
   const isUserSong = song.source === 'user';
-  const isCloudSong = song.source === 'system';
   
   const handleDelete = async () => {
     try {
-        await deleteSongFromDb(song.id);
+        await deleteSongFromDb(song.id, song.source === 'user' ? user?.uid : undefined);
         onDelete(song.id, song.source);
         toast({
             title: `Song "${song.title}" deleted.`,
@@ -116,7 +115,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <Link href={`/lyrics/${song.id}`} className="font-semibold font-headline truncate hover:underline">{song.title}</Link>
-            {(isCloudSong || isUserSong) && <Cloud className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
+            {(song.source === 'system' || song.source === 'user') && <Cloud className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
           </div>
           <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
           {song.updatedAt && (
@@ -187,7 +186,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                 <TooltipContent><p>Delete</p></TooltipContent>
             </Tooltip>
 
-            {!isUserSong && (
+            {song.source === 'system' && (
               <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
                 <SongStatusButton song={song} />
               </div>
@@ -253,6 +252,8 @@ export default function LibraryPage() {
     );
   }
 
+  const isAnonymous = user.isAnonymous;
+
   return (
     <div className="flex-grow flex flex-col">
       <Header />
@@ -260,12 +261,14 @@ export default function LibraryPage() {
         <div className="space-y-8">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-headline font-bold tracking-tight">Library</h1>
-                <Button variant="ghost" size="icon" asChild>
-                    <Link href="/song-editor">
-                        <PlusCircle className="h-6 w-6" />
-                        <span className="sr-only">Add new song</span>
-                    </Link>
-                </Button>
+                {!isAnonymous && (
+                  <Button variant="ghost" size="icon" asChild>
+                      <Link href="/song-editor">
+                          <PlusCircle className="h-6 w-6" />
+                          <span className="sr-only">Add new song</span>
+                      </Link>
+                  </Button>
+                )}
             </div>
 
 
@@ -297,5 +300,3 @@ export default function LibraryPage() {
     </div>
   );
 }
-
-    

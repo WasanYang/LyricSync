@@ -54,6 +54,7 @@ import {
   Database,
   ArrowLeft,
   Expand,
+  LogIn,
 } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
@@ -61,6 +62,7 @@ import { cn } from '@/lib/utils';
 import { LyricsHelpDialog } from './LyricsHelpDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Drawer, DrawerContent, DrawerTrigger, DrawerHeader, DrawerTitle } from './ui/drawer';
+import Link from 'next/link';
 
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
@@ -264,7 +266,14 @@ export default function SongCreator() {
   );
 
   async function handleSaveSong(data: SongFormValues) {
-    if (!user) return;
+    if (!user || user.isAnonymous) {
+      toast({
+        title: 'Please Sign In',
+        description: 'You need to be signed in to create a song.',
+        variant: 'destructive'
+      });
+      return;
+    };
 
     const isCloudAction = isCloudMode && isSuperAdmin;
     const isUpdating = !!songId;
@@ -337,6 +346,19 @@ export default function SongCreator() {
 
   if (isLoading) {
     return <LoadingScreen />;
+  }
+  
+  if (user && user.isAnonymous) {
+      return (
+        <div className='flex flex-col h-full items-center justify-center p-4 text-center'>
+            <LogIn className="h-12 w-12 text-muted-foreground mb-4" />
+            <h2 className="text-xl font-headline font-semibold">Please Sign In</h2>
+            <p className="text-muted-foreground">You need to sign in to create a custom song.</p>
+            <Button variant="link" asChild className="mt-2">
+                <Link href="/login">Sign In</Link>
+            </Button>
+        </div>
+      )
   }
 
   const getPageTitle = () => {

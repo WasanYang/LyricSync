@@ -457,6 +457,8 @@ export default function SetlistsPage() {
     );
   }
 
+  const isAnonymous = user.isAnonymous;
+
   return (
     <div className='flex-grow flex flex-col'>
       <Header />
@@ -467,18 +469,20 @@ export default function SetlistsPage() {
               <h1 className='text-3xl font-headline font-bold tracking-tight'>
                 Setlists
               </h1>
-              {user && (
+              {!isAnonymous && (
                 <p className='text-muted-foreground'>
                   Synced: {syncedCount}/{SYNC_LIMIT}
                 </p>
               )}
             </div>
-            <Button asChild>
-              <Link href='/setlists/create'>
-                <PlusCircle className='mr-2 h-4 w-4' />
-                Create New
-              </Link>
-            </Button>
+            {!isAnonymous && (
+                <Button asChild>
+                  <Link href='/setlists/create'>
+                    <PlusCircle className='mr-2 h-4 w-4' />
+                    Create New
+                  </Link>
+                </Button>
+            )}
           </div>
 
           {isLoading ? (
@@ -509,9 +513,11 @@ export default function SetlistsPage() {
               <p className='text-muted-foreground'>
                 You haven&apos;t created or saved any setlists yet.
               </p>
-              <Button variant='link' asChild>
-                <Link href='/setlists/create'>Create one now</Link>
-              </Button>
+              {!isAnonymous && (
+                  <Button variant='link' asChild>
+                    <Link href='/setlists/create'>Create one now</Link>
+                  </Button>
+              )}
             </div>
           )}
         </div>

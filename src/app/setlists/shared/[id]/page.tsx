@@ -147,7 +147,7 @@ function SharedSetlistContent() {
   }, [id, user, router, isAdminMode]);
 
   const handleSaveToLibrary = async () => {
-    if (!user || !setlist || !setlist.firestoreId) {
+    if (!user || user.isAnonymous) {
       toast({
         title: 'Please log in',
         description: 'You need to be logged in to save a setlist.',
@@ -156,11 +156,13 @@ function SharedSetlistContent() {
       return;
     }
 
+    if (!setlist || !setlist.firestoreId) return;
+
     setIsSaving(true);
     try {
       // Create a reference, not a full copy
       const savedSetlistReference: Setlist = {
-        id: setlist.firestoreId, // Use firestoreId as the local key for saved items
+        id: uuidv4(), // Give it a new unique local ID
         title: setlist.title,
         songIds: setlist.songIds,
         userId: user.uid, // Belongs to the current user now
@@ -204,8 +206,8 @@ function SharedSetlistContent() {
     );
   }
 
-  // After redirect logic, if we are still here, it means user is not owner or not logged in.
   const isOwner = user && setlist.userId === user.uid;
+  const isAnonymous = !user || user.isAnonymous;
 
   const renderActionButtons = () => {
     if (isAdminMode) {
@@ -215,7 +217,7 @@ function SharedSetlistContent() {
       // Should not happen often due to redirect, but as a fallback
       return (
         <Button asChild size='lg'>
-          <Link href={`/setlists/${setlist.id}/player`}>
+          <Link href={`/setlists/${id}/player`}>
             <Play className='mr-2 h-5 w-5' /> View in Player
           </Link>
         </Button>
@@ -230,26 +232,28 @@ function SharedSetlistContent() {
               <Play className='mr-2 h-5 w-5' /> View in Player
             </Link>
           </Button>
-          <Tooltip>
-            <TooltipTrigger asChild>
-                <Button
-                  size='icon'
-                  variant='outline'
-                  onClick={handleSaveToLibrary}
-                  disabled={isSaving || isSaved}
-                  aria-label='Save to My Setlists'
-                >
-                  {isSaved ? (
-                    <Check className='h-5 w-5 text-green-500' />
-                  ) : (
-                    <Library className='h-5 w-5' />
-                  )}
-                </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-                <p>{isSaved ? 'Saved in your setlists' : 'Save to My Setlists'}</p>
-            </TooltipContent>
-          </Tooltip>
+          {!isAnonymous && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                  <Button
+                    size='icon'
+                    variant='outline'
+                    onClick={handleSaveToLibrary}
+                    disabled={isSaving || isSaved}
+                    aria-label='Save to My Setlists'
+                  >
+                    {isSaved ? (
+                      <Check className='h-5 w-5 text-green-500' />
+                    ) : (
+                      <Library className='h-5 w-5' />
+                    )}
+                  </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                  <p>{isSaved ? 'Saved in your setlists' : 'Save to My Setlists'}</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
       </TooltipProvider>
     );

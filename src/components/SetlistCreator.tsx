@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { GripVertical, PlusCircle, Search, Trash2, ArrowLeft, Edit, Cloud, User as UserIcon } from 'lucide-react';
+import { GripVertical, PlusCircle, Search, Trash2, ArrowLeft, Edit, Cloud, User as UserIcon, LogIn } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { v4 as uuidv4 } from 'uuid';
@@ -295,7 +295,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   }
 
   async function handleSaveSetlist(data: SetlistFormValues) {
-    if (!user) {
+    if (!user || user.isAnonymous) {
         toast({ title: "Please login", description: "You must be logged in to save a setlist.", variant: "destructive" });
         return;
     }
@@ -331,11 +331,13 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
       });
 
       if (!isEditing) {
+        form.reset();
         router.push('/setlists');
       } else {
         // After saving, reset the form state with the new data
         // This marks the form as not dirty
         form.reset(data);
+        setSelectedSongs(selectedSongs); // Re-set songs to keep them in the form
       }
 
     } catch (error) {
@@ -350,6 +352,19 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
 
   if (isLoading) {
       return <LoadingScreen />;
+  }
+
+  if (user && user.isAnonymous) {
+      return (
+        <div className="text-center py-16 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full">
+            <LogIn className="h-12 w-12 text-muted-foreground mb-4" />
+            <h2 className="text-xl font-headline font-semibold">Please Sign In</h2>
+            <p className="text-muted-foreground">You need to sign in to create a setlist.</p>
+            <Button variant="link" asChild className="mt-2">
+                <Link href="/login">Sign In</Link>
+            </Button>
+        </div>
+      )
   }
 
   const BackButton = () => {
