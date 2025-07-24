@@ -50,8 +50,6 @@ export default function FloatingSectionNavigator({
         console.warn('Failed to parse saved position:', error);
         setPosition(initialPosition);
       }
-    } else {
-        setPosition(initialPosition);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -60,11 +60,11 @@ export default function FloatingKeyControls({
         setPosition(parsedPosition);
       } catch (error) {
         console.warn('Failed to parse saved position:', error);
+        // Fallback to initialPosition if parsing fails
         setPosition(initialPosition);
       }
-    } else {
-        setPosition(initialPosition);
     }
+    // No else block needed, position is already set to initialPosition by useState
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
