@@ -22,7 +22,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ListMusic, ChevronRight, Music } from 'lucide-react';
+import { ListMusic, ChevronRight, Music, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
@@ -82,26 +82,42 @@ function SongCarousel({
 }
 
 function RecentSetlistItem({ setlist }: { setlist: Setlist }) {
+  const isOwner = setlist.source !== 'saved';
   const songCount = setlist.songIds.length;
+  const linkHref = isOwner
+    ? `/setlists/${setlist.id}`
+    : `/setlists/shared/${setlist.firestoreId}`;
+
   return (
     <Link
-      href={`/setlists/${setlist.id}`}
+      href={linkHref}
       className='block p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors'
     >
       <div className='flex items-center justify-between'>
-        <div>
-          <p className='font-semibold font-headline truncate'>
-            {setlist.title}
-          </p>
-          <p className='text-sm text-muted-foreground'>
-            {songCount} {songCount === 1 ? 'song' : 'songs'}
-          </p>
+        <div className='flex items-center gap-3'>
+           {isOwner ? (
+                <ListMusic className='h-5 w-5 text-muted-foreground flex-shrink-0' />
+            ) : (
+                <Users className='h-5 w-5 text-purple-500 flex-shrink-0' />
+            )}
+            <div>
+              <p className='font-semibold font-headline truncate'>
+                {setlist.title}
+              </p>
+              <p className='text-sm text-muted-foreground'>
+                 {isOwner
+                    ? `${songCount} ${songCount === 1 ? 'song' : 'songs'}`
+                    : `By ${setlist.authorName}`
+                 }
+              </p>
+            </div>
         </div>
         <ChevronRight className='h-5 w-5 text-muted-foreground' />
       </div>
     </Link>
   );
 }
+
 
 function RecommendedSetlistCard({
   setlist,
