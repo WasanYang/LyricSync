@@ -60,8 +60,12 @@ export default function FloatingKeyControls({
         setPosition(parsedPosition);
       } catch (error) {
         console.warn('Failed to parse saved position:', error);
+        setPosition(initialPosition);
       }
+    } else {
+        setPosition(initialPosition);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Save position to localStorage when position changes
@@ -247,13 +251,6 @@ export default function FloatingKeyControls({
     handleTouchMove,
     handleTouchEnd,
   ]);
-
-  // Update position when initialPosition changes
-  useEffect(() => {
-    if (!localStorage.getItem('floatingKeyControls-position')) {
-      setPosition(initialPosition);
-    }
-  }, [initialPosition]);
 
   const handleClose = () => {
     if (onToggleVisibility) {
