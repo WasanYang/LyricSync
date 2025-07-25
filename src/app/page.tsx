@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -85,7 +86,7 @@ function RecentSetlistItem({ setlist }: { setlist: Setlist }) {
   const songCount = setlist.songIds.length;
   const linkHref = isOwner
     ? `/setlists/${setlist.id}`
-    : `/setlists/${setlist.firestoreId}`;
+    : `/shared/setlists/${setlist.firestoreId}`;
 
   return (
     <Link
@@ -124,7 +125,10 @@ function RecommendedSetlistCard({
   const songCount = setlist.songIds.length;
 
   return (
-    <Link href={`/setlists/${setlist.firestoreId}`} className='block group'>
+    <Link
+      href={`/shared/setlists/${setlist.firestoreId}`}
+      className='block group'
+    >
       <div className='group relative space-y-1.5'>
         <div className='aspect-square w-full overflow-hidden rounded-md transition-all duration-300 ease-in-out group-hover:shadow-lg group-hover:shadow-primary/20'>
           <Image
