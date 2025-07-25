@@ -96,13 +96,13 @@ function SetlistDetailContent({
   const [isLoading, setIsLoading] = useState(true);
 
   const findSong = async (songId: string): Promise<Song | undefined> => {
-    let song: any = await getSongFromLocalDb(songId);
+    let song: Song | undefined = await getSongFromLocalDb(songId);
     if (song) return song;
 
-    song = await getCloudSongById(songId);
+    const cloudSong = await getCloudSongById(songId);
 
     // Convert null to undefined for correct type
-    return song === null ? undefined : song;
+    return cloudSong === null ? undefined : cloudSong;
   };
 
   useEffect(() => {
@@ -116,16 +116,26 @@ function SetlistDetailContent({
         setIsLoading(true);
         const loadedSetlist = await getSetlistFromDb(id);
         // Ensure the user viewing this local setlist is the owner
-        if (
-          loadedSetlist &&
-          (loadedSetlist.userId === user.uid || loadedSetlist.isPublic)
-        ) {
+        if (loadedSetlist && loadedSetlist.userId === user.uid) {
           setSetlist(loadedSetlist);
           const songPromises = loadedSetlist.songIds.map(findSong);
           const loadedSongs = (await Promise.all(songPromises)).filter(
             Boolean
           ) as Song[];
-          setSongs(loadedSongs);
+
+          // Make sure all songs were found before setting state
+          if (loadedSongs.length === loadedSetlist.songIds.length) {
+            setSongs(loadedSongs);
+          } else {
+            toast({
+              title: 'Error Loading Songs',
+              description:
+                'Some songs in this setlist could not be found and may have been deleted.',
+              variant: 'destructive',
+            });
+            // Set only the songs that were found
+            setSongs(loadedSongs);
+          }
         } else {
           toast({
             title: 'Not Found',
