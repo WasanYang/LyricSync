@@ -40,8 +40,9 @@ if (firebaseConfig.apiKey) {
           );
         } else if (err.code === 'unimplemented') {
           console.warn(
-            'Firebase: The current browser does not support all of the features required to enable persistence'
+            'Firebase: The current browser does not support all of the features required to enable persistence (common on iOS Safari)'
           );
+          // Continue without persistence on iOS Safari
         } else {
           console.error('Firebase persistence error:', err);
         }

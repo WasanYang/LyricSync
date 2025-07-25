@@ -10,6 +10,8 @@ import { AuthProvider } from '@/context/AuthContext';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import { useEffect, useState } from 'react';
 import { registerSW } from '@/lib/pwa';
+import { iOSUtils } from '@/lib/ios-utils';
+import { IOSErrorBoundary } from '@/components/IOSErrorBoundary';
 
 // Metadata cannot be exported from a client component.
 // We can define it here and then use it in the component.
@@ -22,6 +24,11 @@ const metadataConfig: Metadata = {
 
 const viewportConfig: Viewport = {
   themeColor: '#3AAFA9',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -35,6 +42,9 @@ export default function RootLayout({
   useEffect(() => {
     setMounted(true);
     document.documentElement.classList.toggle('is-offline', !isOnline);
+
+    // Initialize iOS-specific fixes
+    iOSUtils.init();
 
     // Register service worker for PWA
     if (process.env.NODE_ENV === 'production') {
@@ -58,6 +68,23 @@ export default function RootLayout({
             content={String(viewportConfig.themeColor)}
           />
         )}
+
+        {/* iOS specific meta tags */}
+        <meta name='apple-mobile-web-app-capable' content='yes' />
+        <meta name='apple-mobile-web-app-status-bar-style' content='default' />
+        <meta name='apple-mobile-web-app-title' content='LyricSync' />
+        <meta name='format-detection' content='telephone=no' />
+        <link rel='apple-touch-icon' href='/logo/logo.png' />
+
+        {/* Viewport meta tag */}
+        <meta
+          name='viewport'
+          content={`width=${viewportConfig.width}, initial-scale=${
+            viewportConfig.initialScale
+          }, maximum-scale=${viewportConfig.maximumScale}, user-scalable=${
+            viewportConfig.userScalable ? 'yes' : 'no'
+          }, viewport-fit=${viewportConfig.viewportFit}`}
+        />
       </head>
       <body
         className={cn(
@@ -70,14 +97,16 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            <div className='w-full max-w-[768px] mx-auto flex-grow flex flex-col'>
-              <div className='flex-grow flex flex-col pb-16 md:pb-0'>
-                {children}
+          <IOSErrorBoundary>
+            <AuthProvider>
+              <div className='w-full max-w-[768px] mx-auto flex-grow flex flex-col'>
+                <div className='flex-grow flex flex-col pb-16 md:pb-0'>
+                  {children}
+                </div>
               </div>
-            </div>
-            <Toaster />
-          </AuthProvider>
+              <Toaster />
+            </AuthProvider>
+          </IOSErrorBoundary>
         </ThemeProvider>
       </body>
     </html>
