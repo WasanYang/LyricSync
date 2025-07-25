@@ -22,7 +22,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Library, ArrowLeft, Check, Play, Users } from 'lucide-react';
+import { Library, ArrowLeft, Check, Play, Users, Share2 } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -89,6 +89,7 @@ function SharedSetlistContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   const findSong = async (songId: string): Promise<Song | null> => {
     let song = await getSongFromLocalDb(songId);
@@ -146,6 +147,26 @@ function SharedSetlistContent() {
     }
     loadSetlist();
   }, [id, user, router, isAdminMode]);
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href).then(
+      () => {
+        setIsCopied(true);
+        toast({
+          title: 'Link Copied!',
+          description: 'A shareable link has been copied to your clipboard.',
+        });
+        setTimeout(() => setIsCopied(false), 2000);
+      },
+      (err) => {
+        toast({
+          title: 'Error',
+          description: 'Could not copy the link.',
+          variant: 'destructive',
+        });
+      }
+    );
+  };
 
   const handleSaveToLibrary = async () => {
     if (!user || user.isAnonymous) {
@@ -257,6 +278,25 @@ function SharedSetlistContent() {
               </TooltipContent>
             </Tooltip>
           )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size='icon'
+                variant='outline'
+                onClick={handleShare}
+                aria-label='Share Setlist'
+              >
+                {isCopied ? (
+                  <Check className='h-5 w-5 text-green-500' />
+                ) : (
+                  <Share2 className='h-5 w-5' />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Share Setlist</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </TooltipProvider>
     );
