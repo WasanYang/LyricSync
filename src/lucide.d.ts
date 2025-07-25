@@ -43,6 +43,9 @@ declare module 'lucide-react' {
   export const WifiOff: FC<SVGProps<SVGSVGElement>>;
   export const MoreVertical: FC<SVGProps<SVGSVGElement>>;
   export const Share: FC<SVGProps<SVGSVGElement>>;
+  export const CheckCircle: FC<SVGProps<SVGSVGElement>>;
+  export const AlertCircle: FC<SVGProps<SVGSVGElement>>;
+  export const HardDrive: FC<SVGProps<SVGSVGElement>>;
 
   // Add other icons you use here to avoid TypeScript errors
   // if they are not directly in the main library type definitions.

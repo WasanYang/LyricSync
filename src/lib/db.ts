@@ -374,7 +374,16 @@ export async function getAllCloudSongs(): Promise<Song[]> {
 }
 
 export async function getCloudSongById(songId: string): Promise<Song | null> {
-  if (!firestoreDb) throw new Error('Firebase is not configured.');
+  if (!firestoreDb) {
+    console.warn('Firebase is not configured - cannot fetch cloud song');
+    return null;
+  }
+
+  // Check if we're offline
+  if (!navigator.onLine) {
+    console.log('Offline: Cannot fetch cloud song');
+    return null;
+  }
 
   try {
     const docRef = doc(firestoreDb, 'songs', songId);
@@ -383,18 +392,29 @@ export async function getCloudSongById(songId: string): Promise<Song | null> {
     if (docSnap.exists()) {
       const data = docSnap.data();
       const updatedAt = data.updatedAt;
-      return {
+      const song = {
         id: docSnap.id,
         ...data,
         updatedAt:
           updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
       } as Song;
+
+      console.log(`☁️ Successfully fetched song "${song.title}" from cloud`);
+      return song;
     } else {
-      console.log('No such document!');
+      console.log(`❌ Cloud song ${songId} not found`);
       return null;
     }
-  } catch (error) {
-    console.error('Error getting cloud song:', error);
+  } catch (error: any) {
+    console.error('❌ Error getting cloud song:', error);
+
+    // Handle specific Firebase errors
+    if (error.code === 'unavailable') {
+      console.warn('Firebase is temporarily unavailable - working offline');
+    } else if (error.code === 'permission-denied') {
+      console.warn('Permission denied for song access');
+    }
+
     return null;
   }
 }
@@ -555,7 +575,16 @@ export async function getSetlist(id: string): Promise<Setlist | undefined> {
 export async function getSetlistByFirestoreId(
   firestoreId: string
 ): Promise<Setlist | null> {
-  if (!firestoreDb) throw new Error('Firebase is not configured.');
+  if (!firestoreDb) {
+    console.warn('Firebase is not configured - cannot fetch cloud setlist');
+    return null;
+  }
+
+  // Check if we're offline
+  if (!navigator.onLine) {
+    console.log('Offline: Cannot fetch cloud setlist');
+    return null;
+  }
 
   try {
     const docRef = doc(firestoreDb, 'setlists', firestoreId);
@@ -564,7 +593,7 @@ export async function getSetlistByFirestoreId(
     if (docSnap.exists()) {
       const data = docSnap.data();
       const syncedAt = data.syncedAt as Timestamp;
-      return {
+      const setlist = {
         id: docSnap.id,
         firestoreId: docSnap.id,
         title: data.title,
@@ -575,13 +604,27 @@ export async function getSetlistByFirestoreId(
         isSynced: true,
         isPublic: data.isPublic || false,
         authorName: data.authorName || 'Unknown',
-        source: 'saved', // A setlist retrieved by Firestore ID is always from another source
+        source: 'saved' as const, // A setlist retrieved by Firestore ID is always from another source
       };
+
+      console.log(
+        `☁️ Successfully fetched setlist "${setlist.title}" from cloud`
+      );
+      return setlist;
     } else {
+      console.log(`❌ Cloud setlist ${firestoreId} not found`);
       return null;
     }
-  } catch (error) {
-    console.error('Error getting shared setlist:', error);
+  } catch (error: any) {
+    console.error('❌ Error getting shared setlist:', error);
+
+    // Handle specific Firebase errors
+    if (error.code === 'unavailable') {
+      console.warn('Firebase is temporarily unavailable - working offline');
+    } else if (error.code === 'permission-denied') {
+      console.warn('Permission denied for setlist access');
+    }
+
     return null;
   }
 }
