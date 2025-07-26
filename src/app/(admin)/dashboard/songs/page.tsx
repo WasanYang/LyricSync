@@ -1,14 +1,22 @@
-
 // src/app/admin/songs/page.tsx
 'use client';
 
-import { useState, useEffect, useMemo, useCallback }from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { getPaginatedCloudSongs, deleteCloudSong } from '@/lib/db';
+import { getPaginatedSystemSongs, deleteCloudSong } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, ListMusic, Search, RefreshCw } from 'lucide-react';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import { PlusCircle, ListMusic, Search } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
@@ -16,9 +24,8 @@ import { SongList } from '@/components/admin';
 import { EmptyState, SearchInput, LoadingSkeleton } from '@/components/shared';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import type { DocumentSnapshot, DocumentData } from 'firebase/firestore';
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = 10;
 
 export default function AdminSongsPage() {
   const { user, isSuperAdmin, loading: authLoading } = useAuth();
@@ -27,51 +34,51 @@ export default function AdminSongsPage() {
   const [songs, setSongs] = useState<Song[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [lastVisible, setLastVisible] = useState<DocumentSnapshot<DocumentData> | null>(null);
-  const [hasMore, setHasMore] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
 
-  const loadSongs = useCallback(async (loadMore = false) => {
-    if (loadMore) {
-        setIsLoadingMore(true);
-    } else {
-        setIsLoading(true);
-    }
+  const loadSongs = useCallback(
+    async (page: number) => {
+      setIsLoading(true);
+      try {
+        const {
+          songs: fetchedSongs,
+          totalPages: newTotalPages,
+        } = await getPaginatedSystemSongs(page, PAGE_SIZE);
 
-    try {
-        const result = await getPaginatedCloudSongs(PAGE_SIZE, loadMore ? lastVisible : undefined);
-        const systemSongs = result.songs.filter((s) => s.source === 'system');
-        
-        setSongs(prevSongs => loadMore ? [...prevSongs, ...systemSongs] : systemSongs);
-        setLastVisible(result.lastVisible);
-        setHasMore(result.songs.length === PAGE_SIZE);
-    } catch (error) {
+        setSongs(fetchedSongs);
+        setTotalPages(newTotalPages);
+        setCurrentPage(page);
+      } catch (error) {
         toast({
-            title: 'Error',
-            description: 'Could not fetch songs.',
-            variant: 'destructive',
+          title: 'Error',
+          description: 'Could not fetch songs.',
+          variant: 'destructive',
         });
-    } finally {
+      } finally {
         setIsLoading(false);
-        setIsLoadingMore(false);
-    }
-  }, [lastVisible, toast]);
+      }
+    },
+    [toast]
+  );
 
   useEffect(() => {
     if (!authLoading) {
       if (!user || !isSuperAdmin) {
         router.replace('/');
       } else {
-        loadSongs();
+        loadSongs(1);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isSuperAdmin, authLoading, router]);
 
   const filteredSongs = useMemo(() => {
     if (!searchTerm) {
-        return songs;
+      return songs;
     }
+    // Note: Search is only performed on the current page of songs.
+    // For a full database search, a different approach is needed.
     return songs.filter(
       (song) =>
         song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -86,10 +93,8 @@ export default function AdminSongsPage() {
         title: 'Song Deleted',
         description: `"${songToDelete.title}" has been removed from the cloud.`,
       });
-      // Refresh the list
-      setSongs((prevSongs) =>
-        prevSongs.filter((s) => s.id !== songToDelete.id)
-      );
+      // Refresh the current page
+      loadSongs(currentPage);
     } catch (error) {
       toast({
         title: 'Error',
@@ -99,9 +104,68 @@ export default function AdminSongsPage() {
     }
   };
 
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      loadSongs(page);
+    }
+  };
+
   if (authLoading || !user || !isSuperAdmin) {
     return <LoadingSkeleton />;
   }
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              href='#'
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageChange(currentPage - 1);
+              }}
+              aria-disabled={currentPage <= 1}
+              className={
+                currentPage <= 1 ? 'pointer-events-none opacity-50' : ''
+              }
+            />
+          </PaginationItem>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <PaginationItem key={page}>
+              <PaginationLink
+                href='#'
+                isActive={page === currentPage}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handlePageChange(page);
+                }}
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+          <PaginationItem>
+            <PaginationNext
+              href='#'
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageChange(currentPage + 1);
+              }}
+              aria-disabled={currentPage >= totalPages}
+              className={
+                currentPage >= totalPages
+                  ? 'pointer-events-none opacity-50'
+                  : ''
+              }
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
+  };
 
   return (
     <div className='flex-grow flex flex-col'>
@@ -147,20 +211,7 @@ export default function AdminSongsPage() {
                   searchTerm={searchTerm}
                 />
               )}
-               {hasMore && !searchTerm && (
-                    <div className="text-center">
-                        <Button onClick={() => loadSongs(true)} disabled={isLoadingMore}>
-                            {isLoadingMore ? (
-                                <>
-                                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                                    Loading...
-                                </>
-                            ) : (
-                                'Load More'
-                            )}
-                        </Button>
-                    </div>
-                )}
+              {!searchTerm && renderPagination()}
             </div>
           ) : (
             <EmptyState

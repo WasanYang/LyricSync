@@ -22,6 +22,7 @@ import {
   Timestamp,
   type DocumentSnapshot,
   type DocumentData,
+  getCountFromServer,
 } from 'firebase/firestore';
 
 const DB_NAME = 'LyricSyncDB';
@@ -292,23 +293,36 @@ export async function uploadSongToCloud(song: Song): Promise<void> {
   }
 }
 
-export async function getPaginatedCloudSongs(
-  pageSize: number,
-  startAfterDoc?: DocumentSnapshot<DocumentData>
-): Promise<{
-  songs: Song[];
-  lastVisible: DocumentSnapshot<DocumentData> | null;
-}> {
+export async function getPaginatedSystemSongs(
+  page: number,
+  pageSize: number
+): Promise<{ songs: Song[]; totalPages: number; totalSongs: number }> {
   if (!firestoreDb) throw new Error('Firebase is not configured.');
 
   const songsCollection = collection(firestoreDb, 'songs');
-  const queryConstraints = [orderBy('title'), limit(pageSize)];
+  const qBase = query(songsCollection, where('source', '==', 'system'));
+  
+  // Get total count for pagination
+  const countSnapshot = await getCountFromServer(qBase);
+  const totalSongs = countSnapshot.data().count;
+  const totalPages = Math.ceil(totalSongs / pageSize);
 
-  if (startAfterDoc) {
-    queryConstraints.push(startAfter(startAfterDoc));
+  if (page > totalPages && totalSongs > 0) {
+    // If requested page is out of bounds, return empty
+    return { songs: [], totalPages, totalSongs };
   }
-
-  const q = query(songsCollection, ...queryConstraints);
+  
+  // Fetch the specific page
+  let q;
+  if (page === 1) {
+    q = query(qBase, orderBy('title'), limit(pageSize));
+  } else {
+    // To get to page `page`, we need to skip `(page - 1) * pageSize` documents
+    const prevPageQuery = query(qBase, orderBy('title'), limit((page - 1) * pageSize));
+    const prevPageSnapshot = await getDocs(prevPageQuery);
+    const lastVisible = prevPageSnapshot.docs[prevPageSnapshot.docs.length - 1];
+    q = query(qBase, orderBy('title'), startAfter(lastVisible), limit(pageSize));
+  }
 
   const documentSnapshots = await getDocs(q);
 
@@ -333,10 +347,9 @@ export async function getPaginatedCloudSongs(
     } as Song);
   });
 
-  const lastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
-
-  return { songs, lastVisible: lastVisible || null };
+  return { songs, totalPages, totalSongs };
 }
+
 
 export async function getAllCloudSongs(): Promise<Song[]> {
   if (!firestoreDb) throw new Error('Firebase is not configured.');
