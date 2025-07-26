@@ -317,18 +317,17 @@ export async function getPaginatedSystemSongs(
   // Fetch the specific page
   let q;
   if (page === 1) {
-    q = query(qBase, orderBy('title'), limit(pageSize));
+    q = query(qBase, limit(pageSize));
   } else {
     // To get to page `page`, we need to skip `(page - 1) * pageSize` documents
     const prevPageQuery = query(
       qBase,
-      orderBy('title'),
       limit((page - 1) * pageSize)
     );
     const prevPageSnapshot = await getDocs(prevPageQuery);
     const lastVisible =
       prevPageSnapshot.docs[prevPageSnapshot.docs.length - 1];
-    q = query(qBase, orderBy('title'), startAfter(lastVisible), limit(pageSize));
+    q = query(qBase, startAfter(lastVisible), limit(pageSize));
   }
 
   const documentSnapshots = await getDocs(q);
@@ -361,7 +360,7 @@ export async function getAllCloudSongs(): Promise<Song[]> {
   if (!firestoreDb) throw new Error('Firebase is not configured.');
 
   const songsCollection = collection(firestoreDb, 'songs');
-  const q = query(songsCollection, orderBy('title'));
+  const q = query(songsCollection);
   const querySnapshot = await getDocs(q);
 
   const songs: Song[] = [];
@@ -826,8 +825,7 @@ export async function getPublicSetlists(): Promise<Setlist[]> {
 
   const q = query(
     collection(firestoreDb, 'setlists'),
-    where('isPublic', '==', true),
-    orderBy('title')
+    where('isPublic', '==', true)
   );
 
   const querySnapshot = await getDocs(q);

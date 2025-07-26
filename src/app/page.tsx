@@ -20,7 +20,7 @@ import BottomNavBar from '@/components/BottomNavBar';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ListMusic, ChevronRight, Music, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -265,15 +265,15 @@ export default function Home() {
   }
 
   const featuredSongs = systemSongs.slice(0, 5);
-  const recentReleases = [...systemSongs]
+  const recentReleases = useMemo(() => [...systemSongs]
     .sort(
       (a, b) =>
         new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
     )
-    .slice(0, 5);
-  const popularHits = [...systemSongs]
+    .slice(0, 5), [systemSongs]);
+  const popularHits = useMemo(() => [...systemSongs]
     .sort(() => 0.5 - Math.random())
-    .slice(0, 5); // Mock popularity with random sort for now
+    .slice(0, 5), [systemSongs]); // Mock popularity with random sort for now
 
   return (
     <div className='flex-grow flex flex-col'>
