@@ -12,7 +12,6 @@ import {
     getSong as getSongFromDb, 
     getAllSavedSongs, 
     getAllCloudSongs, 
-    getAllSavedSongIds 
 } from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -159,8 +158,8 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   const [selectedSongs, setSelectedSongs] = useState<Song[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [allSongs, setAllSongs] = useState<Song[]>([]);
-  const [savedSongIds, setSavedSongIds] = useState<Set<string>>(new Set());
+  const [localSongs, setLocalSongs] = useState<Song[]>([]);
+  const [cloudSongs, setCloudSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   const isMobile = useIsMobile();
@@ -175,23 +174,27 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   const { formState: { isDirty } } = form;
 
   const fetchAllSongs = async () => {
-    if (!user) return;
-    const localSongs = await getAllSavedSongs(user.uid); // Includes system and user songs
-    
-    // Sort: Saved songs first, then by title
-    localSongs.sort((a, b) => {
-        const aIsUser = a.source === 'user';
-        const bIsUser = b.source === 'user';
+      if (!user) return;
+      
+      const [local, cloud] = await Promise.all([
+          getAllSavedSongs(user.uid),
+          getAllCloudSongs()
+      ]);
+      
+      const systemCloudSongs = cloud.filter(s => s.source === 'system');
+      
+      local.sort((a, b) => {
+          const aIsUser = a.source === 'user';
+          const bIsUser = b.source === 'user';
+          if (aIsUser && !bIsUser) return -1;
+          if (!aIsUser && bIsUser) return 1;
+          return a.title.localeCompare(b.title);
+      });
 
-        if (aIsUser && !bIsUser) return -1;
-        if (!aIsUser && bIsUser) return 1;
-        return a.title.localeCompare(b.title);
-    });
-    
-    setAllSongs(localSongs);
+      setLocalSongs(local);
+      setCloudSongs(systemCloudSongs);
   };
   
-  // Fetch all songs on component mount
   useEffect(() => {
     fetchAllSongs();
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -205,11 +208,13 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
         if (existingSetlist) {
           form.reset({ title: existingSetlist.title });
           
+          const allAvailableSongs = new Map([...localSongs, ...cloudSongs].map(s => [s.id, s]));
+
           const songPromises = existingSetlist.songIds.map(async (id) => {
-             const songFromAll = allSongs.find(s => s.id === id);
+             const songFromAll = allAvailableSongs.get(id);
              if (songFromAll) return songFromAll;
              
-             // Fallback if allSongs isn't populated yet
+             // Fallback if songs aren't populated yet
              const songFromDb = await getSongFromDb(id);
              return songFromDb;
           });
@@ -223,22 +228,28 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
         }
         setIsLoading(false);
       }
-      if (allSongs.length > 0) {
+      if (localSongs.length > 0 || cloudSongs.length > 0) {
         fetchSetlist();
       }
     } else {
         setIsLoading(false);
     }
-  }, [setlistId, form, router, toast, allSongs]);
+  }, [setlistId, form, router, toast, localSongs, cloudSongs]);
 
   const availableSongs = useMemo(() => {
-    return allSongs
-      .filter(song => !selectedSongs.some(selected => selected.id === song.id))
-      .filter(song => 
+    const filterBySearchTerm = (song: Song) => 
         song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        song.artist.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-  }, [allSongs, selectedSongs, searchTerm]);
+        song.artist.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const allSongsToConsider = searchTerm 
+      ? [...new Map([...localSongs, ...cloudSongs].map(item => [item['id'], item])).values()] 
+      : localSongs;
+
+    return allSongsToConsider
+      .filter(song => !selectedSongs.some(selected => selected.id === song.id))
+      .filter(song => !searchTerm || filterBySearchTerm(song));
+
+  }, [localSongs, cloudSongs, selectedSongs, searchTerm]);
 
   const addSong = (song: Song) => {
     setSelectedSongs(prev => [...prev, song]);
@@ -255,7 +266,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   }
   
   const handleSongStatusChange = () => {
-      fetchAllSongs(); // Re-fetch and re-sort
+      fetchAllSongs();
   }
 
   const removeSong = (songId: string) => {
@@ -317,12 +328,14 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
         firestoreId: existingSetlist?.firestoreId || null,
         isSynced: existingSetlist?.isSynced || false,
         createdAt: existingSetlist?.createdAt || Date.now(),
-        updatedAt: Date.now(), // Always update timestamp on save/update
+        updatedAt: Date.now(),
         title: data.title,
         songIds: selectedSongs.map(s => s.id),
         userId: user.uid,
         source: existingSetlist?.source || 'owner',
         authorName: existingSetlist?.authorName || user.displayName,
+        isPublic: existingSetlist?.isPublic || false,
+        syncedAt: existingSetlist?.syncedAt,
     };
 
     try {
@@ -336,9 +349,8 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
       if (!isEditing) {
         router.push('/setlists');
       } else {
-        // After saving, reset the form state with the new data
-        // This marks the form as not dirty
         form.reset({ title: newSetlist.title });
+        setSelectedSongs(selectedSongs);
       }
 
     } catch (error) {
@@ -463,7 +475,6 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
                             {addSongTrigger}
                         </PopoverTrigger>
                         <PopoverContent className="w-[350px] p-0" align="end" onInteractOutside={(e) => {
-                            // This prevents the popover from closing when interacting with the SongStatusButton which might show a toast.
                             const target = e.target as HTMLElement;
                             if (target.closest('[data-radix-toast-provider]')) {
                                 e.preventDefault();
