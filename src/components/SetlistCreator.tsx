@@ -258,7 +258,6 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
 
   const handleAddSong = (song: Song) => {
     addSong(song);
-    setSearchTerm('');
     // Keep popover open on desktop to add multiple songs easily
     if(isMobile) {
        setIsPopoverOpen(false);
