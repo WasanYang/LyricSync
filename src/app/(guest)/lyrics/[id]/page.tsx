@@ -183,6 +183,18 @@ function SongDetailContent() {
     );
   }
 
+  const toggleLyricsButtonContent = isLyricsExpanded ? (
+    <>
+      <ChevronUp className='mr-2 h-4 w-4' />
+      Show Less
+    </>
+  ) : (
+    <>
+      <ChevronDown className='mr-2 h-4 w-4' />
+      View More
+    </>
+  );
+
   return (
     <div className='space-y-8 pt-8'>
       <div className='flex flex-col items-center gap-8 sm:flex-row sm:items-start'>
@@ -244,17 +256,7 @@ function SongDetailContent() {
             variant='link'
             onClick={() => setIsLyricsExpanded(!isLyricsExpanded)}
           >
-            {isLyricsExpanded ? (
-              <>
-                <ChevronUp className='mr-2 h-4 w-4' />
-                Show Less
-              </>
-            ) : (
-              <>
-                <ChevronDown className='mr-2 h-4 w-4' />
-                View More
-              </>
-            )}
+            {toggleLyricsButtonContent}
           </Button>
         </div>
       </div>
@@ -286,5 +288,3 @@ export default function SongDetailPage() {
       {user && <BottomNavBar />}
     </div>
   );
-
-    
