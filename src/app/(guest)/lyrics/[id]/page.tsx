@@ -240,17 +240,17 @@ function SongDetailContent() {
           {lyricContent}
         </div>
         <div className='flex justify-center'>
-          {isLyricsExpanded ? (
-            <Button variant='link' onClick={() => setIsLyricsExpanded(false)}>
+          <Button
+            variant='link'
+            onClick={() => setIsLyricsExpanded(!isLyricsExpanded)}
+          >
+            {isLyricsExpanded ? (
               <ChevronUp className='mr-2 h-4 w-4' />
-              Show Less
-            </Button>
-          ) : (
-            <Button variant='link' onClick={() => setIsLyricsExpanded(true)}>
+            ) : (
               <ChevronDown className='mr-2 h-4 w-4' />
-              View More
-            </Button>
-          )}
+            )}
+            {isLyricsExpanded ? 'Show Less' : 'View More'}
+          </Button>
         </div>
       </div>
     </div>
