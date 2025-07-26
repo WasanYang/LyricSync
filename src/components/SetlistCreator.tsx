@@ -201,40 +201,62 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   }, [user]);
 
   useEffect(() => {
-    if (setlistId) {
-      const fetchSetlist = async () => {
-        setIsLoading(true);
+    const fetchSetlistData = async () => {
+      if (!setlistId) {
+        setIsLoading(false);
+        return;
+      }
+  
+      // Ensure songs are loaded before fetching the setlist
+      if (localSongs.length === 0 && cloudSongs.length === 0) return;
+  
+      setIsLoading(true);
+      try {
         const existingSetlist = await getSetlistFromDb(setlistId);
         if (existingSetlist) {
           form.reset({ title: existingSetlist.title });
-          
-          const allAvailableSongs = new Map([...localSongs, ...cloudSongs].map(s => [s.id, s]));
-
+  
+          // Create a Map for efficient lookup of all available songs.
+          const allAvailableSongsMap = new Map(
+            [...localSongs, ...cloudSongs].map(s => [s.id, s])
+          );
+  
+          // Map song IDs from the setlist to the full song objects.
           const songPromises = existingSetlist.songIds.map(async (id) => {
-             const songFromAll = allAvailableSongs.get(id);
-             if (songFromAll) return songFromAll;
-             
-             // Fallback if songs aren't populated yet
-             const songFromDb = await getSongFromDb(id);
-             return songFromDb;
+            if (allAvailableSongsMap.has(id)) {
+              return allAvailableSongsMap.get(id);
+            }
+            // Fallback: If the song isn't in our pre-loaded lists, fetch it directly.
+            // This can happen if a song was deleted or is new.
+            console.warn(`Song ${id} not found in pre-loaded lists, fetching directly.`);
+            return await getSongFromDb(id);
           });
-          
+  
           const loadedSongs = (await Promise.all(songPromises)).filter(Boolean) as Song[];
           setSelectedSongs(loadedSongs);
-          
         } else {
-           toast({ title: "Setlist not found", description: "The requested setlist could not be found.", variant: "destructive" });
-           router.push('/setlists');
+          toast({
+            title: 'Setlist not found',
+            description: 'The requested setlist could not be found.',
+            variant: 'destructive',
+          });
+          router.push('/setlists');
         }
+      } catch (error) {
+        console.error("Error fetching setlist data", error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load setlist data.',
+          variant: 'destructive',
+        });
+      } finally {
         setIsLoading(false);
       }
-      if (localSongs.length > 0 || cloudSongs.length > 0) {
-        fetchSetlist();
-      }
-    } else {
-        setIsLoading(false);
-    }
-  }, [setlistId, form, router, toast, localSongs, cloudSongs]);
+    };
+  
+    fetchSetlistData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setlistId, localSongs, cloudSongs]); // Depend on songs being loaded.
 
   const availableSongs = useMemo(() => {
     const filterBySearchTerm = (song: Song) => 
@@ -258,7 +280,6 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
 
   const handleAddSong = (song: Song) => {
     addSong(song);
-    // Keep popover open on desktop to add multiple songs easily
     if(isMobile) {
        setIsPopoverOpen(false);
     }
@@ -332,7 +353,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
         songIds: selectedSongs.map(s => s.id),
         userId: user.uid,
         source: existingSetlist?.source || 'owner',
-        authorName: existingSetlist?.authorName || user.displayName,
+        authorName: existingSetlist?.authorName || user.displayName || 'Anonymous',
         isPublic: existingSetlist?.isPublic || false,
         syncedAt: existingSetlist?.syncedAt,
     };
