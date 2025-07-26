@@ -1,3 +1,4 @@
+
 'use client';
 
 import { getSong as getSongFromDb, getCloudSongById } from '@/lib/db';
@@ -243,17 +244,9 @@ function SongDetailContent() {
             variant='link'
             onClick={() => setIsLyricsExpanded(!isLyricsExpanded)}
           >
-            {isLyricsExpanded ? (
-              <>
-                <ChevronUp className='mr-2 h-4 w-4' />
-                Show Less
-              </>
-            ) : (
-              <>
-                <ChevronDown className='mr-2 h-4 w-4' />
-                View More
-              </>
-            )}
+            {isLyricsExpanded
+              ? [<ChevronUp key='up' className='mr-2 h-4 w-4' />, 'Show Less']
+              : [<ChevronDown key='down' className='mr-2 h-4 w-4' />, 'View More']}
           </Button>
         </div>
       </div>
