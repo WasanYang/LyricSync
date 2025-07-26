@@ -3,27 +3,36 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users can only read/write their own user document and subcollections.
-    match /users/{userId}/{documents=**} {
+    // Users can only read/write their own user document
+    match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Songs can be read by anyone, but only created by authenticated users.
-    // Updates and deletes are restricted to the owner or a super admin.
+    // Songs can be read by anyone, but only created/updated/deleted by authenticated users/owners/admins
     match /songs/{songId} {
       allow read: if true;
       allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && 
-                              (request.auth.uid == resource.data.userId || 
-                               get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isSuperAdmin == true);
+      allow update, delete: if get(/databases/$(database)/documents/songs/$(songId)).data.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isSuperAdmin == true;
     }
 
-    // Setlists can be read if public or if the user is the owner.
-    // Create, update, and delete are restricted to the owner.
+    // Setlists can be read if public or if the user is the owner. They can only be created/updated/deleted by the owner.
     match /setlists/{setlistId} {
-      allow read: if resource.data.isPublic == true || (request.auth != null && request.auth.uid == resource.data.userId);
+      // Read: Anyone can read a public setlist. Authenticated users can read their own private setlists.
+      allow read: if resource.data.isPublic == true || (request.auth != null && resource.data.userId == request.auth.uid);
+      
+      // Create: Authenticated users can create setlists for themselves.
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      
+      // Update: Only the owner of the setlist can update it. Check ownership from existing document.
+      allow update: if get(/databases/$(database)/documents/setlists/$(setlistId)).data.userId == request.auth.uid;
+
+      // Delete: Only the owner of the setlist can delete it.
+      allow delete: if resource.data.userId == request.auth.uid;
+    }
+
+    // User's private sub-collections for songs and setlists
+    match /users/{userId}/{collection}/{docId} {
+        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
