@@ -1,4 +1,3 @@
-
 // src/lib/db.ts
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Song } from './songs';
@@ -165,7 +164,10 @@ export async function getSong(id: string): Promise<Song | undefined> {
   return db.get(SONGS_STORE, id);
 }
 
-export async function deleteSong(id: string): Promise<void> {
+export async function deleteSong(
+  id: string,
+  userId?: string
+): Promise<void> {
   const db = await getDb();
   const songToDelete = await db.get(SONGS_STORE, id);
 
@@ -301,7 +303,7 @@ export async function getPaginatedSystemSongs(
 
   const songsCollection = collection(firestoreDb, 'songs');
   const qBase = query(songsCollection, where('source', '==', 'system'));
-  
+
   // Get total count for pagination
   const countSnapshot = await getCountFromServer(qBase);
   const totalSongs = countSnapshot.data().count;
@@ -311,16 +313,21 @@ export async function getPaginatedSystemSongs(
     // If requested page is out of bounds, return empty
     return { songs: [], totalPages, totalSongs };
   }
-  
+
   // Fetch the specific page
   let q;
   if (page === 1) {
     q = query(qBase, orderBy('title'), limit(pageSize));
   } else {
     // To get to page `page`, we need to skip `(page - 1) * pageSize` documents
-    const prevPageQuery = query(qBase, orderBy('title'), limit((page - 1) * pageSize));
+    const prevPageQuery = query(
+      qBase,
+      orderBy('title'),
+      limit((page - 1) * pageSize)
+    );
     const prevPageSnapshot = await getDocs(prevPageQuery);
-    const lastVisible = prevPageSnapshot.docs[prevPageSnapshot.docs.length - 1];
+    const lastVisible =
+      prevPageSnapshot.docs[prevPageSnapshot.docs.length - 1];
     q = query(qBase, orderBy('title'), startAfter(lastVisible), limit(pageSize));
   }
 
@@ -349,7 +356,6 @@ export async function getPaginatedSystemSongs(
 
   return { songs, totalPages, totalSongs };
 }
-
 
 export async function getAllCloudSongs(): Promise<Song[]> {
   if (!firestoreDb) throw new Error('Firebase is not configured.');
