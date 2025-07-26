@@ -183,18 +183,6 @@ function SongDetailContent() {
     );
   }
 
-  const toggleLyricsButtonContent = isLyricsExpanded ? (
-    <>
-      <ChevronUp className='mr-2 h-4 w-4' />
-      Show Less
-    </>
-  ) : (
-    <>
-      <ChevronDown className='mr-2 h-4 w-4' />
-      View More
-    </>
-  );
-
   return (
     <div className='space-y-8 pt-8'>
       <div className='flex flex-col items-center gap-8 sm:flex-row sm:items-start'>
@@ -252,12 +240,17 @@ function SongDetailContent() {
           {lyricContent}
         </div>
         <div className='flex justify-center'>
-          <Button
-            variant='link'
-            onClick={() => setIsLyricsExpanded(!isLyricsExpanded)}
-          >
-            {toggleLyricsButtonContent}
-          </Button>
+          {isLyricsExpanded ? (
+            <Button variant='link' onClick={() => setIsLyricsExpanded(false)}>
+              <ChevronUp className='mr-2 h-4 w-4' />
+              Show Less
+            </Button>
+          ) : (
+            <Button variant='link' onClick={() => setIsLyricsExpanded(true)}>
+              <ChevronDown className='mr-2 h-4 w-4' />
+              View More
+            </Button>
+          )}
         </div>
       </div>
     </div>
@@ -288,3 +281,5 @@ export default function SongDetailPage() {
       {user && <BottomNavBar />}
     </div>
   );
+
+    
