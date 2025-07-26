@@ -195,12 +195,14 @@ export default function WelcomePage() {
         <section className='mt-12 max-w-md mx-auto px-4'>
           <PWAPromptCard />
         </section>
-
-        <section className='text-center mt-16 sm:mt-24'>
-          <Button asChild size='lg'>
-            <Link href={user ? '/' : '/login'}>Get Started</Link>
-          </Button>
-        </section>
+        
+        {!user && (
+          <section className='text-center mt-16 sm:mt-24'>
+            <Button asChild size='lg'>
+              <Link href='/login'>Get Started</Link>
+            </Button>
+          </section>
+        )}
       </main>
     </div>
   );
