@@ -244,9 +244,17 @@ function SongDetailContent() {
             variant='link'
             onClick={() => setIsLyricsExpanded(!isLyricsExpanded)}
           >
-            {isLyricsExpanded
-              ? [<ChevronUp key='up' className='mr-2 h-4 w-4' />, 'Show Less']
-              : [<ChevronDown key='down' className='mr-2 h-4 w-4' />, 'View More']}
+            {isLyricsExpanded ? (
+              <>
+                <ChevronUp className='mr-2 h-4 w-4' />
+                Show Less
+              </>
+            ) : (
+              <>
+                <ChevronDown className='mr-2 h-4 w-4' />
+                View More
+              </>
+            )}
           </Button>
         </div>
       </div>
@@ -278,4 +286,5 @@ export default function SongDetailPage() {
       {user && <BottomNavBar />}
     </div>
   );
-}
+
+    
