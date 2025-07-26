@@ -70,7 +70,7 @@ import Link from 'next/link';
 
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
-  artist: z.string().min(1, 'Artist is required.'),
+  artist: z.string(),
   lyrics: z.string().min(1, 'Lyrics are required.'),
   originalKey: z.string().min(1, 'Key is required'),
   bpm: z.coerce
