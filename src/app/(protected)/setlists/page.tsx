@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -378,15 +379,14 @@ export default function SetlistsPage() {
     if (!authLoading && !user) {
       router.replace('/welcome');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, authLoading]);
+  }, [user, authLoading, router]);
 
   useEffect(() => {
-    if (!authLoading && user) {
+    if (user) {
       loadData();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, authLoading]);
+  }, [user]);
 
   const handleSyncLimitReached = () => {
     toast({
@@ -487,3 +487,5 @@ export default function SetlistsPage() {
     </div>
   );
 }
+
+    
