@@ -150,8 +150,14 @@ export default function AdminSongsPage() {
                {hasMore && !searchTerm && (
                     <div className="text-center">
                         <Button onClick={() => loadSongs(true)} disabled={isLoadingMore}>
-                            {isLoadingMore ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : null}
-                            {isLoadingMore ? 'Loading...' : 'Load More'}
+                            {isLoadingMore ? (
+                                <>
+                                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                                    Loading...
+                                </>
+                            ) : (
+                                'Load More'
+                            )}
                         </Button>
                     </div>
                 )}
