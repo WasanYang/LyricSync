@@ -301,18 +301,17 @@ export async function getPaginatedCloudSongs(
   if (!firestoreDb) throw new Error('Firebase is not configured.');
 
   const songsCollection = collection(firestoreDb, 'songs');
-  let q;
+  const queryConstraints = [
+    where('source', '==', 'system'),
+    orderBy('title'),
+    limit(pageSize),
+  ];
 
   if (startAfterDoc) {
-    q = query(
-      songsCollection,
-      orderBy('title'),
-      startAfter(startAfterDoc),
-      limit(pageSize)
-    );
-  } else {
-    q = query(songsCollection, orderBy('title'), limit(pageSize));
+    queryConstraints.push(startAfter(startAfterDoc));
   }
+
+  const q = query(songsCollection, ...queryConstraints);
 
   const documentSnapshots = await getDocs(q);
 
