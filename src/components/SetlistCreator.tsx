@@ -345,11 +345,12 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
         description: `"${data.title}" has been successfully saved.`,
       });
 
-      if (!isEditing) {
-        router.push('/setlists');
-      } else {
+      if (isEditing) {
+        // After updating, reset the form with the new data to make it "not dirty"
         form.reset({ title: newSetlist.title });
-        setSelectedSongs(selectedSongs);
+        // The selectedSongs state is already up-to-date
+      } else {
+        router.push('/setlists');
       }
 
     } catch (error) {
