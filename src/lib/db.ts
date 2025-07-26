@@ -437,12 +437,63 @@ export async function deleteCloudSong(songId: string): Promise<void> {
 
 export async function saveSetlist(setlist: Setlist): Promise<void> {
   const db = await getDb();
+  // Always update the local updatedAt timestamp on any save operation.
   const setlistToSave: Setlist = {
     ...setlist,
-    updatedAt: Date.now(), // Ensure updatedAt is always set on save/update
-    source: setlist.source || 'owner', // Default to owner
+    updatedAt: Date.now(),
+    source: setlist.source || 'owner',
   };
+
+  // 1. Save to local IndexedDB first to ensure data is never lost.
   await db.put(SETLISTS_STORE, setlistToSave);
+
+  // 2. If the setlist is an "owned" and synced setlist, also update Firestore.
+  if (
+    firestoreDb &&
+    setlistToSave.source === 'owner' &&
+    setlistToSave.isSynced &&
+    setlistToSave.firestoreId
+  ) {
+    try {
+      const setlistDocRef = doc(
+        firestoreDb,
+        'setlists',
+        setlistToSave.firestoreId
+      );
+      const dataForFirestore = {
+        title: setlistToSave.title,
+        songIds: setlistToSave.songIds,
+        syncedAt: serverTimestamp(), // Use server timestamp to mark the update time
+      };
+      await updateDoc(setlistDocRef, dataForFirestore);
+
+      // Also update the user's reference doc to keep the synced time consistent
+      const userSetlistRef = doc(
+        firestoreDb,
+        'users',
+        setlistToSave.userId,
+        'userSetlists',
+        setlistToSave.firestoreId
+      );
+      await updateDoc(userSetlistRef, {
+        syncedAt: dataForFirestore.syncedAt,
+        title: dataForFirestore.title, // Also update title here
+      });
+
+      // Update local record with new syncedAt time from the server for consistency
+      const updatedSetlist = await getDoc(setlistDocRef);
+      if (updatedSetlist.exists()) {
+        const cloudData = updatedSetlist.data();
+        setlistToSave.syncedAt = (
+          cloudData.syncedAt as Timestamp
+        ).toMillis();
+        await db.put(SETLISTS_STORE, setlistToSave);
+      }
+    } catch (error) {
+      console.error('Error updating synced setlist in Firestore:', error);
+      // Optional: Handle this error, e.g., by marking the setlist as needing sync again.
+    }
+  }
 }
 
 export async function getSetlists(
