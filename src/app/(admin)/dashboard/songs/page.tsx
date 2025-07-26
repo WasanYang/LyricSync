@@ -40,8 +40,9 @@ export default function AdminSongsPage() {
 
     try {
         const result = await getPaginatedCloudSongs(PAGE_SIZE, loadMore ? lastVisible : undefined);
+        const systemSongs = result.songs.filter((s) => s.source === 'system');
         
-        setSongs(prevSongs => loadMore ? [...prevSongs, ...result.songs] : result.songs);
+        setSongs(prevSongs => loadMore ? [...prevSongs, ...systemSongs] : systemSongs);
         setLastVisible(result.lastVisible);
         setHasMore(result.songs.length === PAGE_SIZE);
     } catch (error) {

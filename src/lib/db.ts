@@ -1,3 +1,4 @@
+
 // src/lib/db.ts
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Song } from './songs';
@@ -301,11 +302,7 @@ export async function getPaginatedCloudSongs(
   if (!firestoreDb) throw new Error('Firebase is not configured.');
 
   const songsCollection = collection(firestoreDb, 'songs');
-  const queryConstraints = [
-    where('source', '==', 'system'),
-    orderBy('title'),
-    limit(pageSize),
-  ];
+  const queryConstraints = [orderBy('title'), limit(pageSize)];
 
   if (startAfterDoc) {
     queryConstraints.push(startAfter(startAfterDoc));
