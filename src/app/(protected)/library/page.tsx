@@ -9,7 +9,7 @@ import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Music, Trash2, Edit, RefreshCw, UploadCloud, PlusCircle, Eye, Cloud } from 'lucide-react';
+import { Music, Trash2, Edit, RefreshCw, UploadCloud, PlusCircle, Play, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -131,7 +131,7 @@ function SongListItem({ song, onDelete, onUpdate }: { song: Song, onDelete: (son
                 <TooltipTrigger asChild>
                     <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
                         <Link href={`/lyrics/${song.id}/player`} onClick={e => e.stopPropagation()}>
-                            <Eye className="h-4 w-4" />
+                            <Play className="h-4 w-4" />
                         </Link>
                     </Button>
                 </TooltipTrigger>
