@@ -39,9 +39,9 @@ export interface SEOConfig {
 }
 
 export const defaultSEOConfig = {
-  siteName: 'MyWorship',
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://myworship.app',
-  defaultTitle: 'MyWorship - เครื่องมือนมัสการออนไลน์',
+  siteName: 'LyricSync',
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://lyricsync.app',
+  defaultTitle: 'LyricSync - เครื่องมือสำหรับทีมนมัสการ',
   defaultDescription:
     'เครื่องมือนมัสการครบครัน ด้วยเนื้อเพลง คอร์ด และระบบเล่นอัตโนมัติ สำหรับคริสตจักรและกลุ่มนมัสการ',
   defaultKeywords: [
@@ -58,7 +58,7 @@ export const defaultSEOConfig = {
     'auto scroll lyrics',
     'chord display',
   ],
-  twitterHandle: '@myworship',
+  twitterHandle: '@lyricsync',
   locale: 'th_TH',
   defaultImage: '/icons/logo-512.png',
 };
@@ -155,7 +155,7 @@ export function generateMetadata(config: SEOConfig): Metadata {
 // Page-specific SEO configurations
 export const pageSEOConfigs = {
   home: (): SEOConfig => ({
-    title: 'MyWorship - เครื่องมือนมัสการออนไลน์',
+    title: 'LyricSync - เครื่องมือสำหรับทีมนมัสการ',
     description:
       'เครื่องมือนมัสการครบครัน ด้วยเนื้อเพลง คอร์ด และระบบเล่นอัตโนมัติ สำหรับคริสตจักรและกลุ่มนมัสการ รองรับการใช้งานออฟไลน์',
     keywords: ['หน้าแรก', 'เพลงนมัสการยอดนิยม', 'setlist แนะนำ'],
@@ -209,7 +209,7 @@ export const pageSEOConfigs = {
   search: (query?: string): SEOConfig => ({
     title: query ? `ค้นหา "${query}"` : 'ค้นหาเพลงและ Setlist',
     description: query
-      ? `ผลการค้นหา "${query}" ใน MyWorship - เพลงนมัสการ คอร์ด และ setlist`
+      ? `ผลการค้นหา "${query}" ใน LyricSync - เพลงนมัสการ คอร์ด และ setlist`
       : 'ค้นหาเพลงนมัสการ คอร์ด และ setlist ได้ที่นี่ รองรับการค้นหาภาษาไทยและอังกฤษ',
     keywords: query ? [query, 'ค้นหา'] : ['ค้นหา', 'search'],
     noIndex: !!query, // Don't index search result pages
@@ -226,29 +226,29 @@ export const pageSEOConfigs = {
   login: (): SEOConfig => ({
     title: 'เข้าสู่ระบบ',
     description:
-      'เข้าสู่ระบบ MyWorship เพื่อบันทึกเพลง สร้าง setlist และซิงค์ข้อมูลข้ามอุปกรณ์',
+      'เข้าสู่ระบบ LyricSync เพื่อบันทึกเพลง สร้าง setlist และซิงค์ข้อมูลข้ามอุปกรณ์',
     keywords: ['เข้าสู่ระบบ', 'login', 'สมัครสมาชิก'],
     noIndex: true,
   }),
 
   premium: (): SEOConfig => ({
-    title: 'MyWorship Premium',
+    title: 'LyricSync Premium',
     description:
       'อัปเกรดเป็น Premium สมาชิก รับฟีเจอร์เพิ่มเติม เนื้อที่จัดเก็บไม่จำกัด และการสนับสนุนพิเศษ',
     keywords: ['premium', 'อัปเกรด', 'สมาชิกพิเศษ', 'subscription'],
   }),
 
   welcome: (): SEOConfig => ({
-    title: 'ยินดีต้อนรับสู่ MyWorship',
+    title: 'ยินดีต้อนรับสู่ LyricSync',
     description:
-      'เริ่มต้นใช้งาน MyWorship เครื่องมือนมัสการออนไลน์ที่ครบครัน เหมาะสำหรับคริสตจักรและกลุ่มนมัสการทุกขนาด',
+      'เริ่มต้นใช้งาน LyricSync เครื่องมือสำหรับทีมนมัสการ เหมาะสำหรับคริสตจักรและกลุ่มนมัสการทุกขนาด',
     keywords: ['ยินดีต้อนรับ', 'เริ่มต้นใช้งาน', 'tutorial'],
   }),
 
   offline: (): SEOConfig => ({
     title: 'โหมดออฟไลน์',
     description:
-      'ใช้งาน MyWorship ได้แม้ไม่มีอินเทอร์เน็ต ด้วยโหมดออฟไลน์ที่บันทึกเพลงและ setlist ไว้ในเครื่อง',
+      'ใช้งาน LyricSync ได้แม้ไม่มีอินเทอร์เน็ต ด้วยโหมดออฟไลน์ที่บันทึกเพลงและ setlist ไว้ในเครื่อง',
     keywords: ['offline', 'ออฟไลน์', 'ไม่มีเน็ต'],
     noIndex: true,
   }),
