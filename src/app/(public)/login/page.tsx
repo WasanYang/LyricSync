@@ -64,7 +64,11 @@ export default function LoginPage() {
   };
 
   const handleClose = () => {
-    router.push('/welcome');
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/');
+    }
   };
 
   return (

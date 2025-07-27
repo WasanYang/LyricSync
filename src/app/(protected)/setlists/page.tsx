@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -377,7 +376,7 @@ export default function SetlistsPage() {
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.replace('/welcome');
+      router.replace('/');
     }
   }, [user, authLoading, router]);
 
@@ -487,5 +486,3 @@ export default function SetlistsPage() {
     </div>
   );
 }
-
-    

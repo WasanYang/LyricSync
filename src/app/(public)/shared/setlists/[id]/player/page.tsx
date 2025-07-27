@@ -119,6 +119,13 @@ export default function SharedSetlistPlayerPage() {
                 <div className="flex items-center justify-between w-full">
                      <div className="flex items-center gap-2 min-w-0">
                         <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -ml-2" onClick={() => router.back()}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0 -ml-2" onClick={() => {
+                          if (window.history.length > 1) {
+                            router.back();
+                          } else {
+                            router.push('/');
+                          }
+                        }}>
                             <ArrowLeft className="h-5 w-5" />
                             <span className="sr-only">Back</span>
                         </Button>

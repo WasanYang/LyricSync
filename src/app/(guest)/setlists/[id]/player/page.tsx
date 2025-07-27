@@ -121,6 +121,13 @@ export default function SetlistPlayerPage() {
                 size='icon'
                 className='h-8 w-8 flex-shrink-0 -ml-2'
                 onClick={() => router.back()}
+                onClick={() => {
+                  if (window.history.length > 1) {
+                    router.back();
+                  } else {
+                    router.push('/');
+                  }
+                }}
               >
                 <ArrowLeft className='h-5 w-5' />
                 <span className='sr-only'>Back</span>

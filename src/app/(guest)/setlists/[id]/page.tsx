@@ -259,7 +259,13 @@ export default function SetlistDetailPage() {
             variant='ghost'
             size='icon'
             className='absolute top-4 left-4'
-            onClick={() => router.back()}
+            onClick={() => {
+              if (window.history.length > 1) {
+                router.back();
+              } else {
+                router.push('/');
+              }
+            }}
           >
             <ArrowLeft className='h-5 w-5' />
             <span className='sr-only'>Back to Setlists</span>

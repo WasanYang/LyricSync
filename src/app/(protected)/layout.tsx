@@ -14,7 +14,7 @@ export default function ProtectedLayout({
   useEffect(() => {
     console.log('user,user', user);
     if (!loading && (!user || user.isAnonymous)) {
-      router.replace('/welcome');
+      router.replace('/');
     }
   }, [user, loading, router]);
 
