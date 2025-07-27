@@ -38,11 +38,11 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (user) {
-      router.replace('/');
-    }
-  }, [user, router]);
+  // useEffect(() => {
+  //   if (user) {
+  //     router.replace('/');
+  //   }
+  // }, [user, router]);
 
   const handleSignIn = async (method: 'google' | 'guest') => {
     try {
@@ -85,8 +85,9 @@ export default function LoginPage() {
           <h1 className='text-2xl font-bold font-headline mb-2'>
             Welcome to LyricSync
           </h1>
-          <p className='text-muted-foreground mb-8'>
-            Sign in to save your setlists and access your songs anywhere.
+          <p className='text-muted-foreground mb-4'>
+            เข้าสู่ระบบเพื่อบันทึกเซตลิสต์และเพลงของคุณ หรือทดลองใช้งานแบบ Guest
+            ได้ทันที!
           </p>
           <div className='w-full space-y-4'>
             <Button
@@ -104,8 +105,19 @@ export default function LoginPage() {
               className='w-full'
             >
               <Music className='mr-2 h-5 w-5' />
-              Continue as Guest
+              ทดลองใช้งานแบบ Guest
             </Button>
+          </div>
+          <div className='mt-8 text-sm text-muted-foreground'>
+            <div className='mb-2 font-semibold text-primary'>
+              โหมด Guest คืออะไร?
+            </div>
+            <ul className='list-disc list-inside text-left mx-auto max-w-xs'>
+              <li>ใช้งานฟีเจอร์พื้นฐานได้ทันที</li>
+              <li>ไม่ต้องสมัครสมาชิก</li>
+              <li>ข้อมูลจะไม่ถูกบันทึกหรือ sync ข้ามอุปกรณ์</li>
+              <li>สามารถสมัครสมาชิกภายหลังได้ทุกเมื่อ</li>
+            </ul>
           </div>
         </div>
       </div>

@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Only subscribe if auth is initialized
     if (auth && db) {
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        if (user && !user.isAnonymous) {
+        if (user && !user.isAnonymous && db) {
           // If user is logged in and not a guest, create/update their doc in Firestore
           const userRef = doc(db, 'users', user.uid);
           try {

@@ -353,18 +353,29 @@ export default function Home() {
                   Welcome to LyricSync
                 </h1>
                 <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
-                  You're browsing as a guest. Sign in to save setlists and
-                  access all features.
+                  คุณกำลังใช้งานในโหมด Guest
+                  <br />
+                  <span className='text-primary font-semibold'>
+                    ลงชื่อเข้าใช้เพื่อบันทึกเซตลิสต์และปลดล็อกฟีเจอร์ทั้งหมด!
+                  </span>
                 </p>
               </div>
               <div className='flex flex-col sm:flex-row gap-4 justify-center'>
                 <Button size='lg' asChild>
-                  <Link href='/login'>Sign In</Link>
+                  <Link href='/login'>
+                    <span role='img' aria-label='unlock'>
+                      🔓
+                    </span>{' '}
+                    Unlock All Features
+                  </Link>
                 </Button>
                 <Button variant='outline' size='lg' asChild>
                   <Link href='/welcome'>Learn More</Link>
                 </Button>
               </div>
+              <p className='text-sm text-muted-foreground'>
+                การลงชื่อเข้าใช้จะช่วยให้คุณบันทึกเพลงและเซตลิสต์ของคุณเองได้
+              </p>
             </section>
           )}
 
