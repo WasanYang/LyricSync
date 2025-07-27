@@ -1,10 +1,9 @@
-
 'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, SearchIcon, Library } from '@/components/NavIcons';
+import { HomeIcon, SearchIcon } from '@/components/NavIcons';
 import { cn } from '@/lib/utils';
 import { ListMusic } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';

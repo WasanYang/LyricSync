@@ -21,7 +21,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Library, ArrowLeft, Check, Play, Users, Share2 } from 'lucide-react';
+import { Library, ArrowLeft, Check, Play, Share2 } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -159,7 +159,7 @@ function SharedSetlistContent() {
         });
         setTimeout(() => setIsCopied(false), 2000);
       },
-      (err) => {
+      () => {
         toast({
           title: 'Error',
           description: 'Could not copy the link.',

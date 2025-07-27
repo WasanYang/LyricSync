@@ -75,7 +75,6 @@ export function generateMetadata(config: SEOConfig): Metadata {
     openGraph,
     twitter,
     alternates,
-    jsonLd,
   } = config;
 
   const fullTitle = title.includes(defaultSEOConfig.siteName)

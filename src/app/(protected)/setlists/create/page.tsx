@@ -1,7 +1,6 @@
 'use client';
 
-import { Suspense, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import SetlistCreator from '@/components/SetlistCreator';
 import Header from '@/components/Header';
@@ -10,7 +9,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 function SetlistCreatorPageContent() {
   const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
 
   if (authLoading || !user) {
     return (

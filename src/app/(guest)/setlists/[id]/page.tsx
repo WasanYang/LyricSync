@@ -96,7 +96,7 @@ function SetlistDetailContent({
   const [isLoading, setIsLoading] = useState(true);
 
   const findSong = async (songId: string): Promise<Song | undefined> => {
-    let song: Song | undefined = await getSongFromLocalDb(songId);
+    const song: Song | undefined = await getSongFromLocalDb(songId);
     if (song) return song;
 
     const cloudSong = await getCloudSongById(songId);
@@ -164,7 +164,7 @@ function SetlistDetailContent({
         description: `"${setlist.title}" has been removed.`,
       });
       router.push('/setlists');
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Could not delete the setlist.',

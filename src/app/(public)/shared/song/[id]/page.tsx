@@ -7,12 +7,9 @@ import { getCloudSongById, type Song, type LyricLine } from '@/lib/db';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Share2, Check, Music, Guitar } from 'lucide-react';
+import { Music, Guitar } from 'lucide-react';
 import Image from 'next/image';
-import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { transposeChord } from '@/lib/chords';
 import {
   Tooltip,

@@ -5,7 +5,6 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getAllCloudSetlists, type Setlist } from '@/lib/db';
-import { Button } from '@/components/ui/button';
 import {
   Pagination,
   PaginationContent,
@@ -61,7 +60,7 @@ export default function AdminUserSetlistsPage() {
     try {
       const cloudSetlists = await getAllCloudSetlists();
       setSetlists(cloudSetlists);
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Could not fetch user setlists.',

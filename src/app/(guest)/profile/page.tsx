@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getAllSavedSongs, getSetlists } from '@/lib/db';
 import Header from '@/components/Header';
@@ -114,7 +113,6 @@ function ProfileLoadingSkeleton() {
 
 export default function ProfilePage() {
   const { user, loading: authLoading, logout, signInWithGoogle } = useAuth();
-  const router = useRouter();
 
   const [songCount, setSongCount] = useState(0);
   const [setlistCount, setSetlistCount] = useState(0);

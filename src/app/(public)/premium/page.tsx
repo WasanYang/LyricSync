@@ -5,7 +5,6 @@ import BottomNavBar from '@/components/BottomNavBar';
 import { Button } from '@/components/ui/button';
 import {
   Card,
-  CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
@@ -51,7 +50,7 @@ export default function PremiumPage() {
           <div className='grid grid-cols-1 md:grid-cols-5 gap-8 items-start'>
             <div className='md:col-span-2 p-8 bg-muted/50 rounded-lg'>
               <h2 className='text-xl font-bold font-headline mb-6'>
-                What's Included:
+                What&apos;s Included:
               </h2>
               <ul className='space-y-4'>
                 {features.map((feature, index) => (

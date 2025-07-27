@@ -3,7 +3,6 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import {
   Select,
@@ -12,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Move, X, Minus, Plus } from 'lucide-react';
+import { Move, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ALL_NOTES } from '@/lib/chords';
 
@@ -32,11 +31,8 @@ interface FloatingKeyControlsProps {
 export default function FloatingKeyControls({
   showChords,
   currentKey,
-  transpose,
   onToggleChords,
   onKeyChange,
-  onTransposeUp,
-  onTransposeDown,
   onClose,
   isVisible = true,
   onToggleVisibility,

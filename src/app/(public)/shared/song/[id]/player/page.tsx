@@ -1,8 +1,7 @@
 'use client';
 
-import { getSong as getSongFromDb, getCloudSongById } from '@/lib/db';
 import type { LyricLine, Song } from '@/lib/songs';
-import { notFound, useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
@@ -139,7 +138,7 @@ function SongDetailContent() {
         });
         setTimeout(() => setIsCopied(false), 1000);
       },
-      (err) => {
+      () => {
         toast({
           title: 'Error',
           description: 'Could not copy the link.',
@@ -165,8 +164,8 @@ function SongDetailContent() {
             <Alert className='border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200'>
               <Music className='h-4 w-4' />
               <AlertDescription>
-                You're currently offline. This song may not be available without
-                an internet connection.
+                You&apos;re currently offline. This song may not be available
+                without an internet connection.
               </AlertDescription>
             </Alert>
           )}

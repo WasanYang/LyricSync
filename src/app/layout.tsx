@@ -1,10 +1,6 @@
 // src/app/layout.tsx
-import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
-import { Toaster } from '@/components/ui/toaster';
-import { ThemeProvider } from '@/components/ThemeProvider';
-import { AuthProvider } from '@/context/AuthContext';
 import { metadata, viewport } from './metadata';
 import { RootLayoutClient } from '@/components/RootLayoutClient';
 

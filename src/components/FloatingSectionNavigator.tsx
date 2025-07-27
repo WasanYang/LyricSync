@@ -123,47 +123,6 @@ export default function FloatingSectionNavigator({
     [isDragging, dragOffset]
   );
 
-  const handleContainerDragMouseDown = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      // Don't drag if clicking on interactive elements
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'BUTTON' || target.closest('button')) {
-        return;
-      }
-
-      if (navigatorRef.current) {
-        setIsDragging(true);
-        const rect = navigatorRef.current.getBoundingClientRect();
-        setDragOffset({
-          x: e.clientX - rect.left,
-          y: e.clientY - rect.top,
-        });
-      }
-    },
-    []
-  );
-
-  const handleContainerDragTouchStart = useCallback(
-    (e: React.TouchEvent<HTMLDivElement>) => {
-      // Don't drag if touching interactive elements
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'BUTTON' || target.closest('button')) {
-        return;
-      }
-
-      if (navigatorRef.current) {
-        setIsDragging(true);
-        const touch = e.touches[0];
-        const rect = navigatorRef.current.getBoundingClientRect();
-        setDragOffset({
-          x: touch.clientX - rect.left,
-          y: touch.clientY - rect.top,
-        });
-      }
-    },
-    []
-  );
-
   const handleTouchMove = useCallback(
     (e: TouchEvent) => {
       if (isDragging && navigatorRef.current) {
@@ -264,7 +223,7 @@ export default function FloatingSectionNavigator({
       </div>
 
       <div className='flex flex-col gap-2 cursor-grab active:cursor-grabbing'>
-        {sections.map((section, index) => (
+        {sections.map((section) => (
           <button
             key={section.uniqueKey}
             onClick={() => onSectionJump(section.index)}

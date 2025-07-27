@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { useOfflineStorage } from '@/hooks/use-offline-storage';
-import { ArrowDown, CheckCircle2, RotateCcw } from 'lucide-react';
+import { ArrowDown, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface OfflineCacheButtonProps {

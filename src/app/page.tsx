@@ -1,6 +1,5 @@
 'use client';
 
-import { Metadata } from 'next';
 import {
   getSetlists,
   type Setlist,
@@ -206,6 +205,21 @@ export default function Home() {
   const [isLoadingSongs, setIsLoadingSongs] = useState(true);
   const [isLoadingPublicSetlists, setIsLoadingPublicSetlists] = useState(true);
 
+  const recentReleases = useMemo(
+    () =>
+      [...systemSongs]
+        .sort(
+          (a, b) =>
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        )
+        .slice(0, 5),
+    [systemSongs]
+  );
+  const popularHits = useMemo(
+    () => [...systemSongs].sort(() => 0.5 - Math.random()).slice(0, 5),
+    [systemSongs]
+  ); // Mock popularity with random sort for now
+
   useEffect(() => {
     // Allow access without login, but redirect anonymous users to welcome for first visit
     // Remove forced redirect - allow public access
@@ -269,20 +283,6 @@ export default function Home() {
   }
 
   const featuredSongs = systemSongs.slice(0, 5);
-  const recentReleases = useMemo(
-    () =>
-      [...systemSongs]
-        .sort(
-          (a, b) =>
-            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        )
-        .slice(0, 5),
-    [systemSongs]
-  );
-  const popularHits = useMemo(
-    () => [...systemSongs].sort(() => 0.5 - Math.random()).slice(0, 5),
-    [systemSongs]
-  ); // Mock popularity with random sort for now
 
   return (
     <>

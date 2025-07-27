@@ -521,7 +521,7 @@ class IndexedDBManager {
             resolve();
           };
         });
-      } catch (error) {
+      } catch {
         usage[storeName] = 0;
       }
     }

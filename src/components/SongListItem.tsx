@@ -82,8 +82,8 @@ export default function SongListItem({ song, onDelete }: SongListItemProps) {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will permanently delete "{song.title}" from the
-                      cloud. This action cannot be undone.
+                      This will permanently delete &quot;{song.title}&quot; from
+                      the cloud. This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

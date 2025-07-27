@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -47,7 +46,7 @@ export default function AdminSongsPage() {
         setSongs(fetchedSongs);
         setTotalPages(newTotalPages);
         setCurrentPage(page);
-      } catch (error) {
+      } catch {
         toast({
           title: 'Error',
           description: 'Could not fetch songs.',
@@ -93,7 +92,7 @@ export default function AdminSongsPage() {
       });
       // Refresh the current page
       loadSongs(currentPage);
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Could not delete the song.',

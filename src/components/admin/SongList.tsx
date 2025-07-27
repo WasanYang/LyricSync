@@ -4,7 +4,6 @@ import SongListItem from './SongListItem';
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,

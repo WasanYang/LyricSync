@@ -153,7 +153,7 @@ export default function WelcomePage() {
                     text={
                       <>
                         Scroll down and tap{' '}
-                        <strong>'Add to Home Screen'</strong>.
+                        <strong>&apos;Add to Home Screen&apos;</strong>.
                       </>
                     }
                   />
@@ -186,8 +186,8 @@ export default function WelcomePage() {
                     icon={ArrowDown}
                     text={
                       <>
-                        Tap <strong>'Install app'</strong> or{' '}
-                        <strong>'Add to Home screen'</strong>.
+                        Tap <strong>&apos;Install app&apos;</strong> or{' '}
+                        <strong>&apos;Add to Home screen&apos;</strong>.
                       </>
                     }
                   />

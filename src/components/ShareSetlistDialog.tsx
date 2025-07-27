@@ -64,7 +64,7 @@ export function ShareSetlistDialog({
           description: 'The shareable link has been copied to your clipboard.',
         });
       },
-      (err) => {
+      () => {
         toast({
           title: 'Error',
           description: 'Could not copy the link.',
@@ -86,7 +86,7 @@ export function ShareSetlistDialog({
           : 'This setlist is no longer publicly searchable.',
       });
       onStatusChange(); // Refresh the list on the main page
-    } catch (error) {
+    } catch {
       setIsPublic(!checked); // Revert on error
       toast({
         title: 'Error',
@@ -100,7 +100,7 @@ export function ShareSetlistDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-md'>
         <DialogHeader>
-          <DialogTitle>Share "{setlist.title}"</DialogTitle>
+          <DialogTitle>Share &quot;{setlist.title}&quot;</DialogTitle>
           <DialogDescription>
             Use the link to share this setlist, or make it public for others to
             discover.

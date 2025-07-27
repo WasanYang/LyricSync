@@ -4,7 +4,6 @@
 import type { Metadata, Viewport } from 'next';
 import {
   generateMetadata,
-  defaultSEOConfig,
   pageSEOConfigs,
   generateStructuredData,
 } from '@/lib/seo';

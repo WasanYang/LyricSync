@@ -6,7 +6,6 @@ import type { Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 
 import { ALL_NOTES } from '@/lib/chords';
-import { useAuth } from '@/context/AuthContext';
 import { useSafeDataLoader } from '@/hooks/use-offline-storage';
 
 import LyricPlayer from '@/components/LyricPlayer';
@@ -58,7 +57,7 @@ export default function SetlistPlayerPage() {
   const [setlist, setSetlist] = useState<Setlist | null>(null);
   const [songs, setSongs] = useState<Song[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [transpose, setTranspose] = useState(0);
+  const [transpose, _setTranspose] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const { loadSong, loadSetlist } = useSafeDataLoader();
 
@@ -120,7 +119,6 @@ export default function SetlistPlayerPage() {
                 variant='ghost'
                 size='icon'
                 className='h-8 w-8 flex-shrink-0 -ml-2'
-                onClick={() => router.back()}
                 onClick={() => {
                   if (window.history.length > 1) {
                     router.back();

@@ -1,14 +1,12 @@
 'use client';
 
-import { Suspense, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import SongCreator from '@/components/SongCreator';
 import { Skeleton } from '@/components/ui/skeleton';
 
 function SongCreatorPageContent() {
   const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
 
   if (authLoading || !user) {
     return (

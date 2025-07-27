@@ -17,7 +17,6 @@ import {
   AlertCircle,
   WifiOff,
   Wifi,
-  Download,
   HardDrive,
 } from 'lucide-react';
 import { getAllSavedSongs, getSetlists } from '@/lib/db';

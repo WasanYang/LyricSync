@@ -1,20 +1,17 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   getAllSavedSongs,
   deleteSong as deleteSongFromDb,
-  updateSong,
   uploadSongToCloud,
-  getCloudSongById,
 } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Music, Trash2, Edit, RotateCcw, PlusCircle, Play } from 'lucide-react';
+import { Music, Trash2, Edit, PlusCircle, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -64,38 +61,10 @@ function SongListItem({
       toast({
         title: `Song "${song.title}" deleted.`,
       });
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Could not delete the song.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleUpdate = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const latestSong = await getCloudSongById(song.id);
-    if (!latestSong) {
-      toast({
-        title: 'Error',
-        description: 'Could not find the latest version of this song.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    try {
-      await updateSong(latestSong);
-      onUpdate(latestSong.id);
-      toast({
-        title: 'Song Updated',
-        description: `"${latestSong.title}" has been updated.`,
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Could not update the song.',
         variant: 'destructive',
       });
     }
@@ -240,8 +209,9 @@ function SongListItem({
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete "
-                    {song.title}" from your library{' '}
+                    This action cannot be undone. This will permanently delete
+                    &quot;
+                    {song.title}&quot; from your library{' '}
                     {isUserSong ? 'and the cloud' : ''}.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
@@ -281,7 +251,6 @@ export default function LibraryPage() {
   const [songs, setSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
 
   const loadSongs = useCallback(async () => {
     if (!user) return;
@@ -301,7 +270,7 @@ export default function LibraryPage() {
     setSongs((prevSongs) => prevSongs.filter((song) => song.id !== deletedId));
   };
 
-  const handleSongUpdated = (updatedId: string) => {
+  const handleSongUpdated = () => {
     // Re-fetch the songs to get the updated list
     loadSongs();
   };

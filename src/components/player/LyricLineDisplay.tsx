@@ -104,7 +104,7 @@ export default function LyricLineDisplay({
               {part.chord
                 ? part.chord
                     .split(/(\s*\|\s*)/)
-                    .map((segment, segIndex) => {
+                    .map((segment) => {
                       // If it's a separator (|), keep it as is
                       if (segment.trim() === '|' || segment.includes('|')) {
                         return segment;

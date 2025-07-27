@@ -18,7 +18,7 @@ import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 
 export default function OfflineSettingsPage() {
-  const { hasOfflineData, cachedSongsCount, cachedSetlistsCount, isOnline } =
+  const { hasOfflineData, cachedSongsCount, cachedSetlistsCount } =
     useOfflineStorage();
 
   const [autoCache, setAutoCache] = useState(false);
@@ -144,7 +144,7 @@ export default function OfflineSettingsPage() {
             <CardHeader>
               <CardTitle>Offline Features</CardTitle>
               <CardDescription>
-                What's available when you're offline
+                What&apos;s available when you&apos;re offline
               </CardDescription>
             </CardHeader>
             <CardContent>

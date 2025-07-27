@@ -5,7 +5,6 @@ import {
   getFirestore,
   type Firestore,
   enableIndexedDbPersistence,
-  connectFirestoreEmulator,
 } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -64,5 +63,4 @@ if (firebaseConfig.apiKey) {
   );
 }
 
-// @ts-ignore
 export { app, auth, db };

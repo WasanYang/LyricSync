@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getAllCloudSongs } from '@/lib/db';
 import type { Song } from '@/lib/songs';
-import { Button } from '@/components/ui/button';
 import {
   Pagination,
   PaginationContent,
@@ -65,7 +64,7 @@ export default function AdminUserUploadsPage() {
         (s: Song) => s.source === 'user'
       );
       setSongs(userUploadedSongs);
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Could not fetch user uploads.',

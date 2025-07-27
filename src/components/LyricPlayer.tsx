@@ -1,4 +1,3 @@
-
 // src/components/LyricPlayer.tsx
 'use client';
 
@@ -10,9 +9,8 @@ import {
   useMemo,
   useRef,
 } from 'react';
-import type { Song, LyricLine } from '@/lib/songs';
+import type { Song } from '@/lib/songs';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
 import { ALL_NOTES } from '@/lib/chords';
 import FloatingKeyControls from './FloatingKeyControls';
 import FloatingSectionNavigator from './FloatingSectionNavigator';
@@ -175,22 +173,6 @@ const parseLyrics = (
   return parts;
 };
 
-const HIGHLIGHT_OPTIONS: { value: HighlightMode; label: string }[] = [
-  { value: 'line', label: 'Line' },
-  { value: 'section', label: 'Section' },
-  { value: 'none', label: 'None' },
-];
-
-const FONT_WEIGHT_OPTIONS: {
-  value: FontWeight;
-  label: string;
-  style: React.CSSProperties;
-}[] = [
-  { value: 400, label: 'A', style: { fontWeight: 400 } },
-  { value: 600, label: 'A', style: { fontWeight: 600 } },
-  { value: 700, label: 'A', style: { fontWeight: 700 } },
-];
-
 interface LyricPlayerProps {
   song: Song;
   isSetlistMode?: boolean;
@@ -201,22 +183,12 @@ interface LyricPlayerProps {
   onClose?: () => void;
 }
 
-type ProcessedLyricLine = LyricLine & {
-  originalIndex: number;
-  startTimeSeconds: number;
-  endTimeSeconds: number;
-};
-
 export default function LyricPlayer({
   song,
   isSetlistMode = false,
-  onNextSong,
-  onPrevSong,
-  isNextDisabled,
-  isPrevDisabled,
+
   onClose,
 }: LyricPlayerProps) {
-  const router = useRouter();
   const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
   const {
     isPlaying,
@@ -280,7 +252,7 @@ export default function LyricPlayer({
   const sections = useMemo(() => {
     return processedLyrics
       .filter((line) => line.text.startsWith('(') && line.text.endsWith(')'))
-      .map((line, index) => ({
+      .map((line) => ({
         name: line.text.substring(1, line.text.length - 1),
         startTime: line.startTimeSeconds,
         index: line.originalIndex,

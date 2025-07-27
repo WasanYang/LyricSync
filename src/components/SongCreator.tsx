@@ -308,7 +308,7 @@ export default function SongCreator() {
         } else {
           router.push('/dashboard/songs'); // Go back to list on creation
         }
-      } catch (error) {
+      } catch {
         toast({
           title: 'Error',
           description: 'Could not save the song to the cloud.',

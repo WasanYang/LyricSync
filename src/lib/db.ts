@@ -19,8 +19,6 @@ import {
   limit,
   startAfter,
   Timestamp,
-  type DocumentSnapshot,
-  type DocumentData,
   getCountFromServer,
 } from 'firebase/firestore';
 
@@ -112,7 +110,7 @@ export async function saveSong(song: Song): Promise<void> {
 
       // 1. Create/Update the main song document in the 'songs' collection
       const mainSongRef = doc(firestoreDb, 'songs', song.id);
-      const { updatedAt, ...songDataForFirestore } = songToSave; // Exclude local date
+      const { updatedAt: _, ...songDataForFirestore } = songToSave; // Exclude local date
       batch.set(
         mainSongRef,
         {
@@ -164,10 +162,7 @@ export async function getSong(id: string): Promise<Song | undefined> {
   return db.get(SONGS_STORE, id);
 }
 
-export async function deleteSong(
-  id: string,
-  userId?: string
-): Promise<void> {
+export async function deleteSong(id: string): Promise<void> {
   const db = await getDb();
   const songToDelete = await db.get(SONGS_STORE, id);
 
@@ -275,7 +270,7 @@ export async function getAllSavedSongIds(): Promise<string[]> {
 export async function uploadSongToCloud(song: Song): Promise<void> {
   if (!firestoreDb) throw new Error('Firebase is not configured.');
 
-  const { updatedAt, ...songData } = song;
+  const { updatedAt: _, ...songData } = song;
 
   const dataToUpload = {
     ...songData,
@@ -320,13 +315,9 @@ export async function getPaginatedSystemSongs(
     q = query(qBase, limit(pageSize));
   } else {
     // To get to page `page`, we need to skip `(page - 1) * pageSize` documents
-    const prevPageQuery = query(
-      qBase,
-      limit((page - 1) * pageSize)
-    );
+    const prevPageQuery = query(qBase, limit((page - 1) * pageSize));
     const prevPageSnapshot = await getDocs(prevPageQuery);
-    const lastVisible =
-      prevPageSnapshot.docs[prevPageSnapshot.docs.length - 1];
+    const lastVisible = prevPageSnapshot.docs[prevPageSnapshot.docs.length - 1];
     q = query(qBase, startAfter(lastVisible), limit(pageSize));
   }
 
@@ -498,9 +489,7 @@ export async function saveSetlist(setlist: Setlist): Promise<void> {
       const updatedSetlist = await getDoc(setlistDocRef);
       if (updatedSetlist.exists()) {
         const cloudData = updatedSetlist.data();
-        setlistToSave.syncedAt = (
-          cloudData.syncedAt as Timestamp
-        ).toMillis();
+        setlistToSave.syncedAt = (cloudData.syncedAt as Timestamp).toMillis();
         await db.put(SETLISTS_STORE, setlistToSave);
       }
     } catch (error) {

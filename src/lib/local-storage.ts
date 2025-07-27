@@ -319,7 +319,7 @@ class LocalStorageManager {
       try {
         const item = localStorage.getItem(key);
         usage[name] = item ? new Blob([item]).size : 0;
-      } catch (error) {
+      } catch {
         usage[name] = 0;
       }
     });
@@ -352,7 +352,7 @@ class LocalStorageManager {
           localStorage.removeItem(oldKey);
           migrated = true;
         }
-      } catch (error) {
+      } catch {
         // Ignore migration errors
       }
     });

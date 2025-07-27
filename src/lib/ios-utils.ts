@@ -142,7 +142,7 @@ export const iOSUtils = {
         localStorage.setItem('__test__', 'test');
         localStorage.removeItem('__test__');
         resolve(false);
-      } catch (error) {
+      } catch {
         resolve(true);
       }
     });

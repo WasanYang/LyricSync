@@ -6,25 +6,51 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { Song } from '@/lib/songs';
-import { 
-    saveSetlist, 
-    getSetlist as getSetlistFromDb, 
-    getSong as getSongFromDb, 
-    getAllSavedSongs, 
-    getAllCloudSongs, 
+import {
+  saveSetlist,
+  getSetlist as getSetlistFromDb,
+  getSong as getSongFromDb,
+  getAllSavedSongs,
+  getAllCloudSongs,
 } from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { GripVertical, PlusCircle, Search, Trash2, ArrowLeft, Edit, Cloud, User as UserIcon, LogIn } from 'lucide-react';
+import {
+  GripVertical,
+  PlusCircle,
+  Search,
+  Trash2,
+  ArrowLeft,
+  Edit,
+  Cloud,
+  User as UserIcon,
+  LogIn,
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import { v4 as uuidv4 } from 'uuid';
 import { Skeleton } from './ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -39,8 +65,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-
+} from '@/components/ui/alert-dialog';
+import Link from 'next/link';
 
 const setlistFormSchema = z.object({
   title: z.string().min(1, 'Setlist title is required.'),
@@ -53,117 +79,119 @@ interface SetlistCreatorProps {
 }
 
 function LoadingScreen() {
-    return (
-        <div className="w-full max-w-lg mx-auto h-full flex flex-col space-y-8">
-            <div className="space-y-2">
-                <Skeleton className="h-8 w-3/4" />
-            </div>
-            <div className="flex-grow space-y-4 flex flex-col">
-                <div className="flex justify-between items-center">
-                    <Skeleton className="h-7 w-24" />
-                    <Skeleton className="h-9 w-9" />
-                </div>
-                <div className="flex-grow">
-                    <div className="text-center py-10 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full">
-                       <Skeleton className="h-5 w-48 mb-2" />
-                       <Skeleton className="h-4 w-40" />
-                    </div>
-                </div>
-            </div>
-            <Skeleton className="h-11 w-full" />
+  return (
+    <div className='w-full max-w-lg mx-auto h-full flex flex-col space-y-8'>
+      <div className='space-y-2'>
+        <Skeleton className='h-8 w-3/4' />
+      </div>
+      <div className='flex-grow space-y-4 flex flex-col'>
+        <div className='flex justify-between items-center'>
+          <Skeleton className='h-7 w-24' />
+          <Skeleton className='h-9 w-9' />
         </div>
-    )
+        <div className='flex-grow'>
+          <div className='text-center py-10 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full'>
+            <Skeleton className='h-5 w-48 mb-2' />
+            <Skeleton className='h-4 w-40' />
+          </div>
+        </div>
+      </div>
+      <Skeleton className='h-11 w-full' />
+    </div>
+  );
 }
 
-function AddSongComponent({ 
-    availableSongs, 
-    onAddSong, 
-    searchTerm, 
-    onSearchTermChange,
-    onSongStatusChange
-}: { 
-    availableSongs: Song[], 
-    onAddSong: (song: Song) => void, 
-    searchTerm: string, 
-    onSearchTermChange: (term: string) => void,
-    onSongStatusChange: () => void,
+function AddSongComponent({
+  availableSongs,
+  onAddSong,
+  searchTerm,
+  onSearchTermChange,
+}: {
+  availableSongs: Song[];
+  onAddSong: (song: Song) => void;
+  searchTerm: string;
+  onSearchTermChange: (term: string) => void;
 }) {
-
-  const handleButtonClick = (e: React.MouseEvent, song: Song) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onAddSong(song);
-  };
-  
   const getSourceIcon = (song: Song) => {
     if (song.source === 'system') {
-        return <Cloud className="h-3 w-3 text-muted-foreground" />;
+      return <Cloud className='h-3 w-3 text-muted-foreground' />;
     }
     if (song.source === 'user') {
-        return <UserIcon className="h-3 w-3 text-muted-foreground" />;
+      return <UserIcon className='h-3 w-3 text-muted-foreground' />;
     }
     return null;
-  }
+  };
 
   return (
     <>
-      <div className="p-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <div className='p-4'>
+        <div className='relative'>
+          <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
           <Input
-            placeholder="Search songs..."
-            className="pl-9"
+            placeholder='Search songs...'
+            className='pl-9'
             value={searchTerm}
             onChange={(e) => onSearchTermChange(e.target.value)}
           />
         </div>
       </div>
-      <ScrollArea className="h-[300px]">
-        <div className="p-4 pt-0">
-        {availableSongs.length > 0 ? (
-          availableSongs.map(song => (
-            <div key={song.id} className="flex items-center justify-between p-2 rounded-md hover:bg-accent group">
+      <ScrollArea className='h-[300px]'>
+        <div className='p-4 pt-0'>
+          {availableSongs.length > 0 ? (
+            availableSongs.map((song) => (
+              <div
+                key={song.id}
+                className='flex items-center justify-between p-2 rounded-md hover:bg-accent group'
+              >
                 <button
-                    onClick={() => onAddSong(song)}
-                    className="flex-grow text-left flex items-start min-w-0"
+                  onClick={() => onAddSong(song)}
+                  className='flex-grow text-left flex items-start min-w-0'
                 >
-                    <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                           <p className="font-semibold text-sm truncate">{song.title}</p>
-                           {getSourceIcon(song)}
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate">{song.artist} • Key: {song.originalKey || 'N/A'}</p>
+                  <div className='min-w-0'>
+                    <div className='flex items-center gap-2'>
+                      <p className='font-semibold text-sm truncate'>
+                        {song.title}
+                      </p>
+                      {getSourceIcon(song)}
                     </div>
+                    <p className='text-xs text-muted-foreground truncate'>
+                      {song.artist} • Key: {song.originalKey || 'N/A'}
+                    </p>
+                  </div>
                 </button>
-                <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
-                    <SongStatusButton song={song} />
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className='flex-shrink-0'
+                >
+                  <SongStatusButton song={song} />
                 </div>
-            </div>
-          ))
-        ) : (
-          <p className="text-sm text-center text-muted-foreground py-4">No songs found.</p>
-        )}
+              </div>
+            ))
+          ) : (
+            <p className='text-sm text-center text-muted-foreground py-4'>
+              No songs found.
+            </p>
+          )}
         </div>
       </ScrollArea>
     </>
-  )
+  );
 }
-
 
 export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
-  
+
   const [selectedSongs, setSelectedSongs] = useState<Song[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [localSongs, setLocalSongs] = useState<Song[]>([]);
   const [cloudSongs, setCloudSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const isMobile = useIsMobile();
-  
+
   const form = useForm<SetlistFormValues>({
     resolver: zodResolver(setlistFormSchema),
     defaultValues: {
@@ -171,33 +199,35 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
     },
   });
 
-  const { formState: { isDirty } } = form;
+  const {
+    formState: { isDirty },
+  } = form;
 
   const fetchAllSongs = async () => {
-      if (!user) return;
-      
-      const [local, cloud] = await Promise.all([
-          getAllSavedSongs(user.uid),
-          getAllCloudSongs()
-      ]);
-      
-      const systemCloudSongs = cloud.filter(s => s.source === 'system');
-      
-      local.sort((a, b) => {
-          const aIsUser = a.source === 'user';
-          const bIsUser = b.source === 'user';
-          if (aIsUser && !bIsUser) return -1;
-          if (!aIsUser && bIsUser) return 1;
-          return a.title.localeCompare(b.title);
-      });
+    if (!user) return;
 
-      setLocalSongs(local);
-      setCloudSongs(systemCloudSongs);
+    const [local, cloud] = await Promise.all([
+      getAllSavedSongs(user.uid),
+      getAllCloudSongs(),
+    ]);
+
+    const systemCloudSongs = cloud.filter((s) => s.source === 'system');
+
+    local.sort((a, b) => {
+      const aIsUser = a.source === 'user';
+      const bIsUser = b.source === 'user';
+      if (aIsUser && !bIsUser) return -1;
+      if (!aIsUser && bIsUser) return 1;
+      return a.title.localeCompare(b.title);
+    });
+
+    setLocalSongs(local);
+    setCloudSongs(systemCloudSongs);
   };
-  
+
   useEffect(() => {
     fetchAllSongs();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   useEffect(() => {
@@ -206,21 +236,21 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
         setIsLoading(false);
         return;
       }
-  
+
       // Ensure songs are loaded before fetching the setlist
       if (localSongs.length === 0 && cloudSongs.length === 0) return;
-  
+
       setIsLoading(true);
       try {
         const existingSetlist = await getSetlistFromDb(setlistId);
         if (existingSetlist) {
           form.reset({ title: existingSetlist.title });
-  
+
           // Create a Map for efficient lookup of all available songs.
           const allAvailableSongsMap = new Map(
-            [...localSongs, ...cloudSongs].map(s => [s.id, s])
+            [...localSongs, ...cloudSongs].map((s) => [s.id, s])
           );
-  
+
           // Map song IDs from the setlist to the full song objects.
           const songPromises = existingSetlist.songIds.map(async (id) => {
             if (allAvailableSongsMap.has(id)) {
@@ -228,11 +258,15 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
             }
             // Fallback: If the song isn't in our pre-loaded lists, fetch it directly.
             // This can happen if a song was deleted or is new.
-            console.warn(`Song ${id} not found in pre-loaded lists, fetching directly.`);
+            console.warn(
+              `Song ${id} not found in pre-loaded lists, fetching directly.`
+            );
             return await getSongFromDb(id);
           });
-  
-          const loadedSongs = (await Promise.all(songPromises)).filter(Boolean) as Song[];
+
+          const loadedSongs = (await Promise.all(songPromises)).filter(
+            Boolean
+          ) as Song[];
           setSelectedSongs(loadedSongs);
         } else {
           toast({
@@ -243,7 +277,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
           router.push('/setlists');
         }
       } catch (error) {
-        console.error("Error fetching setlist data", error);
+        console.error('Error fetching setlist data', error);
         toast({
           title: 'Error',
           description: 'Failed to load setlist data.',
@@ -253,48 +287,52 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
         setIsLoading(false);
       }
     };
-  
+
     fetchSetlistData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setlistId, localSongs, cloudSongs]); // Depend on songs being loaded.
 
   const availableSongs = useMemo(() => {
-    const filterBySearchTerm = (song: Song) => 
-        song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        song.artist.toLowerCase().includes(searchTerm.toLowerCase());
+    const filterBySearchTerm = (song: Song) =>
+      song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      song.artist.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const allSongsToConsider = searchTerm 
-      ? [...new Map([...localSongs, ...cloudSongs].map(item => [item['id'], item])).values()] 
+    const allSongsToConsider = searchTerm
+      ? [
+          ...new Map(
+            [...localSongs, ...cloudSongs].map((item) => [item['id'], item])
+          ).values(),
+        ]
       : localSongs;
 
     return allSongsToConsider
-      .filter(song => !selectedSongs.some(selected => selected.id === song.id))
-      .filter(song => !searchTerm || filterBySearchTerm(song));
-
+      .filter(
+        (song) => !selectedSongs.some((selected) => selected.id === song.id)
+      )
+      .filter((song) => !searchTerm || filterBySearchTerm(song));
   }, [localSongs, cloudSongs, selectedSongs, searchTerm]);
 
   const addSong = (song: Song) => {
-    setSelectedSongs(prev => [...prev, song]);
+    setSelectedSongs((prev) => [...prev, song]);
     form.trigger('title'); // Mark form as dirty when songs change
   };
 
   const handleAddSong = (song: Song) => {
     addSong(song);
-    if(isMobile) {
-       setIsPopoverOpen(false);
+    if (isMobile) {
+      setIsPopoverOpen(false);
     }
-  }
-  
-  const handleSongStatusChange = () => {
-      fetchAllSongs();
-  }
-
-  const removeSong = (songId: string) => {
-    setSelectedSongs(prev => prev.filter(song => song.id !== songId));
-     form.trigger('title');
   };
 
-  const handleDragStart = (e: React.DragEvent<HTMLLIElement>, index: number) => {
+  const removeSong = (songId: string) => {
+    setSelectedSongs((prev) => prev.filter((song) => song.id !== songId));
+    form.trigger('title');
+  };
+
+  const handleDragStart = (
+    e: React.DragEvent<HTMLLIElement>,
+    index: number
+  ) => {
     e.dataTransfer.setData('songIndex', index.toString());
   };
 
@@ -314,7 +352,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
     e.preventDefault();
     e.currentTarget.classList.add('border-primary', 'border-2');
   };
-    
+
   const handleDragLeave = (e: React.DragEvent<HTMLLIElement>) => {
     e.preventDefault();
     e.currentTarget.classList.remove('border-primary', 'border-2');
@@ -322,12 +360,16 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
 
   const handleGoBack = () => {
     router.back();
-  }
+  };
 
   async function handleSaveSetlist(data: SetlistFormValues) {
     if (!user || user.isAnonymous) {
-        toast({ title: "Please login", description: "You must be logged in to save a setlist.", variant: "destructive" });
-        return;
+      toast({
+        title: 'Please login',
+        description: 'You must be logged in to save a setlist.',
+        variant: 'destructive',
+      });
+      return;
     }
 
     if (selectedSongs.length === 0) {
@@ -338,29 +380,32 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
       });
       return;
     }
-    
+
     const isEditing = !!setlistId;
 
-    const existingSetlist = isEditing ? await getSetlistFromDb(setlistId) : null;
-    
+    const existingSetlist = isEditing
+      ? await getSetlistFromDb(setlistId)
+      : null;
+
     const newSetlist = {
-        id: existingSetlist?.id || uuidv4(),
-        firestoreId: existingSetlist?.firestoreId || null,
-        isSynced: existingSetlist?.isSynced || false,
-        createdAt: existingSetlist?.createdAt || Date.now(),
-        updatedAt: Date.now(),
-        title: data.title,
-        songIds: selectedSongs.map(s => s.id),
-        userId: user.uid,
-        source: existingSetlist?.source || 'owner',
-        authorName: existingSetlist?.authorName || user.displayName || 'Anonymous',
-        isPublic: existingSetlist?.isPublic || false,
-        syncedAt: existingSetlist?.syncedAt,
+      id: existingSetlist?.id || uuidv4(),
+      firestoreId: existingSetlist?.firestoreId || null,
+      isSynced: existingSetlist?.isSynced || false,
+      createdAt: existingSetlist?.createdAt || Date.now(),
+      updatedAt: Date.now(),
+      title: data.title,
+      songIds: selectedSongs.map((s) => s.id),
+      userId: user.uid,
+      source: existingSetlist?.source || 'owner',
+      authorName:
+        existingSetlist?.authorName || user.displayName || 'Anonymous',
+      isPublic: existingSetlist?.isPublic || false,
+      syncedAt: existingSetlist?.syncedAt,
     };
 
     try {
       await saveSetlist(newSetlist);
-      
+
       toast({
         title: `Setlist ${isEditing ? 'Updated' : 'Saved'}`,
         description: `"${data.title}" has been successfully saved.`,
@@ -373,9 +418,8 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
       } else {
         router.push('/setlists');
       }
-
     } catch (error) {
-       toast({
+      toast({
         title: 'Error',
         description: 'Could not save the setlist.',
         variant: 'destructive',
@@ -385,170 +429,205 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   }
 
   if (isLoading) {
-      return <LoadingScreen />;
+    return <LoadingScreen />;
   }
 
   if (user && user.isAnonymous) {
-      return (
-        <div className="text-center py-16 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full">
-            <LogIn className="h-12 w-12 text-muted-foreground mb-4" />
-            <h2 className="text-xl font-headline font-semibold">Please Sign In</h2>
-            <p className="text-muted-foreground">You need to sign in to create a setlist.</p>
-            <Button variant="link" asChild className="mt-2">
-                <Link href="/login">Sign In</Link>
-            </Button>
-        </div>
-      )
+    return (
+      <div className='text-center py-16 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full'>
+        <LogIn className='h-12 w-12 text-muted-foreground mb-4' />
+        <h2 className='text-xl font-headline font-semibold'>Please Sign In</h2>
+        <p className='text-muted-foreground'>
+          You need to sign in to create a setlist.
+        </p>
+        <Button variant='link' asChild className='mt-2'>
+          <Link href='/login'>Sign In</Link>
+        </Button>
+      </div>
+    );
   }
 
   const BackButton = () => {
     if (isDirty) {
-        return (
-            <AlertDialog>
-                <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Discard changes?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            You have unsaved changes. Are you sure you want to discard them and go back?
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Keep Editing</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleGoBack} className="bg-destructive hover:bg-destructive/90">Discard</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        )
+      return (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant='ghost' size='icon'>
+              <ArrowLeft className='h-5 w-5' />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Discard changes?</AlertDialogTitle>
+              <AlertDialogDescription>
+                You have unsaved changes. Are you sure you want to discard them
+                and go back?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Keep Editing</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleGoBack}
+                className='bg-destructive hover:bg-destructive/90'
+              >
+                Discard
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      );
     }
     return (
-        <Button variant="ghost" size="icon" onClick={handleGoBack}>
-            <ArrowLeft className="h-5 w-5" />
-        </Button>
-    )
-  }
-  
-  const addSongTrigger = (
-     <Button variant="ghost" size="icon">
-        <PlusCircle className="h-5 w-5" />
+      <Button variant='ghost' size='icon' onClick={handleGoBack}>
+        <ArrowLeft className='h-5 w-5' />
       </Button>
+    );
+  };
+
+  const addSongTrigger = (
+    <Button variant='ghost' size='icon'>
+      <PlusCircle className='h-5 w-5' />
+    </Button>
   );
-  
-  const addSongContent = <AddSongComponent availableSongs={availableSongs} onAddSong={handleAddSong} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} onSongStatusChange={handleSongStatusChange} />;
+
+  const addSongContent = (
+    <AddSongComponent
+      availableSongs={availableSongs}
+      onAddSong={handleAddSong}
+      searchTerm={searchTerm}
+      onSearchTermChange={setSearchTerm}
+    />
+  );
 
   const getSourceIcon = (song: Song) => {
     if (song.source === 'system') {
-        return <Cloud className="h-3 w-3 text-muted-foreground flex-shrink-0" />;
+      return <Cloud className='h-3 w-3 text-muted-foreground flex-shrink-0' />;
     }
     if (song.source === 'user') {
-        return <UserIcon className="h-3 w-3 text-muted-foreground flex-shrink-0" />;
+      return (
+        <UserIcon className='h-3 w-3 text-muted-foreground flex-shrink-0' />
+      );
     }
     return null;
-  }
+  };
 
   return (
-    <div className="relative w-full max-w-lg mx-auto">
-        <div className="absolute top-1 -left-1 z-10">
-            <BackButton />
-        </div>
-        <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSaveSetlist)} className="w-full h-full flex flex-col space-y-8">
-            
-            <div className="space-y-2 pt-2 text-center">
-                <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                    <FormItem className="group relative">
-                        <FormLabel className="sr-only">Setlist Title</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Setlist Name" {...field} className="text-xl text-center font-bold p-0 h-auto border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent" />
-                        </FormControl>
-                         <Edit className="absolute top-1/2 right-0 -translate-y-1/2 h-4 w-4 text-muted-foreground/0 group-hover:text-muted-foreground/70 transition-colors" />
-                        <FormMessage className="text-center" />
-                    </FormItem>
-                )}
-                />
+    <div className='relative w-full max-w-lg mx-auto'>
+      <div className='absolute top-1 -left-1 z-10'>
+        <BackButton />
+      </div>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(handleSaveSetlist)}
+          className='w-full h-full flex flex-col space-y-8'
+        >
+          <div className='space-y-2 pt-2 text-center'>
+            <FormField
+              control={form.control}
+              name='title'
+              render={({ field }) => (
+                <FormItem className='group relative'>
+                  <FormLabel className='sr-only'>Setlist Title</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder='Setlist Name'
+                      {...field}
+                      className='text-xl text-center font-bold p-0 h-auto border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent'
+                    />
+                  </FormControl>
+                  <Edit className='absolute top-1/2 right-0 -translate-y-1/2 h-4 w-4 text-muted-foreground/0 group-hover:text-muted-foreground/70 transition-colors' />
+                  <FormMessage className='text-center' />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className='flex-grow space-y-4 flex flex-col'>
+            <div className='flex justify-between items-center'>
+              <h2 className='text-lg font-semibold font-headline'>
+                Songs ({selectedSongs.length})
+              </h2>
+              {isMobile ? (
+                <Drawer open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                  <DrawerTrigger asChild>{addSongTrigger}</DrawerTrigger>
+                  <DrawerContent>
+                    <DrawerHeader className='p-0'>
+                      <DrawerTitle className='sr-only'>Add a song</DrawerTitle>
+                    </DrawerHeader>
+                    {addSongContent}
+                  </DrawerContent>
+                </Drawer>
+              ) : (
+                <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                  <PopoverTrigger asChild>{addSongTrigger}</PopoverTrigger>
+                  <PopoverContent
+                    className='w-[350px] p-0'
+                    align='end'
+                    onInteractOutside={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (target.closest('[data-radix-toast-provider]')) {
+                        e.preventDefault();
+                      }
+                    }}
+                  >
+                    {addSongContent}
+                  </PopoverContent>
+                </Popover>
+              )}
             </div>
 
-            <div className="flex-grow space-y-4 flex flex-col">
-            <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold font-headline">Songs ({selectedSongs.length})</h2>
-                {isMobile ? (
-                    <Drawer open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                        <DrawerTrigger asChild>
-                            {addSongTrigger}
-                        </DrawerTrigger>
-                        <DrawerContent>
-                            <DrawerHeader className="p-0">
-                                <DrawerTitle className="sr-only">Add a song</DrawerTitle>
-                            </DrawerHeader>
-                            {addSongContent}
-                        </DrawerContent>
-                    </Drawer>
-                ) : (
-                    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                        <PopoverTrigger asChild>
-                            {addSongTrigger}
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[350px] p-0" align="end" onInteractOutside={(e) => {
-                            const target = e.target as HTMLElement;
-                            if (target.closest('[data-radix-toast-provider]')) {
-                                e.preventDefault();
-                            }
-                        }}>
-                            {addSongContent}
-                        </PopoverContent>
-                    </Popover>
-                )}
-            </div>
-            
-            <div className="flex-grow min-h-[200px]">
-                {selectedSongs.length > 0 ? (
-                <ul className="space-y-2">
-                    {selectedSongs.map((song, index) => (
+            <div className='flex-grow min-h-[200px]'>
+              {selectedSongs.length > 0 ? (
+                <ul className='space-y-2'>
+                  {selectedSongs.map((song, index) => (
                     <li
-                        key={song.id}
-                        className="flex items-center p-2 rounded-md bg-muted/50 transition-all border-2 border-transparent"
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, index)}
-                        onDrop={(e) => handleDrop(e, index)}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
+                      key={song.id}
+                      className='flex items-center p-2 rounded-md bg-muted/50 transition-all border-2 border-transparent'
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDrop={(e) => handleDrop(e, index)}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
                     >
-                        <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab mr-2" />
-                        <div className="flex-grow min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold truncate">{song.title}</p>
-                            {getSourceIcon(song)}
-                          </div>
-                          <p className="text-sm text-muted-foreground truncate">{song.artist} • Key: {song.originalKey || 'N/A'}</p>
+                      <GripVertical className='h-5 w-5 text-muted-foreground cursor-grab mr-2' />
+                      <div className='flex-grow min-w-0'>
+                        <div className='flex items-center gap-2'>
+                          <p className='font-semibold truncate'>{song.title}</p>
+                          {getSourceIcon(song)}
                         </div>
-                        <Button variant="ghost" size="icon" onClick={() => removeSong(song.id)} className="text-muted-foreground hover:text-destructive h-8 w-8">
-                        <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <p className='text-sm text-muted-foreground truncate'>
+                          {song.artist} • Key: {song.originalKey || 'N/A'}
+                        </p>
+                      </div>
+                      <Button
+                        variant='ghost'
+                        size='icon'
+                        onClick={() => removeSong(song.id)}
+                        className='text-muted-foreground hover:text-destructive h-8 w-8'
+                      >
+                        <Trash2 className='h-4 w-4' />
+                      </Button>
                     </li>
-                    ))}
+                  ))}
                 </ul>
-                ) : (
-                <div className="text-center py-10 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full">
-                    <p className="text-muted-foreground">Your setlist is empty.</p>
-                    <p className="text-sm text-muted-foreground">Add songs to get started.</p>
+              ) : (
+                <div className='text-center py-10 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full'>
+                  <p className='text-muted-foreground'>
+                    Your setlist is empty.
+                  </p>
+                  <p className='text-sm text-muted-foreground'>
+                    Add songs to get started.
+                  </p>
                 </div>
-                )}
+              )}
             </div>
-            </div>
+          </div>
 
-            <Button type="submit" size="lg" className="w-full">
-                {setlistId ? 'Update Setlist' : 'Save Setlist'}
-            </Button>
-            
+          <Button type='submit' size='lg' className='w-full'>
+            {setlistId ? 'Update Setlist' : 'Save Setlist'}
+          </Button>
         </form>
-        </Form>
+      </Form>
     </div>
   );
 }

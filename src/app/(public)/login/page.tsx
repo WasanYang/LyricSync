@@ -3,7 +3,6 @@
 
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Music, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -34,15 +33,9 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function LoginPage() {
-  const { user, signInWithGoogle, signInAnonymously } = useAuth();
+  const { signInWithGoogle, signInAnonymously } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-
-  // useEffect(() => {
-  //   if (user) {
-  //     router.replace('/');
-  //   }
-  // }, [user, router]);
 
   const handleSignIn = async (method: 'google' | 'guest') => {
     try {

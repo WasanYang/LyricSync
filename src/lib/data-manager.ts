@@ -11,11 +11,10 @@ import {
   orderBy,
   limit,
   onSnapshot,
-  DocumentData,
   Firestore,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Song, Setlist, User } from './types/database';
+import type { Song, Setlist } from './types/database';
 
 interface CacheEntry<T> {
   data: T;
@@ -252,7 +251,7 @@ class DataManager {
   async preloadUserFavorites(userId: string): Promise<void> {
     try {
       // Preload user's most recent content
-      const [songs, setlists] = await Promise.all([
+      const [_songs, setlists] = await Promise.all([
         this.getUserSongs(userId),
         this.getUserSetlists(userId),
       ]);

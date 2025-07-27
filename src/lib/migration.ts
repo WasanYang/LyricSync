@@ -1,7 +1,6 @@
 // src/lib/migration.ts
 // Migration utilities for moving from IndexedDB-based to Firebase-First architecture
 
-import { dataManager } from './data-manager';
 import { localStorageManager } from './local-storage';
 import { indexedDBManager } from './indexed-db-utils';
 
@@ -196,7 +195,7 @@ class MigrationManager {
 
         // Don't trigger upgrade - we're just reading
         request.onupgradeneeded = () => resolve(null);
-      } catch (error) {
+      } catch {
         resolve(null);
       }
     });

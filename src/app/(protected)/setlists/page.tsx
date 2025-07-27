@@ -16,7 +16,6 @@ import { Button } from '@/components/ui/button';
 import {
   Trash2,
   ListMusic,
-  ChevronRight,
   UploadCloud,
   CheckCircle,
   AlertTriangle,
@@ -24,7 +23,6 @@ import {
   RefreshCw,
   PlusCircle,
   Share2,
-  XCircle,
   Users,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -76,7 +74,7 @@ function SetlistItem({
         description: `"${setlist.title}" has been removed.`,
       });
       onSetlistChange();
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Could not remove the setlist.',

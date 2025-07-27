@@ -1,12 +1,10 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
 import { getAllCloudSongs, type Setlist, getPublicSetlists } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import { Input } from '@/components/ui/input';
-import { Search, Music, ListMusic } from 'lucide-react';
+import { Search, ListMusic } from 'lucide-react';
 import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -120,8 +118,6 @@ function SearchCategory({
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPrefix, setSelectedPrefix] = useState<string | null>(null);
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
 
   const [allSongs, setAllSongs] = useState<Song[]>([]);
   const [publicSetlists, setPublicSetlists] = useState<Setlist[]>([]);
@@ -200,7 +196,7 @@ export default function SearchPage() {
     const EN_REGEX = /^[A-Z]$/;
     const TH_REGEX = /^[ก-ฮ]$/;
     const chars = str.trim().split('');
-    for (let c of chars) {
+    for (const c of chars) {
       const up = c.toUpperCase();
       if (EN_REGEX.test(up) || TH_REGEX.test(up)) {
         return up;
@@ -239,15 +235,6 @@ export default function SearchPage() {
     }
     return allSongs;
   }, [searchTerm, selectedPrefix, allSongs]);
-
-  const filteredSetlists = useMemo(() => {
-    if (!searchTerm) return [];
-    return publicSetlists.filter(
-      (setlist) =>
-        setlist.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        setlist.authorName?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, publicSetlists]);
 
   const newReleases = useMemo(
     () =>
