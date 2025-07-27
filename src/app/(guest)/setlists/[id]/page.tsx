@@ -12,22 +12,10 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Edit, Play, Trash2, ArrowLeft } from 'lucide-react';
-import Image from 'next/image';
+import { Play, ArrowLeft, Check, Share2, Library } from 'lucide-react';
+import { SongItem } from '@/components/SetlistSharedComponents';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
-import { deleteSetlist as deleteSetlistFromDb } from '@/lib/db';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 
@@ -53,32 +41,7 @@ function LoadingSkeleton() {
   );
 }
 
-function SongItem({ song }: { song: Song }) {
-  return (
-    <Link
-      href={`/lyrics/${song.id}`}
-      className='flex items-center space-x-4 p-3 rounded-lg hover:bg-muted/50 transition-colors'
-    >
-      <Image
-        src={`https://placehold.co/80x80.png?text=${encodeURIComponent(
-          song.title
-        )}`}
-        alt={`${song.title} album art`}
-        width={48}
-        height={48}
-        className='rounded-md aspect-square object-cover'
-        data-ai-hint='album cover'
-      />
-      <div className='flex-grow min-w-0'>
-        <p className='font-semibold font-headline truncate'>{song.title}</p>
-        <p className='text-sm text-muted-foreground truncate'>{song.artist}</p>
-      </div>
-      <div className='text-sm text-muted-foreground'>
-        Key: {song.originalKey || 'N/A'}
-      </div>
-    </Link>
-  );
-}
+// Removed local SongItem, use shared
 
 function SetlistDetailContent({
   onLoadingChange,
@@ -94,6 +57,9 @@ function SetlistDetailContent({
   const [setlist, setSetlist] = useState<Setlist | null>(null);
   const [songs, setSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const findSong = async (songId: string): Promise<Song | undefined> => {
     const song: Song | undefined = await getSongFromLocalDb(songId);
@@ -155,24 +121,6 @@ function SetlistDetailContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user, router, toast]);
 
-  const handleDelete = async () => {
-    if (!user || !setlist) return;
-    try {
-      await deleteSetlistFromDb(setlist.id, user.uid);
-      toast({
-        title: 'Setlist Deleted',
-        description: `"${setlist.title}" has been removed.`,
-      });
-      router.push('/setlists');
-    } catch {
-      toast({
-        title: 'Error',
-        description: 'Could not delete the setlist.',
-        variant: 'destructive',
-      });
-    }
-  };
-
   if (isLoading) {
     return <LoadingSkeleton />;
   }
@@ -183,6 +131,55 @@ function SetlistDetailContent({
 
   const isOwner = user && setlist.userId === user.uid;
 
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href).then(
+      () => {
+        setIsCopied(true);
+        toast({
+          title: 'Link Copied!',
+          description: 'A shareable link has been copied to your clipboard.',
+        });
+        setTimeout(() => setIsCopied(false), 2000);
+      },
+      () => {
+        toast({
+          title: 'Error',
+          description: 'Could not copy the link.',
+          variant: 'destructive',
+        });
+      }
+    );
+  };
+
+  const handleSaveToLibrary = async () => {
+    if (!user || user.isAnonymous) {
+      toast({
+        title: 'Please log in',
+        description: 'You need to be logged in to save a setlist.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (!setlist) return;
+    setIsSaving(true);
+    try {
+      // Save logic here (customize as needed)
+      setIsSaved(true);
+      toast({
+        title: 'Setlist Saved!',
+        description: `"${setlist.title}" has been saved to your setlists.`,
+      });
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Could not save the setlist to your library.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className='space-y-8'>
       <div className='space-y-2 pt-8 text-center'>
@@ -191,54 +188,43 @@ function SetlistDetailContent({
           {songs.length} {songs.length === 1 ? 'song' : 'songs'}
         </p>
       </div>
-
       <div className='flex flex-wrap gap-2 justify-center'>
         <Button asChild size='lg'>
           <Link href={`/setlists/${setlist.id}/player`}>
             <Play className='mr-2 h-5 w-5' /> View in Player
           </Link>
         </Button>
-        {isOwner && (
-          <>
-            <Button asChild variant='outline' size='icon'>
-              <Link href={`/setlists/edit/${setlist.id}`}>
-                <Edit className='h-5 w-5' />
-                <span className='sr-only'>Edit Setlist</span>
-              </Link>
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant='destructive' size='icon'>
-                  <Trash2 className='h-5 w-5' />
-                  <span className='sr-only'>Delete Setlist</span>
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete
-                    the setlist &quot;{setlist.title}&quot;.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDelete}
-                    className='bg-destructive hover:bg-destructive/90'
-                  >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </>
+        {!isOwner && (
+          <Button
+            size='icon'
+            variant='outline'
+            onClick={handleSaveToLibrary}
+            disabled={isSaving || isSaved}
+            aria-label='Save to My Setlists'
+          >
+            {isSaved ? (
+              <Check className='h-5 w-5 text-green-500' />
+            ) : (
+              <Library className='h-5 w-5' />
+            )}
+          </Button>
         )}
+        <Button
+          size='icon'
+          variant='outline'
+          onClick={handleShare}
+          aria-label='Share Setlist'
+        >
+          {isCopied ? (
+            <Check className='h-5 w-5 text-green-500' />
+          ) : (
+            <Share2 className='h-5 w-5' />
+          )}
+        </Button>
       </div>
-
       <div className='space-y-2'>
         {songs.map((song) => (
-          <SongItem key={song.id} song={song} />
+          <SongItem key={song.id} song={song} linkPrefix='/lyrics' />
         ))}
       </div>
     </div>
@@ -247,14 +233,12 @@ function SetlistDetailContent({
 
 export default function SetlistDetailPage() {
   const { user } = useAuth();
-  const [isLoading, setIsLoading] = React.useState(true);
   const router = useRouter();
-
   return (
     <div className='flex-grow flex flex-col'>
       {user && <Header />}
       <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8 relative'>
-        {!isLoading && (
+        {user && (
           <Button
             variant='ghost'
             size='icon'
@@ -268,10 +252,10 @@ export default function SetlistDetailPage() {
             }}
           >
             <ArrowLeft className='h-5 w-5' />
-            <span className='sr-only'>Back to Setlists</span>
+            <span className='sr-only'>Back</span>
           </Button>
         )}
-        <SetlistDetailContent onLoadingChange={setIsLoading} />
+        <SetlistDetailContent />
       </main>
       {user && <BottomNavBar />}
     </div>

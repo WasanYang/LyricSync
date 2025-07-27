@@ -35,6 +35,8 @@ function SongCarousel({
   songs: Song[];
   isLoading?: boolean;
 }) {
+  const { user } = useAuth();
+
   if (isLoading) {
     return (
       <div className='flex space-x-4 -ml-4 w-full max-w-full'>
@@ -71,7 +73,14 @@ function SongCarousel({
               key={song.id}
               className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'
             >
-              <Link href={`/lyrics/${song.id}`} className='block'>
+              <Link
+                href={
+                  !user || user.isAnonymous
+                    ? `/shared/song/${song.id}`
+                    : `/lyrics/${song.id}`
+                }
+                className='block'
+              >
                 <SongCard song={song} />
               </Link>
             </CarouselItem>
