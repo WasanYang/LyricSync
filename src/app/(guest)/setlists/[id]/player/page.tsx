@@ -4,11 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import type { Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
-import {
-  getSetlist as getSetlistFromDb,
-  getSong as getSongFromLocalDb,
-  getCloudSongById,
-} from '@/lib/db';
+
 import { ALL_NOTES } from '@/lib/chords';
 import { useAuth } from '@/context/AuthContext';
 import { useSafeDataLoader } from '@/hooks/use-offline-storage';
@@ -16,7 +12,6 @@ import { useSafeDataLoader } from '@/hooks/use-offline-storage';
 import LyricPlayer from '@/components/LyricPlayer';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import SetlistControls from '@/components/SetlistControls';

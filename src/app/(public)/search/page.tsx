@@ -119,18 +119,13 @@ function SearchCategory({
 
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPrefix, setSelectedPrefix] = useState<string | null>(null);
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [allSongs, setAllSongs] = useState<Song[]>([]);
   const [publicSetlists, setPublicSetlists] = useState<Setlist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace('/welcome');
-    }
-  }, [user, authLoading, router]);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -149,19 +144,101 @@ export default function SearchPage() {
         setIsLoading(false);
       }
     };
-    if (user) {
-      fetchAllData();
-    }
-  }, [user]);
+    fetchAllData();
+  }, []);
 
+  // Utility: Remove Thai vowels and get first consonant
+  function getFirstConsonant(str: string): string | undefined {
+    const THAI_CONSONANTS = [
+      'ก',
+      'ข',
+      'ฃ',
+      'ค',
+      'ฅ',
+      'ฆ',
+      'ง',
+      'จ',
+      'ฉ',
+      'ช',
+      'ซ',
+      'ฌ',
+      'ญ',
+      'ฎ',
+      'ฏ',
+      'ฐ',
+      'ฑ',
+      'ฒ',
+      'ณ',
+      'ด',
+      'ต',
+      'ถ',
+      'ท',
+      'ธ',
+      'น',
+      'บ',
+      'ป',
+      'ผ',
+      'ฝ',
+      'พ',
+      'ฟ',
+      'ภ',
+      'ม',
+      'ย',
+      'ร',
+      'ฤ',
+      'ล',
+      'ฦ',
+      'ว',
+      'ศ',
+      'ษ',
+      'ส',
+      'ห',
+      'ฬ',
+      'อ',
+      'ฮ',
+    ];
+    const EN_REGEX = /^[A-Z]$/;
+    const TH_REGEX = /^[ก-ฮ]$/;
+    const chars = str.trim().split('');
+    for (let c of chars) {
+      const up = c.toUpperCase();
+      if (EN_REGEX.test(up) || TH_REGEX.test(up)) {
+        return up;
+      }
+      if (THAI_CONSONANTS.includes(c)) {
+        return c;
+      }
+    }
+    return undefined;
+  }
+
+  // Group available prefixes from all songs (Thai/English, ignore vowels)
+  const availablePrefixes = useMemo(() => {
+    const set = new Set<string>();
+    allSongs.forEach((song) => {
+      const first = getFirstConsonant(song.title);
+      if (first) set.add(first);
+    });
+    return ['All', ...Array.from(set).sort((a, b) => a.localeCompare(b))];
+  }, [allSongs]);
+
+  // Filter songs by search or selected prefix
   const filteredSongs = useMemo(() => {
-    if (!searchTerm) return [];
-    return allSongs.filter(
-      (song) =>
-        song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        song.artist.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, allSongs]);
+    if (searchTerm) {
+      return allSongs.filter(
+        (song) =>
+          song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          song.artist.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    if (selectedPrefix && selectedPrefix !== 'All') {
+      return allSongs.filter((song) => {
+        const first = getFirstConsonant(song.title);
+        return first === selectedPrefix;
+      });
+    }
+    return allSongs;
+  }, [searchTerm, selectedPrefix, allSongs]);
 
   const filteredSetlists = useMemo(() => {
     if (!searchTerm) return [];
@@ -187,32 +264,6 @@ export default function SearchPage() {
     [allSongs]
   ); // Placeholder
 
-  if (authLoading || !user) {
-    return (
-      <>
-        <SEOHead config={pageSEOConfigs.search()} />
-        <div className='flex-grow flex flex-col'>
-          <Header />
-          <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
-            <div className='space-y-8'>
-              <Skeleton className='h-10 w-full' />
-              <div className='space-y-4'>
-                <Skeleton className='h-6 w-32 mb-4' />
-                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                  <Skeleton className='h-14 w-full' />
-                  <Skeleton className='h-14 w-full' />
-                  <Skeleton className='h-14 w-full' />
-                  <Skeleton className='h-14 w-full' />
-                </div>
-              </div>
-            </div>
-          </main>
-          <BottomNavBar />
-        </div>
-      </>
-    );
-  }
-
   return (
     <>
       <SEOHead config={pageSEOConfigs.search(searchTerm)} />
@@ -227,56 +278,63 @@ export default function SearchPage() {
                 placeholder='Search songs, artists, and public setlists...'
                 className='pl-10 text-base bg-muted focus-visible:ring-0 focus-visible:ring-offset-0'
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setSelectedPrefix(null);
+                }}
               />
             </div>
 
-            {searchTerm ? (
-              <div className='space-y-8'>
-                {filteredSetlists.length > 0 && (
-                  <section>
-                    <h2 className='text-xl font-bold font-headline mb-4'>
-                      Setlists
-                    </h2>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                      {filteredSetlists.map((setlist) => (
-                        <SetlistCard
-                          key={setlist.firestoreId}
-                          setlist={setlist}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                )}
-                {filteredSongs.length > 0 && (
-                  <section>
-                    <h2 className='text-xl font-bold font-headline mb-4'>
-                      Songs
-                    </h2>
-                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2'>
-                      {filteredSongs.map((song) => (
-                        <SongListItem key={song.id} song={song} />
-                      ))}
-                    </div>
-                  </section>
-                )}
-                {!isLoading &&
-                  filteredSongs.length === 0 &&
-                  filteredSetlists.length === 0 && (
-                    <div className='text-center py-16'>
-                      <p className='text-muted-foreground'>
-                        No results for &quot;{searchTerm}&quot;.
-                      </p>
+            {/* Prefix A-Z filter */}
+            {/* Prefix filter (A-Z, ก-ฮ, All) */}
+            {!searchTerm && availablePrefixes.length > 0 && (
+              <div className='flex flex-wrap gap-2 py-2'>
+                {availablePrefixes.map((prefix) => (
+                  <button
+                    key={prefix}
+                    className={`px-3 py-1 rounded-full border text-base font-semibold transition-colors ${
+                      selectedPrefix === prefix ||
+                      (prefix === 'All' &&
+                        (selectedPrefix === null || selectedPrefix === 'All'))
+                        ? 'bg-primary text-white'
+                        : 'bg-muted text-primary'
+                    }`}
+                    onClick={() =>
+                      setSelectedPrefix(prefix === 'All' ? null : prefix)
+                    }
+                  >
+                    {prefix}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Song list by prefix or search */}
+            {(searchTerm || selectedPrefix) && (
+              <section>
+                <h2 className='text-xl font-bold font-headline mb-4'>
+                  {searchTerm
+                    ? `Results for "${searchTerm}"`
+                    : selectedPrefix
+                    ? `Songs starting with "${selectedPrefix}"`
+                    : 'All Songs'}
+                </h2>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2'>
+                  {filteredSongs.length > 0 ? (
+                    filteredSongs.map((song) => (
+                      <SongListItem key={song.id} song={song} />
+                    ))
+                  ) : (
+                    <div className='col-span-2 text-center py-8 text-muted-foreground'>
+                      No songs found.
                     </div>
                   )}
-                {isLoading && (
-                  <div className='space-y-2 mt-4'>
-                    <Skeleton className='h-14 w-full' />
-                    <Skeleton className='h-14 w-full' />
-                  </div>
-                )}
-              </div>
-            ) : (
+                </div>
+              </section>
+            )}
+
+            {/* Trending & New Releases (default) */}
+            {!searchTerm && !selectedPrefix && (
               <div className='space-y-10'>
                 <SearchCategory
                   title='New Releases'

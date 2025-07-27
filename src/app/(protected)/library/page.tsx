@@ -14,7 +14,6 @@ import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
 import { Music, Trash2, Edit, RotateCcw, PlusCircle, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -291,12 +290,6 @@ export default function LibraryPage() {
     setSongs(loadedSongs);
     setIsLoading(false);
   }, [user]);
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace('/welcome');
-    }
-  }, [user, authLoading, router]);
 
   useEffect(() => {
     if (user) {
