@@ -1,4 +1,3 @@
-
 'use client';
 
 import { getSong as getSongFromDb, getCloudSongById } from '@/lib/db';
@@ -281,5 +280,4 @@ export default function SongDetailPage() {
       {user && <BottomNavBar />}
     </div>
   );
-
-    
+}
