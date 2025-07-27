@@ -61,6 +61,7 @@ export const defaultSEOConfig = {
   twitterHandle: '@lyricsync',
   locale: 'th_TH',
   defaultImage: '/icons/logo-512.png',
+  logo: '/icons/logo-512.png',
 };
 
 export function generateMetadata(config: SEOConfig): Metadata {
@@ -158,9 +159,73 @@ export const pageSEOConfigs = {
     title: 'LyricSync - เครื่องมือสำหรับทีมนมัสการ',
     description:
       'เครื่องมือนมัสการครบครัน ด้วยเนื้อเพลง คอร์ด และระบบเล่นอัตโนมัติ สำหรับคริสตจักรและกลุ่มนมัสการ รองรับการใช้งานออฟไลน์',
-    keywords: ['หน้าแรก', 'เพลงนมัสการยอดนิยม', 'setlist แนะนำ'],
+    keywords: ['หน้าแรก', 'เพลงนมัสการยอดนิยม', 'setlist แนะนำ', 'LyricSync'],
     openGraph: {
       type: 'website',
+      title: 'LyricSync - เครื่องมือสำหรับทีมนมัสการ',
+      description:
+        'เครื่องมือนมัสการครบครัน ด้วยเนื้อเพลง คอร์ด และระบบเล่นอัตโนมัติ',
+      images: [
+        {
+          url: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
+          width: 512,
+          height: 512,
+          alt: 'LyricSync Logo',
+        },
+      ],
+      siteName: defaultSEOConfig.siteName,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'LyricSync - เครื่องมือสำหรับทีมนมัสการ',
+      description:
+        'เครื่องมือนมัสการครบครัน ด้วยเนื้อเพลง คอร์ด และระบบเล่นอัตโนมัติ',
+      images: [`${defaultSEOConfig.siteUrl}/icons/logo-512.png`],
+    },
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: 'LyricSync',
+      description:
+        'เครื่องมือนมัสการครบครัน ด้วยเนื้อเพลง คอร์ด และระบบเล่นอัตโนมัติ',
+      url: defaultSEOConfig.siteUrl,
+      logo: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
+      applicationCategory: 'MusicApplication',
+      operatingSystem: 'Web',
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'THB',
+      },
+    },
+  }),
+
+  welcome: (): SEOConfig => ({
+    title: 'Welcome to LyricSync - เครื่องมือสำหรับทีมนมัสการ',
+    description:
+      'ทำความรู้จักกับ LyricSync เครื่องมือนมัสการที่ช่วยให้การนมัสการของคุณสมบูรณ์แบบ ด้วยฟีเจอร์เนื้อเพลง คอร์ด และระบบเล่นอัตโนมัติ',
+    keywords: ['welcome', 'แนะนำ', 'ฟีเจอร์', 'วิธีใช้', 'เริ่มต้น'],
+    openGraph: {
+      type: 'website',
+      title: 'Welcome to LyricSync',
+      description:
+        'ทำความรู้จักกับ LyricSync เครื่องมือนมัสการที่ช่วยให้การนมัสการของคุณสมบูรณ์แบบ',
+      images: [
+        {
+          url: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
+          width: 512,
+          height: 512,
+          alt: 'LyricSync Logo',
+        },
+      ],
+      siteName: defaultSEOConfig.siteName,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Welcome to LyricSync',
+      description:
+        'ทำความรู้จักกับ LyricSync เครื่องมือนมัสการที่ช่วยให้การนมัสการของคุณสมบูรณ์แบบ',
+      images: [`${defaultSEOConfig.siteUrl}/icons/logo-512.png`],
     },
   }),
 
@@ -236,13 +301,6 @@ export const pageSEOConfigs = {
     description:
       'อัปเกรดเป็น Premium สมาชิก รับฟีเจอร์เพิ่มเติม เนื้อที่จัดเก็บไม่จำกัด และการสนับสนุนพิเศษ',
     keywords: ['premium', 'อัปเกรด', 'สมาชิกพิเศษ', 'subscription'],
-  }),
-
-  welcome: (): SEOConfig => ({
-    title: 'ยินดีต้อนรับสู่ LyricSync',
-    description:
-      'เริ่มต้นใช้งาน LyricSync เครื่องมือสำหรับทีมนมัสการ เหมาะสำหรับคริสตจักรและกลุ่มนมัสการทุกขนาด',
-    keywords: ['ยินดีต้อนรับ', 'เริ่มต้นใช้งาน', 'tutorial'],
   }),
 
   offline: (): SEOConfig => ({

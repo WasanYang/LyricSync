@@ -1,4 +1,3 @@
-
 const NOTES_SHARP = [
   'C',
   'C#',
@@ -32,14 +31,14 @@ export const ALL_NOTES = [
   'C',
   'C#',
   'D',
-  'D#',
+  'Eb',
   'E',
   'F',
   'F#',
   'G',
   'G#',
   'A',
-  'A#',
+  'Bb',
   'B',
 ];
 
@@ -64,16 +63,24 @@ const getTransposedNote = (note: string, amount: number): string => {
     return transposedNoteSharp;
   }
 
+  // Special case: Always prefer Bb over A#
+  if (transposedNoteSharp === 'A#') {
+    return 'Bb';
+  }
+
   // Prefer sharp or flat based on original chord notation
   return useSharpsForOriginal ? transposedNoteSharp : transposedNoteFlat;
 };
 
 export const transposeChord = (chord: string, amount: number): string => {
   if (amount === 0) return chord;
-  
+
   // Handle multi-chord groups like [G/B|C|D|G]
   if (chord.includes('|')) {
-    return chord.split('|').map(c => transposeChord(c, amount)).join('|');
+    return chord
+      .split('|')
+      .map((c) => transposeChord(c, amount))
+      .join('|');
   }
 
   // This regex handles standard chords, slash chords (e.g., G/B), and complex chords (e.g., Asus4, Cmaj7).
@@ -97,10 +104,9 @@ export const transposeChord = (chord: string, amount: number): string => {
       const slashNote = slashMatch[1];
       newSlashPart = `/${getTransposedNote(slashNote, amount)}`;
     } else {
-        newSlashPart = slashPart; // Keep original if it doesn't match a note
+      newSlashPart = slashPart; // Keep original if it doesn't match a note
     }
   }
-
 
   return newRoot + quality + newSlashPart;
 };

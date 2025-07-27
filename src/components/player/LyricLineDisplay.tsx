@@ -102,11 +102,25 @@ export default function LyricLineDisplay({
           <span key={`chord-${index}`} className='whitespace-pre'>
             <span>
               {part.chord
-                ? transposeChord(part.chord, transpose).replace(/\|/g, ' | ')
+                ? part.chord
+                    .split(/(\s*\|\s*)/)
+                    .map((segment, segIndex) => {
+                      // If it's a separator (|), keep it as is
+                      if (segment.trim() === '|' || segment.includes('|')) {
+                        return segment;
+                      }
+                      // If it's a chord, transpose it
+                      const trimmedSegment = segment.trim();
+                      if (trimmedSegment && trimmedSegment !== '') {
+                        return transposeChord(trimmedSegment, transpose);
+                      }
+                      return segment;
+                    })
+                    .join('')
                 : ''}
             </span>
             <span className='text-transparent' style={{ fontWeight }}>
-              {part.text}
+              {part.text.replace(/./g, ' ')}
             </span>
           </span>
         ))}

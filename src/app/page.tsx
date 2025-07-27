@@ -1,5 +1,6 @@
 'use client';
 
+import { Metadata } from 'next';
 import {
   getSetlists,
   type Setlist,
@@ -206,32 +207,19 @@ export default function Home() {
   const [isLoadingPublicSetlists, setIsLoadingPublicSetlists] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace('/welcome');
-    }
+    // Allow access without login, but redirect anonymous users to welcome for first visit
+    // Remove forced redirect - allow public access
   }, [user, loading, router]);
 
   useEffect(() => {
     async function loadData() {
-      if (!user) return;
-
+      // Load data regardless of login status
       setIsLoadingSetlists(true);
       setIsLoadingSongs(true);
       setIsLoadingPublicSetlists(true);
 
       try {
-        const allSetlists = await getSetlists(user.uid);
-        const sorted = allSetlists.sort(
-          (a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt)
-        );
-        setRecentSetlists(sorted.slice(0, 3));
-      } catch (error) {
-        console.error('Failed to load recent setlists', error);
-      } finally {
-        setIsLoadingSetlists(false);
-      }
-
-      try {
+        // Always load system songs (public data)
         const allSongs = await getAllCloudSongs();
         const filteredSystemSongs = allSongs.filter(
           (song) => song.source === 'system'
@@ -244,24 +232,39 @@ export default function Home() {
       }
 
       try {
+        // Load public setlists (available to everyone)
         const publicLists = await getPublicSetlists();
-        // Filter out the user's own setlists from recommendations
-        const recommendedSetlists = publicLists.filter(
-          (sl) => sl.userId !== user.uid
-        );
+        // Filter out the user's own setlists from recommendations if logged in
+        const recommendedSetlists = user
+          ? publicLists.filter((sl) => sl.userId !== user.uid)
+          : publicLists;
         setPublicSetlists(recommendedSetlists);
       } catch (error) {
         console.error('Failed to load public setlists', error);
       } finally {
         setIsLoadingPublicSetlists(false);
       }
+
+      // Only load user-specific data if logged in
+      if (user && !user.isAnonymous) {
+        try {
+          const allSetlists = await getSetlists(user.uid);
+          const sorted = allSetlists.sort(
+            (a, b) =>
+              (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt)
+          );
+          setRecentSetlists(sorted.slice(0, 3));
+        } catch (error) {
+          console.error('Failed to load recent setlists', error);
+        }
+      }
+      setIsLoadingSetlists(false);
     }
-    if (user) {
-      loadData();
-    }
+
+    loadData();
   }, [user]);
 
-  if (loading || !user) {
+  if (loading) {
     return <LoadingSkeleton />;
   }
 
@@ -287,8 +290,8 @@ export default function Home() {
       <div className='flex-grow flex flex-col'>
         <Header />
         <main className='flex-grow container mx-auto px-4 py-8 space-y-12 pb-24 md:pb-12'>
-          {/* Welcome & Quick Actions */}
-          {!user.isAnonymous && (
+          {/* Welcome & Quick Actions for logged in users */}
+          {user && !user.isAnonymous && (
             <section>
               <h1 className='text-2xl font-bold font-headline mb-4'>
                 Welcome back,{' '}
@@ -319,37 +322,85 @@ export default function Home() {
             </section>
           )}
 
+          {/* Welcome for guests/non-logged in users */}
+          {!user && (
+            <section className='text-center space-y-6'>
+              <div className='space-y-3'>
+                <h1 className='text-3xl font-bold font-headline'>
+                  Welcome to LyricSync
+                </h1>
+                <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
+                  เครื่องมือสำหรับทีมนมัสการ ด้วยเนื้อเพลง คอร์ด
+                  และระบบเล่นอัตโนมัติ สำหรับคริสตจักรและกลุ่มนมัสการ
+                </p>
+              </div>
+              <div className='flex flex-col sm:flex-row gap-4 justify-center'>
+                <Button size='lg' asChild>
+                  <Link href='/login'>Get Started</Link>
+                </Button>
+                <Button variant='outline' size='lg' asChild>
+                  <Link href='/welcome'>Learn More</Link>
+                </Button>
+              </div>
+            </section>
+          )}
+
+          {/* Welcome for anonymous users */}
+          {user && user.isAnonymous && (
+            <section className='text-center space-y-6'>
+              <div className='space-y-3'>
+                <h1 className='text-3xl font-bold font-headline'>
+                  Welcome to LyricSync
+                </h1>
+                <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
+                  You're browsing as a guest. Sign in to save setlists and
+                  access all features.
+                </p>
+              </div>
+              <div className='flex flex-col sm:flex-row gap-4 justify-center'>
+                <Button size='lg' asChild>
+                  <Link href='/login'>Sign In</Link>
+                </Button>
+                <Button variant='outline' size='lg' asChild>
+                  <Link href='/welcome'>Learn More</Link>
+                </Button>
+              </div>
+            </section>
+          )}
+
           {/* Premium Card Implement in future */}
           {/* <PremiumCard /> */}
 
-          {/* Recent Setlists */}
-          {isLoadingSetlists ? (
-            <div className='space-y-4'>
-              <Skeleton className='h-7 w-32' />
-              <div className='space-y-2'>
-                <Skeleton className='h-16 w-full' />
-                <Skeleton className='h-16 w-full' />
-              </div>
-            </div>
-          ) : (
-            recentSetlists.length > 0 && (
-              <section>
-                <div className='flex items-center justify-between mb-4'>
-                  <h2 className='text-xl font-headline font-semibold'>
-                    Recent Setlists
-                  </h2>
-                  <Button variant='link' asChild>
-                    <Link href='/setlists'>View All</Link>
-                  </Button>
-                </div>
+          {/* Recent Setlists - only for logged in users */}
+          {user &&
+            !user.isAnonymous &&
+            (isLoadingSetlists ? (
+              <div className='space-y-4'>
+                <Skeleton className='h-7 w-32' />
                 <div className='space-y-2'>
-                  {recentSetlists.map((setlist) => (
-                    <RecentSetlistItem key={setlist.id} setlist={setlist} />
-                  ))}
+                  <Skeleton className='h-16 w-full' />
+                  <Skeleton className='h-16 w-full' />
                 </div>
-              </section>
-            )
-          )}
+              </div>
+            ) : (
+              recentSetlists.length > 0 && (
+                <section>
+                  <div className='flex items-center justify-between mb-4'>
+                    <h2 className='text-xl font-headline font-semibold'>
+                      Recent Setlists
+                    </h2>
+                    <Button variant='link' asChild>
+                      <Link href='/setlists'>View All</Link>
+                    </Button>
+                  </div>
+                  <div className='space-y-2'>
+                    {recentSetlists.map((setlist) => (
+                      <RecentSetlistItem key={setlist.id} setlist={setlist} />
+                    ))}
+                  </div>
+                </section>
+              )
+            ))}
 
           {/* Recommended Setlists */}
           {publicSetlists.length > 0 && (
