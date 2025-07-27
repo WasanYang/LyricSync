@@ -21,6 +21,7 @@ import {
   Timestamp,
   type DocumentSnapshot,
   type DocumentData,
+  getCountFromServer,
 } from 'firebase/firestore';
 
 const DB_NAME = 'LyricSyncDB';
@@ -163,7 +164,10 @@ export async function getSong(id: string): Promise<Song | undefined> {
   return db.get(SONGS_STORE, id);
 }
 
-export async function deleteSong(id: string): Promise<void> {
+export async function deleteSong(
+  id: string,
+  userId?: string
+): Promise<void> {
   const db = await getDb();
   const songToDelete = await db.get(SONGS_STORE, id);
 
@@ -291,27 +295,39 @@ export async function uploadSongToCloud(song: Song): Promise<void> {
   }
 }
 
-export async function getPaginatedCloudSongs(
-  pageSize: number,
-  startAfterDoc?: DocumentSnapshot<DocumentData>
-): Promise<{
-  songs: Song[];
-  lastVisible: DocumentSnapshot<DocumentData> | null;
-}> {
+export async function getPaginatedSystemSongs(
+  page: number,
+  pageSize: number
+): Promise<{ songs: Song[]; totalPages: number; totalSongs: number }> {
   if (!firestoreDb) throw new Error('Firebase is not configured.');
 
   const songsCollection = collection(firestoreDb, 'songs');
-  let q;
+  const qBase = query(songsCollection, where('source', '==', 'system'));
 
-  if (startAfterDoc) {
-    q = query(
-      songsCollection,
-      orderBy('title'),
-      startAfter(startAfterDoc),
-      limit(pageSize)
-    );
+  // Get total count for pagination
+  const countSnapshot = await getCountFromServer(qBase);
+  const totalSongs = countSnapshot.data().count;
+  const totalPages = Math.ceil(totalSongs / pageSize);
+
+  if (page > totalPages && totalSongs > 0) {
+    // If requested page is out of bounds, return empty
+    return { songs: [], totalPages, totalSongs };
+  }
+
+  // Fetch the specific page
+  let q;
+  if (page === 1) {
+    q = query(qBase, limit(pageSize));
   } else {
-    q = query(songsCollection, orderBy('title'), limit(pageSize));
+    // To get to page `page`, we need to skip `(page - 1) * pageSize` documents
+    const prevPageQuery = query(
+      qBase,
+      limit((page - 1) * pageSize)
+    );
+    const prevPageSnapshot = await getDocs(prevPageQuery);
+    const lastVisible =
+      prevPageSnapshot.docs[prevPageSnapshot.docs.length - 1];
+    q = query(qBase, startAfter(lastVisible), limit(pageSize));
   }
 
   const documentSnapshots = await getDocs(q);
@@ -337,16 +353,14 @@ export async function getPaginatedCloudSongs(
     } as Song);
   });
 
-  const lastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
-
-  return { songs, lastVisible: lastVisible || null };
+  return { songs, totalPages, totalSongs };
 }
 
 export async function getAllCloudSongs(): Promise<Song[]> {
   if (!firestoreDb) throw new Error('Firebase is not configured.');
 
   const songsCollection = collection(firestoreDb, 'songs');
-  const q = query(songsCollection, orderBy('title'));
+  const q = query(songsCollection);
   const querySnapshot = await getDocs(q);
 
   const songs: Song[] = [];
@@ -437,12 +451,63 @@ export async function deleteCloudSong(songId: string): Promise<void> {
 
 export async function saveSetlist(setlist: Setlist): Promise<void> {
   const db = await getDb();
+  // Always update the local updatedAt timestamp on any save operation.
   const setlistToSave: Setlist = {
     ...setlist,
-    updatedAt: Date.now(), // Ensure updatedAt is always set on save/update
-    source: setlist.source || 'owner', // Default to owner
+    updatedAt: Date.now(),
+    source: setlist.source || 'owner',
   };
+
+  // 1. Save to local IndexedDB first to ensure data is never lost.
   await db.put(SETLISTS_STORE, setlistToSave);
+
+  // 2. If the setlist is an "owned" and synced setlist, also update Firestore.
+  if (
+    firestoreDb &&
+    setlistToSave.source === 'owner' &&
+    setlistToSave.isSynced &&
+    setlistToSave.firestoreId
+  ) {
+    try {
+      const setlistDocRef = doc(
+        firestoreDb,
+        'setlists',
+        setlistToSave.firestoreId
+      );
+      const dataForFirestore = {
+        title: setlistToSave.title,
+        songIds: setlistToSave.songIds,
+        syncedAt: serverTimestamp(), // Use server timestamp to mark the update time
+      };
+      await updateDoc(setlistDocRef, dataForFirestore);
+
+      // Also update the user's reference doc to keep the synced time consistent
+      const userSetlistRef = doc(
+        firestoreDb,
+        'users',
+        setlistToSave.userId,
+        'userSetlists',
+        setlistToSave.firestoreId
+      );
+      await updateDoc(userSetlistRef, {
+        syncedAt: dataForFirestore.syncedAt,
+        title: dataForFirestore.title, // Also update title here
+      });
+
+      // Update local record with new syncedAt time from the server for consistency
+      const updatedSetlist = await getDoc(setlistDocRef);
+      if (updatedSetlist.exists()) {
+        const cloudData = updatedSetlist.data();
+        setlistToSave.syncedAt = (
+          cloudData.syncedAt as Timestamp
+        ).toMillis();
+        await db.put(SETLISTS_STORE, setlistToSave);
+      }
+    } catch (error) {
+      console.error('Error updating synced setlist in Firestore:', error);
+      // Optional: Handle this error, e.g., by marking the setlist as needing sync again.
+    }
+  }
 }
 
 export async function getSetlists(
@@ -760,8 +825,7 @@ export async function getPublicSetlists(): Promise<Setlist[]> {
 
   const q = query(
     collection(firestoreDb, 'setlists'),
-    where('isPublic', '==', true),
-    orderBy('title')
+    where('isPublic', '==', true)
   );
 
   const querySnapshot = await getDocs(q);

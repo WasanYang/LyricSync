@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { getAllCloudSongs, type Song } from '@/lib/db';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Edit, ListMusic, Eye, Users, KeyRound, Clock, Music4 } from 'lucide-react';
+import { Search, Edit, ListMusic, Play, Users, KeyRound, Clock, Music4 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
@@ -100,7 +100,7 @@ export default function AdminUserUploadsPage() {
                                 <TooltipTrigger asChild>
                                     <Button asChild variant="ghost" size="icon">
                                         <Link href={`/lyrics/${song.id}/player`}>
-                                            <Eye className="h-4 w-4" />
+                                            <Play className="h-4 w-4" />
                                         </Link>
                                     </Button>
                                 </TooltipTrigger>

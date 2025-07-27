@@ -8,16 +8,16 @@ import SongCreator from "@/components/SongCreator";
 import { Skeleton } from '@/components/ui/skeleton';
 
 function SongCreatorPageContent() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       router.replace('/welcome');
     }
-  }, [user, loading, router]);
+  }, [user, authLoading, router]);
   
-  if (loading || !user) {
+  if (authLoading || !user) {
     return (
       <div className="flex flex-col h-screen bg-background">
           <header className="flex-shrink-0 p-4 border-b bg-background flex items-center justify-between">
@@ -60,3 +60,5 @@ export default function SongCreatorPage() {
       <SongCreatorPageContent />
   )
 }
+
+    

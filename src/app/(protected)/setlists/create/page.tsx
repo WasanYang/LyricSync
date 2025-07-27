@@ -10,16 +10,16 @@ import BottomNavBar from "@/components/BottomNavBar";
 import { Skeleton } from '@/components/ui/skeleton';
 
 function SetlistCreatorPageContent() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       router.replace('/welcome');
     }
-  }, [user, loading, router]);
+  }, [user, authLoading, router]);
 
-  if (loading || !user) {
+  if (authLoading || !user) {
     return (
        <div className="flex-grow flex flex-col">
           <Header />
@@ -67,3 +67,5 @@ export default function CreateSetlistPage() {
     <SetlistCreatorPageContent />
   );
 }
+
+    

@@ -1,7 +1,7 @@
 // src/components/admin/SongListItem.tsx
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, Eye } from 'lucide-react';
+import { Edit, Trash2, Play } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,7 +44,7 @@ export default function SongListItem({ song, onDelete }: SongListItemProps) {
             <TooltipTrigger asChild>
               <Button asChild variant='ghost' size='icon'>
                 <Link href={`/lyrics/${song.id}/player`}>
-                  <Eye className='h-4 w-4' />
+                  <Play className='h-4 w-4' />
                 </Link>
               </Button>
             </TooltipTrigger>

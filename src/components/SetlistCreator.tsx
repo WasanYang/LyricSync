@@ -12,7 +12,6 @@ import {
     getSong as getSongFromDb, 
     getAllSavedSongs, 
     getAllCloudSongs, 
-    getAllSavedSongIds 
 } from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -159,8 +158,8 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   const [selectedSongs, setSelectedSongs] = useState<Song[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [allSongs, setAllSongs] = useState<Song[]>([]);
-  const [savedSongIds, setSavedSongIds] = useState<Set<string>>(new Set());
+  const [localSongs, setLocalSongs] = useState<Song[]>([]);
+  const [cloudSongs, setCloudSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   const isMobile = useIsMobile();
@@ -175,70 +174,104 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   const { formState: { isDirty } } = form;
 
   const fetchAllSongs = async () => {
-    if (!user) return;
-    const localSongs = await getAllSavedSongs(user.uid); // Includes system and user songs
-    
-    // Sort: Saved songs first, then by title
-    localSongs.sort((a, b) => {
-        const aIsUser = a.source === 'user';
-        const bIsUser = b.source === 'user';
+      if (!user) return;
+      
+      const [local, cloud] = await Promise.all([
+          getAllSavedSongs(user.uid),
+          getAllCloudSongs()
+      ]);
+      
+      const systemCloudSongs = cloud.filter(s => s.source === 'system');
+      
+      local.sort((a, b) => {
+          const aIsUser = a.source === 'user';
+          const bIsUser = b.source === 'user';
+          if (aIsUser && !bIsUser) return -1;
+          if (!aIsUser && bIsUser) return 1;
+          return a.title.localeCompare(b.title);
+      });
 
-        if (aIsUser && !bIsUser) return -1;
-        if (!aIsUser && bIsUser) return 1;
-        return a.title.localeCompare(b.title);
-    });
-    
-    setAllSongs(localSongs);
+      setLocalSongs(local);
+      setCloudSongs(systemCloudSongs);
   };
   
-  // Fetch all songs on component mount
   useEffect(() => {
     fetchAllSongs();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   useEffect(() => {
-    if (setlistId) {
-      const fetchSetlist = async () => {
-        setIsLoading(true);
+    const fetchSetlistData = async () => {
+      if (!setlistId) {
+        setIsLoading(false);
+        return;
+      }
+  
+      // Ensure songs are loaded before fetching the setlist
+      if (localSongs.length === 0 && cloudSongs.length === 0) return;
+  
+      setIsLoading(true);
+      try {
         const existingSetlist = await getSetlistFromDb(setlistId);
         if (existingSetlist) {
           form.reset({ title: existingSetlist.title });
-          
+  
+          // Create a Map for efficient lookup of all available songs.
+          const allAvailableSongsMap = new Map(
+            [...localSongs, ...cloudSongs].map(s => [s.id, s])
+          );
+  
+          // Map song IDs from the setlist to the full song objects.
           const songPromises = existingSetlist.songIds.map(async (id) => {
-             const songFromAll = allSongs.find(s => s.id === id);
-             if (songFromAll) return songFromAll;
-             
-             // Fallback if allSongs isn't populated yet
-             const songFromDb = await getSongFromDb(id);
-             return songFromDb;
+            if (allAvailableSongsMap.has(id)) {
+              return allAvailableSongsMap.get(id);
+            }
+            // Fallback: If the song isn't in our pre-loaded lists, fetch it directly.
+            // This can happen if a song was deleted or is new.
+            console.warn(`Song ${id} not found in pre-loaded lists, fetching directly.`);
+            return await getSongFromDb(id);
           });
-          
+  
           const loadedSongs = (await Promise.all(songPromises)).filter(Boolean) as Song[];
           setSelectedSongs(loadedSongs);
-          
         } else {
-           toast({ title: "Setlist not found", description: "The requested setlist could not be found.", variant: "destructive" });
-           router.push('/setlists');
+          toast({
+            title: 'Setlist not found',
+            description: 'The requested setlist could not be found.',
+            variant: 'destructive',
+          });
+          router.push('/setlists');
         }
+      } catch (error) {
+        console.error("Error fetching setlist data", error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load setlist data.',
+          variant: 'destructive',
+        });
+      } finally {
         setIsLoading(false);
       }
-      if (allSongs.length > 0) {
-        fetchSetlist();
-      }
-    } else {
-        setIsLoading(false);
-    }
-  }, [setlistId, form, router, toast, allSongs]);
+    };
+  
+    fetchSetlistData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setlistId, localSongs, cloudSongs]); // Depend on songs being loaded.
 
   const availableSongs = useMemo(() => {
-    return allSongs
-      .filter(song => !selectedSongs.some(selected => selected.id === song.id))
-      .filter(song => 
+    const filterBySearchTerm = (song: Song) => 
         song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        song.artist.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-  }, [allSongs, selectedSongs, searchTerm]);
+        song.artist.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const allSongsToConsider = searchTerm 
+      ? [...new Map([...localSongs, ...cloudSongs].map(item => [item['id'], item])).values()] 
+      : localSongs;
+
+    return allSongsToConsider
+      .filter(song => !selectedSongs.some(selected => selected.id === song.id))
+      .filter(song => !searchTerm || filterBySearchTerm(song));
+
+  }, [localSongs, cloudSongs, selectedSongs, searchTerm]);
 
   const addSong = (song: Song) => {
     setSelectedSongs(prev => [...prev, song]);
@@ -247,15 +280,13 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
 
   const handleAddSong = (song: Song) => {
     addSong(song);
-    setSearchTerm('');
-    // Keep popover open on desktop to add multiple songs easily
     if(isMobile) {
        setIsPopoverOpen(false);
     }
   }
   
   const handleSongStatusChange = () => {
-      fetchAllSongs(); // Re-fetch and re-sort
+      fetchAllSongs();
   }
 
   const removeSong = (songId: string) => {
@@ -317,12 +348,14 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
         firestoreId: existingSetlist?.firestoreId || null,
         isSynced: existingSetlist?.isSynced || false,
         createdAt: existingSetlist?.createdAt || Date.now(),
-        updatedAt: Date.now(), // Always update timestamp on save/update
+        updatedAt: Date.now(),
         title: data.title,
         songIds: selectedSongs.map(s => s.id),
         userId: user.uid,
         source: existingSetlist?.source || 'owner',
-        authorName: existingSetlist?.authorName || user.displayName,
+        authorName: existingSetlist?.authorName || user.displayName || 'Anonymous',
+        isPublic: existingSetlist?.isPublic || false,
+        syncedAt: existingSetlist?.syncedAt,
     };
 
     try {
@@ -333,12 +366,12 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
         description: `"${data.title}" has been successfully saved.`,
       });
 
-      if (!isEditing) {
-        router.push('/setlists');
-      } else {
-        // After saving, reset the form state with the new data
-        // This marks the form as not dirty
+      if (isEditing) {
+        // After updating, reset the form with the new data to make it "not dirty"
         form.reset({ title: newSetlist.title });
+        // The selectedSongs state is already up-to-date
+      } else {
+        router.push('/setlists');
       }
 
     } catch (error) {
@@ -463,7 +496,6 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
                             {addSongTrigger}
                         </PopoverTrigger>
                         <PopoverContent className="w-[350px] p-0" align="end" onInteractOutside={(e) => {
-                            // This prevents the popover from closing when interacting with the SongStatusButton which might show a toast.
                             const target = e.target as HTMLElement;
                             if (target.closest('[data-radix-toast-provider]')) {
                                 e.preventDefault();

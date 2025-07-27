@@ -17,7 +17,6 @@ import {
   getCloudSongById,
   saveSetlist,
   getSetlists,
-  getSetlist,
 } from '@/lib/db';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -107,10 +106,12 @@ function SharedSetlistContent() {
         const loadedSetlist = await getSetlistByFirestoreId(id);
 
         if (user && loadedSetlist) {
-          const alreadySaved = await getSetlist(
-            loadedSetlist.firestoreId || ''
+          // Correctly check if the setlist is already saved by the user
+          const userSetlists = await getSetlists(user.uid);
+          const alreadySaved = userSetlists.find(
+            (sl) => sl.firestoreId === loadedSetlist.firestoreId
           );
-          if (alreadySaved && alreadySaved.source === 'saved') {
+          if (alreadySaved) {
             setIsSaved(true);
           }
         }

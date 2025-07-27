@@ -244,16 +244,11 @@ function SongDetailContent() {
             onClick={() => setIsLyricsExpanded(!isLyricsExpanded)}
           >
             {isLyricsExpanded ? (
-              <>
-                <ChevronUp className='mr-2 h-4 w-4' />
-                Show Less
-              </>
+              <ChevronUp className='mr-2 h-4 w-4' />
             ) : (
-              <>
-                <ChevronDown className='mr-2 h-4 w-4' />
-                View More
-              </>
+              <ChevronDown className='mr-2 h-4 w-4' />
             )}
+            {isLyricsExpanded ? 'Show Less' : 'View More'}
           </Button>
         </div>
       </div>

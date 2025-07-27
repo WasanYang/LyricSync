@@ -47,7 +47,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import LyricPlayer from './LyricPlayer';
-import { Eye, Save, Database, ArrowLeft, Expand, LogIn } from 'lucide-react';
+import { Play, Save, Database, ArrowLeft, Expand, LogIn } from 'lucide-react';
 import { Skeleton } from './ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
@@ -70,7 +70,7 @@ import Link from 'next/link';
 
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
-  artist: z.string().min(1, 'Artist is required.'),
+  artist: z.string(),
   lyrics: z.string().min(1, 'Lyrics are required.'),
   originalKey: z.string().min(1, 'Key is required'),
   bpm: z.coerce
@@ -442,7 +442,7 @@ export default function SongCreator() {
             <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
               <DialogTrigger asChild>
                 <Button type='button' variant='outline'>
-                  <Eye className='mr-2 h-4 w-4' /> Preview
+                  <Play className='mr-2 h-4 w-4' /> Preview
                 </Button>
               </DialogTrigger>
               <DialogContent className='max-w-full w-full h-screen max-h-screen p-0 m-0 border-0 flex flex-col'>
