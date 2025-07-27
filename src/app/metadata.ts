@@ -10,7 +10,29 @@ import {
 } from '@/lib/seo';
 
 // Default metadata for the application
-export const metadata: Metadata = generateMetadata(pageSEOConfigs.home());
+export const metadata: Metadata = {
+  ...generateMetadata(pageSEOConfigs.home()),
+  manifest: '/manifest.json',
+  other: {
+    // PWA Meta Tags
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'default',
+    'apple-mobile-web-app-title': 'LyricSync',
+    'mobile-web-app-capable': 'yes',
+    'application-name': 'LyricSync',
+
+    // Windows Tiles
+    'msapplication-TileColor': '#3AAFA9',
+    'msapplication-TileImage': '/icons/logo-144.png',
+
+    // Additional PWA
+    'format-detection': 'telephone=no',
+  },
+  icons: {
+    icon: '/icons/logo.png',
+    apple: '/icons/logo-180.png',
+  },
+};
 
 // Viewport configuration
 export const viewport: Viewport = {
