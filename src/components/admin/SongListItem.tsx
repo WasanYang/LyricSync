@@ -19,6 +19,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { TableCell, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import type { Song } from '@/lib/songs';
 
 interface SongListItemProps {
@@ -26,84 +28,124 @@ interface SongListItemProps {
   onDelete: (song: Song) => void;
 }
 
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('th-TH', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}
+
+function getSourceBadge(source: string) {
+  const variants = {
+    system: 'default',
+    user: 'secondary',
+    saved: 'outline',
+  } as const;
+
+  return (
+    <Badge variant={variants[source as keyof typeof variants] || 'outline'}>
+      {source === 'system' ? 'System' : source === 'user' ? 'User' : 'Saved'}
+    </Badge>
+  );
+}
+
 export default function SongListItem({ song, onDelete }: SongListItemProps) {
   return (
-    <li className='flex items-center p-3 rounded-lg bg-muted/50 transition-colors hover:bg-muted/80 group'>
-      <div className='flex-grow'>
+    <TableRow className='hover:bg-muted/50'>
+      <TableCell className='font-medium max-w-0'>
         <Link
           href={`/lyrics/${song.id}`}
-          className='font-semibold hover:underline'
+          className='hover:underline text-blue-600 hover:text-blue-800 block truncate'
+          title={song.title}
         >
           {song.title}
         </Link>
-        <p className='text-sm text-muted-foreground'>{song.artist}</p>
-      </div>
-      <div className='flex items-center gap-1'>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button asChild variant='ghost' size='icon'>
-                <Link href={`/lyrics/${song.id}/player`}>
-                  <Play className='h-4 w-4' />
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>View in Player</p>
-            </TooltipContent>
-          </Tooltip>
+      </TableCell>
+      <TableCell className='hidden md:table-cell max-w-0'>
+        <div className='truncate' title={song.artist}>
+          {song.artist}
+        </div>
+      </TableCell>
+      <TableCell className='hidden lg:table-cell'>
+        <Badge variant='outline' className='text-xs'>
+          {song.originalKey || 'N/A'}
+        </Badge>
+      </TableCell>
+      <TableCell className='hidden lg:table-cell'>
+        {getSourceBadge(song.source || 'saved')}
+      </TableCell>
+      <TableCell className='hidden xl:table-cell text-sm text-muted-foreground'>
+        {formatDate(song.updatedAt)}
+      </TableCell>
+      <TableCell className='text-right'>
+        <div className='flex items-center gap-1 justify-end'>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button asChild variant='ghost' size='sm'>
+                  <Link href={`/lyrics/${song.id}/player`}>
+                    <Play className='h-3 w-3' />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>View in Player</p>
+              </TooltipContent>
+            </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button asChild variant='ghost' size='icon'>
-                <Link href={`/song-editor?mode=cloud&id=${song.id}`}>
-                  <Edit className='h-4 w-4' />
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Edit</p>
-            </TooltipContent>
-          </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button asChild variant='ghost' size='sm'>
+                  <Link href={`/song-editor?mode=cloud&id=${song.id}`}>
+                    <Edit className='h-3 w-3' />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Edit</p>
+              </TooltipContent>
+            </Tooltip>
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant='ghost'
-                    size='icon'
-                    className='text-destructive hover:text-destructive'
-                  >
-                    <Trash2 className='h-4 w-4' />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will permanently delete "{song.title}" from the
-                      cloud. This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => onDelete(song)}
-                      className='bg-destructive hover:bg-destructive/90'
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      className='text-destructive hover:text-destructive'
                     >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Delete</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    </li>
+                      <Trash2 className='h-3 w-3' />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete "{song.title}" from the
+                        cloud. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => onDelete(song)}
+                        className='bg-destructive hover:bg-destructive/90'
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Delete</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      </TableCell>
+    </TableRow>
   );
 }

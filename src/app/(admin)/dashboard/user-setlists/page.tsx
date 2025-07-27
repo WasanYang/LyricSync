@@ -1,16 +1,26 @@
 // src/app/admin/user-setlists/page.tsx
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getAllCloudSetlists, type Setlist } from '@/lib/db';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { Search, ListMusic } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
-import Link from 'next/link';
+import { UserSetlistsList } from '@/components/admin';
+import { EmptyState, SearchInput } from '@/components/shared';
+import { useToast } from '@/hooks/use-toast';
 
 function LoadingSkeleton() {
   return (
@@ -23,9 +33,10 @@ function LoadingSkeleton() {
           </div>
           <Skeleton className='h-10 w-full' />
           <div className='space-y-2'>
-            <Skeleton className='h-20 w-full' />
-            <Skeleton className='h-20 w-full' />
-            <Skeleton className='h-20 w-full' />
+            <Skeleton className='h-16 w-full' />
+            <Skeleton className='h-16 w-full' />
+            <Skeleton className='h-16 w-full' />
+            <Skeleton className='h-16 w-full' />
           </div>
         </div>
       </main>
@@ -34,19 +45,32 @@ function LoadingSkeleton() {
   );
 }
 
+const PAGE_SIZE = 10;
+
 export default function AdminUserSetlistsPage() {
   const { user, isSuperAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
   const [setlists, setSetlists] = useState<Setlist[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  async function loadSetlists() {
+  const loadSetlists = useCallback(async () => {
     setIsLoading(true);
-    const cloudSetlists = await getAllCloudSetlists();
-    setSetlists(cloudSetlists);
-    setIsLoading(false);
-  }
+    try {
+      const cloudSetlists = await getAllCloudSetlists();
+      setSetlists(cloudSetlists);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Could not fetch user setlists.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
 
   useEffect(() => {
     if (!authLoading) {
@@ -56,9 +80,10 @@ export default function AdminUserSetlistsPage() {
         loadSetlists();
       }
     }
-  }, [user, isSuperAdmin, authLoading, router]);
+  }, [user, isSuperAdmin, authLoading, router, loadSetlists]);
 
   const filteredSetlists = useMemo(() => {
+    if (!searchTerm) return setlists;
     return setlists.filter(
       (setlist) =>
         setlist.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -66,36 +91,76 @@ export default function AdminUserSetlistsPage() {
     );
   }, [setlists, searchTerm]);
 
+  // Pagination
+  const totalPages = Math.ceil(filteredSetlists.length / PAGE_SIZE);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const paginatedSetlists = filteredSetlists.slice(
+    startIndex,
+    startIndex + PAGE_SIZE
+  );
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
   if (authLoading || !user || !isSuperAdmin) {
     return <LoadingSkeleton />;
   }
 
-  const SetlistList = ({ setlists }: { setlists: Setlist[] }) => (
-    <ul className='space-y-3'>
-      {setlists.map((setlist) => (
-        <li
-          key={setlist.firestoreId}
-          className='bg-muted/50 transition-colors hover:bg-muted/80 rounded-lg'
-        >
-          <Link
-            href={`/shared/setlists/${setlist.firestoreId}?mode=admin`}
-            className='block p-4'
-          >
-            <div className='min-w-0'>
-              <p className='font-semibold truncate hover:underline'>
-                {setlist.title}
-              </p>
-              <p className='text-sm text-muted-foreground truncate'>
-                {setlist.songIds.length}{' '}
-                {setlist.songIds.length === 1 ? 'song' : 'songs'} • By:{' '}
-                {setlist.authorName || 'Unknown'}
-              </p>
-            </div>
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              href='#'
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageChange(currentPage - 1);
+              }}
+              aria-disabled={currentPage <= 1}
+              className={
+                currentPage <= 1 ? 'pointer-events-none opacity-50' : ''
+              }
+            />
+          </PaginationItem>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <PaginationItem key={page}>
+              <PaginationLink
+                href='#'
+                isActive={page === currentPage}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handlePageChange(page);
+                }}
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+          <PaginationItem>
+            <PaginationNext
+              href='#'
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageChange(currentPage + 1);
+              }}
+              aria-disabled={currentPage >= totalPages}
+              className={
+                currentPage >= totalPages
+                  ? 'pointer-events-none opacity-50'
+                  : ''
+              }
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
+  };
 
   return (
     <div className='flex-grow flex flex-col'>
@@ -104,52 +169,45 @@ export default function AdminUserSetlistsPage() {
         <div className='space-y-8'>
           <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4'>
             <h1 className='text-3xl font-bold font-headline'>
-              User-Uploaded Setlists
+              User Shared Setlists
             </h1>
           </div>
-          <div className='relative'>
-            <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground' />
-            <Input
-              placeholder='Search by title or author...'
-              className='pl-10 bg-muted focus-visible:ring-0 focus-visible:ring-offset-0'
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+
+          <SearchInput
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder='Search by title or author...'
+          />
+
           {isLoading ? (
             <div className='space-y-2'>
-              <Skeleton className='h-20 w-full' />
-              <Skeleton className='h-20 w-full' />
-              <Skeleton className='h-20 w-full' />
+              <Skeleton className='h-16 w-full' />
+              <Skeleton className='h-16 w-full' />
+              <Skeleton className='h-16 w-full' />
+              <Skeleton className='h-16 w-full' />
             </div>
           ) : setlists.length > 0 || searchTerm ? (
             <div className='space-y-6'>
               {filteredSetlists.length > 0 ? (
                 <section>
-                  <SetlistList setlists={filteredSetlists} />
+                  <UserSetlistsList setlists={paginatedSetlists} />
                 </section>
               ) : (
-                <div className='text-center py-16 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full'>
-                  <Search className='h-12 w-12 text-muted-foreground mb-4' />
-                  <h2 className='text-xl font-headline font-semibold'>
-                    No Results Found
-                  </h2>
-                  <p className='text-muted-foreground'>
-                    No setlists matched your search for "{searchTerm}".
-                  </p>
-                </div>
+                <EmptyState
+                  icon={Search}
+                  title='No Results Found'
+                  description='No setlists matched your search for'
+                  searchTerm={searchTerm}
+                />
               )}
+              {!searchTerm && renderPagination()}
             </div>
           ) : (
-            <div className='text-center py-16 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full'>
-              <ListMusic className='h-12 w-12 text-muted-foreground mb-4' />
-              <h2 className='text-xl font-headline font-semibold'>
-                No User Setlists Found
-              </h2>
-              <p className='text-muted-foreground'>
-                No users have uploaded any setlists to the cloud yet.
-              </p>
-            </div>
+            <EmptyState
+              icon={ListMusic}
+              title='No User Setlists Found'
+              description='No users have shared any setlists to the cloud yet.'
+            />
           )}
         </div>
       </main>

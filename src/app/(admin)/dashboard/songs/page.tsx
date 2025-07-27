@@ -41,10 +41,8 @@ export default function AdminSongsPage() {
     async (page: number) => {
       setIsLoading(true);
       try {
-        const {
-          songs: fetchedSongs,
-          totalPages: newTotalPages,
-        } = await getPaginatedSystemSongs(page, PAGE_SIZE);
+        const { songs: fetchedSongs, totalPages: newTotalPages } =
+          await getPaginatedSystemSongs(page, PAGE_SIZE);
 
         setSongs(fetchedSongs);
         setTotalPages(newTotalPages);
@@ -174,7 +172,7 @@ export default function AdminSongsPage() {
         <div className='space-y-8'>
           <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4'>
             <h1 className='text-3xl font-bold font-headline'>
-              Manage Cloud Songs
+              System Song Database
             </h1>
             <Button asChild>
               <Link href='/song-editor?mode=cloud'>
