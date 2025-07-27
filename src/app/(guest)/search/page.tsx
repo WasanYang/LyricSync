@@ -1,17 +1,12 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import {
-  type Song,
-  getAllCloudSongs,
-  type Setlist,
-  getPublicSetlists,
-} from '@/lib/db';
+import { getAllCloudSongs, type Setlist, getPublicSetlists } from '@/lib/db';
+import type { Song } from '@/lib/songs';
 import { Input } from '@/components/ui/input';
-import { SearchIcon, Music2, ListMusic } from 'lucide-react';
+import { Search, Music, ListMusic } from 'lucide-react';
 import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -20,6 +15,8 @@ import SongStatusButton from '@/components/SongStatusButton';
 import Header from '@/components/Header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
+import SEOHead from '@/components/SEOHead';
+import { pageSEOConfigs } from '@/lib/seo';
 
 function SongListItem({ song }: { song: Song }) {
   return (
@@ -192,133 +189,137 @@ export default function SearchPage() {
 
   if (authLoading || !user) {
     return (
-      <div className='flex-grow flex flex-col'>
-        <Header />
-        <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
-          <div className='space-y-8'>
-            <Skeleton className='h-10 w-full' />
-            <div className='space-y-4'>
-              <Skeleton className='h-6 w-32 mb-4' />
-              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                <Skeleton className='h-14 w-full' />
-                <Skeleton className='h-14 w-full' />
-                <Skeleton className='h-14 w-full' />
-                <Skeleton className='h-14 w-full' />
+      <>
+        <SEOHead config={pageSEOConfigs.search()} />
+        <div className='flex-grow flex flex-col'>
+          <Header />
+          <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
+            <div className='space-y-8'>
+              <Skeleton className='h-10 w-full' />
+              <div className='space-y-4'>
+                <Skeleton className='h-6 w-32 mb-4' />
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                  <Skeleton className='h-14 w-full' />
+                  <Skeleton className='h-14 w-full' />
+                  <Skeleton className='h-14 w-full' />
+                  <Skeleton className='h-14 w-full' />
+                </div>
               </div>
             </div>
-          </div>
-        </main>
-        <BottomNavBar />
-      </div>
+          </main>
+          <BottomNavBar />
+        </div>
+      </>
     );
   }
 
   return (
-    <div className='flex-grow flex flex-col'>
-      <Header />
-      <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
-        <div className='space-y-8'>
-          <div className='relative'>
-            <SearchIcon className='absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10' />
-            <Input
-              type='search'
-              placeholder='Search songs, artists, and public setlists...'
-              className='pl-10 text-base bg-muted focus-visible:ring-0 focus-visible:ring-offset-0'
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+    <>
+      <SEOHead config={pageSEOConfigs.search(searchTerm)} />
+      <div className='flex-grow flex flex-col'>
+        <Header />
+        <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
+          <div className='space-y-8'>
+            <div className='relative'>
+              <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10' />
+              <Input
+                type='search'
+                placeholder='Search songs, artists, and public setlists...'
+                className='pl-10 text-base bg-muted focus-visible:ring-0 focus-visible:ring-offset-0'
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
 
-          {searchTerm ? (
-            <div className='space-y-8'>
-              {filteredSetlists.length > 0 && (
-                <section>
-                  <h2 className='text-xl font-bold font-headline mb-4'>
-                    Setlists
-                  </h2>
-                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                    {filteredSetlists.map((setlist) => (
-                      <SetlistCard
-                        key={setlist.firestoreId}
-                        setlist={setlist}
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
-              {filteredSongs.length > 0 && (
-                <section>
-                  <h2 className='text-xl font-bold font-headline mb-4'>
-                    Songs
-                  </h2>
-                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2'>
-                    {filteredSongs.map((song) => (
-                      <SongListItem key={song.id} song={song} />
-                    ))}
-                  </div>
-                </section>
-              )}
-              {!isLoading &&
-                filteredSongs.length === 0 &&
-                filteredSetlists.length === 0 && (
-                  <div className='text-center py-16'>
-                    <p className='text-muted-foreground'>
-                      No results for &quot;{searchTerm}&quot;.
-                    </p>
+            {searchTerm ? (
+              <div className='space-y-8'>
+                {filteredSetlists.length > 0 && (
+                  <section>
+                    <h2 className='text-xl font-bold font-headline mb-4'>
+                      Setlists
+                    </h2>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                      {filteredSetlists.map((setlist) => (
+                        <SetlistCard
+                          key={setlist.firestoreId}
+                          setlist={setlist}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+                {filteredSongs.length > 0 && (
+                  <section>
+                    <h2 className='text-xl font-bold font-headline mb-4'>
+                      Songs
+                    </h2>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2'>
+                      {filteredSongs.map((song) => (
+                        <SongListItem key={song.id} song={song} />
+                      ))}
+                    </div>
+                  </section>
+                )}
+                {!isLoading &&
+                  filteredSongs.length === 0 &&
+                  filteredSetlists.length === 0 && (
+                    <div className='text-center py-16'>
+                      <p className='text-muted-foreground'>
+                        No results for &quot;{searchTerm}&quot;.
+                      </p>
+                    </div>
+                  )}
+                {isLoading && (
+                  <div className='space-y-2 mt-4'>
+                    <Skeleton className='h-14 w-full' />
+                    <Skeleton className='h-14 w-full' />
                   </div>
                 )}
-              {isLoading && (
-                <div className='space-y-2 mt-4'>
-                  <Skeleton className='h-14 w-full' />
-                  <Skeleton className='h-14 w-full' />
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className='space-y-10'>
-              <SearchCategory
-                title='New Releases'
-                songs={newReleases}
-                isLoading={isLoading}
-              />
-              <SearchCategory
-                title='Trending Hits'
-                songs={trendingHits}
-                isLoading={isLoading}
-              />
-              <section>
-                <h2 className='text-xl font-bold font-headline mb-4'>
-                  Browse Public Setlists
-                </h2>
-                {isLoading ? (
-                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                    <Skeleton className='h-20 w-full' />
-                    <Skeleton className='h-20 w-full' />
-                  </div>
-                ) : publicSetlists.length > 0 ? (
-                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                    {publicSetlists.slice(0, 4).map((setlist) => (
-                      <SetlistCard
-                        key={setlist.firestoreId}
-                        setlist={setlist}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className='text-center py-10 border-2 border-dashed rounded-lg'>
-                    <p className='text-muted-foreground'>
-                      No public setlists available yet.
-                    </p>
-                  </div>
-                )}
-              </section>
-            </div>
-          )}
-        </div>
-      </main>
-      <BottomNavBar />
-    </div>
+              </div>
+            ) : (
+              <div className='space-y-10'>
+                <SearchCategory
+                  title='New Releases'
+                  songs={newReleases}
+                  isLoading={isLoading}
+                />
+                <SearchCategory
+                  title='Trending Hits'
+                  songs={trendingHits}
+                  isLoading={isLoading}
+                />
+                <section>
+                  <h2 className='text-xl font-bold font-headline mb-4'>
+                    Browse Public Setlists
+                  </h2>
+                  {isLoading ? (
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                      <Skeleton className='h-20 w-full' />
+                      <Skeleton className='h-20 w-full' />
+                    </div>
+                  ) : publicSetlists.length > 0 ? (
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                      {publicSetlists.slice(0, 4).map((setlist) => (
+                        <SetlistCard
+                          key={setlist.firestoreId}
+                          setlist={setlist}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className='text-center py-10 border-2 border-dashed rounded-lg'>
+                      <p className='text-muted-foreground'>
+                        No public setlists available yet.
+                      </p>
+                    </div>
+                  )}
+                </section>
+              </div>
+            )}
+          </div>
+        </main>
+        <BottomNavBar />
+      </div>
+    </>
   );
 }
-
-    

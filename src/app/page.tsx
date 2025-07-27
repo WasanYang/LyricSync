@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -22,10 +21,12 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ListMusic, ChevronRight, Music, User } from 'lucide-react';
+import { ListMusic, ChevronRight, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
+import SEOHead from '@/components/SEOHead';
+import { pageSEOConfigs } from '@/lib/seo';
 
 function SongCarousel({
   songs,
@@ -98,7 +99,7 @@ function RecentSetlistItem({ setlist }: { setlist: Setlist }) {
           {isOwner ? (
             <ListMusic className='h-5 w-5 text-muted-foreground flex-shrink-0' />
           ) : (
-            <User className='h-5 w-5 text-purple-500 flex-shrink-0' />
+            <Music className='h-5 w-5 text-purple-500 flex-shrink-0' />
           )}
           <div>
             <p className='font-semibold font-headline truncate'>
@@ -265,160 +266,174 @@ export default function Home() {
   }
 
   const featuredSongs = systemSongs.slice(0, 5);
-  const recentReleases = useMemo(() => [...systemSongs]
-    .sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-    )
-    .slice(0, 5), [systemSongs]);
-  const popularHits = useMemo(() => [...systemSongs]
-    .sort(() => 0.5 - Math.random())
-    .slice(0, 5), [systemSongs]); // Mock popularity with random sort for now
+  const recentReleases = useMemo(
+    () =>
+      [...systemSongs]
+        .sort(
+          (a, b) =>
+            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        )
+        .slice(0, 5),
+    [systemSongs]
+  );
+  const popularHits = useMemo(
+    () => [...systemSongs].sort(() => 0.5 - Math.random()).slice(0, 5),
+    [systemSongs]
+  ); // Mock popularity with random sort for now
 
   return (
-    <div className='flex-grow flex flex-col'>
-      <Header />
-      <main className='flex-grow container mx-auto px-4 py-8 space-y-12 pb-24 md:pb-12'>
-        {/* Welcome & Quick Actions */}
-        {!user.isAnonymous && (
-          <section>
-            <h1 className='text-2xl font-bold font-headline mb-4'>
-              Welcome back,{' '}
-              {user.displayName ? user.displayName.split(' ')[0] : 'Guest'}!
-            </h1>
-            <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-              <Button
-                variant='outline'
-                size='lg'
-                className='justify-start'
-                asChild
-              >
-                <Link href='/setlists'>
-                  <ListMusic className='mr-3 h-5 w-5' /> My Setlists
-                </Link>
-              </Button>
-              <Button
-                variant='outline'
-                size='lg'
-                className='justify-start'
-                asChild
-              >
-                <Link href='/library'>
-                  <Music className='mr-3 h-5 w-5' /> My Library
-                </Link>
-              </Button>
-            </div>
-          </section>
-        )}
-
-        {/* Premium Card Implement in future */}
-        {/* <PremiumCard /> */}
-
-        {/* Recent Setlists */}
-        {isLoadingSetlists ? (
-          <div className='space-y-4'>
-            <Skeleton className='h-7 w-32' />
-            <div className='space-y-2'>
-              <Skeleton className='h-16 w-full' />
-              <Skeleton className='h-16 w-full' />
-            </div>
-          </div>
-        ) : (
-          recentSetlists.length > 0 && (
+    <>
+      <SEOHead config={pageSEOConfigs.home()} />
+      <div className='flex-grow flex flex-col'>
+        <Header />
+        <main className='flex-grow container mx-auto px-4 py-8 space-y-12 pb-24 md:pb-12'>
+          {/* Welcome & Quick Actions */}
+          {!user.isAnonymous && (
             <section>
-              <div className='flex items-center justify-between mb-4'>
-                <h2 className='text-xl font-headline font-semibold'>
-                  Recent Setlists
-                </h2>
-                <Button variant='link' asChild>
-                  <Link href='/setlists'>View All</Link>
+              <h1 className='text-2xl font-bold font-headline mb-4'>
+                Welcome back,{' '}
+                {user.displayName ? user.displayName.split(' ')[0] : 'Guest'}!
+              </h1>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                <Button
+                  variant='outline'
+                  size='lg'
+                  className='justify-start'
+                  asChild
+                >
+                  <Link href='/setlists'>
+                    <ListMusic className='mr-3 h-5 w-5' /> My Setlists
+                  </Link>
+                </Button>
+                <Button
+                  variant='outline'
+                  size='lg'
+                  className='justify-start'
+                  asChild
+                >
+                  <Link href='/library'>
+                    <Music className='mr-3 h-5 w-5' /> My Library
+                  </Link>
                 </Button>
               </div>
-              <div className='space-y-2'>
-                {recentSetlists.map((setlist) => (
-                  <RecentSetlistItem key={setlist.id} setlist={setlist} />
-                ))}
-              </div>
             </section>
-          )
-        )}
+          )}
 
-        {/* Recommended Setlists */}
-        {publicSetlists.length > 0 && (
+          {/* Premium Card Implement in future */}
+          {/* <PremiumCard /> */}
+
+          {/* Recent Setlists */}
+          {isLoadingSetlists ? (
+            <div className='space-y-4'>
+              <Skeleton className='h-7 w-32' />
+              <div className='space-y-2'>
+                <Skeleton className='h-16 w-full' />
+                <Skeleton className='h-16 w-full' />
+              </div>
+            </div>
+          ) : (
+            recentSetlists.length > 0 && (
+              <section>
+                <div className='flex items-center justify-between mb-4'>
+                  <h2 className='text-xl font-headline font-semibold'>
+                    Recent Setlists
+                  </h2>
+                  <Button variant='link' asChild>
+                    <Link href='/setlists'>View All</Link>
+                  </Button>
+                </div>
+                <div className='space-y-2'>
+                  {recentSetlists.map((setlist) => (
+                    <RecentSetlistItem key={setlist.id} setlist={setlist} />
+                  ))}
+                </div>
+              </section>
+            )
+          )}
+
+          {/* Recommended Setlists */}
+          {publicSetlists.length > 0 && (
+            <section>
+              <h2 className='text-xl font-headline font-semibold mb-4'>
+                Recommended Setlists
+              </h2>
+              {isLoadingPublicSetlists ? (
+                <div className='flex space-x-4 -ml-4 w-full max-w-full'>
+                  <div className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'>
+                    <Skeleton className='aspect-square w-full' />
+                    <Skeleton className='h-4 w-3/4 mt-2' />
+                    <Skeleton className='h-3 w-1/2 mt-1' />
+                  </div>
+                  <div className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'>
+                    <Skeleton className='aspect-square w-full' />
+                    <Skeleton className='h-4 w-3/4 mt-2' />
+                    <Skeleton className='h-3 w-1/2 mt-1' />
+                  </div>
+                  <div className='hidden sm:block sm:basis-1/4 md:basis-1/5 pl-4'>
+                    <Skeleton className='aspect-square w-full' />
+                    <Skeleton className='h-4 w-3/4 mt-2' />
+                    <Skeleton className='h-3 w-1/2 mt-1' />
+                  </div>
+                  <div className='hidden md:block md:basis-1/5 pl-4'>
+                    <Skeleton className='aspect-square w-full' />
+                    <Skeleton className='h-4 w-3/4 mt-2' />
+                    <Skeleton className='h-3 w-1/2 mt-1' />
+                  </div>
+                </div>
+              ) : (
+                <div className='w-full max-w-full -mr-4'>
+                  <Carousel
+                    opts={{ align: 'start', loop: false }}
+                    className='w-full'
+                  >
+                    <CarouselContent className='-ml-4'>
+                      {publicSetlists.map((setlist) => (
+                        <CarouselItem
+                          key={setlist.firestoreId}
+                          className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'
+                        >
+                          <RecommendedSetlistCard setlist={setlist} />
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                  </Carousel>
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Recommended Songs */}
           <section>
             <h2 className='text-xl font-headline font-semibold mb-4'>
-              Recommended Setlists
+              Recommended Songs
             </h2>
-            {isLoadingPublicSetlists ? (
-              <div className='flex space-x-4 -ml-4 w-full max-w-full'>
-                <div className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'>
-                  <Skeleton className='aspect-square w-full' />
-                  <Skeleton className='h-4 w-3/4 mt-2' />
-                  <Skeleton className='h-3 w-1/2 mt-1' />
-                </div>
-                <div className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'>
-                  <Skeleton className='aspect-square w-full' />
-                  <Skeleton className='h-4 w-3/4 mt-2' />
-                  <Skeleton className='h-3 w-1/2 mt-1' />
-                </div>
-                <div className='hidden sm:block sm:basis-1/4 md:basis-1/5 pl-4'>
-                  <Skeleton className='aspect-square w-full' />
-                  <Skeleton className='h-4 w-3/4 mt-2' />
-                  <Skeleton className='h-3 w-1/2 mt-1' />
-                </div>
-                <div className='hidden md:block md:basis-1/5 pl-4'>
-                  <Skeleton className='aspect-square w-full' />
-                  <Skeleton className='h-4 w-3/4 mt-2' />
-                  <Skeleton className='h-3 w-1/2 mt-1' />
-                </div>
-              </div>
-            ) : (
-              <div className='w-full max-w-full -mr-4'>
-                <Carousel
-                  opts={{ align: 'start', loop: false }}
-                  className='w-full'
-                >
-                  <CarouselContent className='-ml-4'>
-                    {publicSetlists.map((setlist) => (
-                      <CarouselItem
-                        key={setlist.firestoreId}
-                        className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'
-                      >
-                        <RecommendedSetlistCard setlist={setlist} />
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                </Carousel>
-              </div>
-            )}
+            <Tabs defaultValue='featured' className='w-full'>
+              <TabsList>
+                <TabsTrigger value='featured'>Featured</TabsTrigger>
+                <TabsTrigger value='popular'>Popular</TabsTrigger>
+                <TabsTrigger value='recent'>Recent</TabsTrigger>
+              </TabsList>
+              <TabsContent value='featured' className='pt-4'>
+                <SongCarousel
+                  songs={featuredSongs}
+                  isLoading={isLoadingSongs}
+                />
+              </TabsContent>
+              <TabsContent value='popular' className='pt-4'>
+                <SongCarousel songs={popularHits} isLoading={isLoadingSongs} />
+              </TabsContent>
+              <TabsContent value='recent' className='pt-4'>
+                <SongCarousel
+                  songs={recentReleases}
+                  isLoading={isLoadingSongs}
+                />
+              </TabsContent>
+            </Tabs>
           </section>
-        )}
-
-        {/* Recommended Songs */}
-        <section>
-          <h2 className='text-xl font-headline font-semibold mb-4'>
-            Recommended Songs
-          </h2>
-          <Tabs defaultValue='featured' className='w-full'>
-            <TabsList>
-              <TabsTrigger value='featured'>Featured</TabsTrigger>
-              <TabsTrigger value='popular'>Popular</TabsTrigger>
-              <TabsTrigger value='recent'>Recent</TabsTrigger>
-            </TabsList>
-            <TabsContent value='featured' className='pt-4'>
-              <SongCarousel songs={featuredSongs} isLoading={isLoadingSongs} />
-            </TabsContent>
-            <TabsContent value='popular' className='pt-4'>
-              <SongCarousel songs={popularHits} isLoading={isLoadingSongs} />
-            </TabsContent>
-            <TabsContent value='recent' className='pt-4'>
-              <SongCarousel songs={recentReleases} isLoading={isLoadingSongs} />
-            </TabsContent>
-          </Tabs>
-        </section>
-      </main>
-      <Footer />
-      <BottomNavBar />
-    </div>
+        </main>
+        <Footer />
+        <BottomNavBar />
+      </div>
+    </>
   );
 }
