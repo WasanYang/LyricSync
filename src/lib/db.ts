@@ -384,12 +384,6 @@ export async function getCloudSongById(songId: string): Promise<Song | null> {
     return null;
   }
 
-  // Check if we're offline
-  if (!navigator.onLine) {
-    console.log('Offline: Cannot fetch cloud song');
-    return null;
-  }
-
   try {
     const docRef = doc(firestoreDb, 'songs', songId);
     const docSnap = await getDoc(docRef);
@@ -631,12 +625,6 @@ export async function getSetlistByFirestoreId(
 ): Promise<Setlist | null> {
   if (!firestoreDb) {
     console.warn('Firebase is not configured - cannot fetch cloud setlist');
-    return null;
-  }
-
-  // Check if we're offline
-  if (!navigator.onLine) {
-    console.log('Offline: Cannot fetch cloud setlist');
     return null;
   }
 
