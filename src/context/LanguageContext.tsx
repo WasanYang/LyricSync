@@ -38,7 +38,18 @@ export const LanguageProvider = ({
     }
   };
 
-  const t = (key: keyof Translations) => translations[language][key] || key;
+  const t = (key: keyof Translations) => {
+    const value = translations[language][key];
+    if (typeof value === 'string') {
+      return value;
+    }
+    // If value is an object, return a string representation or a default property
+    // For example, return value.title or JSON.stringify(value)
+    if (value && typeof value === 'object' && 'title' in value) {
+      return value.title;
+    }
+    return key as string;
+  };
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>

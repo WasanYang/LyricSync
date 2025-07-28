@@ -113,7 +113,6 @@ export default function WelcomeCard({ user }: { user: User | null }) {
           </h2>
           <div className='mb-2'>
             <div className='text-base mb-1'>{t.descShort}</div>
-            <div className='text-base text-muted-foreground'>{t.descShort}</div>
           </div>
           <div className='mb-2'>
             <span className='block text-sm text-muted-foreground'>
