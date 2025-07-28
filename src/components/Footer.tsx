@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -28,7 +29,6 @@ export default function Footer() {
         <div className='grid grid-cols-1 lg:grid-cols-5 gap-8'>
           <div className='lg:col-span-2'>
             <Link href='/' className='flex items-center space-x-2 mb-4'>
-              {/* <Music className="h-6 w-6 text-primary" /> */}
               <Image
                 src='/logo/logo.png'
                 alt='LyricSync'
@@ -48,7 +48,7 @@ export default function Footer() {
               <h3 className='font-semibold text-foreground mb-4'>Company</h3>
               <ul className='space-y-3'>
                 <FooterLink href='/welcome'>About</FooterLink>
-                <FooterLink href='#'>Premium</FooterLink>
+                <FooterLink href='/donate'>สนับสนุน</FooterLink>
               </ul>
             </div>
             <div>

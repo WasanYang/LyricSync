@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -16,6 +17,7 @@ import {
   UserCircle,
   Database,
   Users,
+  Heart,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -29,7 +31,7 @@ import {
 } from '@/components/ui/sheet';
 import { Separator } from './ui/separator';
 import { useTheme } from 'next-themes';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import Image from 'next/image';
@@ -46,13 +48,17 @@ const mobileOnlyLinks = [
 
 export default function HamburgerMenu() {
   const pathname = usePathname();
-  const { user, logout, signInWithGoogle, isSuperAdmin } = useAuth();
+  const { user, logout, isSuperAdmin } = useAuth();
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
   const isOnline = useOnlineStatus();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div>
@@ -126,8 +132,23 @@ export default function HamburgerMenu() {
               </>
             )}
             <Separator />
+            <SheetClose asChild>
+              <Link
+                href='/donate'
+                className={cn(
+                  'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
+                  pathname.startsWith('/donate')
+                    ? 'text-primary'
+                    : 'text-muted-foreground'
+                )}
+              >
+                <Heart className='h-5 w-5' />
+                <span>สนับสนุน</span>
+              </Link>
+            </SheetClose>
             {user ? (
               <>
+                <Separator />
                 <SheetClose asChild>
                   <Link
                     href='/profile'
