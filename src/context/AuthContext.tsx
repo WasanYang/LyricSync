@@ -89,6 +89,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await signInWithPopup(auth, provider);
     } catch (error) {
+      if ((error as { code?: string }).code === 'auth/popup-closed-by-user') {
+        // User closed the popup, do nothing.
+        return;
+      }
       console.error('Error signing in with Google: ', error);
       throw new Error('Failed to sign in with Google.');
     }
@@ -104,6 +108,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await signInWithPopup(auth, provider);
     } catch (error) {
+      if ((error as { code?: string }).code === 'auth/popup-closed-by-user') {
+        // User closed the popup, do nothing.
+        return;
+      }
       console.error('Error signing in with Facebook: ', error);
       throw new Error('Failed to sign in with Facebook.');
     }
