@@ -37,10 +37,7 @@ export default function SEOHead({ config, structuredData }: SEOHeadProps) {
       {/* Basic Meta Tags */}
       <title>{fullTitle}</title>
       <meta name='description' content={description} />
-      <meta
-        name='facebook-domain-verification'
-        content='ezi8uf5pzd9mm1sdp0m8wdpwgr56pn'
-      />
+
       {keywords.length > 0 && (
         <meta
           name='keywords'

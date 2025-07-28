@@ -15,6 +15,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='th' suppressHydrationWarning>
+      <header>
+        <meta
+          name='facebook-domain-verification'
+          content='ezi8uf5pzd9mm1sdp0m8wdpwgr56pn'
+        />
+      </header>
       <body
         className={cn(
           'font-body antialiased min-h-screen flex flex-col bg-background'
