@@ -1,6 +1,11 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import {
+  useRouter,
+  useSearchParams,
+  usePathname,
+} from 'next/navigation';
 import { getAllCloudSongs, type Setlist, getPublicSetlists } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import { Input } from '@/components/ui/input';
@@ -43,12 +48,25 @@ function SetlistCard({ setlist }: { setlist: Setlist }) {
 }
 
 export default function SearchPage() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchTerm = searchParams.get('q') || '';
   const [selectedPrefix, setSelectedPrefix] = useState<string | null>(null);
 
   const [allSongs, setAllSongs] = useState<Song[]>([]);
   const [publicSetlists, setPublicSetlists] = useState<Setlist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleSearchChange = (term: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (term) {
+      params.set('q', term);
+    } else {
+      params.delete('q');
+    }
+    router.replace(`${pathname}?${params.toString()}`);
+  };
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -193,7 +211,7 @@ export default function SearchPage() {
                 className='pl-10 text-base bg-muted focus-visible:ring-0 focus-visible:ring-offset-0'
                 value={searchTerm}
                 onChange={(e) => {
-                  setSearchTerm(e.target.value);
+                  handleSearchChange(e.target.value);
                   setSelectedPrefix(null);
                 }}
               />
