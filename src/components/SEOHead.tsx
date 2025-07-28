@@ -80,6 +80,15 @@ export default function SEOHead({ config, structuredData }: SEOHeadProps) {
         content={openGraph?.locale || defaultSEOConfig.locale}
       />
 
+      {/* Facebook recommended og:image (absolute URL, 1200x630px) */}
+      <meta
+        property='og:image'
+        content='https://lyricsync.app/icons/logo-1200x630.png'
+      />
+      <meta property='og:image:width' content='1200' />
+      <meta property='og:image:height' content='630' />
+      <meta property='og:image:alt' content='LyricSync Logo' />
+      {/* Fallback to config og:image if provided */}
       {openGraph?.images?.[0] && (
         <>
           <meta property='og:image' content={openGraph.images[0].url} />

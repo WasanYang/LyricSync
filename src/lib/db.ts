@@ -75,15 +75,12 @@ function getDb(): Promise<IDBPDatabase<LyricSyncDB>> {
             const setlistStore = db.createObjectStore(SETLISTS_STORE, {
               keyPath: 'id',
             });
-            setlistStore.createIndex('by-title', 'title');
           }
         }
         if (oldVersion < 2) {
           // Must use the existing transaction in an upgrade function.
+          // Must use the existing transaction in an upgrade function.
           const setlistStore = transaction.objectStore(SETLISTS_STORE);
-          if (setlistStore.indexNames.contains('by-title')) {
-            setlistStore.deleteIndex('by-title');
-          }
           if (!setlistStore.indexNames.contains('by-userId')) {
             setlistStore.createIndex('by-userId', 'userId');
           }
@@ -528,7 +525,7 @@ export async function getSetlists(
   const syncedSetlistsData: Setlist[] = [];
   if (syncedSetlistIds.length > 0) {
     const setlistPromises = syncedSetlistIds.map((id) =>
-      getDoc(doc(firestoreDb, 'setlists', id))
+      getDoc(doc(firestoreDb!, 'setlists', id))
     );
     const setlistDocs = await Promise.all(setlistPromises);
 
