@@ -6,12 +6,14 @@ import { Button } from './ui/button';
 import { User } from 'firebase/auth';
 import { ListMusic, Music, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useTranslation } from '@/context/LanguageContext';
+import en from '@/locales/en';
+import th from '@/locales/th';
 
 const WELCOME_CARD_DISMISSED_KEY = 'welcomeCardDismissed';
 
 export default function WelcomeCard({ user }: { user: User | null }) {
   const [isDismissed, setIsDismissed] = useState(true);
-
   useEffect(() => {
     const dismissed = localStorage.getItem(WELCOME_CARD_DISMISSED_KEY);
     if (dismissed !== 'true') {
@@ -24,27 +26,28 @@ export default function WelcomeCard({ user }: { user: User | null }) {
     localStorage.setItem(WELCOME_CARD_DISMISSED_KEY, 'true');
   };
 
-  const renderContent = () => {
+  // i18n: useTranslation context, group welcome
+  const { language } = useTranslation();
+  const translations = language === 'en' ? en : th;
+  const t = translations.welcome;
+
+  function renderContent() {
     if (user && !user.isAnonymous) {
       // Logged-in user
       return (
-        <div>
-          <h1 className='text-2xl font-bold font-headline mb-2'>
-            ยินดีต้อนรับกลับสู่ LyricSync
-          </h1>
+        <div className='text-center space-y-4'>
+          <h1 className='text-3xl font-bold font-headline mb-2'>{t.title}</h1>
           <h2 className='text-lg font-headline mb-4 text-muted-foreground'>
-            Welcome back to LyricSync
-            {user.displayName ? `, ${user.displayName.split(' ')[0]}!` : '!'}
+            {t.titleBack}
+            {user && user.displayName
+              ? `, ${user.displayName.split(' ')[0]}!`
+              : '!'}
           </h2>
           <div className='mb-4'>
-            <div className='text-base mb-1'>
-              แอปสำหรับซิงค์เนื้อเพลง สร้างเซ็ตลิสต์ แชร์เพลง
-              และใช้งานแบบออฟไลน์ได้ทุกที่ ทุกกลุ่ม ทุกศาสนา
-            </div>
-            <div className='text-base text-muted-foreground'>
-              Your inclusive tool for synced lyrics, setlists, sharing, and
-              offline access.
-            </div>
+            {t.titleBack}
+            {user && user.displayName
+              ? `, ${user.displayName.split(' ')[0]}!`
+              : '!'}
           </div>
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
             <Button
@@ -54,8 +57,8 @@ export default function WelcomeCard({ user }: { user: User | null }) {
               asChild
             >
               <Link href='/setlists'>
-                <ListMusic className='mr-3 h-5 w-5' /> เซ็ตลิสต์ของฉัน{' '}
-                <span className='hidden sm:inline'>/ My Setlists</span>
+                <ListMusic className='mr-3 h-5 w-5' />
+                {t.mySetlists}
               </Link>
             </Button>
             <Button
@@ -65,8 +68,8 @@ export default function WelcomeCard({ user }: { user: User | null }) {
               asChild
             >
               <Link href='/library'>
-                <Music className='mr-3 h-5 w-5' /> ไลบรารีของฉัน{' '}
-                <span className='hidden sm:inline'>/ My Library</span>
+                <Music className='mr-3 h-5 w-5' />
+                {t.myLibrary}
               </Link>
             </Button>
           </div>
@@ -76,25 +79,17 @@ export default function WelcomeCard({ user }: { user: User | null }) {
       // Anonymous user
       return (
         <div className='text-center space-y-4'>
-          <h1 className='text-3xl font-bold font-headline mb-2'>
-            ยินดีต้อนรับสู่ LyricSync
-          </h1>
+          <h1 className='text-3xl font-bold font-headline mb-2'>{t.title}</h1>
           <h2 className='text-lg font-headline mb-4 text-muted-foreground'>
-            Welcome to LyricSync
+            {t.title}
           </h2>
           <div className='mb-2'>
-            <div className='text-base mb-1'>คุณกำลังใช้งานโหมด Guest</div>
-            <div className='text-base text-muted-foreground'>
-              You are using Guest mode.
-            </div>
+            <div className='text-base mb-1'>{t.guest}</div>
+            <div className='text-base text-muted-foreground'>{t.guest}</div>
           </div>
           <div className='mb-2'>
-            <span className='text-primary font-semibold block'>
-              ลงชื่อเข้าใช้เพื่อบันทึกเซ็ตลิสต์และปลดล็อกฟีเจอร์ทั้งหมด!
-            </span>
-            <span className='text-primary font-semibold block'>
-              Sign in to save your setlists and unlock all features!
-            </span>
+            <span className='text-primary font-semibold block'>{t.signIn}</span>
+            <span className='text-primary font-semibold block'>{t.signIn}</span>
           </div>
           <div className='flex flex-col sm:flex-row gap-4 justify-center'>
             <Button size='lg' asChild>
@@ -102,8 +97,7 @@ export default function WelcomeCard({ user }: { user: User | null }) {
                 <span role='img' aria-label='unlock' className='mr-2'>
                   🔓
                 </span>
-                ปลดล็อกทุกฟีเจอร์{' '}
-                <span className='hidden sm:inline'>/ Unlock All Features</span>
+                {t.unlock}
               </Link>
             </Button>
           </div>
@@ -113,48 +107,31 @@ export default function WelcomeCard({ user }: { user: User | null }) {
       // Not logged-in user
       return (
         <div className='text-center space-y-4'>
-          <h1 className='text-3xl font-bold font-headline mb-2'>
-            ยินดีต้อนรับสู่ LyricSync
-          </h1>
+          <h1 className='text-3xl font-bold font-headline mb-2'>{t.title}</h1>
           <h2 className='text-lg font-headline mb-4 text-muted-foreground'>
-            Welcome to LyricSync
+            {t.title}
           </h2>
           <div className='mb-2'>
-            <div className='text-base mb-1'>
-              แอปสำหรับซิงค์เนื้อเพลง สร้างเซ็ตลิสต์ แชร์เพลง
-              และใช้งานแบบออฟไลน์ได้ทุกที่
-            </div>
-            <div className='text-base text-muted-foreground'>
-              Your inclusive tool for synced lyrics, setlists, sharing, and
-              offline access.
-            </div>
+            <div className='text-base mb-1'>{t.descShort}</div>
+            <div className='text-base text-muted-foreground'>{t.descShort}</div>
           </div>
           <div className='mb-2'>
             <span className='block text-sm text-muted-foreground'>
-              ไม่จำกัดแนวเพลงหรือศาสนา
-            </span>
-            <span className='block text-sm text-muted-foreground'>
-              For everyone, every group, any genre or faith.
+              {t.forEveryone}
             </span>
           </div>
           <div className='flex flex-col sm:flex-row gap-4 justify-center'>
             <Button size='lg' asChild>
-              <Link href='/login'>
-                เริ่มต้นใช้งาน{' '}
-                <span className='hidden sm:inline'>/ Get Started</span>
-              </Link>
+              <Link href='/login'>{t.getStarted}</Link>
             </Button>
             <Button variant='outline' size='lg' asChild>
-              <Link href='/welcome'>
-                ดูรายละเอียด{' '}
-                <span className='hidden sm:inline'>/ Learn More</span>
-              </Link>
+              <Link href='/welcome'>{t.learnMore}</Link>
             </Button>
           </div>
         </div>
       );
     }
-  };
+  }
 
   return (
     <AnimatePresence>

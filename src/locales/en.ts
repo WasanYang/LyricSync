@@ -1,6 +1,20 @@
 const en = {
-  welcomeText: 'Welcome to LyricSync',
-  welcome: 'Welcome',
+  welcome: {
+    title: 'Welcome to LyricSync',
+    titleBack: 'Welcome back to LyricSync',
+    guest: 'You are using Guest mode.',
+    signIn: 'Sign in to save your setlists and unlock all features!',
+    unlock: 'Unlock All Features',
+    getStarted: 'Get Started',
+    learnMore: 'Learn More',
+    mySetlists: 'My Setlists',
+    myLibrary: 'My Library',
+    desc: 'Your inclusive tool for synced lyrics, setlists, sharing, and offline access.',
+    descShort:
+      'Your inclusive tool for synced lyrics, setlists, sharing, and offline access.',
+    forEveryone: 'For everyone, every group, any genre or faith.',
+  },
+  // welcomeText: 'Welcome to LyricSync',
   login: 'Login',
   logout: 'Logout',
   profile: 'Profile',

@@ -36,7 +36,7 @@ export default function Header() {
 
         {/* Right side actions */}
         <div className='flex items-center justify-end space-x-2'>
-          <div className='flex items-center hidden'>
+          <div className='flex items-center'>
             <button
               className={`px-2 py-1 rounded text-xs font-semibold transition-colors ${
                 language === 'th'
