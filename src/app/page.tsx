@@ -15,7 +15,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
 import { pageSEOConfigs } from '@/lib/seo';
-import RecommendedSetlists from '@/components/RecommendedSetlists';
 import RecommendedSongs from '@/components/RecommendedSongs';
 import WelcomeAnonymousCard from '@/components/WelcomeAnonymousCard';
 import { WelcomeUserCard } from '@/components/WelcomeUserCard';
@@ -167,10 +166,10 @@ export default function Home() {
           />
 
           {/* Recommended Setlists */}
-          <RecommendedSetlists
+          {/* <RecommendedSetlists
             publicSetlists={publicSetlists}
             isLoadingPublicSetlists={isLoadingPublicSetlists}
-          />
+          /> */}
 
           {/* Recommended Songs */}
           <RecommendedSongs
