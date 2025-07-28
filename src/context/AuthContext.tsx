@@ -12,7 +12,6 @@ import {
   onAuthStateChanged,
   signOut,
   GoogleAuthProvider,
-  FacebookAuthProvider,
   signInWithPopup,
   signInAnonymously as firebaseSignInAnonymously,
   type User,
@@ -28,7 +27,6 @@ interface AuthContextType {
   loading: boolean;
   isSuperAdmin: boolean;
   signInWithGoogle: () => Promise<void>;
-  signInWithFacebook: () => Promise<void>;
   signInAnonymously: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -98,25 +96,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signInWithFacebook = async () => {
-    if (!auth) {
-      throw new Error(
-        'Firebase is not configured correctly. Please check your API keys.'
-      );
-    }
-    const provider = new FacebookAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (error) {
-      if ((error as { code?: string }).code === 'auth/popup-closed-by-user') {
-        // User closed the popup, do nothing.
-        return;
-      }
-      console.error('Error signing in with Facebook: ', error);
-      throw new Error('Failed to sign in with Facebook.');
-    }
-  };
-
   const signInAnonymously = async () => {
     if (!auth) {
       throw new Error(
@@ -150,7 +129,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading,
     isSuperAdmin,
     signInWithGoogle,
-    signInWithFacebook,
     signInAnonymously,
     logout,
   };
