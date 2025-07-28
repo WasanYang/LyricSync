@@ -85,14 +85,12 @@ export interface SongDetailProps {
   songId: string;
   showPlayerLink?: boolean;
   isSharePage?: boolean;
-  showHeader?: boolean;
 }
 
 export function SongDetail({
   songId,
   showPlayerLink = true,
   isSharePage = false,
-  showHeader = true,
 }: SongDetailProps) {
   const { user } = useAuth();
   const [song, setSong] = useState<Song | null>(null);
@@ -171,7 +169,7 @@ export function SongDetail({
             <Alert className='border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200'>
               <Music className='h-4 w-4' />
               <AlertDescription>
-                You&apos;re currently offline. This song may not be available
+                You're currently offline. This song may not be available
                 without an internet connection.
               </AlertDescription>
             </Alert>
@@ -190,7 +188,7 @@ export function SongDetail({
 
   return (
     <div className='flex-grow flex flex-col'>
-      {showHeader && <Header />}
+      <Header />
       <main className='container relative mx-auto flex-grow px-4 py-8 pb-24 md:pb-8'>
         <div className='flex flex-col items-center gap-8 sm:flex-row sm:items-start'>
           <div className='flex-shrink-0'>
@@ -263,7 +261,7 @@ export function SongDetail({
           </div>
         </div>
       </main>
-      {showHeader && <BottomNavBar />}
+      <BottomNavBar />
     </div>
   );
 }

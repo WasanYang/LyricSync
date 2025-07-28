@@ -7,6 +7,7 @@ import {
   pageSEOConfigs,
   generateStructuredData,
 } from '@/lib/seo';
+import type { Song } from '@/lib/songs';
 
 // Default metadata for the application
 export const metadata: Metadata = {
@@ -45,8 +46,7 @@ export const viewport: Viewport = {
 
 // Dynamic metadata generators for different page types
 export const generatePageMetadata = {
-  song: (song: { title: string; artist: string; originalKey?: string }) =>
-    generateMetadata(pageSEOConfigs.songDetails(song)),
+  song: (song: Song) => generateMetadata(pageSEOConfigs.songDetails(song)),
 
   setlist: (setlist: {
     title: string;
