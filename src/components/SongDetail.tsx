@@ -53,7 +53,7 @@ function LoadingSkeleton() {
 
 const parseLyrics = (line: string) => {
   return line
-    .replace(/\[[^\]]+\]/g, ' ')
+    .replace(/\[[^\]]+\]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 };
@@ -243,7 +243,7 @@ export function SongDetail({
             </TooltipProvider>
           </div>
         </div>
-        <div className='space-y-2'>
+        <div className='space-y-2 pt-4'>
           <h2 className='font-headline text-2xl font-bold'>Lyrics</h2>
           <div className='whitespace-pre-wrap rounded-lg bg-muted/50 p-4 font-body text-muted-foreground'>
             {lyricContent}

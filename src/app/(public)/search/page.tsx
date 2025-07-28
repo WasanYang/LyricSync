@@ -15,43 +15,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import SEOHead from '@/components/SEOHead';
 import { pageSEOConfigs } from '@/lib/seo';
-
-function SongListItem({ song }: { song: Song }) {
-  return (
-    <div className={cn('group')}>
-      <Link
-        href={`/lyrics/${song.id}`}
-        className='flex items-center space-x-3 p-2 rounded-lg transition-colors duration-200 hover:bg-muted/50'
-      >
-        <Image
-          src={`https://placehold.co/80x80.png?text=${encodeURIComponent(
-            song.title
-          )}`}
-          alt={`${song.title} album art`}
-          width={40}
-          height={40}
-          className='rounded-md aspect-square object-cover'
-          data-ai-hint='album cover'
-        />
-        <div className='min-w-0 flex-grow'>
-          <p className='font-semibold font-headline truncate'>{song.title}</p>
-          <p className='text-sm text-muted-foreground truncate'>
-            {song.artist}
-          </p>
-        </div>
-        <div
-          className='flex-shrink-0'
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-        >
-          <SongStatusButton song={song} />
-        </div>
-      </Link>
-    </div>
-  );
-}
+import SearchCategory from './component/SearchCategory';
+import SongListItem from './component/SongListItem';
 
 function SetlistCard({ setlist }: { setlist: Setlist }) {
   const songCount = setlist.songIds.length;
@@ -74,44 +39,6 @@ function SetlistCard({ setlist }: { setlist: Setlist }) {
         </CardContent>
       </Card>
     </Link>
-  );
-}
-
-function SearchCategory({
-  title,
-  songs,
-  isLoading,
-}: {
-  title: string;
-  songs: Song[];
-  isLoading?: boolean;
-}) {
-  if (isLoading) {
-    return (
-      <section>
-        <h2 className='text-xl font-bold font-headline mb-4'>
-          <Skeleton className='h-6 w-32' />
-        </h2>
-        <div className='grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2'>
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className='h-14 w-full' />
-          ))}
-        </div>
-      </section>
-    );
-  }
-
-  if (songs.length === 0) return null;
-
-  return (
-    <section>
-      <h2 className='text-xl font-bold font-headline mb-4'>{title}</h2>
-      <div className='grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2'>
-        {songs.map((song) => (
-          <SongListItem key={song.id} song={song} />
-        ))}
-      </div>
-    </section>
   );
 }
 
