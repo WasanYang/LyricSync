@@ -48,14 +48,14 @@ export default function Footer() {
               <h3 className='font-semibold text-foreground mb-4'>Company</h3>
               <ul className='space-y-3'>
                 <FooterLink href='/welcome'>About</FooterLink>
-                <FooterLink href='/premium'>Premium</FooterLink>
+                <FooterLink href='#'>Premium</FooterLink>
               </ul>
             </div>
             <div>
               <h3 className='font-semibold text-foreground mb-4'>Legal</h3>
               <ul className='space-y-3'>
-                <FooterLink href='#'>Terms of Service</FooterLink>
-                <FooterLink href='#'>Privacy Policy</FooterLink>
+                <FooterLink href='/terms-of-use'>Terms of Service</FooterLink>
+                <FooterLink href='/privacy-policy'>Privacy Policy</FooterLink>
               </ul>
             </div>
           </div>
