@@ -1,3 +1,4 @@
+// src/app/page.tsx
 'use client';
 
 import {
@@ -16,8 +17,6 @@ import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
 import { pageSEOConfigs } from '@/lib/seo';
 import RecommendedSongs from '@/components/RecommendedSongs';
-import WelcomeAnonymousCard from '@/components/WelcomeAnonymousCard';
-import { WelcomeUserCard } from '@/components/WelcomeUserCard';
 import WelcomeCard from '@/components/WelcomeCard';
 import { RecentSetlists } from '@/components/RecentSetlists';
 
@@ -146,17 +145,7 @@ export default function Home() {
       <div className='flex-grow flex flex-col'>
         <Header />
         <main className='flex-grow container mx-auto px-4 py-8 space-y-12 pb-24 md:pb-12'>
-          {/* Welcome & Quick Actions for logged in users */}
-          {user && !user.isAnonymous && <WelcomeUserCard user={user} />}
-
-          {/* Welcome for guests/non-logged in users */}
-          {!user && <WelcomeCard />}
-
-          {/* Welcome for anonymous users */}
-          {user && user.isAnonymous && <WelcomeAnonymousCard />}
-
-          {/* Premium Card Implement in future */}
-          {/* <PremiumCard /> */}
+          <WelcomeCard user={user} />
 
           {/* Recent Setlists - only for logged in users */}
           <RecentSetlists

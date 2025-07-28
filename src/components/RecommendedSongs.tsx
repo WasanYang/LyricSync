@@ -17,7 +17,6 @@ function SongCarousel({
   isLoading?: boolean;
 }) {
   const { user } = useAuth();
-  const t = useTranslation();
   if (isLoading) {
     return (
       <div className='flex space-x-4 -ml-4 w-full max-w-full'>
@@ -82,27 +81,47 @@ export default function RecommendedSongs({
   recentReleases: Song[];
   isLoadingSongs?: boolean;
 }) {
+  if (isLoadingSongs) {
+    return (
+      <div className='space-y-8'>
+        <div className='space-y-4'>
+          <Skeleton className='h-7 w-40' />
+          <SongCarousel songs={[]} isLoading={true} />
+        </div>
+        <div className='space-y-4'>
+          <Skeleton className='h-7 w-32' />
+          <Skeleton className='h-10 w-full max-w-xs' />
+          <SongCarousel songs={[]} isLoading={true} />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <section>
-      <h2 className='text-xl font-headline font-semibold mb-4'>
-        Recommended Songs
-      </h2>
-      <Tabs defaultValue='featured' className='w-full'>
-        <TabsList>
-          <TabsTrigger value='featured'>Featured</TabsTrigger>
-          <TabsTrigger value='popular'>Popular</TabsTrigger>
-          <TabsTrigger value='recent'>Recent</TabsTrigger>
-        </TabsList>
-        <TabsContent value='featured' className='pt-4'>
-          <SongCarousel songs={featuredSongs} isLoading={isLoadingSongs} />
-        </TabsContent>
-        <TabsContent value='popular' className='pt-4'>
-          <SongCarousel songs={popularHits} isLoading={isLoadingSongs} />
-        </TabsContent>
-        <TabsContent value='recent' className='pt-4'>
-          <SongCarousel songs={recentReleases} isLoading={isLoadingSongs} />
-        </TabsContent>
-      </Tabs>
-    </section>
+    <div className='space-y-8'>
+      {recentReleases.length > 0 && (
+        <section>
+          <h2 className='text-xl font-headline font-semibold mb-4'>
+            New Releases
+          </h2>
+          <SongCarousel songs={recentReleases} />
+        </section>
+      )}
+
+      <section>
+        <Tabs defaultValue='featured' className='w-full'>
+          <TabsList>
+            <TabsTrigger value='featured'>Featured</TabsTrigger>
+            <TabsTrigger value='popular'>Popular</TabsTrigger>
+          </TabsList>
+          <TabsContent value='featured' className='pt-4'>
+            <SongCarousel songs={featuredSongs} />
+          </TabsContent>
+          <TabsContent value='popular' className='pt-4'>
+            <SongCarousel songs={popularHits} />
+          </TabsContent>
+        </Tabs>
+      </section>
+    </div>
   );
 }
