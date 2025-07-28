@@ -129,11 +129,9 @@ export default function FloatingSectionNavigator({
         const touch = e.touches[0];
         const rect = navigatorRef.current.getBoundingClientRect();
 
-        // Calculate new position based on left positioning
         let newX = touch.clientX - dragOffset.x;
         let newY = touch.clientY - dragOffset.y;
 
-        // Constrain to viewport bounds (with navbar consideration)
         const navbarHeight = 64; // Assume navbar height is 64px
         const maxX = window.innerWidth - rect.width;
         const maxY = window.innerHeight - rect.height;
@@ -141,7 +139,6 @@ export default function FloatingSectionNavigator({
         newX = Math.max(0, Math.min(newX, maxX));
         newY = Math.max(navbarHeight, Math.min(newY, maxY));
 
-        // Convert left position to right position for styling
         const newRight = window.innerWidth - newX - rect.width;
 
         setPosition({
@@ -196,7 +193,6 @@ export default function FloatingSectionNavigator({
     }
   };
 
-  // Don't render if no sections, not visible, or position not set yet
   if (!sections || sections.length === 0 || !isVisible || !position) {
     return null;
   }
@@ -208,8 +204,6 @@ export default function FloatingSectionNavigator({
         'fixed z-20 pointer-events-auto flex flex-col items-center gap-0 '
       )}
       style={{ top: `${position.y}px`, right: `${position.x}px` }}
-      //   onMouseDown={handleContainerDragMouseDown}
-      //   onTouchStart={handleContainerDragTouchStart}
     >
       <div className='flex items-center gap-1'>
         <Button
@@ -238,7 +232,6 @@ export default function FloatingSectionNavigator({
           </button>
         ))}
       </div>
-      {/* Drag handle */}
       <span
         className='h-6 w-[50px] text-muted-foreground/60 transition-all duration-300 cursor-move flex items-center justify-center '
         onMouseDown={handleDragMouseDown}

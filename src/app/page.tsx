@@ -7,163 +7,20 @@ import {
   getPublicSetlists,
 } from '@/lib/db';
 import type { Song } from '@/lib/songs';
-import SongCard from '@/components/SongCard';
 import Header from '@/components/Header';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from '@/components/ui/carousel';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BottomNavBar from '@/components/BottomNavBar';
-import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ListMusic, ChevronRight, Music } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import Footer from '@/components/Footer';
-import Image from 'next/image';
 import SEOHead from '@/components/SEOHead';
 import { pageSEOConfigs } from '@/lib/seo';
-
-function SongCarousel({
-  songs,
-  isLoading,
-}: {
-  songs: Song[];
-  isLoading?: boolean;
-}) {
-  const { user } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className='flex space-x-4 -ml-4 w-full max-w-full'>
-        <div className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'>
-          <Skeleton className='aspect-square w-full' />
-          <Skeleton className='h-4 w-3/4 mt-2' />
-          <Skeleton className='h-3 w-1/2 mt-1' />
-        </div>
-        <div className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'>
-          <Skeleton className='aspect-square w-full' />
-          <Skeleton className='h-4 w-3/4 mt-2' />
-          <Skeleton className='h-3 w-1/2 mt-1' />
-        </div>
-        <div className='hidden sm:block sm:basis-1/4 md:basis-1/5 pl-4'>
-          <Skeleton className='aspect-square w-full' />
-          <Skeleton className='h-4 w-3/4 mt-2' />
-          <Skeleton className='h-3 w-1/2 mt-1' />
-        </div>
-        <div className='hidden md:block md:basis-1/5 pl-4'>
-          <Skeleton className='aspect-square w-full' />
-          <Skeleton className='h-4 w-3/4 mt-2' />
-          <Skeleton className='h-3 w-1/2 mt-1' />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className='w-full max-w-full -mr-4'>
-      <Carousel opts={{ align: 'start', loop: false }} className='w-full'>
-        <CarouselContent className='-ml-4'>
-          {songs.map((song) => (
-            <CarouselItem
-              key={song.id}
-              className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'
-            >
-              <Link
-                href={
-                  !user || user.isAnonymous
-                    ? `/shared/song/${song.id}`
-                    : `/lyrics/${song.id}`
-                }
-                className='block'
-              >
-                <SongCard song={song} />
-              </Link>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-      </Carousel>
-    </div>
-  );
-}
-
-function RecentSetlistItem({ setlist }: { setlist: Setlist }) {
-  const isOwner = setlist.source !== 'saved';
-  const songCount = setlist.songIds.length;
-  const linkHref = isOwner
-    ? `/setlists/${setlist.id}`
-    : `/shared/setlists/${setlist.firestoreId}`;
-
-  return (
-    <Link
-      href={linkHref}
-      className='block p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors'
-    >
-      <div className='flex items-center justify-between'>
-        <div className='flex items-center gap-3'>
-          {isOwner ? (
-            <ListMusic className='h-5 w-5 text-muted-foreground flex-shrink-0' />
-          ) : (
-            <Music className='h-5 w-5 text-purple-500 flex-shrink-0' />
-          )}
-          <div>
-            <p className='font-semibold font-headline truncate'>
-              {setlist.title}
-            </p>
-            <p className='text-sm text-muted-foreground'>
-              {isOwner
-                ? `${songCount} ${songCount === 1 ? 'song' : 'songs'}`
-                : `By ${setlist.authorName}`}
-            </p>
-          </div>
-        </div>
-        <ChevronRight className='h-5 w-5 text-muted-foreground' />
-      </div>
-    </Link>
-  );
-}
-
-function RecommendedSetlistCard({
-  setlist,
-}: {
-  setlist: Setlist & { description?: string };
-}) {
-  const songCount = setlist.songIds.length;
-
-  return (
-    <Link
-      href={`/shared/setlists/${setlist.firestoreId}`}
-      className='block group'
-    >
-      <div className='group relative space-y-1.5'>
-        <div className='aspect-square w-full overflow-hidden rounded-md transition-all duration-300 ease-in-out group-hover:shadow-lg group-hover:shadow-primary/20'>
-          <Image
-            src={`https://placehold.co/300x300.png?text=${encodeURIComponent(
-              setlist.title
-            )}`}
-            alt={setlist.title}
-            width={300}
-            height={300}
-            className='h-full w-full object-cover transition-transform duration-300 group-hover:scale-105'
-            data-ai-hint='stage lights'
-          />
-        </div>
-        <div className='flex-grow min-w-0'>
-          <p className='font-semibold font-headline text-sm truncate'>
-            {setlist.title}
-          </p>
-          <p className='text-xs text-muted-foreground truncate'>
-            {songCount} {songCount === 1 ? 'song' : 'songs'}
-          </p>
-        </div>
-      </div>
-    </Link>
-  );
-}
+import RecommendedSetlists from '@/components/RecommendedSetlists';
+import RecommendedSongs from '@/components/RecommendedSongs';
+import WelcomeAnonymousCard from '@/components/WelcomeAnonymousCard';
+import { WelcomeUserCard } from '@/components/WelcomeUserCard';
+import WelcomeCard from '@/components/WelcomeCard';
+import { RecentSetlists } from '@/components/RecentSetlists';
 
 function LoadingSkeleton() {
   return (
@@ -206,7 +63,6 @@ function LoadingSkeleton() {
 
 export default function Home() {
   const { user, loading } = useAuth();
-  const router = useRouter();
   const [recentSetlists, setRecentSetlists] = useState<Setlist[]>([]);
   const [systemSongs, setSystemSongs] = useState<Song[]>([]);
   const [publicSetlists, setPublicSetlists] = useState<Setlist[]>([]);
@@ -230,11 +86,6 @@ export default function Home() {
   ); // Mock popularity with random sort for now
 
   useEffect(() => {
-    // Allow access without login, but redirect anonymous users to welcome for first visit
-    // Remove forced redirect - allow public access
-  }, [user, loading, router]);
-
-  useEffect(() => {
     async function loadData() {
       // Load data regardless of login status
       setIsLoadingSetlists(true);
@@ -255,9 +106,7 @@ export default function Home() {
       }
 
       try {
-        // Load public setlists (available to everyone)
         const publicLists = await getPublicSetlists();
-        // Filter out the user's own setlists from recommendations if logged in
         const recommendedSetlists = user
           ? publicLists.filter((sl) => sl.userId !== user.uid)
           : publicLists;
@@ -268,7 +117,6 @@ export default function Home() {
         setIsLoadingPublicSetlists(false);
       }
 
-      // Only load user-specific data if logged in
       if (user && !user.isAnonymous) {
         try {
           const allSetlists = await getSetlists(user.uid);
@@ -300,207 +148,37 @@ export default function Home() {
         <Header />
         <main className='flex-grow container mx-auto px-4 py-8 space-y-12 pb-24 md:pb-12'>
           {/* Welcome & Quick Actions for logged in users */}
-          {user && !user.isAnonymous && (
-            <section>
-              <h1 className='text-2xl font-bold font-headline mb-4'>
-                Welcome back,{' '}
-                {user.displayName ? user.displayName.split(' ')[0] : 'Guest'}!
-              </h1>
-              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                <Button
-                  variant='outline'
-                  size='lg'
-                  className='justify-start'
-                  asChild
-                >
-                  <Link href='/setlists'>
-                    <ListMusic className='mr-3 h-5 w-5' /> My Setlists
-                  </Link>
-                </Button>
-                <Button
-                  variant='outline'
-                  size='lg'
-                  className='justify-start'
-                  asChild
-                >
-                  <Link href='/library'>
-                    <Music className='mr-3 h-5 w-5' /> My Library
-                  </Link>
-                </Button>
-              </div>
-            </section>
-          )}
+          {user && !user.isAnonymous && <WelcomeUserCard user={user} />}
 
           {/* Welcome for guests/non-logged in users */}
-          {!user && (
-            <section className='text-center space-y-6'>
-              <div className='space-y-3'>
-                <h1 className='text-3xl font-bold font-headline'>
-                  Welcome to LyricSync
-                </h1>
-                <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
-                  เครื่องมือสำหรับทีมนมัสการ ด้วยเนื้อเพลง คอร์ด
-                  และระบบเล่นอัตโนมัติ สำหรับคริสตจักรและกลุ่มนมัสการ
-                </p>
-              </div>
-              <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-                <Button size='lg' asChild>
-                  <Link href='/login'>Get Started</Link>
-                </Button>
-                <Button variant='outline' size='lg' asChild>
-                  <Link href='/welcome'>Learn More</Link>
-                </Button>
-              </div>
-            </section>
-          )}
+          {!user && <WelcomeCard />}
 
           {/* Welcome for anonymous users */}
-          {user && user.isAnonymous && (
-            <section className='text-center space-y-6'>
-              <div className='space-y-3'>
-                <h1 className='text-3xl font-bold font-headline'>
-                  Welcome to LyricSync
-                </h1>
-                <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
-                  คุณกำลังใช้งานในโหมด Guest
-                  <br />
-                  <span className='text-primary font-semibold'>
-                    ลงชื่อเข้าใช้เพื่อบันทึกเซตลิสต์และปลดล็อกฟีเจอร์ทั้งหมด!
-                  </span>
-                </p>
-              </div>
-              <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-                <Button size='lg' asChild>
-                  <Link href='/login'>
-                    <span role='img' aria-label='unlock'>
-                      🔓
-                    </span>{' '}
-                    Unlock All Features
-                  </Link>
-                </Button>
-                <Button variant='outline' size='lg' asChild>
-                  <Link href='/welcome'>Learn More</Link>
-                </Button>
-              </div>
-              <p className='text-sm text-muted-foreground'>
-                การลงชื่อเข้าใช้จะช่วยให้คุณบันทึกเพลงและเซตลิสต์ของคุณเองได้
-              </p>
-            </section>
-          )}
+          {user && user.isAnonymous && <WelcomeAnonymousCard />}
 
           {/* Premium Card Implement in future */}
           {/* <PremiumCard /> */}
 
           {/* Recent Setlists - only for logged in users */}
-          {user &&
-            !user.isAnonymous &&
-            (isLoadingSetlists ? (
-              <div className='space-y-4'>
-                <Skeleton className='h-7 w-32' />
-                <div className='space-y-2'>
-                  <Skeleton className='h-16 w-full' />
-                  <Skeleton className='h-16 w-full' />
-                </div>
-              </div>
-            ) : (
-              recentSetlists.length > 0 && (
-                <section>
-                  <div className='flex items-center justify-between mb-4'>
-                    <h2 className='text-xl font-headline font-semibold'>
-                      Recent Setlists
-                    </h2>
-                    <Button variant='link' asChild>
-                      <Link href='/setlists'>View All</Link>
-                    </Button>
-                  </div>
-                  <div className='space-y-2'>
-                    {recentSetlists.map((setlist) => (
-                      <RecentSetlistItem key={setlist.id} setlist={setlist} />
-                    ))}
-                  </div>
-                </section>
-              )
-            ))}
+          <RecentSetlists
+            user={user}
+            recentSetlists={recentSetlists}
+            isLoadingSetlists={isLoadingSetlists}
+          />
 
           {/* Recommended Setlists */}
-          {publicSetlists.length > 0 && (
-            <section>
-              <h2 className='text-xl font-headline font-semibold mb-4'>
-                Recommended Setlists
-              </h2>
-              {isLoadingPublicSetlists ? (
-                <div className='flex space-x-4 -ml-4 w-full max-w-full'>
-                  <div className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'>
-                    <Skeleton className='aspect-square w-full' />
-                    <Skeleton className='h-4 w-3/4 mt-2' />
-                    <Skeleton className='h-3 w-1/2 mt-1' />
-                  </div>
-                  <div className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'>
-                    <Skeleton className='aspect-square w-full' />
-                    <Skeleton className='h-4 w-3/4 mt-2' />
-                    <Skeleton className='h-3 w-1/2 mt-1' />
-                  </div>
-                  <div className='hidden sm:block sm:basis-1/4 md:basis-1/5 pl-4'>
-                    <Skeleton className='aspect-square w-full' />
-                    <Skeleton className='h-4 w-3/4 mt-2' />
-                    <Skeleton className='h-3 w-1/2 mt-1' />
-                  </div>
-                  <div className='hidden md:block md:basis-1/5 pl-4'>
-                    <Skeleton className='aspect-square w-full' />
-                    <Skeleton className='h-4 w-3/4 mt-2' />
-                    <Skeleton className='h-3 w-1/2 mt-1' />
-                  </div>
-                </div>
-              ) : (
-                <div className='w-full max-w-full -mr-4'>
-                  <Carousel
-                    opts={{ align: 'start', loop: false }}
-                    className='w-full'
-                  >
-                    <CarouselContent className='-ml-4'>
-                      {publicSetlists.map((setlist) => (
-                        <CarouselItem
-                          key={setlist.firestoreId}
-                          className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'
-                        >
-                          <RecommendedSetlistCard setlist={setlist} />
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                  </Carousel>
-                </div>
-              )}
-            </section>
-          )}
+          <RecommendedSetlists
+            publicSetlists={publicSetlists}
+            isLoadingPublicSetlists={isLoadingPublicSetlists}
+          />
 
           {/* Recommended Songs */}
-          <section>
-            <h2 className='text-xl font-headline font-semibold mb-4'>
-              Recommended Songs
-            </h2>
-            <Tabs defaultValue='featured' className='w-full'>
-              <TabsList>
-                <TabsTrigger value='featured'>Featured</TabsTrigger>
-                <TabsTrigger value='popular'>Popular</TabsTrigger>
-                <TabsTrigger value='recent'>Recent</TabsTrigger>
-              </TabsList>
-              <TabsContent value='featured' className='pt-4'>
-                <SongCarousel
-                  songs={featuredSongs}
-                  isLoading={isLoadingSongs}
-                />
-              </TabsContent>
-              <TabsContent value='popular' className='pt-4'>
-                <SongCarousel songs={popularHits} isLoading={isLoadingSongs} />
-              </TabsContent>
-              <TabsContent value='recent' className='pt-4'>
-                <SongCarousel
-                  songs={recentReleases}
-                  isLoading={isLoadingSongs}
-                />
-              </TabsContent>
-            </Tabs>
-          </section>
+          <RecommendedSongs
+            featuredSongs={featuredSongs}
+            popularHits={popularHits}
+            recentReleases={recentReleases}
+            isLoadingSongs={isLoadingSongs}
+          />
         </main>
         <Footer />
         <BottomNavBar />

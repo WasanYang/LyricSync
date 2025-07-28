@@ -1,5 +1,6 @@
 // src/app/layout.tsx
 import './globals.css';
+import { LanguageProvider } from '../context/LanguageContext';
 import { cn } from '@/lib/utils';
 import { metadata, viewport } from './metadata';
 import { RootLayoutClient } from '@/components/RootLayoutClient';
@@ -19,13 +20,15 @@ export default function RootLayout({
           'font-body antialiased min-h-screen flex flex-col bg-background'
         )}
       >
-        <RootLayoutClient>
-          <div className='w-full max-w-[768px] mx-auto flex-grow flex flex-col'>
-            <div className='flex-grow flex flex-col pb-16 md:pb-0'>
-              {children}
+        <LanguageProvider>
+          <RootLayoutClient>
+            <div className='w-full max-w-[768px] mx-auto flex-grow flex flex-col'>
+              <div className='flex-grow flex flex-col pb-16 md:pb-0'>
+                {children}
+              </div>
             </div>
-          </div>
-        </RootLayoutClient>
+          </RootLayoutClient>
+        </LanguageProvider>
       </body>
     </html>
   );

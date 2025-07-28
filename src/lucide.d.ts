@@ -46,6 +46,16 @@ declare module 'lucide-react' {
   export const CheckCircle: FC<SVGProps<SVGSVGElement>>;
   export const AlertCircle: FC<SVGProps<SVGSVGElement>>;
   export const HardDrive: FC<SVGProps<SVGSVGElement>>;
+  export const LogOut: FC<SVGProps<SVGSVGElement>>;
+  export const Home: FC<SVGProps<SVGSVGElement>>;
+  export const Library: FC<SVGProps<SVGSVGElement>>;
+  export const LogIn: FC<SVGProps<SVGSVGElement>>;
+  export const User: FC<SVGProps<SVGSVGElement>>;
+  export const UserCircle: FC<SVGProps<SVGSVGElement>>;
+  export const Database: FC<SVGProps<SVGSVGElement>>;
+  export const Users: FC<SVGProps<SVGSVGElement>>;
+  export const Info: FC<SVGProps<SVGSVGElement>>;
+  export const Menu: FC<SVGProps<SVGSVGElement>>;
 
   // Add other icons you use here to avoid TypeScript errors
   // if they are not directly in the main library type definitions.
