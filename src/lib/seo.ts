@@ -41,9 +41,10 @@ export interface SEOConfig {
 export const defaultSEOConfig = {
   siteName: 'LyricSync',
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://lyricsync.app',
-  defaultTitle: 'LyricSync - เครื่องมือสำหรับทีมนมัสการ',
+  defaultTitle:
+    'LyricSync - เนื้อเพลง คอร์ด สร้างและเล่นเซ็ทลิสต์สำหรับทุกโอกาส',
   defaultDescription:
-    'เครื่องมือนมัสการครบครัน ด้วยเนื้อเพลง คอร์ด และระบบเล่นอัตโนมัติ สำหรับคริสตจักรและกลุ่มนมัสการ',
+    'รวมเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ และเล่นเพลงโปรดของคุณได้ทุกที่ ทุกโอกาส ใช้งานง่ายสำหรับทุกคน ไม่จำกัดเฉพาะกลุ่มใด',
   defaultKeywords: [
     'เพลงนมัสการ',
     'worship songs',
@@ -155,15 +156,22 @@ export function generateMetadata(config: SEOConfig): Metadata {
 // Page-specific SEO configurations
 export const pageSEOConfigs = {
   home: (): SEOConfig => ({
-    title: 'LyricSync - เครื่องมือสำหรับทีมนมัสการ',
+    title: 'LyricSync - เนื้อเพลง คอร์ด สร้างและเล่นเซ็ทลิสต์สำหรับทุกโอกาส',
     description:
-      'เครื่องมือนมัสการครบครัน ด้วยเนื้อเพลง คอร์ด และระบบเล่นอัตโนมัติ สำหรับคริสตจักรและกลุ่มนมัสการ รองรับการใช้งานออฟไลน์',
-    keywords: ['หน้าแรก', 'เพลงนมัสการยอดนิยม', 'setlist แนะนำ', 'LyricSync'],
+      'รวมเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ และเล่นเพลงโปรดของคุณได้ทุกที่ ทุกโอกาส ใช้งานง่ายสำหรับทุกคน ไม่จำกัดเฉพาะกลุ่มใด',
+    keywords: [
+      'หน้าแรก',
+      'เนื้อเพลง',
+      'คอร์ด',
+      'เซ็ทลิสต์',
+      'player',
+      'LyricSync',
+    ],
     openGraph: {
       type: 'website',
-      title: 'LyricSync - เครื่องมือสำหรับทีมนมัสการ',
+      title: 'LyricSync - เนื้อเพลง คอร์ด สร้างและเล่นเซ็ทลิสต์สำหรับทุกโอกาส',
       description:
-        'เครื่องมือนมัสการครบครัน ด้วยเนื้อเพลง คอร์ด และระบบเล่นอัตโนมัติ',
+        'รวมเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ และเล่นเพลงโปรดของคุณได้ทุกที่ ทุกโอกาส ใช้งานง่ายสำหรับทุกคน',
       images: [
         {
           url: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
@@ -176,9 +184,9 @@ export const pageSEOConfigs = {
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'LyricSync - เครื่องมือสำหรับทีมนมัสการ',
+      title: 'LyricSync - เนื้อเพลง คอร์ด สร้างและเล่นเซ็ทลิสต์สำหรับทุกโอกาส',
       description:
-        'เครื่องมือนมัสการครบครัน ด้วยเนื้อเพลง คอร์ด และระบบเล่นอัตโนมัติ',
+        'รวมเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ และเล่นเพลงโปรดของคุณได้ทุกที่ ทุกโอกาส ใช้งานง่ายสำหรับทุกคน',
       images: [`${defaultSEOConfig.siteUrl}/icons/logo-512.png`],
     },
     jsonLd: {
@@ -186,7 +194,7 @@ export const pageSEOConfigs = {
       '@type': 'WebApplication',
       name: 'LyricSync',
       description:
-        'เครื่องมือนมัสการครบครัน ด้วยเนื้อเพลง คอร์ด และระบบเล่นอัตโนมัติ',
+        'รวมเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ และเล่นเพลงโปรดของคุณได้ทุกที่ ทุกโอกาส ใช้งานง่ายสำหรับทุกคน',
       url: defaultSEOConfig.siteUrl,
       logo: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
       applicationCategory: 'MusicApplication',
@@ -200,15 +208,26 @@ export const pageSEOConfigs = {
   }),
 
   welcome: (): SEOConfig => ({
-    title: 'Welcome to LyricSync - เครื่องมือสำหรับทีมนมัสการ',
+    title: 'LyricSync - รวมเนื้อเพลง คอร์ด สร้างและเล่นเซ็ทลิสต์สำหรับทุกโอกาส',
     description:
-      'ทำความรู้จักกับ LyricSync เครื่องมือนมัสการที่ช่วยให้การนมัสการของคุณสมบูรณ์แบบ ด้วยฟีเจอร์เนื้อเพลง คอร์ด และระบบเล่นอัตโนมัติ',
-    keywords: ['welcome', 'แนะนำ', 'ฟีเจอร์', 'วิธีใช้', 'เริ่มต้น'],
+      'ยินดีต้อนรับสู่ LyricSync แอปสำหรับทุกคนที่ต้องการจัดการเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ และเล่นเพลงโปรดได้ทุกที่ ทุกโอกาส รองรับ auto-scroll, player, และแชร์เพลง',
+    keywords: [
+      'welcome',
+      'แนะนำ',
+      'ฟีเจอร์',
+      'เซ็ทลิสต์',
+      'player',
+      'เนื้อเพลง',
+      'คอร์ด',
+      'เริ่มต้น',
+      'LyricSync',
+    ],
     openGraph: {
       type: 'website',
-      title: 'Welcome to LyricSync',
+      title:
+        'LyricSync - รวมเนื้อเพลง คอร์ด สร้างและเล่นเซ็ทลิสต์สำหรับทุกโอกาส',
       description:
-        'ทำความรู้จักกับ LyricSync เครื่องมือนมัสการที่ช่วยให้การนมัสการของคุณสมบูรณ์แบบ',
+        'ยินดีต้อนรับสู่ LyricSync แอปสำหรับทุกคนที่ต้องการจัดการเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ และเล่นเพลงโปรดได้ทุกที่ ทุกโอกาส รองรับ auto-scroll, player, และแชร์เพลง',
       images: [
         {
           url: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
@@ -221,9 +240,10 @@ export const pageSEOConfigs = {
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Welcome to LyricSync',
+      title:
+        'LyricSync - รวมเนื้อเพลง คอร์ด สร้างและเล่นเซ็ทลิสต์สำหรับทุกโอกาส',
       description:
-        'ทำความรู้จักกับ LyricSync เครื่องมือนมัสการที่ช่วยให้การนมัสการของคุณสมบูรณ์แบบ',
+        'ยินดีต้อนรับสู่ LyricSync แอปสำหรับทุกคนที่ต้องการจัดการเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ และเล่นเพลงโปรดได้ทุกที่ ทุกโอกาส รองรับ auto-scroll, player, และแชร์เพลง',
       images: [`${defaultSEOConfig.siteUrl}/icons/logo-512.png`],
     },
   }),

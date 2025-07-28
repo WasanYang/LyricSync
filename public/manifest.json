@@ -1,11 +1,13 @@
 {
-  "name": "LyricSync - Worship Song Manager",
+  "name": "LyricSync - เนื้อเพลง คอร์ด สร้างและเล่นเซ็ทลิสต์สำหรับทุกโอกาส",
   "short_name": "LyricSync",
+  "id": "/?source=pwa",
+  "lang": "th",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#DEF2F1",
   "theme_color": "#3AAFA9",
-  "description": "Synchronized worship song lyrics with auto-scrolling and chord display.",
+  "description": "LyricSync รวมเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ และเล่นเพลงโปรดของคุณได้ทุกที่ ทุกโอกาส รองรับ auto-scroll, player, และแชร์เพลงสำหรับทุกคน.",
   "orientation": "portrait-primary",
   "scope": "/",
   "categories": ["music", "entertainment", "productivity"],
@@ -13,64 +15,85 @@
     {
       "name": "My Library",
       "url": "/library",
-      "icons": [{ "src": "/logo/logo.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/logo-192.png",
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any maskable"
+        }
+      ]
     },
     {
       "name": "My Setlists",
       "url": "/setlists",
-      "icons": [{ "src": "/logo/logo.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/logo-192.png",
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any maskable"
+        }
+      ]
     },
     {
       "name": "Add Song",
       "url": "/song-editor",
-      "icons": [{ "src": "/logo/logo.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/logo-192.png",
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any maskable"
+        }
+      ]
     }
   ],
   "icons": [
     {
-      "src": "/icons/logo.png",
+      "src": "/icons/logo-72.png",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/logo.png",
+      "src": "/icons/logo-96.png",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/logo.png",
+      "src": "/icons/logo-128.png",
       "sizes": "128x128",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/logo.png",
+      "src": "/icons/logo-144.png",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/logo.png",
+      "src": "/icons/logo-152.png",
       "sizes": "152x152",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/logo.png",
+      "src": "/icons/logo-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/logo.png",
+      "src": "/icons/logo-384.png",
       "sizes": "384x384",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/logo.png",
+      "src": "/icons/logo-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

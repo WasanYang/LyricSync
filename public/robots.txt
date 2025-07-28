@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Crawl-delay: 10
+
+# Block admin and private paths
+Disallow: /admin/
+Disallow: /profile
+Disallow: /library
+Disallow: /song-editor
+Disallow: /setlists/create
+
+# Host
+Host: https://lyricsync.app/
+
+Sitemap: https://lyricsync.app/sitemap.xml

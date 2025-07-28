@@ -17,22 +17,32 @@ export default function PrivacyPolicy() {
           {language === 'th' ? (
             <>
               <p>
-                เว็บไซต์นี้ให้ความสำคัญกับความเป็นส่วนตัวของผู้ใช้
-                ข้อมูลส่วนบุคคลที่เก็บรวบรวมจะใช้เพื่อการปรับปรุงบริการและความปลอดภัยเท่านั้น
+                LyricSync ให้ความสำคัญกับความเป็นส่วนตัวของผู้ใช้
+                ข้อมูลส่วนบุคคลที่เก็บรวบรวมจะใช้เพื่อการปรับปรุงบริการ
+                ความปลอดภัย และฟีเจอร์ เช่น การสร้างเซ็ทลิสต์ การเล่นเพลง
+                การแชร์เพลง และการใช้งานร่วมกับกลุ่มต่าง ๆ เท่านั้น
               </p>
               <h2 className='text-xl font-semibold mt-8 mb-2'>
                 การเก็บรวบรวมข้อมูล
               </h2>
               <ul className='list-disc pl-6 space-y-1'>
                 <li>ข้อมูลการเข้าสู่ระบบ เช่น อีเมล หรือบัญชี Google</li>
-                <li>ข้อมูลการใช้งาน เช่น เพลงที่บันทึกหรือเซตลิสต์ที่สร้าง</li>
+                <li>
+                  ข้อมูลการใช้งาน เช่น เพลงที่บันทึก เซ็ทลิสต์ที่สร้าง
+                  หรือการแชร์เพลง
+                </li>
+                <li>ข้อมูลการใช้งาน player และการตั้งค่าต่าง ๆ</li>
               </ul>
               <h2 className='text-xl font-semibold mt-8 mb-2'>
                 การใช้งานข้อมูล
               </h2>
               <ul className='list-disc pl-6 space-y-1'>
-                <li>เพื่อปรับปรุงประสบการณ์การใช้งาน</li>
-                <li>เพื่อความปลอดภัยและการตรวจสอบ</li>
+                <li>เพื่อปรับปรุงประสบการณ์การใช้งานและฟีเจอร์ใหม่ ๆ</li>
+                <li>
+                  เพื่อความปลอดภัย การตรวจสอบ
+                  และการป้องกันการใช้งานที่ไม่เหมาะสม
+                </li>
+                <li>เพื่อการซิงค์ข้อมูลข้ามอุปกรณ์และการใช้งานร่วมกับกลุ่ม</li>
               </ul>
               <h2 className='text-xl font-semibold mt-8 mb-2'>
                 การเปิดเผยข้อมูล
@@ -44,25 +54,32 @@ export default function PrivacyPolicy() {
               <h2 className='text-xl font-semibold mt-8 mb-2'>การติดต่อ</h2>
               <p>
                 หากมีข้อสงสัยเกี่ยวกับนโยบายนี้ กรุณาติดต่อที่ esxy26@gmail.com
+                หรือผ่าน Facebook Page LyricSync
               </p>
             </>
           ) : (
             <>
               <p>
-                This website values your privacy. Personal data collected is
-                used only to improve service and security.
+                LyricSync values your privacy. Personal data collected is used
+                only to improve service, security, and features such as setlist
+                creation, player, sharing, and group collaboration.
               </p>
               <h2 className='text-xl font-semibold mt-8 mb-2'>
                 Data Collection
               </h2>
               <ul className='list-disc pl-6 space-y-1'>
                 <li>Login information such as email or Google account</li>
-                <li>Usage data such as saved songs or created setlists</li>
+                <li>
+                  Usage data such as saved songs, created setlists, or shared
+                  songs
+                </li>
+                <li>Player usage and user settings</li>
               </ul>
               <h2 className='text-xl font-semibold mt-8 mb-2'>Data Usage</h2>
               <ul className='list-disc pl-6 space-y-1'>
-                <li>To improve user experience</li>
-                <li>For security and verification</li>
+                <li>To improve user experience and add new features</li>
+                <li>For security, verification, and abuse prevention</li>
+                <li>For syncing data across devices and group collaboration</li>
               </ul>
               <h2 className='text-xl font-semibold mt-8 mb-2'>Disclosure</h2>
               <p>
@@ -72,7 +89,7 @@ export default function PrivacyPolicy() {
               <h2 className='text-xl font-semibold mt-8 mb-2'>Contact</h2>
               <p>
                 If you have questions about this policy, please contact
-                esxy26@gmail.com
+                esxy26@gmail.com or via LyricSync Facebook Page
               </p>
             </>
           )}

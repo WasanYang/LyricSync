@@ -86,44 +86,56 @@ export default function WelcomePage() {
         )}
 
         <main className='container mx-auto px-4 py-16 sm:py-24'>
-          <section className='text-center mb-16 sm:mb-24'>
+          {/* THAI */}
+          <section className='text-center mb-10 sm:mb-16'>
             <Music className='w-16 h-16 text-primary mx-auto mb-6' />
             <h1 className='text-4xl sm:text-5xl font-bold font-headline mb-4'>
+              ยินดีต้อนรับสู่ LyricSync
+            </h1>
+            <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
+              แอปสำหรับซิงค์เนื้อเพลงอัตโนมัติ สร้างเซ็ตลิสต์ แชร์เพลง
+              และใช้งานแบบออฟไลน์ได้ทุกที่ ทุกคน ทุกกลุ่ม
+              ไม่จำกัดแนวเพลงหรือศาสนา
+            </p>
+          </section>
+          {/* ENGLISH */}
+          <section className='text-center mb-16 sm:mb-24'>
+            <h1 className='text-3xl sm:text-4xl font-bold font-headline mb-4'>
               Welcome to LyricSync
             </h1>
             <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
-              Your personal companion for synchronized song lyrics. Enjoy
-              auto-scrolling, offline access, and create your own setlists with
-              ease.
+              Your inclusive companion for synchronized lyrics, setlist
+              creation, sharing, and offline access. For everyone, every group,
+              any genre or faith.
             </p>
           </section>
 
           <section className='mb-16 sm:mb-24'>
             <h2 className='text-2xl sm:text-3xl font-bold font-headline text-center mb-8 sm:mb-12'>
-              Core Features
+              ฟีเจอร์หลัก / Core Features
             </h2>
             <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8'>
               <FeatureCard
                 icon={Music}
-                title='Synced Lyrics'
-                description='Lyrics that scroll automatically with pre-set timestamps, so you never lose your place.'
+                title='เนื้อเพลงซิงค์ / Synced Lyrics'
+                description='เนื้อเพลงเลื่อนอัตโนมัติตามเวลา ไม่หลงจังหวะ ไม่ตกบรรทัด / Lyrics scroll automatically with timestamps.'
               />
               <FeatureCard
                 icon={ArrowDown}
-                title='Offline Access'
-                description='Save your favorite songs and setlists to your device for reliable access, even without an internet connection.'
+                title='ออฟไลน์ / Offline Access'
+                description='บันทึกเพลงและเซ็ตลิสต์ไว้ในเครื่อง ใช้ได้แม้ไม่มีอินเทอร์เน็ต / Save songs and setlists for offline use.'
               />
               <FeatureCard
                 icon={PlusCircle}
-                title='Setlist Creator'
-                description='Build and organize your own setlists for performances, practice, or just for fun.'
+                title='สร้างเซ็ตลิสต์ / Setlist Creator'
+                description='สร้างและจัดการเซ็ตลิสต์สำหรับการแสดงหรือซ้อม / Build and organize your own setlists.'
               />
             </div>
           </section>
 
           <section>
             <h2 className='text-2xl sm:text-3xl font-bold font-headline text-center mb-8 sm:mb-12'>
-              Add to Your Home Screen
+              วิธีติดตั้งบนหน้าจอหลัก / Add to Home Screen
             </h2>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-12 sm:gap-16 max-w-4xl mx-auto'>
               <div className='p-6 bg-muted/50 rounded-lg'>
@@ -143,7 +155,8 @@ export default function WelcomePage() {
                     icon={Share}
                     text={
                       <>
-                        Tap the <strong>Share</strong> button in Safari.
+                        แตะ <strong>Share</strong> ใน Safari / Tap the{' '}
+                        <strong>Share</strong> button in Safari.
                       </>
                     }
                   />
@@ -152,8 +165,9 @@ export default function WelcomePage() {
                     icon={PlusCircle}
                     text={
                       <>
-                        Scroll down and tap{' '}
-                        <strong>&apos;Add to Home Screen&apos;</strong>.
+                        เลื่อนลงแล้วเลือก <strong>เพิ่มไปยังหน้าจอหลัก</strong>{' '}
+                        / Scroll down and tap{' '}
+                        <strong>Add to Home Screen</strong>.
                       </>
                     }
                   />
@@ -177,7 +191,8 @@ export default function WelcomePage() {
                     icon={MoreVertical}
                     text={
                       <>
-                        Tap the <strong>Menu</strong> button (3 dots) in Chrome.
+                        แตะ <strong>เมนู</strong> (จุด 3 จุด) ใน Chrome / Tap
+                        the <strong>Menu</strong> button (3 dots) in Chrome.
                       </>
                     }
                   />
@@ -186,8 +201,10 @@ export default function WelcomePage() {
                     icon={ArrowDown}
                     text={
                       <>
-                        Tap <strong>&apos;Install app&apos;</strong> or{' '}
-                        <strong>&apos;Add to Home screen&apos;</strong>.
+                        เลือก <strong>ติดตั้งแอป</strong> หรือ{' '}
+                        <strong>เพิ่มไปยังหน้าจอหลัก</strong> / Tap{' '}
+                        <strong>Install app</strong> or{' '}
+                        <strong>Add to Home screen</strong>.
                       </>
                     }
                   />
@@ -204,10 +221,17 @@ export default function WelcomePage() {
           {!user && (
             <section className='text-center mt-16 sm:mt-24'>
               <Button asChild size='lg'>
-                <Link href='/login'>Get Started</Link>
+                <Link href='/login'>เริ่มต้นใช้งาน / Get Started</Link>
               </Button>
             </section>
           )}
+
+          {/* Back to Home Button - always visible at the bottom */}
+          <section className='text-center mt-10 mb-6'>
+            <Button asChild variant='outline' size='lg'>
+              <Link href='/'>กลับหน้าแรก / Back to Home</Link>
+            </Button>
+          </section>
         </main>
       </div>
     </>
