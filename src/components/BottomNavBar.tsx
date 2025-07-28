@@ -15,19 +15,22 @@ const allNavLinks = [
   { href: '/setlists', label: 'Setlists', icon: ListMusic, isCustom: false },
 ];
 
+const unauthenticatedNavLinks = [
+  { href: '/', label: 'Home', icon: HomeIcon, isCustom: true },
+  { href: '/search', label: 'Search', icon: SearchIcon, isCustom: true },
+];
+
 export default function BottomNavBar() {
   const pathname = usePathname();
   const { user } = useAuth();
 
-  const navLinks = user?.isAnonymous
-    ? allNavLinks.filter(
-        (link) => link.label !== 'Library' && link.label !== 'Setlists'
-      )
-    : allNavLinks;
-
-  if (!user) {
+  // Show nothing if auth state is loading
+  if (user === undefined) {
     return null;
   }
+
+  const navLinks =
+    !user || user.isAnonymous ? unauthenticatedNavLinks : allNavLinks;
 
   return (
     <footer className='fixed bottom-0 left-0 right-0 z-50 border-t bg-background/80 backdrop-blur-sm supports-[backdrop-filter]:bg-background/50 md:hidden'>
