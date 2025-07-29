@@ -8,9 +8,10 @@ const withPWA = withPWAInit({
 
 import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin({
-  requestConfig: 'src/i18n/request.ts',
+  experimental: {
+    createMessagesDeclaration: './src/messages/th.json',
+  },
 });
-
 const nextConfig: NextConfig = {
   trailingSlash: true,
   images: {
@@ -25,11 +26,6 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_SITE_URL: 'https://lyricsync.app',
   },
-  // i18n: {
-  //   locales: ['th', 'en'],
-  //   defaultLocale: 'th',
-  //   localeDetection: false,
-  // },
 };
 
 export default withPWA(withNextIntl(nextConfig));

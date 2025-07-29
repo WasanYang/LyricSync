@@ -3,12 +3,19 @@
 import Link from 'next/link';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
 import Image from 'next/image';
-import { useTranslation } from '@/context/LanguageContext';
 import HamburgerMenu from './HamburgerMenu';
+import { useLocale } from 'next-intl';
+
+import { usePathname, useRouter } from '@/i18n/navigation';
 
 export default function Header() {
-  const { language, setLanguage } = useTranslation();
-
+  const language = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+  const setLanguage = (lang: string) => {
+    // เปลี่ยน path locale
+    router.replace(pathname, { locale: lang });
+  };
   return (
     <header className='sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
       <div className='flex h-16 items-center justify-between px-4'>

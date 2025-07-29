@@ -2,10 +2,11 @@
 
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { useTranslation } from '@/context/LanguageContext';
+import { useLocale } from 'next-intl';
 
 export default function TermsOfUse() {
-  const { language } = useTranslation();
+  const language = useLocale();
+
   return (
     <div className='flex flex-col min-h-screen bg-background'>
       <Header />

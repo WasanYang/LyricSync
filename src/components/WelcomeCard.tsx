@@ -6,9 +6,9 @@ import { Button } from './ui/button';
 import { User } from 'firebase/auth';
 import { ListMusic, Music, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useTranslation } from '@/context/LanguageContext';
 import en from '@/locales/en';
 import th from '@/locales/th';
+import { useLocale } from 'next-intl';
 
 const WELCOME_CARD_DISMISSED_KEY = 'welcomeCardDismissed';
 
@@ -26,8 +26,8 @@ export default function WelcomeCard({ user }: { user: User | null }) {
     localStorage.setItem(WELCOME_CARD_DISMISSED_KEY, 'true');
   };
 
-  // i18n: useTranslation context, group welcome
-  const { language } = useTranslation();
+  const language = useLocale();
+
   const translations = language === 'en' ? en : th;
   const t = translations.welcome;
 
