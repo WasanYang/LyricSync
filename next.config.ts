@@ -22,6 +22,11 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_SITE_URL: 'https://lyricsync.app',
   },
+  i18n: {
+    locales: ['th', 'en'],
+    defaultLocale: 'th',
+    localeDetection: false,
+  },
 };
 
 export default withPWA(nextConfig);

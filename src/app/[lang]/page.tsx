@@ -63,10 +63,8 @@ export default function Home() {
   const { user, loading } = useAuth();
   const [recentSetlists, setRecentSetlists] = useState<Setlist[]>([]);
   const [systemSongs, setSystemSongs] = useState<Song[]>([]);
-  const [publicSetlists, setPublicSetlists] = useState<Setlist[]>([]);
   const [isLoadingSetlists, setIsLoadingSetlists] = useState(true);
   const [isLoadingSongs, setIsLoadingSongs] = useState(true);
-  const [isLoadingPublicSetlists, setIsLoadingPublicSetlists] = useState(true);
 
   const recentReleases = useMemo(
     () =>
@@ -88,7 +86,6 @@ export default function Home() {
       // Load data regardless of login status
       setIsLoadingSetlists(true);
       setIsLoadingSongs(true);
-      setIsLoadingPublicSetlists(true);
 
       try {
         // Always load system songs (public data)
@@ -108,11 +105,9 @@ export default function Home() {
         const recommendedSetlists = user
           ? publicLists.filter((sl) => sl.userId !== user.uid)
           : publicLists;
-        setPublicSetlists(recommendedSetlists);
       } catch (error) {
         console.error('Failed to load public setlists', error);
       } finally {
-        setIsLoadingPublicSetlists(false);
       }
 
       if (user && !user.isAnonymous) {

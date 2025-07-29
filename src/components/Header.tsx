@@ -1,14 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useTheme } from 'next-themes';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
 import Image from 'next/image';
 import { useTranslation } from '@/context/LanguageContext';
 import HamburgerMenu from './HamburgerMenu';
 
 export default function Header() {
-  const { theme, setTheme } = useTheme();
   const { language, setLanguage } = useTranslation();
 
   return (

@@ -1,20 +1,13 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
-import {
-  useRouter,
-  useSearchParams,
-  usePathname,
-} from 'next/navigation';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { getAllCloudSongs, type Setlist, getPublicSetlists } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import { Input } from '@/components/ui/input';
 import { Search, ListMusic } from 'lucide-react';
 import BottomNavBar from '@/components/BottomNavBar';
-import Image from 'next/image';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
-import SongStatusButton from '@/components/SongStatusButton';
 import Header from '@/components/Header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';

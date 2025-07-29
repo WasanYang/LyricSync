@@ -1,18 +1,20 @@
-// src/app/layout.tsx
-import './globals.css';
-import { LanguageProvider } from '../context/LanguageContext';
+import '../globals.css';
 import { cn } from '@/lib/utils';
-import { metadata, viewport } from './metadata';
+import { metadata, viewport } from '../metadata';
 import { RootLayoutClient } from '@/components/RootLayoutClient';
+import { IntlProvider } from 'next-intl';
 
-// Export metadata and viewport for Next.js App Router
 export { metadata, viewport };
 
 export default function RootLayout({
   children,
+  params: { lang },
 }: Readonly<{
   children: React.ReactNode;
+  params: { lang: string };
 }>) {
+  const messages = require(`../../messages/${lang}.json`);
+
   return (
     <html lang='th' suppressHydrationWarning>
       <header>
@@ -26,7 +28,7 @@ export default function RootLayout({
           'font-body antialiased min-h-screen flex flex-col bg-background'
         )}
       >
-        <LanguageProvider>
+        <IntlProvider messages={messages} locale={lang}>
           <RootLayoutClient>
             <div className='w-full max-w-[768px] mx-auto flex-grow flex flex-col'>
               <div className='flex-grow flex flex-col pb-16 md:pb-0'>
@@ -34,7 +36,7 @@ export default function RootLayout({
               </div>
             </div>
           </RootLayoutClient>
-        </LanguageProvider>
+        </IntlProvider>
       </body>
     </html>
   );
