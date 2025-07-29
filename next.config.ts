@@ -6,9 +6,12 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === 'development',
 });
 
+import createNextIntlPlugin from 'next-intl/plugin';
+const withNextIntl = createNextIntlPlugin({
+  requestConfig: 'src/i18n/request.ts',
+});
+
 const nextConfig: NextConfig = {
-  /* config options here */
-  // output: 'export',
   trailingSlash: true,
   images: {
     unoptimized: true,
@@ -22,11 +25,11 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_SITE_URL: 'https://lyricsync.app',
   },
-  i18n: {
-    locales: ['th', 'en'],
-    defaultLocale: 'th',
-    localeDetection: false,
-  },
+  // i18n: {
+  //   locales: ['th', 'en'],
+  //   defaultLocale: 'th',
+  //   localeDetection: false,
+  // },
 };
 
-export default withPWA(nextConfig);
+export default withPWA(withNextIntl(nextConfig));
