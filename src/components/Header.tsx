@@ -4,11 +4,12 @@ import Link from 'next/link';
 import { OfflineIndicator } from '@/components/OfflineIndicator';
 import Image from 'next/image';
 import HamburgerMenu from './HamburgerMenu';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 import { usePathname, useRouter } from '@/i18n/navigation';
 
 export default function Header() {
+  const t = useTranslations();
   const language = useLocale();
   const router = useRouter();
   const pathname = usePathname();
@@ -33,7 +34,7 @@ export default function Header() {
                 LyricSync
               </span>
               <span className='text-xs text-muted-foreground leading-tight hidden sm:block'>
-                Synchronized Worship Lyrics
+                {t('welcome.descShort')}
               </span>
             </div>
           </Link>

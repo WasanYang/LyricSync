@@ -3,17 +3,21 @@
 import Link from 'next/link';
 import { Separator } from './ui/separator';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 const FooterLink = ({
   href,
   children,
+  target = '_self',
 }: {
   href: string;
   children: React.ReactNode;
+  target?: string;
 }) => (
   <li>
     <Link
       href={href}
+      target={target}
       className='text-sm text-muted-foreground hover:text-foreground transition-colors'
     >
       {children}
@@ -22,6 +26,7 @@ const FooterLink = ({
 );
 
 export default function Footer() {
+  const t = useTranslations();
   return (
     <footer className='w-full border-t mt-auto'>
       <div className='max-w-7xl mx-auto px-8 py-12'>
@@ -36,42 +41,45 @@ export default function Footer() {
               />
               <span className='font-bold font-headline text-lg'>LyricSync</span>
             </Link>
-            <p className='text-sm text-muted-foreground'>
-              LyricSync รวมเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์
-              และเล่นเพลงโปรดของคุณได้ทุกที่ ทุกโอกาส รองรับ auto-scroll,
-              player, และแชร์เพลงสำหรับทุกคน
-            </p>
+            <p className='text-sm text-muted-foreground'>{t('longDesc')}</p>
           </div>
 
           <div className='grid grid-cols-2 md:grid-cols-3 gap-8 lg:col-span-3'>
             <div>
               <h3 className='font-semibold text-foreground mb-4'>
-                ฟีเจอร์หลัก
+                {t('featuredTitle')}
               </h3>
               <ul className='space-y-3'>
-                <FooterLink href='/welcome'>เกี่ยวกับ LyricSync</FooterLink>
-                <FooterLink href='/search'>ค้นหาเพลง/เซ็ทลิสต์</FooterLink>
-                <FooterLink href='/setlists'>เซ็ทลิสต์ของฉัน</FooterLink>
-                <FooterLink href='/song-editor'>เพิ่ม/แก้ไขเพลง</FooterLink>
-              </ul>
-            </div>
-            <div>
-              <h3 className='font-semibold text-foreground mb-4'>
-                สนับสนุนและติดต่อ
-              </h3>
-              <ul className='space-y-3'>
-                <FooterLink href='/donate'>สนับสนุนโครงการ</FooterLink>
-                <FooterLink href='https://facebook.com/lyricsync.app'>
-                  Facebook Page
+                <FooterLink href='/welcome'>{t('about')}</FooterLink>
+                <FooterLink href='/search'>{t('searchAndSetlists')}</FooterLink>
+                <FooterLink href='/setlists'>{t('mySetlists')}</FooterLink>
+                <FooterLink href='/song-editor'>
+                  {t('addAndEditSongs')}
                 </FooterLink>
               </ul>
             </div>
             <div>
-              <h3 className='font-semibold text-foreground mb-4'>Legal</h3>
+              <h3 className='font-semibold text-foreground mb-4'>
+                {t('contact')}
+              </h3>
               <ul className='space-y-3'>
-                <FooterLink href='/terms-of-use'>ข้อตกลงการใช้งาน</FooterLink>
+                <FooterLink href='/donate'>{t('donate')}</FooterLink>
+                <FooterLink
+                  href='https://www.facebook.com/LyricSyncApp'
+                  target='_blank'
+                >
+                  {t('facebookPage')}
+                </FooterLink>
+              </ul>
+            </div>
+            <div>
+              <h3 className='font-semibold text-foreground mb-4'>
+                {t('regal')}
+              </h3>
+              <ul className='space-y-3'>
+                <FooterLink href='/terms-of-use'>{t('termsOfUse')}</FooterLink>
                 <FooterLink href='/privacy-policy'>
-                  นโยบายความเป็นส่วนตัว
+                  {t('privacyPolicy')}
                 </FooterLink>
               </ul>
             </div>
@@ -79,8 +87,7 @@ export default function Footer() {
         </div>
         <Separator className='my-8' />
         <div className='text-center text-sm text-muted-foreground'>
-          © {new Date().getFullYear()} LyricSync. รวมเนื้อเพลง คอร์ด
-          สร้างเซ็ทลิสต์ และเล่นเพลงสำหรับทุกโอกาส
+          © {new Date().getFullYear()} LyricSync. {t('welcome.descShort')}
         </div>
       </div>
     </footer>

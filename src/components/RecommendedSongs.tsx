@@ -7,6 +7,7 @@ import { Song } from '@/lib/songs';
 import { Carousel, CarouselContent, CarouselItem } from './ui/carousel';
 import Link from 'next/link';
 import SongCard from './SongCard';
+import { useTranslations } from 'next-intl';
 
 function SongCarousel({
   songs,
@@ -80,6 +81,7 @@ export default function RecommendedSongs({
   recentReleases: Song[];
   isLoadingSongs?: boolean;
 }) {
+  const t = useTranslations();
   if (isLoadingSongs) {
     return (
       <div className='space-y-8'>
@@ -101,7 +103,7 @@ export default function RecommendedSongs({
       {recentReleases.length > 0 && (
         <section>
           <h2 className='text-xl font-headline font-semibold mb-4'>
-            New Releases
+            {t('newReleases')}
           </h2>
           <SongCarousel songs={recentReleases} />
         </section>
@@ -110,8 +112,8 @@ export default function RecommendedSongs({
       <section>
         <Tabs defaultValue='featured' className='w-full'>
           <TabsList>
-            <TabsTrigger value='featured'>Featured</TabsTrigger>
-            <TabsTrigger value='popular'>Popular</TabsTrigger>
+            <TabsTrigger value='featured'>{t('featured')}</TabsTrigger>
+            <TabsTrigger value='popular'>{t('popular')}</TabsTrigger>
           </TabsList>
           <TabsContent value='featured' className='pt-4'>
             <SongCarousel songs={featuredSongs} />

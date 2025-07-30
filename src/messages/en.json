@@ -9,9 +9,9 @@
     "learnMore": "Learn More",
     "mySetlists": "My Setlists",
     "myLibrary": "My Library",
-    "desc": "Your inclusive tool for synced lyrics, setlists, sharing, and offline access.",
-    "descShort": "Your inclusive tool for synced lyrics, setlists, sharing, and offline access.",
-    "forEveryone": "For everyone, every group, any genre or faith."
+    "desc": "Organize your favorite songs, craft setlists, and perform with confidence.",
+    "descShort": "Combine lyrics, chords, create setlists, and play songs for every occasion",
+    "forEveryone": "For everyone"
   },
   "login": "Login",
   "logout": "Logout",
@@ -33,5 +33,20 @@
   "footerText": "All rights reserved.",
   "thai": "ไทย",
   "english": "English",
-  "recommendedSongs": "Recommended Songs"
+  "recommendedSongs": "Recommended Songs",
+  "newReleases": "New Releases",
+  "featured": "Featured",
+  "popular": "Popular",
+  "featuredTitle": "Featured",
+  "donate": "Support",
+  "contact": "Contact",
+  "facebookPage": "Facebook Page",
+  "regal": "Regal",
+  "about": "About LyricSync",
+  "termsOfUse": "Terms of Use",
+  "privacyPolicy": "Privacy Policy",
+  "searchAndSetlists": "Search Songs/Setlists",
+  "mySetlists": "My Setlists",
+  "addAndEditSongs": "Add/Edit Songs",
+  "longDesc": "LyricSync combines lyrics, chords, setlists, and your favorite songs for every occasion. Supports auto-scroll, player, and song sharing for everyone."
 }

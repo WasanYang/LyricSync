@@ -6,9 +6,7 @@ import { Button } from './ui/button';
 import { User } from 'firebase/auth';
 import { ListMusic, Music, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import en from '@/locales/en';
-import th from '@/locales/th';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 
 const WELCOME_CARD_DISMISSED_KEY = 'welcomeCardDismissed';
 
@@ -25,30 +23,17 @@ export default function WelcomeCard({ user }: { user: User | null }) {
     setIsDismissed(true);
     localStorage.setItem(WELCOME_CARD_DISMISSED_KEY, 'true');
   };
-
   const language = useLocale();
-
-  const translations = language === 'en' ? en : th;
-  const t = translations.welcome;
+  const t = useTranslations();
 
   function renderContent() {
     if (user && !user.isAnonymous) {
       // Logged-in user
       return (
         <div className='text-center space-y-4'>
-          <h1 className='text-3xl font-bold font-headline mb-2'>{t.title}</h1>
-          <h2 className='text-lg font-headline mb-4 text-muted-foreground'>
-            {t.titleBack}
-            {user && user.displayName
-              ? `, ${user.displayName.split(' ')[0]}!`
-              : '!'}
-          </h2>
-          <div className='mb-4'>
-            {t.titleBack}
-            {user && user.displayName
-              ? `, ${user.displayName.split(' ')[0]}!`
-              : '!'}
-          </div>
+          <h1 className='text-3xl font-bold font-headline mb-2'>
+            {t('welcome.title')}
+          </h1>
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
             <Button
               variant='outline'
@@ -58,7 +43,7 @@ export default function WelcomeCard({ user }: { user: User | null }) {
             >
               <Link href='/setlists'>
                 <ListMusic className='mr-3 h-5 w-5' />
-                {t.mySetlists}
+                {t('welcome.mySetlists')}
               </Link>
             </Button>
             <Button
@@ -69,7 +54,7 @@ export default function WelcomeCard({ user }: { user: User | null }) {
             >
               <Link href='/library'>
                 <Music className='mr-3 h-5 w-5' />
-                {t.myLibrary}
+                {t('welcome.myLibrary')}
               </Link>
             </Button>
           </div>
@@ -79,17 +64,22 @@ export default function WelcomeCard({ user }: { user: User | null }) {
       // Anonymous user
       return (
         <div className='text-center space-y-4'>
-          <h1 className='text-3xl font-bold font-headline mb-2'>{t.title}</h1>
+          <h1 className='text-3xl font-bold font-headline mb-2'>
+            {t('welcome.title')}
+          </h1>
           <h2 className='text-lg font-headline mb-4 text-muted-foreground'>
-            {t.title}
+            {t('welcome.title')}
           </h2>
           <div className='mb-2'>
-            <div className='text-base mb-1'>{t.guest}</div>
-            <div className='text-base text-muted-foreground'>{t.guest}</div>
+            <div className='text-base mb-1'>{t('welcome.guest')}</div>
+            <div className='text-base text-muted-foreground'>
+              {t('welcome.guest')}
+            </div>
           </div>
           <div className='mb-2'>
-            <span className='text-primary font-semibold block'>{t.signIn}</span>
-            <span className='text-primary font-semibold block'>{t.signIn}</span>
+            <span className='text-primary font-semibold block'>
+              {t('welcome.signIn')}
+            </span>
           </div>
           <div className='flex flex-col sm:flex-row gap-4 justify-center'>
             <Button size='lg' asChild>
@@ -97,7 +87,7 @@ export default function WelcomeCard({ user }: { user: User | null }) {
                 <span role='img' aria-label='unlock' className='mr-2'>
                   🔓
                 </span>
-                {t.unlock}
+                {t('welcome.unlock')}
               </Link>
             </Button>
           </div>
@@ -107,24 +97,23 @@ export default function WelcomeCard({ user }: { user: User | null }) {
       // Not logged-in user
       return (
         <div className='text-center space-y-4'>
-          <h1 className='text-3xl font-bold font-headline mb-2'>{t.title}</h1>
-          <h2 className='text-lg font-headline mb-4 text-muted-foreground'>
-            {t.title}
-          </h2>
+          <h1 className='text-3xl font-bold font-headline mb-2'>
+            {t('welcome.title')}
+          </h1>
           <div className='mb-2'>
-            <div className='text-base mb-1'>{t.descShort}</div>
+            <div className='text-base mb-1'>{t('welcome.desc')}</div>
           </div>
           <div className='mb-2'>
             <span className='block text-sm text-muted-foreground'>
-              {t.forEveryone}
+              {t('welcome.descShort')}
             </span>
           </div>
           <div className='flex flex-col sm:flex-row gap-4 justify-center'>
             <Button size='lg' asChild>
-              <Link href='/login'>{t.getStarted}</Link>
+              <Link href='/login'>{t('welcome.getStarted')}</Link>
             </Button>
             <Button variant='outline' size='lg' asChild>
-              <Link href='/welcome'>{t.learnMore}</Link>
+              <Link href='/welcome'>{t('welcome.learnMore')}</Link>
             </Button>
           </div>
         </div>
