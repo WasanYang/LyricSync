@@ -2,7 +2,7 @@ import '../globals.css';
 import { cn } from '@/lib/utils';
 import { metadata, viewport } from '../metadata';
 import { RootLayoutClient } from '@/components/RootLayoutClient';
-import { IntlProvider, NextIntlClientProvider } from 'next-intl';
+import { NextIntlClientProvider } from 'next-intl';
 
 export { metadata, viewport };
 

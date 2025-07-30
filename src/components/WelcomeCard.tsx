@@ -6,7 +6,7 @@ import { Button } from './ui/button';
 import { User } from 'firebase/auth';
 import { ListMusic, Music, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 
 const WELCOME_CARD_DISMISSED_KEY = 'welcomeCardDismissed';
 
@@ -23,7 +23,6 @@ export default function WelcomeCard({ user }: { user: User | null }) {
     setIsDismissed(true);
     localStorage.setItem(WELCOME_CARD_DISMISSED_KEY, 'true');
   };
-  const language = useLocale();
   const t = useTranslations();
 
   function renderContent() {

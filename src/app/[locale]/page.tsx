@@ -102,7 +102,7 @@ export default function Home() {
 
       try {
         const publicLists = await getPublicSetlists();
-        const recommendedSetlists = user
+        const _recommendedSetlists = user
           ? publicLists.filter((sl) => sl.userId !== user.uid)
           : publicLists;
       } catch (error) {

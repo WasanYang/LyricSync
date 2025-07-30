@@ -72,7 +72,7 @@ function getDb(): Promise<IDBPDatabase<LyricSyncDB>> {
             db.createObjectStore(SONGS_STORE, { keyPath: 'id' });
           }
           if (!db.objectStoreNames.contains(SETLISTS_STORE)) {
-            const setlistStore = db.createObjectStore(SETLISTS_STORE, {
+            const _setlistStore = db.createObjectStore(SETLISTS_STORE, {
               keyPath: 'id',
             });
           }

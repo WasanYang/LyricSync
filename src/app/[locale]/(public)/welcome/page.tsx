@@ -18,6 +18,7 @@ import { useAuth } from '@/context/AuthContext';
 import { PWAPromptCard } from '@/components/PWAInstallButton';
 import SEOHead from '@/components/SEOHead';
 import { pageSEOConfigs } from '@/lib/seo';
+import { useTranslations } from 'next-intl';
 
 function FeatureCard({
   icon: Icon,
@@ -62,6 +63,7 @@ function InstallStep({
 }
 
 export default function WelcomePage() {
+  const t = useTranslations('welcome');
   const router = useRouter();
   const { user } = useAuth();
 
@@ -81,7 +83,7 @@ export default function WelcomePage() {
             className='absolute top-4 right-4 z-10 h-8 w-8'
           >
             <X className='w-5 h-5' />
-            <span className='sr-only'>Close</span>
+            <span className='sr-only'>{t('close')}</span>
           </Button>
         )}
 
@@ -90,44 +92,36 @@ export default function WelcomePage() {
           <section className='text-center mb-10 sm:mb-16'>
             <Music className='w-16 h-16 text-primary mx-auto mb-6' />
             <h1 className='text-4xl sm:text-5xl font-bold font-headline mb-4'>
-              ยินดีต้อนรับสู่ LyricSync
+              {t('title')}
             </h1>
             <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
-              แอปสำหรับซิงค์เนื้อเพลงอัตโนมัติ สร้างเซ็ตลิสต์ แชร์เพลง
-              และใช้งานแบบออฟไลน์ได้ทุกที่ ทุกคน ทุกกลุ่ม
-              ไม่จำกัดแนวเพลงหรือศาสนา
-            </p>
-          </section>
-          {/* ENGLISH */}
-          <section className='text-center mb-16 sm:mb-24'>
-            <h1 className='text-3xl sm:text-4xl font-bold font-headline mb-4'>
-              Welcome to LyricSync
-            </h1>
-            <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
-              Your inclusive companion for synchronized lyrics, setlist
-              creation, sharing, and offline access. For everyone, every group,
-              any genre or faith.
+              {t('welcomeText')}
             </p>
           </section>
 
           <section className='mb-16 sm:mb-24'>
             <h2 className='text-2xl sm:text-3xl font-bold font-headline text-center mb-8 sm:mb-12'>
-              ฟีเจอร์หลัก / Core Features
+              {t('coreFeatures')}
             </h2>
             <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8'>
               <FeatureCard
                 icon={Music}
-                title='เนื้อเพลงซิงค์ / Synced Lyrics'
+                title='เพิ่มเนื้อเพลงใหม่หรือค้นหาเพลงได้ทันที'
                 description='เนื้อเพลงเลื่อนอัตโนมัติตามเวลา ไม่หลงจังหวะ ไม่ตกบรรทัด / Lyrics scroll automatically with timestamps.'
               />
               <FeatureCard
                 icon={ArrowDown}
-                title='ออฟไลน์ / Offline Access'
+                title='สร้างและจัดการเซ็ตลิสต์ในแบบของคุณ'
                 description='บันทึกเพลงและเซ็ตลิสต์ไว้ในเครื่อง ใช้ได้แม้ไม่มีอินเทอร์เน็ต / Save songs and setlists for offline use.'
               />
               <FeatureCard
                 icon={PlusCircle}
-                title='สร้างเซ็ตลิสต์ / Setlist Creator'
+                title='แสดงเนื้อเพลงสดระหว่างเล่นดนตรี'
+                description='สร้างและจัดการเซ็ตลิสต์สำหรับการแสดงหรือซ้อม / Build and organize your own setlists.'
+              />
+              <FeatureCard
+                icon={PlusCircle}
+                title='แชร์เซ็ตลิสต์และเนื้อเพลงกับทีม'
                 description='สร้างและจัดการเซ็ตลิสต์สำหรับการแสดงหรือซ้อม / Build and organize your own setlists.'
               />
             </div>

@@ -11,7 +11,10 @@
     "myLibrary": "My Library",
     "desc": "Organize your favorite songs, craft setlists, and perform with confidence.",
     "descShort": "Combine lyrics, chords, create setlists, and play songs for every occasion",
-    "forEveryone": "For everyone"
+    "forEveryone": "For everyone",
+    "close": "Close",
+    "welcomeText": "An app for adding or finding lyrics, creating and managing setlists, and displaying live lyrics while performing music. Easy to use solo or in a team, catering to all music genres and user groups.",
+    "coreFeatures": "Core Features"
   },
   "login": "Login",
   "logout": "Logout",

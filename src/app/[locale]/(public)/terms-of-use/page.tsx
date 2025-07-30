@@ -74,15 +74,15 @@ export default function TermsOfUse() {
                   prohibited
                 </li>
                 <li>
-                  Sharing setlists/songs in groups must respect content owners'
-                  rights
+                  Sharing setlists/songs in groups must respect content
+                  owners&apos; rights
                 </li>
               </ul>
               <h2 className='text-xl font-semibold mt-8 mb-2'>User Accounts</h2>
               <ul className='list-disc pl-6 space-y-1'>
                 <li>Users must provide accurate and truthful information</li>
                 <li>
-                  Fake accounts or actions violating others' rights are not
+                  Fake accounts or actions violating others&apos; rights are not
                   allowed
                 </li>
                 <li>Do not use the app for spam or illegal activities</li>
@@ -97,7 +97,10 @@ export default function TermsOfUse() {
               <h2 className='text-xl font-semibold mt-8 mb-2'>Contact</h2>
               <p>
                 If you have questions about these terms, please contact
-                esxy26@gmail.com or via LyricSync Facebook Page
+                <a href='mailto:esxy26@gmail.com'>esxy26@gmail.com</a> or via
+                <a href='https://www.facebook.com/LyricSync'>
+                  LyricSync Facebook Page
+                </a>
               </p>
             </>
           )}
