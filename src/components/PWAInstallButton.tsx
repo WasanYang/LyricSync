@@ -4,17 +4,19 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { usePWAInstall } from '@/lib/pwa';
 import { Download, Smartphone, Check } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface PWAInstallButtonProps {
   variant?: 'default' | 'outline' | 'ghost';
   size?: 'sm' | 'default' | 'lg';
   className?: string;
+  t: ReturnType<typeof useTranslations>;
 }
-
 export function PWAInstallButton({
   variant = 'default',
   size = 'default',
   className,
+  t,
 }: PWAInstallButtonProps) {
   const { isInstallable, isInstalled, install } = usePWAInstall();
   const [isInstalling, setIsInstalling] = useState(false);
@@ -36,7 +38,7 @@ export function PWAInstallButton({
     return (
       <Button variant='outline' size={size} className={className} disabled>
         <Check className='w-4 h-4 mr-2' />
-        App Installed
+        {t('appInstalled')}
       </Button>
     );
   }
@@ -56,19 +58,23 @@ export function PWAInstallButton({
       {isInstalling ? (
         <>
           <div className='w-4 h-4 mr-2 animate-spin rounded-full border-2 border-current border-t-transparent' />
-          Installing...
+          {t('installing')}
         </>
       ) : (
         <>
           <Download className='w-4 h-4 mr-2' />
-          Install App
+          {t('installAppButton')}
         </>
       )}
     </Button>
   );
 }
 
-export function PWAPromptCard() {
+export function PWAPromptCard({
+  t,
+}: {
+  t: ReturnType<typeof useTranslations>;
+}) {
   const { isInstallable, isInstalled } = usePWAInstall();
 
   if (isInstalled || !isInstallable) {
@@ -82,13 +88,13 @@ export function PWAPromptCard() {
           <Smartphone className='w-5 h-5 text-primary' />
         </div>
         <div className='flex-1 space-y-1'>
-          <h3 className='font-medium text-foreground'>Install LyricSync</h3>
-          <p className='text-sm text-muted-foreground'>
-            Add to your home screen for quick access and offline use.
-          </p>
+          <h3 className='font-medium text-foreground'>
+            {t('installAppTitle')}
+          </h3>
+          <p className='text-sm text-muted-foreground'>{t('installAppDesc')}</p>
         </div>
       </div>
-      <PWAInstallButton size='sm' className='w-full' />
+      <PWAInstallButton size='sm' className='w-full' t={t} />
     </div>
   );
 }
