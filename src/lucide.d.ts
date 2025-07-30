@@ -56,6 +56,8 @@ declare module 'lucide-react' {
   export const Users: FC<SVGProps<SVGSVGElement>>;
   export const Info: FC<SVGProps<SVGSVGElement>>;
   export const Menu: FC<SVGProps<SVGSVGElement>>;
+  export const Copy: FC<SVGProps<SVGSVGElement>>;
+  export const Heart: FC<SVGProps<SVGSVGElement>>;
 
   // Add other icons you use here to avoid TypeScript errors
   // if they are not directly in the main library type definitions.

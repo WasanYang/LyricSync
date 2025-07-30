@@ -1,4 +1,3 @@
-// src/components/DonateCard.tsx
 'use client';
 
 import { useState } from 'react';
@@ -7,18 +6,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { Copy, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import qrPromtpay from '../../public/promptpay-qr.jpg'; // Adjust the path as needed
+interface DonateCardProps {
+  t: ReturnType<typeof import('next-intl').useTranslations>;
+}
 
-export default function DonateCard() {
+export default function DonateCard({ t }: DonateCardProps) {
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
-  const bankAccountNumber = '123-4-56789-0';
+  const bankAccountNumber = '042-1-63299-5';
 
   const handleCopy = () => {
     navigator.clipboard.writeText(bankAccountNumber).then(() => {
       setCopied(true);
       toast({
-        title: 'คัดลอกเลขบัญชีแล้ว',
-        description: `เลขบัญชี ${bankAccountNumber} ถูกคัดลอกไปยังคลิปบอร์ด`,
+        title: t('copiedTitle'),
+        description: t('copiedDesc', { bankAccountNumber }),
       });
       setTimeout(() => setCopied(false), 2000);
     });
@@ -28,16 +31,16 @@ export default function DonateCard() {
     <Card className='max-w-md mx-auto'>
       <CardHeader>
         <CardTitle className='text-center font-headline'>
-          ช่องทางการสนับสนุน
+          {t('methodsTitle')}
         </CardTitle>
       </CardHeader>
       <CardContent className='space-y-6'>
         <div className='text-center space-y-4'>
-          <h3 className='font-semibold'>พร้อมเพย์ (PromptPay)</h3>
+          <h3 className='font-semibold'>{t('promptpayTitle')}</h3>
           <div className='flex justify-center'>
             <Image
-              src='https://placehold.co/250x250.png?text=PromptPay%5CnQR+Code'
-              alt='PromptPay QR Code'
+              src={qrPromtpay}
+              alt={t('promptpayAlt')}
               width={250}
               height={250}
               className='rounded-lg border'
@@ -46,18 +49,24 @@ export default function DonateCard() {
           </div>
         </div>
         <div className='text-center space-y-4'>
-          <h3 className='font-semibold'>โอนผ่านบัญชีธนาคาร</h3>
+          <h3 className='font-semibold'>{t('bankTitle')}</h3>
           <div className='p-4 bg-muted rounded-lg text-left space-y-2'>
             <div className='flex justify-between items-center'>
-              <span className='text-sm text-muted-foreground'>ธนาคาร:</span>
-              <span className='font-mono'>ธนาคารกสิกรไทย</span>
+              <span className='text-sm text-muted-foreground'>
+                {t('bankLabel')}:
+              </span>
+              <span className='font-mono'>{t('bankName')}</span>
             </div>
             <div className='flex justify-between items-center'>
-              <span className='text-sm text-muted-foreground'>ชื่อบัญชี:</span>
-              <span className='font-mono'>นาย วศิน ยังประภากร</span>
+              <span className='text-sm text-muted-foreground'>
+                {t('accountNameLabel')}:
+              </span>
+              <span className='font-mono'>{t('accountName')}</span>
             </div>
             <div className='flex justify-between items-center'>
-              <span className='text-sm text-muted-foreground'>เลขบัญชี:</span>
+              <span className='text-sm text-muted-foreground'>
+                {t('accountNumberLabel')}:
+              </span>
               <span className='font-mono text-lg font-bold text-primary'>
                 {bankAccountNumber}
               </span>
@@ -69,7 +78,7 @@ export default function DonateCard() {
             ) : (
               <Copy className='mr-2 h-4 w-4' />
             )}
-            {copied ? 'คัดลอกแล้ว' : 'คัดลอกเลขบัญชี'}
+            {copied ? t('copiedButton') : t('copyButton')}
           </Button>
         </div>
       </CardContent>

@@ -1,7 +1,7 @@
-
 'use client';
 
 import Link from 'next/link';
+import { useTranslations, useLocale } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import {
   Menu,
@@ -17,8 +17,8 @@ import {
   UserCircle,
   Database,
   Users,
-  Heart,
 } from 'lucide-react';
+import { Heart as HeartIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -36,14 +36,15 @@ import { useAuth } from '@/context/AuthContext';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import Image from 'next/image';
 
+// label จะถูกแปลใน component
 const navLinks = [
-  { href: '/', label: 'Home', icon: Home },
-  { href: '/search', label: 'Search', icon: Search },
+  { href: '/', key: 'home', icon: Home },
+  { href: '/search', key: 'search', icon: Search },
 ];
 
 const mobileOnlyLinks = [
-  { href: '/setlists', label: 'Setlists', icon: ListMusic },
-  { href: '/library', label: 'Library', icon: Library },
+  { href: '/setlists', key: 'setlists', icon: ListMusic },
+  { href: '/library', key: 'library', icon: Library },
 ];
 
 export default function HamburgerMenu() {
@@ -55,6 +56,8 @@ export default function HamburgerMenu() {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
   const isOnline = useOnlineStatus();
+  const t = useTranslations();
+  const locale = useLocale();
 
   useEffect(() => {
     setMounted(true);
@@ -103,7 +106,7 @@ export default function HamburgerMenu() {
                     )}
                   >
                     <link.icon className='h-5 w-5' />
-                    <span>{link.label}</span>
+                    <span>{t(link.key)}</span>
                   </Link>
                 </SheetClose>
               ))}
@@ -124,7 +127,7 @@ export default function HamburgerMenu() {
                         )}
                       >
                         <link.icon className='h-5 w-5' />
-                        <span>{link.label}</span>
+                        <span>{t(link.key)}</span>
                       </Link>
                     </SheetClose>
                   ))}
@@ -141,7 +144,7 @@ export default function HamburgerMenu() {
                     className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                   >
                     <UserCircle className='h-5 w-5' />
-                    <span>Profile</span>
+                    <span>{t('profile')}</span>
                   </Link>
                 </SheetClose>
                 {isSuperAdmin && (
@@ -156,7 +159,7 @@ export default function HamburgerMenu() {
                         className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                       >
                         <Database className='h-5 w-5' />
-                        <span>Cloud Songs</span>
+                        <span>{t('cloudSongs')}</span>
                       </Link>
                     </SheetClose>
                     <SheetClose asChild>
@@ -165,7 +168,7 @@ export default function HamburgerMenu() {
                         className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                       >
                         <Users className='h-5 w-5' />
-                        <span>User Uploads</span>
+                        <span>{t('userUploads')}</span>
                       </Link>
                     </SheetClose>
                     <SheetClose asChild>
@@ -174,7 +177,7 @@ export default function HamburgerMenu() {
                         className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                       >
                         <ListMusic className='h-5 w-5' />
-                        <span>User Setlists</span>
+                        <span>{t('userSetlists')}</span>
                       </Link>
                     </SheetClose>
                   </>
@@ -186,7 +189,7 @@ export default function HamburgerMenu() {
                     className='flex w-full items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                   >
                     <LogOut className='h-5 w-5' />
-                    <span>Logout</span>
+                    <span>{t('logout')}</span>
                   </button>
                 </SheetClose>
               </>
@@ -199,7 +202,7 @@ export default function HamburgerMenu() {
                     className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                   >
                     <LogIn className='h-5 w-5' />
-                    <span>Login</span>
+                    <span>{t('login')}</span>
                   </Link>
                 </SheetClose>
                 <SheetClose asChild>
@@ -208,7 +211,7 @@ export default function HamburgerMenu() {
                     className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                   >
                     <Info className='h-5 w-5' />
-                    <span>About this App</span>
+                    <span>{t('aboutApp')}</span>
                   </Link>
                 </SheetClose>
               </>
@@ -226,13 +229,13 @@ export default function HamburgerMenu() {
                     : 'text-muted-foreground'
                 )}
               >
-                <Heart className='h-5 w-5' />
-                <span>สนับสนุน</span>
+                <HeartIcon className='h-5 w-5' />
+                <span>{t('donate.title')}</span>
               </Link>
             </SheetClose>
 
             <div className='flex items-center justify-between rounded-md px-3 py-2 text-base font-medium text-muted-foreground'>
-              <span>Theme</span>
+              <span>{t('theme')}</span>
               {mounted && (
                 <Button
                   variant='ghost'
@@ -259,7 +262,7 @@ export default function HamburgerMenu() {
                   <span className='relative inline-flex rounded-full h-3 w-3 bg-gray-400'></span>
                 </span>
               )}
-              <span>{isOnline ? 'Online Mode' : 'Offline Mode'}</span>
+              <span>{isOnline ? t('onlineMode') : t('offlineMode')}</span>
             </div>
           </div>
         </SheetContent>

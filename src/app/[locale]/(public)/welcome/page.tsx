@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Music, Share, PlusCircle, ArrowDown, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -12,6 +11,7 @@ import { pageSEOConfigs } from '@/lib/seo';
 import { useLocale, useTranslations } from 'next-intl';
 import { HowToInstallEN, HowToInstallTH } from './component/HowToInstall';
 import { FeatureCard } from './component/FeatureCard';
+import { usePathname, useRouter } from '@/i18n/navigation';
 
 export default function WelcomePage() {
   const t = useTranslations('welcome');
@@ -23,11 +23,41 @@ export default function WelcomePage() {
   const handleClose = () => {
     router.push('/');
   };
-
+  const pathname = usePathname();
+  const setLanguage = (lang: string) => {
+    // เปลี่ยน path locale
+    router.replace(pathname, { locale: lang });
+  };
   return (
     <>
       <SEOHead config={pageSEOConfigs.welcome()} />
       <div className='bg-background min-h-screen text-foreground relative'>
+        {/* Language Switcher */}
+        <div className='absolute top-4 left-4 z-20 flex gap-2'>
+          <button
+            onClick={() => setLanguage('th')}
+            className={`px-3 py-1 rounded font-medium border transition-colors duration-150 text-sm ${
+              language === 'th'
+                ? 'bg-primary text-white border-primary'
+                : 'bg-card text-foreground border-border hover:bg-primary/10'
+            }`}
+            aria-label='เปลี่ยนเป็นภาษาไทย'
+          >
+            ไทย
+          </button>
+          <button
+            onClick={() => setLanguage('en')}
+            className={`px-3 py-1 rounded font-medium border transition-colors duration-150 text-sm ${
+              language === 'en'
+                ? 'bg-primary text-white border-primary'
+                : 'bg-card text-foreground border-border hover:bg-primary/10'
+            }`}
+            aria-label='Switch to English'
+          >
+            EN
+          </button>
+        </div>
+
         {user && (
           <Button
             variant='ghost'

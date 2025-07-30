@@ -63,13 +63,13 @@ export default function Footer() {
                 {t('contact')}
               </h3>
               <ul className='space-y-3'>
-                <FooterLink href='/donate'>{t('donate')}</FooterLink>
                 <FooterLink
                   href='https://www.facebook.com/LyricSyncApp'
                   target='_blank'
                 >
                   {t('facebookPage')}
                 </FooterLink>
+                <FooterLink href='/donate'>{t('support')}</FooterLink>
               </ul>
             </div>
             <div>

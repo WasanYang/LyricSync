@@ -66,11 +66,7 @@ export default function WelcomeCard({ user }: { user: User | null }) {
           <h1 className='text-3xl font-bold font-headline mb-2'>
             {t('welcome.title')}
           </h1>
-          <h2 className='text-lg font-headline mb-4 text-muted-foreground'>
-            {t('welcome.title')}
-          </h2>
           <div className='mb-2'>
-            <div className='text-base mb-1'>{t('welcome.guest')}</div>
             <div className='text-base text-muted-foreground'>
               {t('welcome.guest')}
             </div>

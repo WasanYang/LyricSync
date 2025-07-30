@@ -1,12 +1,15 @@
-// src/app/(public)/donate/page.tsx
+'use client';
+
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import Footer from '@/components/Footer';
 import SEOHead from '@/components/SEOHead';
 import { pageSEOConfigs } from '@/lib/seo';
 import DonateCard from '@/components/DonateCard';
+import { useTranslations } from 'next-intl';
 
 export default function DonatePage() {
+  const t = useTranslations('donate');
   return (
     <>
       <SEOHead config={pageSEOConfigs.premium()} />
@@ -18,14 +21,13 @@ export default function DonatePage() {
               ❤️
             </div>
             <h1 className='text-4xl sm:text-5xl font-bold font-headline mb-4'>
-              สนับสนุน LyricSync
+              {t('title')}
             </h1>
             <p className='text-lg text-muted-foreground max-w-2xl mx-auto mb-12'>
-              ทุกการสนับสนุนของท่านเป็นกำลังใจสำคัญและช่วยให้เราสามารถพัฒนา
-              LyricSync ให้ดียิ่งขึ้นต่อไปได้ ขอบคุณครับ
+              {t('desc')}
             </p>
           </div>
-          <DonateCard />
+          <DonateCard t={t} />
         </main>
         <Footer />
         <BottomNavBar />
