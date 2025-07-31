@@ -1,4 +1,3 @@
-// src/components/RootLayoutClient.tsx
 'use client';
 
 import { useOnlineStatus } from '@/hooks/use-online-status';

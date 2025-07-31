@@ -9,7 +9,8 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const song: Song | null = await getCloudSongById(params.id);
+  const { id } = await params;
+  const song: Song | null = await getCloudSongById(id);
   if (!song) {
     return buildMetadata(pageSEOConfigs.search());
   }
@@ -22,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   );
 }
 
-export default function SongDetailPage({ params }: Props) {
-  const id = params.id ?? '';
+export default async function SongDetailPage({ params }: Props) {
+  const { id } = (await params) ?? '';
   return <SongDetail songId={id} showPlayerLink={true} isSharePage />;
 }
