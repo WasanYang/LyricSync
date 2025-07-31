@@ -134,25 +134,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Render a loading screen while auth state is being determined
-  if (loading) {
-    return (
-      <div className='flex flex-col h-screen'>
-        <header className='sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-          <div className='flex h-16 items-center justify-between px-4'>
-            <div className='flex items-center'>
-              <Skeleton className='h-6 w-40' />
-            </div>
-            <div className='flex items-center justify-end space-x-2'>
-              <Skeleton className='h-8 w-8 rounded-full' />
-            </div>
-          </div>
-        </header>
-        <main className='flex-grow container mx-auto p-8'>
-          <Skeleton className='h-48 w-full' />
-        </main>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className='flex flex-col h-screen'>
+  //       <header className='sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+  //         <div className='flex h-16 items-center justify-between px-4'>
+  //           <div className='flex items-center'>
+  //             <Skeleton className='h-6 w-40' />
+  //           </div>
+  //           <div className='flex items-center justify-end space-x-2'>
+  //             <Skeleton className='h-8 w-8 rounded-full' />
+  //           </div>
+  //         </div>
+  //       </header>
+  //       <main className='flex-grow container mx-auto p-8'>
+  //         <Skeleton className='h-48 w-full' />
+  //       </main>
+  //     </div>
+  //   );
+  // }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -1,6 +1,19 @@
 import '../globals.css';
 import { NextIntlClientProvider } from 'next-intl';
 import { RootLayoutClient } from '@/components/RootLayoutClient';
+import {
+  generateMetadata as generateSEOMetadata,
+  pageSEOConfigs,
+} from '@/lib/seo';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { locale: string };
+}) {
+  const { locale } = await params;
+  return generateSEOMetadata(pageSEOConfigs.home(locale || 'th'));
+}
 
 export default function RootLayout({
   children,
@@ -11,13 +24,13 @@ export default function RootLayout({
 }>) {
   return (
     <NextIntlClientProvider locale={lang}>
-      <RootLayoutClient>
-        <div className='w-full max-w-[768px] mx-auto flex-grow flex flex-col'>
+      <div className='w-full max-w-[768px] mx-auto flex-grow flex flex-col'>
+        <RootLayoutClient>
           <div className='flex-grow flex flex-col pb-16 md:pb-0'>
             {children}
           </div>
-        </div>
-      </RootLayoutClient>
+        </RootLayoutClient>
+      </div>
     </NextIntlClientProvider>
   );
 }

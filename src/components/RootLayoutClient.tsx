@@ -31,16 +31,16 @@ export function RootLayoutClient({ children }: RootLayoutClientProps) {
   }, [isOnline]);
 
   // Show loading state during hydration
-  if (!mounted) {
-    return (
-      <div className='flex h-screen items-center justify-center'>
-        <div className='text-center'>
-          <div className='h-32 w-32 mx-auto mb-4 animate-spin rounded-full border-4 border-primary border-t-transparent'></div>
-          <p className='text-muted-foreground'>กำลังโหลด...</p>
-        </div>
-      </div>
-    );
-  }
+  // if (!mounted) {
+  //   return (
+  //     <div className='flex h-screen items-center justify-center'>
+  //       <div className='text-center'>
+  //         <div className='h-32 w-32 mx-auto mb-4 animate-spin rounded-full border-4 border-primary border-t-transparent'></div>
+  //         <p className='text-muted-foreground'>กำลังโหลด...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <IOSErrorBoundary>
