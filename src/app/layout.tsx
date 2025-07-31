@@ -1,8 +1,8 @@
 import './globals.css';
 import { cn } from '@/lib/utils';
-import { viewport } from './metadata';
+import { viewport, metadata } from './metadata';
 
-export { viewport };
+export { viewport, metadata };
 
 export default function RootLayout({
   children,
