@@ -36,6 +36,7 @@ import {
 import SongStatusButton from '@/components/SongStatusButton';
 import SEOHead from '@/components/SEOHead';
 import { pageSEOConfigs } from '@/lib/seo';
+import { Cloud } from 'lucide-react';
 
 function SongListItem({
   song,
@@ -115,8 +116,11 @@ function SongListItem({
             >
               {song.title}
             </Link>
-            {(song.source === 'system' || song.source === 'user') && (
+            {song.source === 'user' && (
               <Music className='h-3 w-3 text-muted-foreground flex-shrink-0' />
+            )}{' '}
+            {song.source === 'system' && (
+              <Cloud className='h-3 w-3 text-muted-foreground flex-shrink-0' />
             )}
           </div>
           <p className='text-sm text-muted-foreground truncate'>
