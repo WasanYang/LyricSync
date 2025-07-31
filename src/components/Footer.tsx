@@ -69,18 +69,18 @@ export default function Footer() {
                 >
                   {t('facebookPage')}
                 </FooterLink>
-                <FooterLink href='/donate'>{t('support')}</FooterLink>
+                <FooterLink href='/donate'>{t('supportUs')}</FooterLink>
               </ul>
             </div>
             <div>
               <h3 className='font-semibold text-foreground mb-4'>
-                {t('regal')}
+                {t('policy')}
               </h3>
               <ul className='space-y-3'>
-                <FooterLink href='/terms-of-use'>{t('termsOfUse')}</FooterLink>
                 <FooterLink href='/privacy-policy'>
                   {t('privacyPolicy')}
                 </FooterLink>
+                <FooterLink href='/terms-of-use'>{t('termsOfUse')}</FooterLink>
               </ul>
             </div>
           </div>

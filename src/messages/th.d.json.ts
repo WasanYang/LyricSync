@@ -60,6 +60,7 @@ declare const messages: {
   "popular": "เพลงยอดนิยม",
   "featuredTitle": "ฟีเจอร์",
   "support": "สนับสนุน",
+  "supportUs": "สนับสนุนเรา",
   "donate": {
     "title": "สนับสนุน",
     "desc": "ทุกการสนับสนุนของคุณคือกำลังใจสำคัญและช่วยให้เราพัฒนา LyricSync ให้ดียิ่งขึ้น ขอบคุณมากครับ!",
@@ -80,6 +81,7 @@ declare const messages: {
   "contact": "ติดต่อ",
   "facebookPage": "เพจ Facebook",
   "regal": "ข้อกำหนด",
+  "policy": "นโยบาย",
   "about": "เกี่ยวกับ LyricSync",
   "aboutApp": "เกี่ยวกับแอปนี้",
   "cloudSongs": "เพลงบนคลาวด์",
