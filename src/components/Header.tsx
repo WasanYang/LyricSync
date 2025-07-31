@@ -5,7 +5,6 @@ import { OfflineIndicator } from '@/components/OfflineIndicator';
 import Image from 'next/image';
 import HamburgerMenu from './HamburgerMenu';
 import { useLocale, useTranslations } from 'next-intl';
-
 import { usePathname, useRouter } from '@/i18n/navigation';
 
 export default function Header() {
@@ -14,7 +13,6 @@ export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const setLanguage = (lang: string) => {
-    // เปลี่ยน path locale
     router.replace(pathname, { locale: lang });
   };
   return (

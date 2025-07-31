@@ -42,9 +42,9 @@ export const defaultSEOConfig = {
   siteName: 'LyricSync',
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://lyricsync.app',
   defaultTitle:
-    'LyricSync - เนื้อเพลง คอร์ด สร้างและเล่นเซ็ทลิสต์สำหรับทุกโอกาส',
+    'LyricSync - จัดการเพลง สร้างเซ็ทลิสต์ และสนุกกับการเล่นดนตรีในทุกโอกาส',
   defaultDescription:
-    'รวมเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ และเล่นเพลงโปรดของคุณได้ทุกที่ ทุกโอกาส ใช้งานง่ายสำหรับทุกคน ไม่จำกัดเฉพาะกลุ่มใด',
+    'จัดการเพลง สร้างเซ็ทลิสต์ และสนุกกับการเล่นดนตรีในทุกโอกาส',
   defaultKeywords: [
     'เพลงนมัสการ',
     'worship songs',
@@ -155,99 +155,159 @@ export function generateMetadata(config: SEOConfig): Metadata {
 
 // Page-specific SEO configurations
 export const pageSEOConfigs = {
-  home: (): SEOConfig => ({
-    title: 'LyricSync - เนื้อเพลง คอร์ด สร้างและเล่นเซ็ทลิสต์สำหรับทุกโอกาส',
-    description:
-      'รวมเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ และเล่นเพลงโปรดของคุณได้ทุกที่ ทุกโอกาส ใช้งานง่ายสำหรับทุกคน ไม่จำกัดเฉพาะกลุ่มใด',
-    keywords: [
-      'หน้าแรก',
-      'เนื้อเพลง',
-      'คอร์ด',
-      'เซ็ทลิสต์',
-      'player',
-      'LyricSync',
-    ],
-    openGraph: {
-      type: 'website',
-      title: 'LyricSync - เนื้อเพลง คอร์ด สร้างและเล่นเซ็ทลิสต์สำหรับทุกโอกาส',
-      description:
-        'รวมเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ และเล่นเพลงโปรดของคุณได้ทุกที่ ทุกโอกาส ใช้งานง่ายสำหรับทุกคน',
-      images: [
-        {
-          url: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
-          width: 512,
-          height: 512,
-          alt: 'LyricSync Logo',
-        },
-      ],
-      siteName: defaultSEOConfig.siteName,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: 'LyricSync - เนื้อเพลง คอร์ด สร้างและเล่นเซ็ทลิสต์สำหรับทุกโอกาส',
-      description:
-        'รวมเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ และเล่นเพลงโปรดของคุณได้ทุกที่ ทุกโอกาส ใช้งานง่ายสำหรับทุกคน',
-      images: [`${defaultSEOConfig.siteUrl}/icons/logo-512.png`],
-    },
-    jsonLd: {
-      '@context': 'https://schema.org',
-      '@type': 'WebApplication',
-      name: 'LyricSync',
-      description:
-        'รวมเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ และเล่นเพลงโปรดของคุณได้ทุกที่ ทุกโอกาส ใช้งานง่ายสำหรับทุกคน',
-      url: defaultSEOConfig.siteUrl,
-      logo: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
-      applicationCategory: 'MusicApplication',
-      operatingSystem: 'Web',
-      offers: {
-        '@type': 'Offer',
-        price: '0',
-        priceCurrency: 'THB',
+  home: (locale = 'th'): SEOConfig => {
+    const texts: Record<
+      string,
+      { title: string; description: string; keywords: string[]; ogAlt: string }
+    > = {
+      th: {
+        title:
+          'LyricSync - จัดการเพลง สร้างเซ็ทลิสต์ และสนุกกับการเล่นดนตรีในทุกโอกาส',
+        description:
+          'จัดการเพลง สร้างเซ็ทลิสต์ และสนุกกับการเล่นดนตรีในทุกโอกาส',
+        keywords: [
+          'หน้าแรก',
+          'เนื้อเพลง',
+          'คอร์ด',
+          'เซ็ทลิสต์',
+          'player',
+          'LyricSync',
+        ],
+        ogAlt: 'LyricSync Logo',
       },
-    },
-  }),
-
-  welcome: (): SEOConfig => ({
-    title: 'LyricSync - ค้นหาเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ แชร์เพลงง่ายๆ',
-    description:
-      'แอปรวมเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ แชร์เพลง เล่นอัตโนมัติ ใช้งานฟรี รองรับทุกอุปกรณ์ เหมาะกับนักดนตรีและทุกคนที่รักเสียงเพลง เริ่มต้นใช้งานฟรีทันที!',
-    keywords: [
-      'เนื้อเพลงใหม่',
-      'คอร์ดเพลงฮิต',
-      'แอพเพลง',
-      'แชร์เพลง',
-      'auto-scroll lyrics',
-      'PWA เพลง',
-      'setlist creator',
-      'offline lyrics',
-      'LyricSync',
-      'player',
-      'ฟีเจอร์',
-      'เริ่มต้น',
-    ],
-    openGraph: {
-      type: 'website',
-      title: 'LyricSync - ค้นหาเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ แชร์เพลงง่ายๆ',
-      description:
-        'แอปรวมเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ แชร์เพลง เล่นอัตโนมัติ ใช้งานฟรี รองรับทุกอุปกรณ์ เหมาะกับนักดนตรีและทุกคนที่รักเสียงเพลง',
-      images: [
-        {
-          url: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
-          width: 512,
-          height: 512,
-          alt: 'โลโก้ LyricSync - แอปรวมเนื้อเพลงและคอร์ด',
+      en: {
+        title:
+          'LyricSync - Organize songs, create setlists, and enjoy playing music for every occasion',
+        description:
+          'Organize songs, create setlists, and enjoy playing music for every occasion',
+        keywords: [
+          'home',
+          'lyrics',
+          'chords',
+          'setlist',
+          'player',
+          'LyricSync',
+        ],
+        ogAlt: 'LyricSync Logo',
+      },
+    };
+    const t = texts[locale] || texts.th;
+    return {
+      title: t.title,
+      description: t.description,
+      keywords: t.keywords,
+      openGraph: {
+        type: 'website',
+        title: t.title,
+        description: t.description,
+        images: [
+          {
+            url: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
+            width: 512,
+            height: 512,
+            alt: t.ogAlt,
+          },
+        ],
+        siteName: defaultSEOConfig.siteName,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: t.title,
+        description: t.description,
+        images: [`${defaultSEOConfig.siteUrl}/icons/logo-512.png`],
+      },
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@type': 'WebApplication',
+        name: 'LyricSync',
+        description: t.description,
+        url: defaultSEOConfig.siteUrl,
+        logo: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
+        applicationCategory: 'MusicApplication',
+        operatingSystem: 'Web',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'THB',
         },
-      ],
-      siteName: defaultSEOConfig.siteName,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: 'LyricSync - ค้นหาเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ แชร์เพลงง่ายๆ',
-      description:
-        'แอปรวมเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ แชร์เพลง เล่นอัตโนมัติ ใช้งานฟรี รองรับทุกอุปกรณ์ เหมาะกับนักดนตรีและทุกคนที่รักเสียงเพลง',
-      images: [`${defaultSEOConfig.siteUrl}/icons/logo-512.png`],
-    },
-  }),
+      },
+    };
+  },
+
+  welcome: (locale = 'th'): SEOConfig => {
+    const texts: Record<
+      string,
+      { title: string; description: string; keywords: string[]; ogAlt: string }
+    > = {
+      th: {
+        title: 'LyricSync - ค้นหาเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ แชร์เพลงง่ายๆ',
+        description:
+          'จัดการเพลง สร้างเซ็ทลิสต์ และสนุกกับการเล่นดนตรีในทุกโอกาส ใช้งานฟรี รองรับทุกอุปกรณ์ เหมาะกับนักดนตรีและทุกคนที่รักเสียงเพลง เริ่มต้นใช้งานฟรีทันที!',
+        keywords: [
+          'เนื้อเพลงใหม่',
+          'คอร์ดเพลงฮิต',
+          'แอพเพลง',
+          'แชร์เพลง',
+          'auto-scroll lyrics',
+          'PWA เพลง',
+          'setlist creator',
+          'offline lyrics',
+          'LyricSync',
+          'player',
+          'ฟีเจอร์',
+          'เริ่มต้น',
+        ],
+        ogAlt: 'โลโก้ LyricSync - แอปรวมเนื้อเพลงและคอร์ด',
+      },
+      en: {
+        title:
+          'LyricSync - Find lyrics, chords, create setlists, and share music easily',
+        description:
+          'Organize songs, create setlists, and enjoy playing music for every occasion. Free, cross-device, perfect for musicians and music lovers. Start for free now!',
+        keywords: [
+          'new lyrics',
+          'hit chords',
+          'music app',
+          'share music',
+          'auto-scroll lyrics',
+          'PWA music',
+          'setlist creator',
+          'offline lyrics',
+          'LyricSync',
+          'player',
+          'features',
+          'get started',
+        ],
+        ogAlt: 'LyricSync - Lyrics & Chords App Logo',
+      },
+    };
+    const t = texts[locale] || texts.th;
+    return {
+      title: t.title,
+      description: t.description,
+      keywords: t.keywords,
+      openGraph: {
+        type: 'website',
+        title: t.title,
+        description: t.description,
+        images: [
+          {
+            url: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
+            width: 512,
+            height: 512,
+            alt: t.ogAlt,
+          },
+        ],
+        siteName: defaultSEOConfig.siteName,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: t.title,
+        description: t.description,
+        images: [`${defaultSEOConfig.siteUrl}/icons/logo-512.png`],
+      },
+    };
+  },
 
   songDetails: (song: {
     title: string;
@@ -261,7 +321,7 @@ export const pageSEOConfigs = {
     keywords: [
       song.title,
       song.artist,
-      'เนื้อเพลง',
+      'เล่นดนตรี',
       'คอร์ด',
       'lyrics',
       'chords',
