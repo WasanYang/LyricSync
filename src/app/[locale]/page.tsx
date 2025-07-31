@@ -1,131 +1,64 @@
-'use client';
+import { getTranslations } from 'next-intl/server';
+import { HomeClientComponent } from '@/components/page/HomeClientComponent';
 
-import {
-  getSetlists,
-  type Setlist,
-  getAllCloudSongs,
-  getPublicSetlists,
-} from '@/lib/db';
-import type { Song } from '@/lib/songs';
-import Header from '@/components/Header';
-import BottomNavBar from '@/components/BottomNavBar';
-import { useAuth } from '@/context/AuthContext';
-import { useEffect, useState, useMemo } from 'react';
-import Footer from '@/components/Footer';
-import SEOHead from '@/components/SEOHead';
-import { pageSEOConfigs } from '@/lib/seo';
-import RecommendedSongs from '@/components/RecommendedSongs';
-import WelcomeCard from '@/components/WelcomeCard';
-import { RecentSetlists } from '@/components/RecentSetlists';
-import { HomeLoadingSkeleton } from '@/components/HomeLoadingSkeleton';
+// const HomeClientComponent = dynamic(
+//   () =>
+//     import('@/components/page/HomeClientComponent').then(
+//       (mod) => mod.HomeClientComponent
+//     ),
+//   { ssr: false }
+// );
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { lang: string };
+}) {
+  const lang = params.lang;
+  const t = await getTranslations({ locale: lang, namespace: 'welcome' });
+  const title = t('title');
+  const description = t('descShort');
+  return {
+    title,
+    description,
+    keywords: [title, 'LyricSync'],
+    openGraph: {
+      title,
+      description,
+      images: [
+        {
+          url: 'https://lyricsync.app/icons/logo-512.png',
+          width: 512,
+          height: 512,
+          alt: 'LyricSync Logo',
+        },
+      ],
+      siteName: 'LyricSync',
+      locale: lang === 'en' ? 'en_US' : 'th_TH',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/icons/logo-512.png'],
+      creator: '@lyricsync',
+      site: '@lyricsync',
+    },
+    alternates: {
+      canonical:
+        lang === 'en' ? 'https://lyricsync.app/en' : 'https://lyricsync.app',
+      languages: {
+        'th-TH': 'https://lyricsync.app',
+        'en-US': 'https://lyricsync.app/en',
+      },
+    },
+  };
+}
 
 export default function Home() {
-  const { user, loading } = useAuth();
-  const [recentSetlists, setRecentSetlists] = useState<Setlist[]>([]);
-  const [systemSongs, setSystemSongs] = useState<Song[]>([]);
-  const [isLoadingSetlists, setIsLoadingSetlists] = useState(true);
-  const [isLoadingSongs, setIsLoadingSongs] = useState(true);
-
-  const recentReleases = useMemo(
-    () =>
-      [...systemSongs]
-        .sort(
-          (a, b) =>
-            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        )
-        .slice(0, 5),
-    [systemSongs]
-  );
-  const popularHits = useMemo(
-    () => [...systemSongs].sort(() => 0.5 - Math.random()).slice(0, 5),
-    [systemSongs]
-  ); // Mock popularity with random sort for now
-
-  useEffect(() => {
-    async function loadData() {
-      // Load data regardless of login status
-      setIsLoadingSetlists(true);
-      setIsLoadingSongs(true);
-
-      try {
-        // Always load system songs (public data)
-        const allSongs = await getAllCloudSongs();
-        const filteredSystemSongs = allSongs.filter(
-          (song) => song.source === 'system'
-        );
-        setSystemSongs(filteredSystemSongs);
-      } catch (error) {
-        console.error('Failed to load system songs', error);
-      } finally {
-        setIsLoadingSongs(false);
-      }
-
-      try {
-        const publicLists = await getPublicSetlists();
-        const _recommendedSetlists = user
-          ? publicLists.filter((sl) => sl.userId !== user.uid)
-          : publicLists;
-      } catch (error) {
-        console.error('Failed to load public setlists', error);
-      } finally {
-      }
-
-      if (user && !user.isAnonymous) {
-        try {
-          const allSetlists = await getSetlists(user.uid);
-          const sorted = allSetlists.sort(
-            (a, b) =>
-              (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt)
-          );
-          setRecentSetlists(sorted.slice(0, 3));
-        } catch (error) {
-          console.error('Failed to load recent setlists', error);
-        }
-      }
-      setIsLoadingSetlists(false);
-    }
-
-    loadData();
-  }, [user]);
-
-  if (loading) {
-    return <HomeLoadingSkeleton />;
-  }
-
-  const featuredSongs = systemSongs.slice(0, 5);
-
   return (
     <>
-      <SEOHead config={pageSEOConfigs.home()} />
-      <div className='flex-grow flex flex-col'>
-        <Header />
-        <main className='flex-grow container mx-auto px-4 py-8 space-y-12 pb-24 md:pb-12'>
-          <WelcomeCard user={user} />
-
-          {/* Recent Setlists - only for logged in users */}
-          <RecentSetlists
-            user={user}
-            recentSetlists={recentSetlists}
-            isLoadingSetlists={isLoadingSetlists}
-          />
-
-          {/* Recommended Setlists */}
-          {/* <RecommendedSetlists
-            publicSetlists={publicSetlists}
-            isLoadingPublicSetlists={isLoadingPublicSetlists}
-          /> */}
-
-          {/* Recommended Songs */}
-          <RecommendedSongs
-            featuredSongs={featuredSongs}
-            popularHits={popularHits}
-            recentReleases={recentReleases}
-            isLoadingSongs={isLoadingSongs}
-          />
-        </main>
-        <Footer />
-        <BottomNavBar />
-      </div>
+      <HomeClientComponent />
     </>
   );
 }

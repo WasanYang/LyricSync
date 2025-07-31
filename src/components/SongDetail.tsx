@@ -28,6 +28,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
+import { notFound } from 'next/navigation';
 
 function LoadingSkeleton() {
   return (
@@ -113,6 +114,7 @@ export function SongDetail({
         if (fetchedSong) {
           setSong(fetchedSong);
         } else {
+          notFound();
           setError(
             isOnline
               ? 'Song not found.'
@@ -120,6 +122,8 @@ export function SongDetail({
           );
         }
       } catch (err) {
+        notFound();
+
         console.error('Failed to load song', err);
         setError(
           isOnline ? 'Could not load the song.' : 'Song not available offline.'
@@ -162,28 +166,7 @@ export function SongDetail({
   }
 
   if (error || !song) {
-    return (
-      <div className='container mx-auto px-4 py-8 pb-24 md:pb-8'>
-        <div className='max-w-2xl mx-auto text-center space-y-4'>
-          {!isOnline && (
-            <Alert className='border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200'>
-              <Music className='h-4 w-4' />
-              <AlertDescription>
-                You&apos;re currently offline. This song may not be available
-                without an internet connection.
-              </AlertDescription>
-            </Alert>
-          )}
-          <div className='text-muted-foreground'>
-            <Music className='w-16 h-16 mx-auto mb-4' />
-            <p className='text-lg'>{error || 'Song not found'}</p>
-            <Button asChild className='mt-4'>
-              <Link href='/library'>Back to Library</Link>
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+    return notFound();
   }
 
   return (

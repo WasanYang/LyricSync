@@ -3,5 +3,15 @@
         "IDBP",
         "setlist",
         "SETLISTS"
-    ]
+    ],
+    "eslint.enable": true,
+    "eslint.validate": [
+        "typescript",
+        "typescriptreact",
+        "javascript",
+        "javascriptreact"
+    ],
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    }
 }

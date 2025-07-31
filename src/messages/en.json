@@ -92,5 +92,10 @@
   "mySetlists": "My Setlists",
   "addAndEditSongs": "Add/Edit Songs",
   "longDesc": "LyricSync combines lyrics, chords, setlists, and your favorite songs for every occasion. Supports auto-scroll, player, and song sharing for everyone.",
-  "home": "Home"
+  "home": "Home",
+  "notFound": {
+    "title": "Page Not Found",
+    "desc": "Sorry, we couldn’t find the page you’re looking for.",
+    "backHome": "Go back home"
+  }
 }
