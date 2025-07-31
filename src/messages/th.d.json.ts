@@ -91,7 +91,7 @@ declare const messages: {
   "offlineMode": "โหมดออฟไลน์",
   "termsOfUse": "ข้อตกลงการใช้งาน",
   "privacyPolicy": "นโยบายความเป็นส่วนตัว",
-  "searchAndSetlists": "ค้นหาเพลง/เซ็ทลิสต์",
+  "searchAndSetlists": "ค้นหาเพลง",
   "mySetlists": "เซ็ตลิสต์ของฉัน",
   "addAndEditSongs": "เพิ่ม/แก้ไขเพลง",
   "longDesc": "LyricSync จัดการเพลง สร้างเซ็ทลิสต์ และสนุกกับการเล่นดนตรีในทุกโอกาส รองรับ auto-scroll, player, และแชร์เพลงสำหรับทุกคน",

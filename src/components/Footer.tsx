@@ -54,7 +54,7 @@ export default function Footer() {
                 <FooterLink href='/search'>{t('searchAndSetlists')}</FooterLink>
                 <FooterLink href='/setlists'>{t('mySetlists')}</FooterLink>
                 <FooterLink href='/song-editor'>
-                  {t('addAndEditSongs')}
+                  {t('welcome.myLibrary')}
                 </FooterLink>
               </ul>
             </div>
