@@ -3,6 +3,7 @@ import { getCloudSongById } from '@/lib/db';
 import { generateMetadata as buildMetadata, pageSEOConfigs } from '@/lib/seo';
 import type { Metadata } from 'next';
 import type { Song } from '@/lib/songs';
+import Head from 'next/head';
 
 type Props = {
   params: { id: string; locale?: string };
@@ -66,10 +67,12 @@ export default async function SongDetailPage({ params }: Props) {
 
   return (
     <>
-      <script
-        type='application/ld+json'
-        dangerouslySetInnerHTML={{ __html: jsonLd }}
-      />
+      <Head>
+        <script
+          type='application/ld+json'
+          dangerouslySetInnerHTML={{ __html: jsonLd }}
+        />
+      </Head>
       <SongDetail songId={id} showPlayerLink={true} isSharePage />
     </>
   );
