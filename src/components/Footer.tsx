@@ -34,7 +34,7 @@ export default function Footer() {
           <div className='lg:col-span-2'>
             <Link href='/' className='flex items-center space-x-2 mb-4'>
               <Image
-                src='/icons/logo-192.png'
+                src='/icons/logo-192.webp'
                 alt='LyricSync'
                 width={32}
                 height={32}

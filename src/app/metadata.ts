@@ -23,14 +23,14 @@ export const metadata: Metadata = {
 
     // Windows Tiles
     'msapplication-TileColor': '#3AAFA9',
-    'msapplication-TileImage': '/icons/logo-144.png',
+    'msapplication-TileImage': '/icons/logo-144.webp',
 
     // Additional PWA
     'format-detection': 'telephone=no',
   },
   icons: {
-    icon: '/icons/logo.png',
-    apple: '/icons/logo-180.png',
+    icon: '/icons/logo.webp',
+    apple: '/icons/logo-180.webp',
   },
 };
 
@@ -46,7 +46,23 @@ export const viewport: Viewport = {
 
 // Dynamic metadata generators for different page types
 export const generatePageMetadata = {
-  song: (song: Song) => generateMetadata(pageSEOConfigs.songDetails(song)),
+  song: (song: Song) =>
+    generateMetadata(
+      pageSEOConfigs.songDetails({
+        id: song.id,
+        title: song.title,
+        artist: song.artist,
+        originalKey: song.originalKey,
+        lyrics: Array.isArray(song.lyrics)
+          ? song.lyrics
+              .map((l) => l.text)
+              .join('\n')
+              .replace(/\[[^\]]+\]|\([^\)]*\)/g, '')
+          : typeof song.lyrics === 'string'
+          ? (song.lyrics as string).replace(/\[[^\]]+\]|\([^\)]*\)/g, '')
+          : '',
+      })
+    ),
 
   setlist: (setlist: {
     title: string;

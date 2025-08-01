@@ -77,7 +77,7 @@ export default function HamburgerMenu() {
             <SheetTitle className='sr-only'>Main Menu</SheetTitle>
             <Link href='/' className='flex items-center space-x-2'>
               <Image
-                src='/logo/logo.png'
+                src='/logo/logo.webp'
                 alt='LyricSync'
                 width={24}
                 height={24}

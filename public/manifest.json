@@ -17,7 +17,7 @@
       "url": "/library",
       "icons": [
         {
-          "src": "/icons/logo-192.png",
+          "src": "/icons/logo-192.webp",
           "sizes": "192x192",
           "type": "image/png",
           "purpose": "any maskable"
@@ -29,7 +29,7 @@
       "url": "/setlists",
       "icons": [
         {
-          "src": "/icons/logo-192.png",
+          "src": "/icons/logo-192.webp",
           "sizes": "192x192",
           "type": "image/png",
           "purpose": "any maskable"
@@ -41,7 +41,7 @@
       "url": "/song-editor",
       "icons": [
         {
-          "src": "/icons/logo-192.png",
+          "src": "/icons/logo-192.webp",
           "sizes": "192x192",
           "type": "image/png",
           "purpose": "any maskable"
@@ -51,49 +51,49 @@
   ],
   "icons": [
     {
-      "src": "/icons/logo-72.png",
+      "src": "/icons/logo-72.webp",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/logo-96.png",
+      "src": "/icons/logo-96.webp",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/logo-128.png",
+      "src": "/icons/logo-128.webp",
       "sizes": "128x128",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/logo-144.png",
+      "src": "/icons/logo-144.webp",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/logo-152.png",
+      "src": "/icons/logo-152.webp",
       "sizes": "152x152",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/logo-192.png",
+      "src": "/icons/logo-192.webp",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/logo-384.png",
+      "src": "/icons/logo-384.webp",
       "sizes": "384x384",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/logo-512.png",
+      "src": "/icons/logo-512.webp",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

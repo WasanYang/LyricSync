@@ -84,7 +84,7 @@ export default function SEOHead({ config, structuredData }: SEOHeadProps) {
       {/* Facebook recommended og:image (absolute URL, 1200x630px) */}
       <meta
         property='og:image'
-        content='https://lyricsync.app/icons/logo-1200x630.png'
+        content='https://lyricsync.app/icons/logo-1200x630.webp'
       />
       <meta property='og:image:width' content='1200' />
       <meta property='og:image:height' content='630' />

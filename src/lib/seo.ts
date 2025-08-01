@@ -61,8 +61,8 @@ export const defaultSEOConfig = {
   ],
   twitterHandle: '@lyricsync',
   locale: 'th_TH',
-  defaultImage: '/icons/logo-512.png',
-  logo: '/icons/logo-512.png',
+  defaultImage: '/icons/logo-512.webp',
+  logo: '/icons/logo-512.webp',
 };
 
 export function generateMetadata(config: SEOConfig): Metadata {
@@ -202,7 +202,7 @@ export const pageSEOConfigs = {
         description: t.description,
         images: [
           {
-            url: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
+            url: `${defaultSEOConfig.siteUrl}/icons/logo-512.webp`,
             width: 512,
             height: 512,
             alt: t.ogAlt,
@@ -214,7 +214,7 @@ export const pageSEOConfigs = {
         card: 'summary_large_image',
         title: t.title,
         description: t.description,
-        images: [`${defaultSEOConfig.siteUrl}/icons/logo-512.png`],
+        images: [`${defaultSEOConfig.siteUrl}/icons/logo-512.webp`],
       },
       jsonLd: {
         '@context': 'https://schema.org',
@@ -222,7 +222,7 @@ export const pageSEOConfigs = {
         name: 'LyricSync',
         description: t.description,
         url: defaultSEOConfig.siteUrl,
-        logo: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
+        logo: `${defaultSEOConfig.siteUrl}/icons/logo-512.webp`,
         applicationCategory: 'MusicApplication',
         operatingSystem: 'Web',
         offers: {
@@ -292,7 +292,7 @@ export const pageSEOConfigs = {
         description: t.description,
         images: [
           {
-            url: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
+            url: `${defaultSEOConfig.siteUrl}/icons/logo-512.webp`,
             width: 512,
             height: 512,
             alt: t.ogAlt,
@@ -304,7 +304,7 @@ export const pageSEOConfigs = {
         card: 'summary_large_image',
         title: t.title,
         description: t.description,
-        images: [`${defaultSEOConfig.siteUrl}/icons/logo-512.png`],
+        images: [`${defaultSEOConfig.siteUrl}/icons/logo-512.webp`],
       },
     };
   },
@@ -357,7 +357,7 @@ export const pageSEOConfigs = {
         description: t.description,
         images: [
           {
-            url: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
+            url: `${defaultSEOConfig.siteUrl}/icons/logo-512.webp`,
             width: 512,
             height: 512,
             alt: t.ogAlt,
@@ -370,7 +370,7 @@ export const pageSEOConfigs = {
         card: 'summary_large_image',
         title: `${song.title} - ${song.artist}`,
         description: t.description,
-        images: [`${defaultSEOConfig.siteUrl}/icons/logo-512.png`],
+        images: [`${defaultSEOConfig.siteUrl}/icons/logo-512.webp`],
       },
       alternates: {
         canonical: `${defaultSEOConfig.siteUrl}/song/${song.id}`,

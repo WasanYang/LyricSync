@@ -51,7 +51,7 @@ export default function BottomNavBar() {
             >
               {link.icon === 'logo' ? (
                 <Image
-                  src='/logo/logo.png'
+                  src='/logo/logo.webp'
                   alt='Library'
                   width={24}
                   height={24}
@@ -65,6 +65,7 @@ export default function BottomNavBar() {
                     'h-6 w-6',
                     isActive ? 'text-primary' : 'text-muted-foreground'
                   )}
+                  isActive={isActive}
                 />
               )}
               <span>{link.label}</span>

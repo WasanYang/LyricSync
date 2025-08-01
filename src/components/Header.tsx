@@ -22,7 +22,7 @@ export default function Header() {
         <div className='flex items-center'>
           <Link href='/' className='flex items-center space-x-2'>
             <Image
-              src='/logo/logo.png'
+              src='/logo/logo.webp'
               alt='LyricSync'
               width={24}
               height={24}
