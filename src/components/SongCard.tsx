@@ -9,9 +9,10 @@ import SongStatusButton from './SongStatusButton';
 
 interface SongCardProps {
   song: Song;
+  idx?: number;
 }
 
-export default function SongCard({ song }: SongCardProps) {
+export default function SongCard({ song, idx }: SongCardProps) {
   // This stops the click from propagating to the parent Link component,
   // ensuring that clicking the button only performs its action (e.g., download)
   // without navigating to the song's lyric page.
@@ -28,6 +29,8 @@ export default function SongCard({ song }: SongCardProps) {
           width={300}
           height={300}
           className='h-full w-full object-cover transition-transform duration-300 group-hover:scale-105'
+          priority={(idx ?? 0) <= 5}
+          fetchPriority={(idx ?? 0) <= 5 ? 'high' : 'auto'}
         />
       </div>
 

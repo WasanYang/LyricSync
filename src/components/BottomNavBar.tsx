@@ -60,12 +60,11 @@ export default function BottomNavBar() {
               ) : link.isCustom ? (
                 <IconComponent className='h-6 w-6' isActive={isActive} />
               ) : (
-                <IconComponent
+                <ListMusic
                   className={cn(
                     'h-6 w-6',
                     isActive ? 'text-primary' : 'text-muted-foreground'
                   )}
-                  isActive={isActive}
                 />
               )}
               <span>{link.label}</span>

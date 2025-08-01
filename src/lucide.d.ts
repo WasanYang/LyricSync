@@ -2,7 +2,8 @@
 declare module 'lucide-react' {
   import { FC, SVGProps } from 'react';
 
-  export const ArrowUpCircle: FC<SVGProps<SVGSVGElement>>;
+  export const ArrowDownCircle: FC<SVGProps<SVGSVGElement>>;
+  export const PanelLeft: FC<SVGProps<SVGSVGElement>>;
   export const Move: FC<SVGProps<SVGSVGElement>>;
   export const X: FC<SVGProps<SVGSVGElement>>;
   export const Minus: FC<SVGProps<SVGSVGElement>>;
@@ -59,6 +60,8 @@ declare module 'lucide-react' {
   export const Copy: FC<SVGProps<SVGSVGElement>>;
   export const Heart: FC<SVGProps<SVGSVGElement>>;
   export const Cloud: FC<SVGProps<SVGSVGElement>>;
+  export const ChevronLeft: FC<SVGProps<SVGSVGElement>>;
+  export const MoreHorizontal: FC<SVGProps<SVGSVGElement>>;
 
   // Add other icons you use here to avoid TypeScript errors
   // if they are not directly in the main library type definitions.
