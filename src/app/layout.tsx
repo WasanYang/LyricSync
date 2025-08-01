@@ -4,15 +4,16 @@ import { viewport, metadata } from './metadata';
 
 export { viewport, metadata };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-  params: { lang },
+  params,
 }: Readonly<{
   children: React.ReactNode;
-  params: { lang: string };
+  params: { locale: string };
 }>) {
+  const { locale = 'th' } = await params;
   return (
-    <html lang={lang} suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body
         className={cn(
           'font-body antialiased min-h-screen flex flex-col bg-background'

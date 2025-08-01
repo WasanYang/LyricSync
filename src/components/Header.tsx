@@ -1,11 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { OfflineIndicator } from '@/components/OfflineIndicator';
 import Image from 'next/image';
-import HamburgerMenu from './HamburgerMenu';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n/navigation';
+import dynamic from 'next/dynamic';
+
+const HamburgerMenu = dynamic(() => import('./HamburgerMenu'), {
+  ssr: false,
+});
+
+const OfflineIndicator = dynamic(
+  () => import('./OfflineIndicator').then((mod) => mod.OfflineIndicator),
+  {
+    ssr: false,
+  }
+);
 
 export default function Header() {
   const t = useTranslations();
@@ -45,7 +55,7 @@ export default function Header() {
               className={`px-2 py-1 rounded text-xs font-semibold transition-colors ${
                 language === 'th'
                   ? 'bg-primary text-white'
-                  : 'bg-muted text-primary'
+                  : 'bg-muted text-black'
               }`}
               onClick={() => setLanguage('th')}
               aria-label='เปลี่ยนเป็นภาษาไทย'
@@ -57,7 +67,7 @@ export default function Header() {
               className={`px-2 py-1 rounded text-xs font-semibold transition-colors ${
                 language === 'en'
                   ? 'bg-primary text-white'
-                  : 'bg-muted text-primary'
+                  : 'bg-muted text-black'
               }`}
               onClick={() => setLanguage('en')}
               aria-label='Switch to English'

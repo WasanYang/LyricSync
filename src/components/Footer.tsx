@@ -35,7 +35,7 @@ export default function Footer() {
             <Link href='/' className='flex items-center space-x-2 mb-4'>
               <Image
                 src='/icons/logo-192.webp'
-                alt='LyricSync'
+                alt='Logo'
                 width={32}
                 height={32}
               />

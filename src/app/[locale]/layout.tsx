@@ -5,6 +5,7 @@ import {
   generateMetadata as generateSEOMetadata,
   pageSEOConfigs,
 } from '@/lib/seo';
+import { cn } from '@/lib/utils';
 
 export async function generateMetadata({
   params,
@@ -15,15 +16,16 @@ export async function generateMetadata({
   return generateSEOMetadata(pageSEOConfigs.home(locale || 'th'));
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
-  params: { lang },
+  params,
 }: Readonly<{
   children: React.ReactNode;
-  params: { lang: string };
+  params: { locale: string };
 }>) {
+  const { locale } = await params;
   return (
-    <NextIntlClientProvider locale={lang}>
+    <NextIntlClientProvider locale={locale}>
       <div className='w-full max-w-[768px] mx-auto flex-grow flex flex-col'>
         <RootLayoutClient>
           <div className='flex-grow flex flex-col pb-16 md:pb-0'>

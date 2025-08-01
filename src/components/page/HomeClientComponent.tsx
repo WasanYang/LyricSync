@@ -8,14 +8,27 @@ import {
 } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import Header from '@/components/Header';
-import BottomNavBar from '@/components/BottomNavBar';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState, useMemo } from 'react';
 import Footer from '@/components/Footer';
 import RecommendedSongs from '@/components/RecommendedSongs';
 import WelcomeCard from '@/components/WelcomeCard';
-import { RecentSetlists } from '@/components/RecentSetlists';
 import { HomeLoadingSkeleton } from '@/components/HomeLoadingSkeleton';
+import dynamic from 'next/dynamic';
+
+const RecentSetlists = dynamic(
+  () => import('@/components/RecentSetlists').then((mod) => mod.RecentSetlists),
+  {
+    ssr: false,
+  }
+);
+
+const BottomNavBar = dynamic(
+  () => import('@/components/BottomNavBar').then((mod) => mod.default),
+  {
+    ssr: false,
+  }
+);
 
 function HomeClientComponent() {
   const { user, loading } = useAuth();

@@ -1,4 +1,3 @@
-// src/app/not-found.tsx
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -7,8 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
-// import { usePathname } from '@/i18n/navigation';
-
+import './globals.css';
 export default function NotFound() {
   const pathname = usePathname();
   // Detect locale from path
