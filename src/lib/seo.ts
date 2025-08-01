@@ -42,9 +42,9 @@ export const defaultSEOConfig = {
   siteName: 'LyricSync',
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://lyricsync.app',
   defaultTitle:
-    'LyricSync - จัดการเพลง สร้างเซ็ทลิสต์ และสนุกกับการเล่นดนตรีในทุกโอกาส',
+    'LyricSync - เรียบเรียงเพลง สร้างเซ็ทลิสต์ และสนุกกับการเล่นดนตรีในทุกโอกาส',
   defaultDescription:
-    'จัดการเพลง สร้างเซ็ทลิสต์ และสนุกกับการเล่นดนตรีในทุกโอกาส',
+    'เรียบเรียงเพลง สร้างเซ็ทลิสต์ และสนุกกับการเล่นดนตรีในทุกโอกาส',
   defaultKeywords: [
     'เพลงนมัสการ',
     'worship songs',
@@ -162,9 +162,9 @@ export const pageSEOConfigs = {
     > = {
       th: {
         title:
-          'LyricSync - จัดการเพลง สร้างเซ็ทลิสต์ และสนุกกับการเล่นดนตรีในทุกโอกาส',
+          'LyricSync - เรียบเรียงเพลง สร้างเซ็ทลิสต์ และสนุกกับการเล่นดนตรีในทุกโอกาส',
         description:
-          'จัดการเพลง สร้างเซ็ทลิสต์ และสนุกกับการเล่นดนตรีในทุกโอกาส',
+          'เรียบเรียงเพลง สร้างเซ็ทลิสต์ และสนุกกับการเล่นดนตรีในทุกโอกาส',
         keywords: [
           'หน้าแรก',
           'เนื้อเพลง',
@@ -242,7 +242,7 @@ export const pageSEOConfigs = {
       th: {
         title: 'LyricSync - ค้นหาเนื้อเพลง คอร์ด สร้างเซ็ทลิสต์ แชร์เพลงง่ายๆ',
         description:
-          'จัดการเพลง สร้างเซ็ทลิสต์ และสนุกกับการเล่นดนตรีในทุกโอกาส ใช้งานฟรี รองรับทุกอุปกรณ์ เหมาะกับนักดนตรีและทุกคนที่รักเสียงเพลง เริ่มต้นใช้งานฟรีทันที!',
+          'เรียบเรียงเพลง สร้างเซ็ทลิสต์ และสนุกกับการเล่นดนตรีในทุกโอกาส ใช้งานฟรี รองรับทุกอุปกรณ์ สำหรับนักดนตรีและทุกคนที่รักเสียงเพลง เริ่มต้นใช้งานฟรีทันที!',
         keywords: [
           'เนื้อเพลงใหม่',
           'คอร์ดเพลงฮิต',
@@ -357,7 +357,7 @@ export const pageSEOConfigs = {
         description: t.description,
         images: [
           {
-            url: `${defaultSEOConfig.siteUrl}/icons/logo-512.webp`,
+            url: `${defaultSEOConfig.siteUrl}/${locale}/icons/logo-512.webp`,
             width: 512,
             height: 512,
             alt: t.ogAlt,
@@ -370,13 +370,13 @@ export const pageSEOConfigs = {
         card: 'summary_large_image',
         title: `${song.title} - ${song.artist}`,
         description: t.description,
-        images: [`${defaultSEOConfig.siteUrl}/icons/logo-512.webp`],
+        images: [`${defaultSEOConfig.siteUrl}/${locale}/icons/logo-512.webp`],
       },
       alternates: {
-        canonical: `${defaultSEOConfig.siteUrl}/song/${song.id}`,
+        canonical: `${defaultSEOConfig.siteUrl}/${locale}/shared/song/${song.id}`,
         languages: {
-          'th-TH': `${defaultSEOConfig.siteUrl}/song/${song.id}`,
-          'en-US': `${defaultSEOConfig.siteUrl}/en/song/${song.id}`,
+          'th-TH': `${defaultSEOConfig.siteUrl}/th/shared/song/${song.id}`,
+          'en-US': `${defaultSEOConfig.siteUrl}/en/shared/song/${song.id}`,
         },
       },
       jsonLd: {
