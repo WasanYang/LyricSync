@@ -309,28 +309,96 @@ export const pageSEOConfigs = {
     };
   },
 
-  songDetails: (song: {
-    title: string;
-    artist: string;
-    originalKey?: string;
-  }): SEOConfig => ({
-    title: `${song.title} - ${song.artist}`,
-    description: `เนื้อเพลง "${song.title}" โดย ${song.artist}${
-      song.originalKey ? ` คีย์ ${song.originalKey}` : ''
-    } พร้อมคอร์ดและระบบเล่นอัตโนมัติ`,
-    keywords: [
-      song.title,
-      song.artist,
-      'เล่นดนตรี',
-      'คอร์ด',
-      'lyrics',
-      'chords',
-    ],
-    openGraph: {
-      type: 'music.song',
-      title: `${song.title} - ${song.artist}`,
+  songDetails: (
+    song: {
+      id: string;
+      title: string;
+      artist: string;
+      originalKey?: string;
+      lyrics?: string;
     },
-  }),
+    locale: 'th' | 'en' = 'th'
+  ): SEOConfig => {
+    const texts = {
+      th: {
+        description: `เนื้อเพลง "${song.title}" โดย ${song.artist}${
+          song.originalKey ? ` คีย์ ${song.originalKey}` : ''
+        } พร้อมคอร์ดและระบบเล่นอัตโนมัติ`,
+        keywords: [
+          song.title,
+          song.artist,
+          'เล่นดนตรี',
+          'คอร์ด',
+          'lyrics',
+          'chords',
+        ],
+        ogAlt: 'LyricSync Logo',
+        genre: 'เพลงคริสเตียน',
+        inLanguage: 'th-TH',
+      },
+      en: {
+        description: `Lyrics for "${song.title}" by ${song.artist}${
+          song.originalKey ? ` (Key ${song.originalKey})` : ''
+        } with chords and auto-play system`,
+        keywords: [song.title, song.artist, 'music', 'chords', 'lyrics'],
+        ogAlt: 'LyricSync Logo',
+        genre: 'Christian Music',
+        inLanguage: 'en-US',
+      },
+    };
+    const t = texts[locale] || texts.th;
+    return {
+      title: `${song.title} - ${song.artist}`,
+      description: t.description,
+      keywords: t.keywords,
+      openGraph: {
+        type: 'music.song',
+        title: `${song.title} - ${song.artist}`,
+        description: t.description,
+        images: [
+          {
+            url: `${defaultSEOConfig.siteUrl}/icons/logo-512.png`,
+            width: 512,
+            height: 512,
+            alt: t.ogAlt,
+          },
+        ],
+        siteName: defaultSEOConfig.siteName,
+        locale: t.inLanguage,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${song.title} - ${song.artist}`,
+        description: t.description,
+        images: [`${defaultSEOConfig.siteUrl}/icons/logo-512.png`],
+      },
+      alternates: {
+        canonical: `${defaultSEOConfig.siteUrl}/song/${song.id}`,
+        languages: {
+          'th-TH': `${defaultSEOConfig.siteUrl}/song/${song.id}`,
+          'en-US': `${defaultSEOConfig.siteUrl}/en/song/${song.id}`,
+        },
+      },
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@type': 'MusicComposition',
+        name: song.title,
+        composer: {
+          '@type': 'Person',
+          name: song.artist,
+        },
+        musicalKey: song.originalKey,
+        lyrics: song.lyrics
+          ? {
+              '@type': 'CreativeWork',
+              text: song.lyrics,
+            }
+          : undefined,
+        genre: t.genre,
+        inLanguage: t.inLanguage,
+      },
+    };
+  },
 
   setlistDetails: (setlist: {
     title: string;

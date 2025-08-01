@@ -119,8 +119,11 @@ export default function LyricLineDisplay({
                     .join('')
                 : ''}
             </span>
-            <span className='text-transparent' style={{ fontWeight }}>
-              {part.text.replace(/./g, ' ')}
+            <span
+              aria-hidden='true'
+              style={{ visibility: 'hidden', fontWeight }}
+            >
+              {part.text}
             </span>
           </span>
         ))}

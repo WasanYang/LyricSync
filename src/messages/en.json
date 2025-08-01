@@ -97,5 +97,9 @@
     "title": "Page Not Found",
     "desc": "Sorry, we couldn’t find the page you’re looking for.",
     "backHome": "Go back home"
-  }
+  },
+  "viewInPlayer": "View in Player",
+  "collapseLyrics": "Collapse Lyrics",
+  "expandLyrics": "Expand Lyrics",
+  "viewMore": "View More"
 }

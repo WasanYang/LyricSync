@@ -1,4 +1,3 @@
-// src/components/SongDetail.tsx
 'use client';
 
 import type { LyricLine, Song } from '@/lib/songs';
@@ -9,18 +8,10 @@ import Header from './Header';
 import BottomNavBar from './BottomNavBar';
 import { Button } from '@/components/ui/button';
 import SongStatusButton from '@/components/SongStatusButton';
-import {
-  Play,
-  Music,
-  Share2,
-  ChevronDown,
-  ChevronUp,
-  Check,
-} from 'lucide-react';
+import { Play, Share2, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useSafeDataLoader } from '@/hooks/use-offline-storage';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Tooltip,
   TooltipContent,
@@ -29,6 +20,7 @@ import {
 } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { notFound } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 function LoadingSkeleton() {
   return (
@@ -93,6 +85,8 @@ export function SongDetail({
   showPlayerLink = true,
   isSharePage = false,
 }: SongDetailProps) {
+  const t = useTranslations();
+
   const { user } = useAuth();
   const [song, setSong] = useState<Song | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -115,19 +109,10 @@ export function SongDetail({
           setSong(fetchedSong);
         } else {
           notFound();
-          setError(
-            isOnline
-              ? 'Song not found.'
-              : 'Song not available offline. Please connect to the internet to download it.'
-          );
         }
       } catch (err) {
-        notFound();
-
         console.error('Failed to load song', err);
-        setError(
-          isOnline ? 'Could not load the song.' : 'Song not available offline.'
-        );
+        notFound();
       } finally {
         setIsLoading(false);
       }
@@ -195,7 +180,8 @@ export function SongDetail({
                 {showPlayerLink && (
                   <Button asChild size='lg'>
                     <Link href={url}>
-                      <Play className='mr-2 h-5 w-5' /> Open in Player
+                      <Play className='mr-2 h-5 w-5' />
+                      {t('viewInPlayer')}
                     </Link>
                   </Button>
                 )}
@@ -216,7 +202,7 @@ export function SongDetail({
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Share Song</p>
+                      <p>{t('shared')}</p>
                     </TooltipContent>
                   </Tooltip>
                 )}
@@ -225,7 +211,7 @@ export function SongDetail({
           </div>
         </div>
         <div className='space-y-2 pt-4'>
-          <h2 className='font-headline text-2xl font-bold'>Lyrics</h2>
+          <h2 className='font-headline text-2xl font-bold'>{t('lyrics')}</h2>
           <div className='whitespace-pre-wrap rounded-lg bg-muted/50 p-4 font-body text-muted-foreground'>
             {lyricContent}
           </div>
@@ -239,7 +225,7 @@ export function SongDetail({
               ) : (
                 <ChevronDown className='mr-2 h-4 w-4' />
               )}
-              {isLyricsExpanded ? 'Show Less' : 'View More'}
+              {isLyricsExpanded ? t('collapseLyrics') : t('viewMore')}
             </Button>
           </div>
         </div>

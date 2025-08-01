@@ -92,7 +92,14 @@ export default function HamburgerMenu() {
               </div>
             </Link>
           </SheetHeader>
-          <div className='p-4 space-y-4'>
+          {/* <div className='p-4 space-y-4'> */}
+          <div
+            className={cn(
+              'p-4 space-y-4 overflow-y-auto max-h-[calc(100vh-4rem)] rounded-b-lg',
+              'bg-background',
+              'scrollbar-thin scrollbar-thumb-primary scrollbar-track-background'
+            )}
+          >
             <nav className='flex flex-col space-y-2'>
               {navLinks.map((link) => (
                 <SheetClose asChild key={link.href}>
