@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import { Copy, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import qrPromtpay from '../../public/promptpay-qr.jpg'; // Adjust the path as needed
+import qrPromtpay from '../../public/promptpay-qr.webp'; // Adjust the path as needed
 interface DonateCardProps {
   t: ReturnType<typeof import('next-intl').useTranslations>;
 }
