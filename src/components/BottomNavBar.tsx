@@ -33,8 +33,8 @@ export default function BottomNavBar() {
     !user || user.isAnonymous ? unauthenticatedNavLinks : allNavLinks;
 
   return (
-    <footer className='fixed bottom-0 left-0 right-0 z-50 border-t bg-background/80 backdrop-blur-sm supports-[backdrop-filter]:bg-background/50 md:hidden'>
-      <nav className='flex items-center justify-around h-16 max-w-[768px] mx-auto'>
+    <footer className='fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-sm md:hidden'>
+      <nav className='flex items-center justify-around h-[4.5rem] pb-[env(safe-area-inset-bottom)] max-w-[768px] mx-auto'>
         {navLinks.map((link) => {
           const isActive =
             pathname === link.href ||
@@ -45,7 +45,7 @@ export default function BottomNavBar() {
               key={link.href}
               href={link.href}
               className={cn(
-                'flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors hover:text-primary',
+                'flex h-full flex-col items-center justify-center gap-1 text-xs font-medium transition-colors hover:text-primary w-full',
                 isActive ? 'text-primary' : 'text-muted-foreground'
               )}
             >
