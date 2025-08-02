@@ -193,6 +193,7 @@ export function SongDetail({
                         variant='outline'
                         size='icon'
                         onClick={handleShare}
+                        aria-label='Share'
                       >
                         {isCopied ? (
                           <Check className='h-4 w-4 text-green-500' />
@@ -212,7 +213,7 @@ export function SongDetail({
         </div>
         <div className='space-y-2 pt-4'>
           <h2 className='font-headline text-2xl font-bold'>{t('lyrics')}</h2>
-          <div className='whitespace-pre-wrap rounded-lg bg-muted/50 p-4 font-body text-muted-foreground'>
+          <div className='whitespace-pre-wrap rounded-lg bg-muted/50 p-4 font-body text-gray-600'>
             {lyricContent}
           </div>
           <div className='flex justify-center'>
@@ -225,7 +226,7 @@ export function SongDetail({
               ) : (
                 <ChevronDown className='mr-2 h-4 w-4' />
               )}
-              {isLyricsExpanded ? t('collapseLyrics') : t('viewMore')}
+              {isLyricsExpanded ? t('showLess') : t('viewMore')}
             </Button>
           </div>
         </div>

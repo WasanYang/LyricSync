@@ -39,8 +39,8 @@ export const viewport: Viewport = {
   themeColor: '#3AAFA9',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // maximumScale: 5, // ไม่จำกัดการ zoom เพื่อ accessibility
+  // userScalable: true, // ไม่ต้องกำหนด ถ้าเปิดค่า default
   viewportFit: 'cover',
 };
 

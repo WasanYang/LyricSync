@@ -104,6 +104,7 @@ declare const messages: {
   "viewInPlayer": "ดูใน Player",
   "collapseLyrics": "แสดงให้น้อยลง",
   "expandLyrics": "แสดงให้มากขึ้น",
-  "viewMore": "ดูเพิ่มเติม"
+  "viewMore": "ดูเพิ่มเติม",
+  "showLess": "แสดงน้อยลง"
 };
 export default messages;
