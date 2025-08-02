@@ -1,7 +1,7 @@
 'use client';
 
 import { useOnlineStatus } from '@/hooks/use-online-status';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { registerSW } from '@/lib/pwa';
 import { iOSUtils } from '@/lib/ios-utils';
 import { IOSErrorBoundary } from '@/components/IOSErrorBoundary';
@@ -15,10 +15,10 @@ interface RootLayoutClientProps {
 
 export function RootLayoutClient({ children }: RootLayoutClientProps) {
   const isOnline = useOnlineStatus();
-  const [mounted, setMounted] = useState(false);
+  // const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    // setMounted(true);
     document.documentElement.classList.toggle('is-offline', !isOnline);
 
     // Initialize iOS-specific fixes

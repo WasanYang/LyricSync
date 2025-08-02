@@ -34,8 +34,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import SongStatusButton from '@/components/SongStatusButton';
-import SEOHead from '@/components/SEOHead';
-import { pageSEOConfigs } from '@/lib/seo';
 import { Cloud } from 'lucide-react';
 
 function SongListItem({
@@ -302,7 +300,6 @@ export default function LibraryPage() {
 
   return (
     <>
-      <SEOHead config={pageSEOConfigs.library()} />
       <div className='flex-grow flex flex-col'>
         <Header />
         <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useTranslations, useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import {
   Menu,
@@ -57,7 +57,6 @@ export default function HamburgerMenu() {
   };
   const isOnline = useOnlineStatus();
   const t = useTranslations();
-  const locale = useLocale();
 
   useEffect(() => {
     setMounted(true);

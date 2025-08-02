@@ -18,7 +18,6 @@ import {
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
-import { Skeleton } from '@/components/ui/skeleton';
 
 const SUPER_ADMIN_EMAIL = 'esxy26@gmail.com';
 

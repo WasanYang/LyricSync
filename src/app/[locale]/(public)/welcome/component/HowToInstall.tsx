@@ -1,12 +1,5 @@
 import Image from 'next/image';
-import {
-  Music,
-  Share,
-  PlusCircle,
-  ArrowDown,
-  MoreVertical,
-  X,
-} from 'lucide-react';
+import { Share, PlusCircle, ArrowDown, MoreVertical } from 'lucide-react';
 
 function InstallStep({
   step,

@@ -43,7 +43,7 @@ export function SongCarousel({
     <div className='w-full max-w-full -mr-4'>
       <Carousel opts={{ align: 'start', loop: false }} className='w-full'>
         <CarouselContent className='-ml-4'>
-          {songs.map((song, idx) => (
+          {songs.map((song) => (
             <CarouselItem
               key={song.id}
               className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'

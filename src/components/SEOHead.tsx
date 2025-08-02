@@ -14,7 +14,6 @@ interface SEOHeadProps {
 
 export default function SEOHead({ config, structuredData }: SEOHeadProps) {
   const pathname = usePathname();
-
   const {
     title,
     description,

@@ -5,7 +5,6 @@ import {
   generateMetadata as generateSEOMetadata,
   pageSEOConfigs,
 } from '@/lib/seo';
-import { cn } from '@/lib/utils';
 
 export async function generateMetadata({
   params,

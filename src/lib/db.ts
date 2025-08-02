@@ -159,10 +159,7 @@ export async function getSong(id: string): Promise<Song | undefined> {
   return db.get(SONGS_STORE, id);
 }
 
-export async function deleteSong(
-  id: string,
-  p0: string | undefined
-): Promise<void> {
+export async function deleteSong(id: string): Promise<void> {
   const db = await getDb();
   const songToDelete = await db.get(SONGS_STORE, id);
 
