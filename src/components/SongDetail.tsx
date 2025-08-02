@@ -213,7 +213,7 @@ export function SongDetail({
         </div>
         <div className='space-y-2 pt-4'>
           <h2 className='font-headline text-2xl font-bold'>{t('lyrics')}</h2>
-          <div className='whitespace-pre-wrap rounded-lg bg-muted/50 p-4 font-body text-gray-600'>
+          <div className='whitespace-pre-wrap rounded-lg bg-muted/50 p-4 font-body text-muted-foreground'>
             {lyricContent}
           </div>
           <div className='flex justify-center'>
