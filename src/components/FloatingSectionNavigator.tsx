@@ -51,7 +51,21 @@ export default function FloatingSectionNavigator({
       }
     } else {
       // Set initial position if nothing is saved
-      setPosition({ x: 16, y: 300 });
+      // Center horizontally and place below the header
+      if (navigatorRef.current) {
+        const navigatorWidth = navigatorRef.current.offsetWidth;
+        const initialX = window.innerWidth / 2 - navigatorWidth / 2;
+        setPosition({
+          x: window.innerWidth - initialX - navigatorWidth, // Position is based on 'right'
+          y: 80, // Approx height of top navbars
+        });
+      } else {
+        // Fallback if ref is not ready
+        setPosition({
+          x: window.innerWidth / 2 - 50,
+          y: 80,
+        });
+      }
     }
   }, []);
 
