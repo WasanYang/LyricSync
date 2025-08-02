@@ -26,7 +26,7 @@ const DB_NAME = 'LyricSyncDB';
 const DB_VERSION = 2; // Incremented version
 const SONGS_STORE = 'songs';
 const SETLISTS_STORE = 'setlists';
-const SYNC_LIMIT = 5;
+const SYNC_LIMIT = 10;
 
 // This represents a setlist stored in the local IndexedDB.
 export type Setlist = {

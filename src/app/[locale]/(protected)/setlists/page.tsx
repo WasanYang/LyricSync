@@ -48,7 +48,7 @@ import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ShareSetlistDialog } from '@/components/ShareSetlistDialog';
 
-const SYNC_LIMIT = 5;
+const SYNC_LIMIT = 10;
 
 function SetlistItem({
   setlist,
