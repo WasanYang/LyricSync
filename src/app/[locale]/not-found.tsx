@@ -19,6 +19,7 @@ export default function NotFound() {
               alt='Logo'
               width={72}
               height={72}
+              className='rounded-md'
             />
             <span className='font-bold font-headline text-lg'>LyricSync</span>
           </Link>

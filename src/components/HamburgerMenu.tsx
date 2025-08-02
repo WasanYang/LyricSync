@@ -79,8 +79,9 @@ export default function HamburgerMenu() {
               <Image
                 src='/icons/logo-72.webp'
                 alt='Logo'
-                width={72}
-                height={72}
+                width={50}
+                height={50}
+                className='rounded-md'
               />
               <div className='flex flex-col'>
                 <span className='font-bold font-headline text-lg leading-tight'>
