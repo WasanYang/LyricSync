@@ -23,9 +23,11 @@ import {
   LyricLineDisplay,
   SettingsSheet,
 } from './player';
-
-type HighlightMode = 'line' | 'section' | 'none';
-type FontWeight = 400 | 600 | 700;
+import {
+  localStorageManager,
+  type FontWeight,
+  type HighlightMode,
+} from '@/lib/local-storage';
 
 type State = {
   isPlaying: boolean;
@@ -57,21 +59,29 @@ type Action =
   | { type: 'TRANSPOSE_DOWN' }
   | { type: 'RESET_TRANSPOSE' }
   | { type: 'SET_BPM'; payload: number }
-  | { type: 'RESET_PLAYER_STATE'; payload: { bpm: number | undefined } };
+  | { type: 'RESET_PLAYER_STATE'; payload: PlayerSettings };
 
-const initialState: State = {
+type PlayerSettings = {
+  bpm?: number;
+  fontSize?: number;
+  fontWeight?: FontWeight;
+  highlightMode?: HighlightMode;
+  showChords?: boolean;
+};
+
+const getInitialState = (settings: PlayerSettings): State => ({
   isPlaying: false,
   currentTime: 0,
   currentLineIndex: 0,
   isFinished: false,
-  fontSize: 16,
-  fontWeight: 400,
-  showChords: true,
+  fontSize: settings.fontSize || 16,
+  fontWeight: settings.fontWeight || 400,
+  showChords: settings.showChords !== false, // default to true
   chordColor: 'hsl(var(--primary))',
-  highlightMode: 'line',
-  bpm: 120,
+  highlightMode: settings.highlightMode || 'line',
+  bpm: settings.bpm || 120,
   transpose: 0,
-};
+});
 
 function lyricPlayerReducer(state: State, action: Action): State {
   switch (action.type) {
@@ -100,16 +110,23 @@ function lyricPlayerReducer(state: State, action: Action): State {
         currentTime: 0,
         currentLineIndex: 0,
       };
-    case 'SET_FONT_SIZE':
+    case 'SET_FONT_SIZE': {
       const newSize = Math.max(16, Math.min(48, action.payload));
+      localStorageManager.setUserPreferences({ fontSize: newSize });
       return { ...state, fontSize: newSize };
+    }
     case 'SET_FONT_WEIGHT':
+      localStorageManager.setUserPreferences({ fontWeight: action.payload });
       return { ...state, fontWeight: action.payload };
     case 'TOGGLE_CHORDS':
+      localStorageManager.setUserPreferences({ showChords: !state.showChords });
       return { ...state, showChords: !state.showChords };
     case 'SET_CHORD_COLOR':
       return { ...state, chordColor: action.payload };
     case 'SET_HIGHLIGHT_MODE':
+      localStorageManager.setUserPreferences({
+        highlightMode: action.payload,
+      });
       return { ...state, highlightMode: action.payload };
     case 'SET_TRANSPOSE':
       return { ...state, transpose: action.payload };
@@ -122,56 +139,14 @@ function lyricPlayerReducer(state: State, action: Action): State {
     case 'SET_BPM':
       return { ...state, bpm: action.payload };
     case 'RESET_PLAYER_STATE':
-      return {
-        ...initialState,
-        transpose: state.transpose,
-        bpm: action.payload.bpm || initialState.bpm,
-      };
+      return getInitialState({
+        ...action.payload,
+        bpm: action.payload.bpm,
+      });
     default:
       return state;
   }
 }
-
-const parseLyrics = (
-  line: string
-): Array<{ chord: string | null; text: string }> => {
-  const regex = /\[([^\]]+)\]([^\[]*)/g;
-  const parts: Array<{ chord: string | null; text: string }> = [];
-  let lastIndex = 0;
-  let match;
-
-  while ((match = regex.exec(line)) !== null) {
-    // Text before the current match
-    if (match.index > lastIndex) {
-      parts.push({ chord: null, text: line.substring(lastIndex, match.index) });
-    }
-
-    let text = match[2];
-    // If the text part is empty and there's another chord immediately after, add a space.
-    if (text === '' && line.substring(regex.lastIndex).startsWith('[')) {
-      text = ' ';
-    }
-
-    parts.push({ chord: match[1], text });
-    lastIndex = regex.lastIndex;
-  }
-
-  // Text after the last match
-  if (lastIndex < line.length) {
-    parts.push({ chord: null, text: line.substring(lastIndex) });
-  }
-
-  // If the line was empty or only whitespace
-  if (parts.length === 0 && line.trim() === '') {
-    return [{ chord: null, text: line }];
-  }
-
-  if (parts.length === 0) {
-    return [{ chord: null, text: line }];
-  }
-
-  return parts;
-};
 
 interface LyricPlayerProps {
   song: Song;
@@ -186,10 +161,25 @@ interface LyricPlayerProps {
 export default function LyricPlayer({
   song,
   isSetlistMode = false,
-
   onClose,
 }: LyricPlayerProps) {
-  const [state, dispatch] = useReducer(lyricPlayerReducer, initialState);
+  const [initialState, setInitialState] = useState<State | null>(null);
+
+  useEffect(() => {
+    // This effect runs only on the client
+    const prefs = localStorageManager.getUserPreferences();
+    setInitialState(
+      getInitialState({
+        bpm: song.bpm,
+        fontSize: prefs.fontSize,
+        fontWeight: prefs.fontWeight,
+        highlightMode: prefs.highlightMode,
+        showChords: prefs.showChords,
+      })
+    );
+  }, [song.id, song.bpm]);
+
+  const [state, dispatch] = useReducer(lyricPlayerReducer, getInitialState({}));
   const {
     isPlaying,
     currentTime,
@@ -203,6 +193,13 @@ export default function LyricPlayer({
     bpm,
     transpose,
   } = state;
+
+  useEffect(() => {
+    if (initialState) {
+      dispatch({ type: 'RESET_PLAYER_STATE', payload: initialState });
+    }
+  }, [initialState]);
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lineRefs = useRef<(HTMLLIElement | null)[]>([]);
@@ -242,7 +239,10 @@ export default function LyricPlayer({
   }, [song.lyrics, bpm, song.timeSignature]);
 
   useEffect(() => {
-    dispatch({ type: 'RESET_PLAYER_STATE', payload: { bpm: song.bpm } });
+    dispatch({
+      type: 'RESET_PLAYER_STATE',
+      payload: { ...localStorageManager.getUserPreferences(), bpm: song.bpm },
+    });
   }, [song.id, song.bpm]);
 
   const toggleTheme = () => {
@@ -421,7 +421,13 @@ export default function LyricPlayer({
     const remainingSeconds = Math.floor(seconds % 60);
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
-
+  if (!initialState) {
+    return (
+      <div className='flex h-screen flex-col overflow-hidden bg-background'>
+        {/* Simplified Loading Skeleton */}
+      </div>
+    );
+  }
   return (
     <>
       <div className='flex flex-col bg-background h-full overflow-hidden'>
@@ -590,10 +596,57 @@ export default function LyricPlayer({
             dispatch({ type: 'SET_BPM', payload: bpm })
           }
           onResetSettings={() =>
-            dispatch({ type: 'RESET_PLAYER_STATE', payload: { bpm: song.bpm } })
+            dispatch({
+              type: 'RESET_PLAYER_STATE',
+              payload: {
+                ...localStorageManager.getUserPreferences(),
+                bpm: song.bpm,
+              },
+            })
           }
         />
       </div>
     </>
   );
 }
+
+const parseLyrics = (
+  line: string
+): Array<{ chord: string | null; text: string }> => {
+  const regex = /\[([^\]]+)\]([^\[]*)/g;
+  const parts: Array<{ chord: string | null; text: string }> = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = regex.exec(line)) !== null) {
+    // Text before the current match
+    if (match.index > lastIndex) {
+      parts.push({ chord: null, text: line.substring(lastIndex, match.index) });
+    }
+
+    let text = match[2];
+    // If the text part is empty and there's another chord immediately after, add a space.
+    if (text === '' && line.substring(regex.lastIndex).startsWith('[')) {
+      text = ' ';
+    }
+
+    parts.push({ chord: match[1], text });
+    lastIndex = regex.lastIndex;
+  }
+
+  // Text after the last match
+  if (lastIndex < line.length) {
+    parts.push({ chord: null, text: line.substring(lastIndex) });
+  }
+
+  // If the line was empty or only whitespace
+  if (parts.length === 0 && line.trim() === '') {
+    return [{ chord: null, text: line }];
+  }
+
+  if (parts.length === 0) {
+    return [{ chord: null, text: line }];
+  }
+
+  return parts;
+};

@@ -1,9 +1,14 @@
 // src/lib/local-storage.ts
 // LocalStorage utilities for user preferences and simple data
 
+export type HighlightMode = 'line' | 'section' | 'none';
+export type FontWeight = 400 | 600 | 700;
+
 interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
   fontSize: number;
+  fontWeight: FontWeight;
+  highlightMode: HighlightMode;
   defaultKey: string;
   autoScroll: boolean;
   showChords: boolean;
@@ -41,6 +46,8 @@ class LocalStorageManager {
   private readonly DEFAULT_PREFERENCES: UserPreferences = {
     theme: 'system',
     fontSize: 16,
+    fontWeight: 400,
+    highlightMode: 'line',
     defaultKey: 'C',
     autoScroll: true,
     showChords: true,
