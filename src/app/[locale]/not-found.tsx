@@ -15,10 +15,10 @@ export default function NotFound() {
         <div className='flex h-16 items-center justify-between px-4 max-w-4xl mx-auto'>
           <Link href='/' className='flex items-center space-x-2'>
             <Image
-              src='/logo/logo.webp'
-              alt='LyricSync'
-              width={24}
-              height={24}
+              src='/icons/logo-72.webp'
+              alt='Logo'
+              width={72}
+              height={72}
             />
             <span className='font-bold font-headline text-lg'>LyricSync</span>
           </Link>

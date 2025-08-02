@@ -14,6 +14,11 @@ export default async function RootLayout({
   const { locale = 'th' } = await params;
   return (
     <html lang={locale} suppressHydrationWarning>
+      <head>
+        <link rel='preconnect' href='https://apis.google.com' />
+        <link rel='preconnect' href='https://firestore.googleapis.com' />
+        <link rel='preconnect' href='https://placehold.co' />
+      </head>
       <body
         className={cn(
           'font-body antialiased min-h-screen flex flex-col bg-background'

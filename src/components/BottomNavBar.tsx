@@ -51,10 +51,10 @@ export default function BottomNavBar() {
             >
               {link.icon === 'logo' ? (
                 <Image
-                  src='/logo/logo.webp'
+                  src='/icons/logo-72.webp'
                   alt='Library'
-                  width={24}
-                  height={24}
+                  width={72}
+                  height={72}
                   className={cn('h-6 w-6', !isActive && 'opacity-60')}
                 />
               ) : link.isCustom ? (
