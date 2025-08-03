@@ -50,23 +50,41 @@ export default function SearchPage() {
   const selectedChar = searchParams.get('char');
   const t = useTranslations('search');
 
+  const [inputValue, setInputValue] = useState(searchTerm);
   const [allSongs, setAllSongs] = useState<Song[]>([]);
   const [publicSetlists, setPublicSetlists] = useState<Setlist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Debounce search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      handleSearchChange(inputValue);
+    }, 300); // 300ms delay
+
+    return () => {
+      clearTimeout(handler);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputValue]);
+
   const handleSearchChange = (term: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (term) {
-      params.set('q', term);
+      if (params.get('q') !== term) {
+        params.set('q', term);
+        params.delete('char'); // Clear char filter when searching
+        router.replace(`${pathname}?${params.toString()}`);
+      }
     } else {
-      params.delete('q');
+      if (params.has('q')) {
+        params.delete('q');
+        router.replace(`${pathname}?${params.toString()}`);
+      }
     }
-    // Clear char filter when searching
-    params.delete('char');
-    router.replace(`${pathname}?${params.toString()}`);
   };
 
   const handleCharSelect = (char: string) => {
+    setInputValue(''); // Clear search input when using char filter
     const params = new URLSearchParams(searchParams.toString());
     if (selectedChar === char) {
       // If the same character is clicked again, remove the filter
@@ -245,8 +263,8 @@ export default function SearchPage() {
                 type='search'
                 placeholder={t('placeholder')}
                 className='pl-10 text-base bg-muted focus-visible:ring-0 focus-visible:ring-offset-0'
-                value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
               />
             </div>
 
