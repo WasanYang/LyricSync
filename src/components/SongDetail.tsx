@@ -24,22 +24,26 @@ import { useTranslations } from 'next-intl';
 
 function LoadingSkeleton() {
   return (
-    <div className='space-y-8'>
-      <div className='flex flex-col items-center gap-8 sm:flex-row sm:items-start'>
-        <Skeleton className='h-48 w-48 flex-shrink-0 rounded-lg sm:h-64 sm:w-64' />
-        <div className='w-full flex-grow space-y-4 text-center sm:text-left'>
-          <Skeleton className='mx-auto h-10 w-3/4 sm:mx-0' />
-          <Skeleton className='mx-auto h-6 w-1/2 sm:mx-0' />
-          <div className='flex justify-center gap-4 pt-4 sm:justify-start'>
-            <Skeleton className='h-11 w-40' />
-            <Skeleton className='h-11 w-11 rounded-full' />
+    <div className='flex-grow flex flex-col'>
+      <Header />
+      <main className='container mx-auto flex-grow px-4 py-8 pb-24 md:pb-8'>
+        <div className='flex flex-col items-center gap-8 sm:flex-row sm:items-start'>
+          <Skeleton className='h-48 w-48 flex-shrink-0 rounded-lg sm:h-64 sm:w-64' />
+          <div className='w-full flex-grow space-y-4 text-center sm:text-left'>
+            <Skeleton className='mx-auto h-10 w-3/4 sm:mx-0' />
+            <Skeleton className='mx-auto h-6 w-1/2 sm:mx-0' />
+            <div className='flex justify-center gap-4 pt-4 sm:justify-start'>
+              <Skeleton className='h-11 w-40' />
+              <Skeleton className='h-11 w-11 rounded-full' />
+            </div>
           </div>
         </div>
-      </div>
-      <div className='space-y-4'>
-        <Skeleton className='h-6 w-32' />
-        <Skeleton className='h-40 w-full' />
-      </div>
+        <div className='space-y-4 mt-8'>
+          <Skeleton className='h-6 w-32' />
+          <Skeleton className='h-40 w-full' />
+        </div>
+      </main>
+      <BottomNavBar />
     </div>
   );
 }
@@ -97,6 +101,7 @@ export function SongDetail({
   const url = isSharePage
     ? `/shared/song/${songId}/player`
     : `/lyrics/${songId}/player`;
+
   useEffect(() => {
     async function fetchSong() {
       if (!songId) return;
