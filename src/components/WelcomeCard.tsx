@@ -4,7 +4,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from './ui/button';
-import { User } from 'firebase/auth';
 import {
   ListMusic,
   Music,
@@ -119,7 +118,7 @@ export default function WelcomeCard({ user }: { user: User | null }) {
             </p>
           </div>
 
-          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-left'>
+          <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 text-left'>
             <FeatureCard
               icon={Music}
               title={t('feature1')}
