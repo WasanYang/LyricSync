@@ -71,16 +71,6 @@ function HomeClientComponent() {
         setIsLoadingSongs(false);
       }
 
-      try {
-        const publicLists = await getPublicSetlists();
-        const _recommendedSetlists = user
-          ? publicLists.filter((sl) => sl.userId !== user.uid)
-          : publicLists;
-      } catch (error) {
-        console.error('Failed to load public setlists', error);
-      } finally {
-      }
-
       if (user && !user.isAnonymous) {
         try {
           const allSetlists = await getSetlists(user.uid);
@@ -118,12 +108,6 @@ function HomeClientComponent() {
             recentSetlists={recentSetlists}
             isLoadingSetlists={isLoadingSetlists}
           />
-
-          {/* Recommended Setlists */}
-          {/* <RecommendedSetlists
-            publicSetlists={publicSetlists}
-            isLoadingPublicSetlists={isLoadingPublicSetlists}
-          /> */}
 
           {/* Recommended Songs */}
           <RecommendedSongs
