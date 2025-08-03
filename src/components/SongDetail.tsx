@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import SongStatusButton from './SongStatusButton';
 import { Play, Share2, ChevronDown, ChevronUp, Check, Download } from 'lucide-react';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from './context/AuthContext';
 import { useSafeDataLoader } from '@/hooks/use-offline-storage';
 import {
   Tooltip,

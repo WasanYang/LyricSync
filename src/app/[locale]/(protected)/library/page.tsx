@@ -251,7 +251,7 @@ function SongListItem({
                 e.stopPropagation();
               }}
             >
-              <SongStatusButton song={song} onStatusChange={onUpdate} />
+              <SongStatusButton song={song} onStatusChange={() => onUpdate(song.id)} />
             </div>
           )}
         </TooltipProvider>
@@ -283,9 +283,14 @@ export default function LibraryPage() {
     setSongs((prevSongs) => prevSongs.filter((song) => song.id !== deletedId));
   };
 
-  const handleSongUpdated = () => {
-    // Re-fetch the songs to get the updated list
-    loadSongs();
+  const handleSongUpdated = (songId: string) => {
+    setSongs(prevSongs =>
+      prevSongs.map(song =>
+        song.id === songId
+          ? { ...song, downloadCount: (song.downloadCount || 0) + 1 }
+          : song
+      )
+    );
   };
 
   if (authLoading || !user) {
