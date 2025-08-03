@@ -15,6 +15,7 @@ import SEOHead from '@/components/SEOHead';
 import { pageSEOConfigs } from '@/lib/seo';
 import SearchCategory from './component/SearchCategory';
 import SongListItem from './component/SongListItem';
+import AlphabeticalIndex from './component/AlphabeticalIndex';
 
 function SetlistCard({ setlist }: { setlist: Setlist }) {
   const songCount = setlist.songIds.length;
@@ -45,6 +46,7 @@ export default function SearchPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const searchTerm = searchParams.get('q') || '';
+  const selectedChar = searchParams.get('char');
 
   const [allSongs, setAllSongs] = useState<Song[]>([]);
   const [publicSetlists, setPublicSetlists] = useState<Setlist[]>([]);
@@ -57,6 +59,16 @@ export default function SearchPage() {
     } else {
       params.delete('q');
     }
+    // Clear char filter when searching
+    params.delete('char');
+    router.replace(`${pathname}?${params.toString()}`);
+  };
+
+  const handleCharSelect = (char: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('char', char);
+    // Clear search term when filtering by char
+    params.delete('q');
     router.replace(`${pathname}?${params.toString()}`);
   };
 
@@ -89,6 +101,13 @@ export default function SearchPage() {
     );
   }, [searchTerm, allSongs]);
 
+  const characterFilteredSongs = useMemo(() => {
+    if (!selectedChar) return [];
+    return allSongs.filter((song) =>
+      song.title.toLowerCase().startsWith(selectedChar.toLowerCase())
+    );
+  }, [selectedChar, allSongs]);
+
   const filteredSetlists = useMemo(() => {
     if (!searchTerm) return [];
     return publicSetlists.filter(
@@ -105,11 +124,12 @@ export default function SearchPage() {
           (a, b) =>
             new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
         )
-        .slice(0, 8), // Increased for better carousel feel
+        .slice(0, 8),
     [allSongs]
   );
+
   const trendingHits = useMemo(
-    () => [...allSongs].sort(() => 0.5 - Math.random()).slice(0, 8), // Increased
+    () => [...allSongs].sort(() => 0.5 - Math.random()).slice(0, 8),
     [allSongs]
   );
 
@@ -181,6 +201,29 @@ export default function SearchPage() {
     </div>
   );
 
+  const renderCharacterFilterResults = () => (
+    <div className='space-y-8'>
+      {characterFilteredSongs.length > 0 ? (
+        <section>
+          <h2 className='text-xl font-bold font-headline mb-4'>
+            Songs starting with &quot;{selectedChar}&quot;
+          </h2>
+          <div className='grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2'>
+            {characterFilteredSongs.map((song) => (
+              <SongListItem key={song.id} song={song} />
+            ))}
+          </div>
+        </section>
+      ) : (
+        <div className='text-center py-16 text-muted-foreground'>
+          <p>No songs found starting with &quot;{selectedChar}&quot;.</p>
+        </div>
+      )}
+    </div>
+  );
+
+  const showDiscovery = !searchTerm && !selectedChar;
+
   return (
     <>
       <SEOHead config={pageSEOConfigs.search(searchTerm)} />
@@ -198,7 +241,17 @@ export default function SearchPage() {
                 onChange={(e) => handleSearchChange(e.target.value)}
               />
             </div>
-            {searchTerm ? renderSearchResults() : renderDiscoveryContent()}
+
+            <AlphabeticalIndex
+              selectedChar={selectedChar}
+              onCharSelect={handleCharSelect}
+            />
+
+            {showDiscovery
+              ? renderDiscoveryContent()
+              : searchTerm
+              ? renderSearchResults()
+              : renderCharacterFilterResults()}
           </div>
         </main>
         <BottomNavBar />
