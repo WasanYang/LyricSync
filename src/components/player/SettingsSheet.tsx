@@ -1,4 +1,3 @@
-
 // src/components/player/SettingsSheet.tsx
 'use client';
 
@@ -274,7 +273,8 @@ export default function SettingsSheet({
             className='w-full'
             onClick={onResetSettings}
           >
-            <RotateCcw className='mr-2 h-4 w-4' /> Reset All Settings
+            <RotateCcw className='mr-2 h-4 w-4' />
+            Reset Settings
           </Button>
         </div>
       </SheetContent>
