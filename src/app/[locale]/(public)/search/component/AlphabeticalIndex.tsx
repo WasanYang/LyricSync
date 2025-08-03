@@ -27,7 +27,7 @@ export default function AlphabeticalIndex({
         key={char}
         variant={selectedChar === char ? 'default' : 'outline'}
         size='sm'
-        className='h-8 w-8 p-0 text-xs md:h-9 md:w-9 md:text-sm'
+        className='h-7 w-7 p-0 text-xs md:h-8 md:w-8'
         onClick={() => onCharSelect(char)}
       >
         {char}
@@ -36,11 +36,11 @@ export default function AlphabeticalIndex({
   };
 
   return (
-    <div className='space-y-3'>
-      <div className='flex flex-wrap gap-1.5 justify-center'>
+    <div className='space-y-2 rounded-lg bg-muted/50 p-3'>
+      <div className='flex flex-wrap gap-1 justify-center'>
         {renderButtons(THAI_ALPHABET)}
       </div>
-      <div className='flex flex-wrap gap-1.5 justify-center'>
+      <div className='flex flex-wrap gap-1 justify-center'>
         {renderButtons(ENG_ALPHABET)}
       </div>
     </div>
