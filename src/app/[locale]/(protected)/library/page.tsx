@@ -51,11 +51,9 @@ function SongListItem({
   const isUserSong = song.source === 'user';
 
   const handleDelete = async () => {
+    if (!user) return;
     try {
-      await deleteSongFromDb(
-        song.id,
-        song.source === 'user' ? user?.uid : undefined
-      );
+      await deleteSongFromDb(song.id, user.uid);
       onDelete(song.id, song.source);
       toast({
         title: `Song "${song.title}" deleted.`,

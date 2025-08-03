@@ -20,6 +20,8 @@ import {
   startAfter,
   Timestamp,
   getCountFromServer,
+  runTransaction,
+  increment,
 } from 'firebase/firestore';
 
 const DB_NAME = 'LyricSyncDB';
@@ -97,27 +99,10 @@ export async function saveSong(song: Song): Promise<void> {
   const db = await getDb();
   const songToSave = { ...song, updatedAt: new Date() };
 
-  // Save to local IndexedDB
-  await db.put(SONGS_STORE, songToSave);
-
-  // If it's a user-created song, also save/update it in Firestore
-  if (song.source === 'user' && song.userId && firestoreDb) {
-    try {
-      const batch = writeBatch(firestoreDb);
-
-      // 1. Create/Update the main song document in the 'songs' collection
+  if (song.source === 'system' && song.userId && firestoreDb) {
+    // Handle saving a SYSTEM song to a user's library (download count)
+    await runTransaction(firestoreDb, async (transaction) => {
       const mainSongRef = doc(firestoreDb, 'songs', song.id);
-      const { updatedAt: _, ...songDataForFirestore } = songToSave; // Exclude local date
-      batch.set(
-        mainSongRef,
-        {
-          ...songDataForFirestore,
-          updatedAt: serverTimestamp(), // Use server timestamp
-        },
-        { merge: true }
-      );
-
-      // 2. Create/Update the reference document in the user's 'userSongs' sub-collection
       const userSongRef = doc(
         firestoreDb,
         'users',
@@ -125,22 +110,38 @@ export async function saveSong(song: Song): Promise<void> {
         'userSongs',
         song.id
       );
-      batch.set(
-        userSongRef,
-        {
-          title: song.title,
-          updatedAt: serverTimestamp(),
-        },
-        { merge: true }
-      );
 
-      await batch.commit();
-    } catch (error) {
-      console.error('Error syncing user song to Firestore:', error);
-      // Decide if we should re-throw or just log the error
-      // For now, we'll let the local save succeed and just log the cloud error
-    }
+      // Check if user has already saved this song
+      const userSongSnap = await transaction.get(userSongRef);
+      if (userSongSnap.exists()) {
+        console.log('User has already saved this song. No count increment.');
+        return; // Already saved, do nothing
+      }
+
+      // Increment download count and create user's saved record
+      transaction.update(mainSongRef, {
+        downloadCount: increment(1),
+      });
+      transaction.set(userSongRef, {
+        title: song.title,
+        savedAt: serverTimestamp(),
+      });
+    });
+  } else if (song.source === 'user' && song.userId && firestoreDb) {
+    // Handle saving/updating a USER-CREATED song
+    const batch = writeBatch(firestoreDb);
+    const mainSongRef = doc(firestoreDb, 'songs', song.id);
+    const { updatedAt: _, ...songDataForFirestore } = songToSave;
+    batch.set(
+      mainSongRef,
+      { ...songDataForFirestore, updatedAt: serverTimestamp() },
+      { merge: true }
+    );
+    await batch.commit();
   }
+
+  // Always save to local IndexedDB
+  await db.put(SONGS_STORE, songToSave);
 }
 
 export async function updateSong(song: Song): Promise<void> {
@@ -159,39 +160,38 @@ export async function getSong(id: string): Promise<Song | undefined> {
   return db.get(SONGS_STORE, id);
 }
 
-export async function deleteSong(id: string): Promise<void> {
+export async function deleteSong(id: string, userId: string): Promise<void> {
   const db = await getDb();
   const songToDelete = await db.get(SONGS_STORE, id);
 
   if (!songToDelete) {
-    // If not found locally, just return. Maybe it was already deleted.
     return;
   }
 
-  // If it was a user-synced song, delete from Firestore as well
-  if (songToDelete.source === 'user' && songToDelete.userId && firestoreDb) {
-    try {
-      const batch = writeBatch(firestoreDb);
-      // Delete from main 'songs' collection
+  // If it's a SYSTEM song being removed from a user's library
+  if (songToDelete.source === 'system' && userId && firestoreDb) {
+    await runTransaction(firestoreDb, async (transaction) => {
       const mainSongRef = doc(firestoreDb, 'songs', id);
-      batch.delete(mainSongRef);
-      // Delete from user's sub-collection
-      const userSongRef = doc(
-        firestoreDb,
-        'users',
-        songToDelete.userId,
-        'userSongs',
-        id
-      );
-      batch.delete(userSongRef);
-      await batch.commit();
-    } catch (error) {
-      console.error('Error deleting user song from Firestore:', error);
-      // Optional: handle error, e.g., re-add to local DB or notify user
-    }
+      const userSongRef = doc(firestoreDb, 'users', userId, 'userSongs', id);
+
+      // Decrement download count only if the user had it saved
+      const userSongSnap = await transaction.get(userSongRef);
+      if (userSongSnap.exists()) {
+        transaction.update(mainSongRef, {
+          downloadCount: increment(-1),
+        });
+        transaction.delete(userSongRef);
+      }
+    });
+  }
+  // If it's a USER-CREATED song being deleted entirely
+  else if (songToDelete.source === 'user' && userId && firestoreDb) {
+    const batch = writeBatch(firestoreDb);
+    batch.delete(doc(firestoreDb, 'songs', id));
+    await batch.commit();
   }
 
-  // Delete from local IndexedDB
+  // Always delete from local IndexedDB
   await db.delete(SONGS_STORE, id);
 }
 
