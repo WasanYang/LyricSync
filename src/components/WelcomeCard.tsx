@@ -15,6 +15,7 @@ import {
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
 import { FeatureCard } from '@/app/[locale]/(public)/welcome/component/FeatureCard';
+import type { User } from 'firebase/auth';
 
 const WELCOME_CARD_DISMISSED_KEY = 'welcomeCardDismissed';
 
