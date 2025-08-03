@@ -31,7 +31,7 @@ export default function WelcomeCard({ user }: { user: User | null }) {
       return (
         <div className='text-center space-y-4'>
           <h1 className='text-3xl font-bold font-headline mb-2'>
-            {t('welcome.title')}
+            {t('welcome.titleBack')}
           </h1>
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
             <Button
