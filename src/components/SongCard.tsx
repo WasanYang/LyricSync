@@ -1,6 +1,7 @@
 // src/components/SongCard.tsx
 'use client';
 
+import { useState } from 'react';
 import AlbumArt from './ui/AlbumArt';
 import { type Song } from '@/lib/songs';
 import SongStatusButton from './SongStatusButton';
@@ -11,13 +12,23 @@ interface SongCardProps {
   idx?: number;
 }
 
-export default function SongCard({ song, idx }: SongCardProps) {
+export default function SongCard({ song: initialSong, idx }: SongCardProps) {
+  const [song, setSong] = useState(initialSong);
+
   // This stops the click from propagating to the parent Link component,
   // ensuring that clicking the button only performs its action (e.g., download)
   // without navigating to the song's lyric page.
   const handleButtonClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+  };
+
+  const handleStatusChange = () => {
+    // Optimistically update the download count on the client
+    setSong((prevSong) => ({
+      ...prevSong,
+      downloadCount: (prevSong.downloadCount || 0) + 1,
+    }));
   };
 
   return (
@@ -49,7 +60,7 @@ export default function SongCard({ song, idx }: SongCardProps) {
           </div>
         </div>
         <div onClick={handleButtonClick} className='flex-shrink-0 pt-0.5'>
-          <SongStatusButton song={song} />
+          <SongStatusButton song={song} onStatusChange={handleStatusChange} />
         </div>
       </div>
     </div>

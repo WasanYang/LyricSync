@@ -7,7 +7,7 @@ import AlbumArt from './ui/AlbumArt';
 import Header from './Header';
 import BottomNavBar from './BottomNavBar';
 import { Button } from '@/components/ui/button';
-import SongStatusButton from '@/components/SongStatusButton';
+import SongStatusButton from './SongStatusButton';
 import { Play, Share2, ChevronDown, ChevronUp, Check, Download } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
@@ -90,7 +90,6 @@ export function SongDetail({
   const { user } = useAuth();
   const [song, setSong] = useState<Song | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [isLyricsExpanded, setIsLyricsExpanded] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const { loadSong, isOnline } = useSafeDataLoader();
@@ -103,7 +102,6 @@ export function SongDetail({
       if (!songId) return;
       try {
         setIsLoading(true);
-        setError(null);
         const fetchedSong = await loadSong(songId);
         if (fetchedSong) {
           setSong(fetchedSong);
@@ -146,11 +144,22 @@ export function SongDetail({
     return song ? getLyricPreview(song.lyrics, isLyricsExpanded) : '';
   }, [song, isLyricsExpanded]);
 
+  const handleStatusChange = () => {
+    // Optimistically update the download count on the client
+    setSong((prevSong) => {
+      if (!prevSong) return null;
+      return {
+        ...prevSong,
+        downloadCount: (prevSong.downloadCount || 0) + 1,
+      };
+    });
+  };
+
   if (isLoading) {
     return <LoadingSkeleton />;
   }
 
-  if (error || !song) {
+  if (!song) {
     return notFound();
   }
 
@@ -191,7 +200,7 @@ export function SongDetail({
                     </Link>
                   </Button>
                 )}
-                {user && <SongStatusButton song={song} />}
+                {user && <SongStatusButton song={song} onStatusChange={handleStatusChange} />}
                 {song.source === 'system' && (
                   <Tooltip>
                     <TooltipTrigger asChild>

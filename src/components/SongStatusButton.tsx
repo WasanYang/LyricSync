@@ -1,4 +1,3 @@
-
 // src/components/SongStatusButton.tsx
 'use client';
 
@@ -13,25 +12,31 @@ import { useAuth } from '@/context/AuthContext';
 
 interface SongStatusButtonProps {
   song: Song;
+  onStatusChange?: () => void; // Callback to notify parent of a change
 }
 
-export default function SongStatusButton({ song }: SongStatusButtonProps) {
+export default function SongStatusButton({
+  song,
+  onStatusChange,
+}: SongStatusButtonProps) {
   const { user } = useAuth();
-  const [status, setStatus] = useState<{ saved: boolean; needsUpdate: boolean }>({ saved: false, needsUpdate: false });
+  const [status, setStatus] = useState<{ saved: boolean; needsUpdate: boolean }>(
+    { saved: false, needsUpdate: false }
+  );
   const [isChecking, setIsChecking] = useState(true);
   const { toast } = useToast();
 
   const checkSavedStatus = useCallback(async () => {
     if (!user || user.isAnonymous) {
-        setIsChecking(false);
-        return;
+      setIsChecking(false);
+      return;
     }
     try {
       setIsChecking(true);
       const savedStatus = await isSongSaved(song.id);
       setStatus(savedStatus);
     } catch (error) {
-      console.error("Failed to check song status", error);
+      console.error('Failed to check song status', error);
     } finally {
       setIsChecking(false);
     }
@@ -49,16 +54,17 @@ export default function SongStatusButton({ song }: SongStatusButtonProps) {
       await saveSong(song);
       setStatus({ saved: true, needsUpdate: false });
       toast({
-        title: "Song Saved",
+        title: 'Song Saved',
         description: `"${song.title}" is now available offline.`,
       });
+      onStatusChange?.(); // Notify parent
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Could not save the song.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Could not save the song.',
+        variant: 'destructive',
       });
-      console.error("Failed to save song:", error);
+      console.error('Failed to save song:', error);
     }
   };
 
@@ -68,66 +74,68 @@ export default function SongStatusButton({ song }: SongStatusButtonProps) {
     try {
       const latestSong = await getCloudSongById(song.id);
       if (!latestSong) {
-        throw new Error("Could not find the latest version of this song.");
+        throw new Error('Could not find the latest version of this song.');
       }
       await updateSong(latestSong);
       setStatus({ saved: true, needsUpdate: false });
       toast({
-        title: "Song Updated",
+        title: 'Song Updated',
         description: `"${song.title}" has been updated to the latest version.`,
       });
+      onStatusChange?.(); // Notify parent
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Could not update the song.",
-        variant: "destructive",
+        title: 'Error',
+        description:
+          error instanceof Error ? error.message : 'Could not update the song.',
+        variant: 'destructive',
       });
-      console.error("Failed to update song:", error);
+      console.error('Failed to update song:', error);
     }
   };
 
   if (!user || user.isAnonymous) {
-      return null;
+    return null;
   }
 
   if (isChecking) {
-    return <Skeleton className="h-7 w-7 rounded-full" />;
+    return <Skeleton className='h-7 w-7 rounded-full' />;
   }
   if (status.needsUpdate) {
     return (
       <Button
-        variant="ghost"
-        size="icon"
+        variant='ghost'
+        size='icon'
         onClick={handleUpdate}
-        className="h-7 w-7 text-blue-500 hover:text-blue-600"
-        aria-label="Update song"
+        className='h-7 w-7 text-blue-500 hover:text-blue-600'
+        aria-label='Update song'
       >
-        <ArrowDownCircle className="h-5 w-5" />
+        <ArrowDownCircle className='h-5 w-5' />
       </Button>
     );
   }
   if (status.saved) {
     return (
       <Button
-        variant="ghost"
-        size="icon"
+        variant='ghost'
+        size='icon'
         disabled
-        className="h-7 w-7 text-green-500 hover:text-green-500 cursor-not-allowed"
-        aria-label="Song is saved offline"
+        className='h-7 w-7 text-green-500 hover:text-green-500 cursor-not-allowed'
+        aria-label='Song is saved offline'
       >
-        <Check className="h-5 w-5" />
+        <Check className='h-5 w-5' />
       </Button>
     );
   }
   return (
     <Button
-      variant="ghost"
-      size="icon"
+      variant='ghost'
+      size='icon'
       onClick={handleDownload}
-      className="h-7 w-7 text-muted-foreground hover:text-primary"
-      aria-label="Save song offline"
+      className='h-7 w-7 text-muted-foreground hover:text-primary'
+      aria-label='Save song offline'
     >
-      <Download className="h-5 w-5" />
+      <Download className='h-5 w-5' />
     </Button>
   );
 }

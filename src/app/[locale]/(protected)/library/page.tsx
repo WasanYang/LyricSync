@@ -119,10 +119,9 @@ function SongListItem({
             >
               {song.title}
             </Link>
-            {song.source === 'user' && (
+            {song.source === 'user' ? (
               <Music className='h-3 w-3 text-muted-foreground flex-shrink-0' />
-            )}
-            {song.source === 'system' && (
+            ) : (
               <Cloud className='h-3 w-3 text-muted-foreground flex-shrink-0' />
             )}
           </div>
@@ -252,7 +251,7 @@ function SongListItem({
                 e.stopPropagation();
               }}
             >
-              <SongStatusButton song={song} />
+              <SongStatusButton song={song} onStatusChange={onUpdate} />
             </div>
           )}
         </TooltipProvider>
