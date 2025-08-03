@@ -44,7 +44,10 @@ declare const messages: {
   "edit": "แก้ไข",
   "save": "บันทึก",
   "cancel": "ยกเลิก",
-  "search": "ค้นหา",
+  "search": {
+    "placeholder": "ค้นหาเพลง, ศิลปิน, และเซ็ตลิสต์สาธารณะ...",
+    "browseByLetter": "ค้นหาจากตัวอักษร (ก-ฮ, A-Z)"
+  },
   "premium": "พรีเมียม",
   "admin": "แอดมิน",
   "userUploads": "อัปโหลดของผู้ใช้",

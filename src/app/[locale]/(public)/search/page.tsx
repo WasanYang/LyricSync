@@ -16,6 +16,7 @@ import { pageSEOConfigs } from '@/lib/seo';
 import SearchCategory from './component/SearchCategory';
 import SongListItem from './component/SongListItem';
 import AlphabeticalIndex from './component/AlphabeticalIndex';
+import { useTranslations } from 'next-intl';
 
 function SetlistCard({ setlist }: { setlist: Setlist }) {
   const songCount = setlist.songIds.length;
@@ -47,6 +48,7 @@ export default function SearchPage() {
   const searchParams = useSearchParams();
   const searchTerm = searchParams.get('q') || '';
   const selectedChar = searchParams.get('char');
+  const t = useTranslations('search');
 
   const [allSongs, setAllSongs] = useState<Song[]>([]);
   const [publicSetlists, setPublicSetlists] = useState<Setlist[]>([]);
@@ -235,7 +237,7 @@ export default function SearchPage() {
               <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10' />
               <Input
                 type='search'
-                placeholder='Search songs, artists, and public setlists...'
+                placeholder={t('placeholder')}
                 className='pl-10 text-base bg-muted focus-visible:ring-0 focus-visible:ring-offset-0'
                 value={searchTerm}
                 onChange={(e) => handleSearchChange(e.target.value)}

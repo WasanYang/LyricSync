@@ -1,9 +1,16 @@
 // src/app/[locale]/(public)/search/component/AlphabeticalIndex.tsx
 'use client';
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { usePathname } from 'next/navigation';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { ChevronsUpDown, CaseSensitive } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 const THAI_ALPHABET = [
   'ก', 'ข', 'ค', 'ฆ', 'ง', 'จ', 'ฉ', 'ช', 'ซ', 'ฌ', 'ญ', 'ฎ', 'ฏ', 'ฐ', 'ฑ', 'ฒ', 'ณ', 'ด', 'ต', 'ถ', 'ท', 'ธ', 'น', 'บ', 'ป', 'ผ', 'ฝ', 'พ', 'ฟ', 'ภ', 'ม', 'ย', 'ร', 'ล', 'ว', 'ศ', 'ษ', 'ส', 'ห', 'ฬ', 'อ', 'ฮ'
@@ -19,7 +26,8 @@ export default function AlphabeticalIndex({
   selectedChar,
   onCharSelect,
 }: AlphabeticalIndexProps) {
-  const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
+  const t = useTranslations('search');
 
   const renderButtons = (alphabet: string[]) => {
     return alphabet.map((char) => (
@@ -36,13 +44,30 @@ export default function AlphabeticalIndex({
   };
 
   return (
-    <div className='space-y-2 rounded-lg bg-muted/50 p-3'>
-      <div className='flex flex-wrap gap-1 justify-center'>
-        {renderButtons(THAI_ALPHABET)}
-      </div>
-      <div className='flex flex-wrap gap-1 justify-center'>
-        {renderButtons(ENG_ALPHABET)}
-      </div>
-    </div>
+    <Collapsible
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      className='w-full space-y-2'
+    >
+      <CollapsibleTrigger asChild>
+        <Button variant='outline' className='w-full justify-between'>
+          <div className='flex items-center gap-2'>
+            <CaseSensitive className='h-4 w-4' />
+            <span>{t('browseByLetter')}</span>
+          </div>
+          <ChevronsUpDown className='h-4 w-4' />
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className='space-y-2 rounded-lg bg-muted/50 p-3'>
+          <div className='flex flex-wrap gap-1 justify-center'>
+            {renderButtons(THAI_ALPHABET)}
+          </div>
+          <div className='flex flex-wrap gap-1 justify-center'>
+            {renderButtons(ENG_ALPHABET)}
+          </div>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

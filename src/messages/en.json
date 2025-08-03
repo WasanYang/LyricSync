@@ -42,7 +42,10 @@
   "edit": "Edit",
   "save": "Save",
   "cancel": "Cancel",
-  "search": "Search",
+  "search": {
+    "placeholder": "Search songs, artists, and public setlists...",
+    "browseByLetter": "Browse by Letter (A-Z, ก-ฮ)"
+  },
   "premium": "Premium",
   "admin": "Admin",
   "userUploads": "User Uploads",

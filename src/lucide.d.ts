@@ -32,6 +32,7 @@ declare module 'lucide-react' {
   export const ListMusic: FC<SVGProps<SVGSVGElement>>;
   export const ChevronUp: FC<SVGProps<SVGSVGElement>>;
   export const ChevronDown: FC<SVGProps<SVGSVGElement>>;
+  export const ChevronsUpDown: FC<SVGProps<SVGSVGElement>>;
   export const ArrowUp: FC<SVGProps<SVGSVGElement>>;
   export const ArrowDown: FC<SVGProps<SVGSVGElement>>;
   export const Search: FC<SVGProps<SVGSVGElement>>;
