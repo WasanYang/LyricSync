@@ -33,8 +33,8 @@ export default function BottomNavBar() {
     !user || user.isAnonymous ? unauthenticatedNavLinks : allNavLinks;
 
   return (
-    <footer className='fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-sm md:hidden'>
-      <nav className='flex items-center justify-around h-[5rem] pb-[env(safe-area-inset-bottom)] max-w-[768px] mx-auto'>
+    <footer className='fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-sm md:hidden pb-[calc(env(safe-area-inset-bottom))]'>
+      <nav className='flex items-center justify-around h-[5rem] max-w-[768px] mx-auto'>
         {navLinks.map((link) => {
           const isActive =
             pathname === link.href ||
