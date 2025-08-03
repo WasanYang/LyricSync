@@ -4,6 +4,7 @@
 import AlbumArt from './ui/AlbumArt';
 import { type Song } from '@/lib/songs';
 import SongStatusButton from './SongStatusButton';
+import { Download } from 'lucide-react';
 
 interface SongCardProps {
   song: Song;
@@ -37,9 +38,15 @@ export default function SongCard({ song, idx }: SongCardProps) {
           <p className='font-semibold font-headline text-sm truncate'>
             {song.title}
           </p>
-          <p className='text-xs text-muted-foreground truncate'>
-            {song.artist}
-          </p>
+          <div className='flex items-center gap-4 text-xs text-muted-foreground truncate'>
+            <p className='truncate'>{song.artist}</p>
+            {typeof song.downloadCount === 'number' && (
+              <div className='flex items-center gap-1 flex-shrink-0'>
+                <Download className='h-3 w-3' />
+                <span>{song.downloadCount}</span>
+              </div>
+            )}
+          </div>
         </div>
         <div onClick={handleButtonClick} className='flex-shrink-0 pt-0.5'>
           <SongStatusButton song={song} />

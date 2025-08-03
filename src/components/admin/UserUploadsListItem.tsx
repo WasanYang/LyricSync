@@ -1,7 +1,7 @@
 // src/components/admin/UserUploadsListItem.tsx
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Play } from 'lucide-react';
+import { Play, Download } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -61,6 +61,10 @@ export default function UserUploadsListItem({
       </TableCell>
       <TableCell className='text-right'>
         <div className='flex items-center gap-1 justify-end'>
+          <div className='flex items-center gap-1 text-xs text-muted-foreground mr-2'>
+            <Download className='h-3 w-3' />
+            <span>{song.downloadCount || 0}</span>
+          </div>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>

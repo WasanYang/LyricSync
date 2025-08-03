@@ -11,7 +11,14 @@ import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Music, Trash2, Edit, PlusCircle, Play } from 'lucide-react';
+import {
+  Music,
+  Trash2,
+  Edit,
+  PlusCircle,
+  Play,
+  Download,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -122,11 +129,17 @@ function SongListItem({
           <p className='text-sm text-muted-foreground truncate'>
             {song.artist}
           </p>
-          {song.updatedAt && (
-            <p className='text-xs text-muted-foreground/80 truncate'>
-              Updated: {new Date(song.updatedAt).toLocaleString()}
-            </p>
-          )}
+          <div className='flex items-center gap-2 text-xs text-muted-foreground/80 truncate'>
+            {song.updatedAt && (
+              <p>Updated: {new Date(song.updatedAt).toLocaleDateString()}</p>
+            )}
+            {typeof song.downloadCount === 'number' && (
+              <div className='flex items-center gap-1'>
+                <Download className='h-3 w-3' />
+                <span>{song.downloadCount}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <div className='flex-shrink-0 flex items-center'>

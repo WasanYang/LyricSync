@@ -49,6 +49,7 @@ import {
   Cloud,
   User as UserIcon,
   LogIn,
+  Download,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
@@ -154,9 +155,17 @@ function AddSongComponent({
                       </p>
                       {getSourceIcon(song)}
                     </div>
-                    <p className='text-xs text-muted-foreground truncate'>
-                      {song.artist} • Key: {song.originalKey || 'N/A'}
-                    </p>
+                    <div className='flex items-center gap-2 text-xs text-muted-foreground truncate'>
+                      <span>
+                        {song.artist} • Key: {song.originalKey || 'N/A'}
+                      </span>
+                      {typeof song.downloadCount === 'number' && (
+                        <div className='flex items-center gap-1'>
+                          <Download className='h-3 w-3' />
+                          <span>{song.downloadCount}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </button>
                 <div

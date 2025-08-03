@@ -336,6 +336,7 @@ export async function getPaginatedSystemSongs(
       uploaderName: data.uploaderName,
       uploaderEmail: data.uploaderEmail,
       source: data.source,
+      downloadCount: data.downloadCount || 0,
       updatedAt:
         updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
     } as Song);
@@ -367,6 +368,7 @@ export async function getAllCloudSongs(): Promise<Song[]> {
       uploaderName: data.uploaderName,
       uploaderEmail: data.uploaderEmail,
       source: data.source,
+      downloadCount: data.downloadCount || 0,
       updatedAt:
         updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
     } as Song);
@@ -391,6 +393,7 @@ export async function getCloudSongById(songId: string): Promise<Song | null> {
       const song = {
         id: docSnap.id,
         ...data,
+        downloadCount: data.downloadCount || 0,
         updatedAt:
           updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
       } as Song;

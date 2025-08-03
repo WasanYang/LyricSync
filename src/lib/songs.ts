@@ -14,6 +14,7 @@ export type Song = {
   bpm?: number;
   timeSignature?: string;
   source: 'system' | 'user'; // system: from the app, user: custom song or upload
+  downloadCount?: number;
   // Fields for user-uploaded songs
   userId?: string;
   uploaderName?: string;

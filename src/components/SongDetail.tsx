@@ -8,7 +8,7 @@ import Header from './Header';
 import BottomNavBar from './BottomNavBar';
 import { Button } from '@/components/ui/button';
 import SongStatusButton from '@/components/SongStatusButton';
-import { Play, Share2, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { Play, Share2, ChevronDown, ChevronUp, Check, Download } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useSafeDataLoader } from '@/hooks/use-offline-storage';
@@ -174,6 +174,12 @@ export function SongDetail({
               {song.originalKey && <span>Key: {song.originalKey}</span>}
               {song.bpm && <span>BPM: {song.bpm}</span>}
               {song.timeSignature && <span>Time: {song.timeSignature}</span>}
+              {typeof song.downloadCount === 'number' && (
+                <span className='inline-flex items-center gap-1'>
+                  <Download className='h-3 w-3' />
+                  {song.downloadCount}
+                </span>
+              )}
             </div>
             <TooltipProvider>
               <div className='flex items-center justify-center gap-3 pt-4 sm:justify-start'>
