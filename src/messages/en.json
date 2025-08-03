@@ -43,6 +43,7 @@
   "save": "Save",
   "cancel": "Cancel",
   "search": {
+    "title": "Search",
     "placeholder": "Search songs, artists, and public setlists...",
     "browseByLetter": "Browse by Letter (A-Z, ก-ฮ)"
   },

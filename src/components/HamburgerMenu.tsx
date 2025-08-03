@@ -39,7 +39,7 @@ import Image from 'next/image';
 // label จะถูกแปลใน component
 const navLinks = [
   { href: '/', key: 'home', icon: Home },
-  { href: '/search', key: 'search', icon: Search },
+  { href: '/search', key: 'search.title', icon: Search },
 ];
 
 const mobileOnlyLinks = [
