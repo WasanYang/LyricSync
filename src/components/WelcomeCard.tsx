@@ -13,15 +13,21 @@ import {
   ArrowDown,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { FeatureCard } from '@/app/[locale]/(public)/welcome/component/FeatureCard';
+import {
+  HowToInstallTH,
+  HowToInstallEN,
+} from '@/app/[locale]/(public)/welcome/component/HowToInstall';
 import type { User } from 'firebase/auth';
+import { PWAPromptCard } from './PWAInstallButton';
 
 const WELCOME_CARD_DISMISSED_KEY = 'welcomeCardDismissed';
 
 export default function WelcomeCard({ user }: { user: User | null }) {
   const [isDismissed, setIsDismissed] = useState(true);
   const t = useTranslations('welcome');
+  const language = useLocale();
 
   useEffect(() => {
     // For new users who are not logged in, always show the card.
@@ -43,83 +49,104 @@ export default function WelcomeCard({ user }: { user: User | null }) {
     }
   };
 
-  function renderContent() {
-    if (user && !user.isAnonymous) {
-      // Logged-in user
-      return (
-        <div className='text-center space-y-4'>
-          <h1 className='text-3xl font-bold font-headline mb-2'>
-            {t('titleBack')}
-          </h1>
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+  function renderLoggedInContent() {
+    return (
+      <AnimatePresence>
+        {!isDismissed && (
+          <motion.section
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, height: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className='relative rounded-lg border bg-card text-card-foreground shadow-sm p-6 md:p-10'
+          >
             <Button
-              variant='outline'
-              size='lg'
-              className='justify-start'
-              asChild
+              variant='ghost'
+              size='icon'
+              onClick={handleDismiss}
+              className='absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:text-foreground'
             >
-              <Link href='/setlists'>
-                <ListMusic className='mr-3 h-5 w-5' />
-                {t('mySetlists')}
-              </Link>
+              <X className='h-4 w-4' />
+              <span className='sr-only'>Dismiss</span>
             </Button>
-            <Button
-              variant='outline'
-              size='lg'
-              className='justify-start'
-              asChild
-            >
-              <Link href='/library'>
-                <Music className='mr-3 h-5 w-5' />
-                {t('myLibrary')}
-              </Link>
-            </Button>
-          </div>
-        </div>
-      );
-    } else if (user && user.isAnonymous) {
-      // Anonymous user
-      return (
-        <div className='text-center space-y-4'>
-          <h1 className='text-3xl font-bold font-headline mb-2'>
+            <div className='text-center space-y-4'>
+              <h1 className='text-3xl font-bold font-headline mb-2'>
+                {user?.isAnonymous ? t('title') : t('titleBack')}
+              </h1>
+              {user?.isAnonymous ? (
+                <>
+                  <div className='mb-2'>
+                    <div className='text-base text-muted-foreground'>
+                      {t('guest')}
+                    </div>
+                  </div>
+                  <div className='mb-2'>
+                    <span className='text-primary font-semibold block'>
+                      {t('signIn')}
+                    </span>
+                  </div>
+                  <div className='flex flex-col sm:flex-row gap-4 justify-center'>
+                    <Button size='lg' asChild>
+                      <Link href='/login'>
+                        <span role='img' aria-label='unlock' className='mr-2'>
+                          🔓
+                        </span>
+                        {t('unlock')}
+                      </Link>
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                  <Button
+                    variant='outline'
+                    size='lg'
+                    className='justify-start'
+                    asChild
+                  >
+                    <Link href='/setlists'>
+                      <ListMusic className='mr-3 h-5 w-5' />
+                      {t('mySetlists')}
+                    </Link>
+                  </Button>
+                  <Button
+                    variant='outline'
+                    size='lg'
+                    className='justify-start'
+                    asChild
+                  >
+                    <Link href='/library'>
+                      <Music className='mr-3 h-5 w-5' />
+                      {t('myLibrary')}
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </div>
+          </motion.section>
+        )}
+      </AnimatePresence>
+    );
+  }
+
+  function renderNewUserContent() {
+    return (
+      <div className='space-y-16 sm:space-y-24'>
+        <section className='text-center'>
+          <Music className='w-16 h-16 text-primary mx-auto mb-6' />
+          <h1 className='text-4xl sm:text-5xl font-bold font-headline mb-4'>
             {t('title')}
           </h1>
-          <div className='mb-2'>
-            <div className='text-base text-muted-foreground'>
-              {t('guest')}
-            </div>
-          </div>
-          <div className='mb-2'>
-            <span className='text-primary font-semibold block'>
-              {t('signIn')}
-            </span>
-          </div>
-          <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-            <Button size='lg' asChild>
-              <Link href='/login'>
-                <span role='img' aria-label='unlock' className='mr-2'>
-                  🔓
-                </span>
-                {t('unlock')}
-              </Link>
-            </Button>
-          </div>
-        </div>
-      );
-    } else {
-      // Not logged-in user (New Hero Section)
-      return (
-        <div className='text-center space-y-12'>
-          <div>
-            <h1 className='text-4xl sm:text-5xl font-bold font-headline mb-4'>
-              {t('title')}
-            </h1>
-            <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
-              {t('desc')}
-            </p>
-          </div>
+          <p className='text-lg text-muted-foreground max-w-2xl mx-auto'>
+            {t('desc')}
+          </p>
+        </section>
 
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 text-left'>
+        <section>
+          <h2 className='text-2xl sm:text-3xl font-bold font-headline text-center mb-8 sm:mb-12'>
+            {t('coreFeatures')}
+          </h2>
+          <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8'>
             <FeatureCard
               icon={Music}
               title={t('feature1')}
@@ -141,7 +168,20 @@ export default function WelcomeCard({ user }: { user: User | null }) {
               description={t('feature4Desc')}
             />
           </div>
+        </section>
 
+        <section>
+          <h2 className='text-2xl sm:text-3xl font-bold font-headline text-center mb-8 sm:mb-12'>
+            {t('howToInstall')}
+          </h2>
+          {language === 'th' ? <HowToInstallTH /> : <HowToInstallEN />}
+        </section>
+
+        <section className='mt-12 max-w-md mx-auto px-4'>
+          <PWAPromptCard t={t} />
+        </section>
+
+        <section className='text-center'>
           <div className='flex flex-col sm:flex-row gap-4 justify-center'>
             <Button size='lg' asChild>
               <Link href='/login'>{t('getStarted')}</Link>
@@ -150,35 +190,10 @@ export default function WelcomeCard({ user }: { user: User | null }) {
               <Link href='/welcome'>{t('learnMore')}</Link>
             </Button>
           </div>
-        </div>
-      );
-    }
+        </section>
+      </div>
+    );
   }
 
-  return (
-    <AnimatePresence>
-      {(!isDismissed || !user) && (
-        <motion.section
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, height: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-          className='relative rounded-lg border bg-card text-card-foreground shadow-sm p-6 md:p-10'
-        >
-          {user && (
-            <Button
-              variant='ghost'
-              size='icon'
-              onClick={handleDismiss}
-              className='absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:text-foreground'
-            >
-              <X className='h-4 w-4' />
-              <span className='sr-only'>Dismiss</span>
-            </Button>
-          )}
-          {renderContent()}
-        </motion.section>
-      )}
-    </AnimatePresence>
-  );
+  return user ? renderLoggedInContent() : renderNewUserContent();
 }
