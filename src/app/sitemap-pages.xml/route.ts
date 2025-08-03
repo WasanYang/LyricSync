@@ -6,16 +6,22 @@ const { siteUrl } = defaultSEOConfig;
 const locales = ['th', 'en'];
 
 export async function GET() {
-  const staticPages = ['/', '/welcome', '/premium', '/donate'];
+  const staticPages = [
+    '/',
+    '/welcome',
+    '/search',
+    '/premium',
+    '/donate',
+  ];
 
   const urls = staticPages
     .map((page) => {
       return `
   <url>
-    <loc>${siteUrl}${page}</loc>
+    <loc>${siteUrl}${page === '/' ? '' : page}</loc>
     <lastmod>2024-08-15</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>${page === '/' ? '1.0' : '0.7'}</priority>
+    <priority>${page === '/' ? '1.0' : '0.8'}</priority>
     ${locales
       .map(
         (locale) =>
