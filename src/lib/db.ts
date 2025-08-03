@@ -173,13 +173,18 @@ export async function deleteSong(id: string, userId: string): Promise<void> {
     await runTransaction(firestoreDb, async (transaction) => {
       const mainSongRef = doc(firestoreDb, 'songs', id);
       const userSongRef = doc(firestoreDb, 'users', userId, 'userSongs', id);
-
-      // Decrement download count only if the user had it saved
       const userSongSnap = await transaction.get(userSongRef);
+
       if (userSongSnap.exists()) {
-        transaction.update(mainSongRef, {
-          downloadCount: increment(-1),
-        });
+        const songSnap = await transaction.get(mainSongRef);
+        if (songSnap.exists()) {
+          const currentCount = songSnap.data().downloadCount || 0;
+          if (currentCount > 0) {
+            transaction.update(mainSongRef, {
+              downloadCount: increment(-1),
+            });
+          }
+        }
         transaction.delete(userSongRef);
       }
     });

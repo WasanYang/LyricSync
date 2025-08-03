@@ -18,6 +18,7 @@ import {
   PlusCircle,
   Play,
   Download,
+  Cloud,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -41,7 +42,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import SongStatusButton from '@/components/SongStatusButton';
-import { Cloud } from 'lucide-react';
 
 function SongListItem({
   song,
@@ -121,7 +121,7 @@ function SongListItem({
             </Link>
             {song.source === 'user' && (
               <Music className='h-3 w-3 text-muted-foreground flex-shrink-0' />
-            )}{' '}
+            )}
             {song.source === 'system' && (
               <Cloud className='h-3 w-3 text-muted-foreground flex-shrink-0' />
             )}
@@ -133,12 +133,13 @@ function SongListItem({
             {song.updatedAt && (
               <p>Updated: {new Date(song.updatedAt).toLocaleDateString()}</p>
             )}
-            {typeof song.downloadCount === 'number' && (
-              <div className='flex items-center gap-1'>
-                <Download className='h-3 w-3' />
-                <span>{song.downloadCount}</span>
-              </div>
-            )}
+            {typeof song.downloadCount === 'number' &&
+              song.downloadCount > 0 && (
+                <div className='flex items-center gap-1'>
+                  <Download className='h-3 w-3' />
+                  <span>{song.downloadCount}</span>
+                </div>
+              )}
           </div>
         </div>
       </div>
