@@ -68,9 +68,15 @@ export default function SearchPage() {
 
   const handleCharSelect = (char: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set('char', char);
-    // Clear search term when filtering by char
-    params.delete('q');
+    if (selectedChar === char) {
+      // If the same character is clicked again, remove the filter
+      params.delete('char');
+    } else {
+      // Otherwise, set the new character filter
+      params.set('char', char);
+      // Clear search term when filtering by char
+      params.delete('q');
+    }
     router.replace(`${pathname}?${params.toString()}`);
   };
 
