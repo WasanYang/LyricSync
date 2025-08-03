@@ -1,8 +1,6 @@
 // src/components/SongCard.tsx
 'use client';
 
-// import AlbumArt from './ui/AlbumArt';
-// Update the import path below if AlbumArt is located elsewhere, e.g.:
 import AlbumArt from './ui/AlbumArt';
 import { type Song } from '@/lib/songs';
 import SongStatusButton from './SongStatusButton';

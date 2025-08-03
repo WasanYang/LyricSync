@@ -12,8 +12,8 @@ interface AlbumArtProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 
 export default function AlbumArt({
   title,
-  width = 200,
-  height = 200,
+  width = 300,
+  height = 300,
   className,
   priority,
   fetchPriority,
