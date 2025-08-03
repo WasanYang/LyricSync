@@ -1,15 +1,17 @@
+# See https://www.robotstxt.org/robotstxt.html for documentation on how to write a robots.txt file
+
 User-agent: *
 Allow: /
-Crawl-delay: 10
 
-# Block admin and private paths
-Disallow: /admin/
-Disallow: /profile
-Disallow: /library
-Disallow: /song-editor
-Disallow: /setlists/create
+# Disallow admin and user-specific pages
+Disallow: /api/
+Disallow: /_next/
+Disallow: /profile/
+Disallow: /library/
+Disallow: /setlists/
+Disallow: /song-editor/
+Disallow: /dashboard/
+Disallow: /offline/
 
-# Host
-Host: https://lyricsync.app/
-
+# Point to the sitemap index
 Sitemap: https://lyricsync.app/sitemap.xml
