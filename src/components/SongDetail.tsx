@@ -218,7 +218,7 @@ export function SongDetail({
               )}
             </div>
             <TooltipProvider>
-              <div className='flex flex-wrap items-center justify-center gap-3 pt-4 sm:justify-start'>
+              <div className='flex flex-wrap items-center justify-center gap-2 pt-4 sm:justify-start'>
                 {showPlayerLink && (
                   <Button asChild size='lg'>
                     <Link href={url}>
@@ -227,46 +227,58 @@ export function SongDetail({
                     </Link>
                   </Button>
                 )}
-                {song.url && urlPlatform && (
-                  <Button
-                    asChild
-                    variant='ghost'
-                    size='sm'
-                    className='text-muted-foreground'
-                  >
-                    <a href={song.url} target='_blank' rel='noopener noreferrer'>
-                      <Music className='mr-2 h-4 w-4' />
-                      {urlPlatform.name}
-                    </a>
-                  </Button>
-                )}
-                {user && (
-                  <SongStatusButton
-                    song={song}
-                    onStatusChange={handleStatusChange}
-                  />
-                )}
-                {song.source === 'system' && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant='outline'
-                        size='icon'
-                        onClick={handleShare}
-                        aria-label='Share'
-                      >
-                        {isCopied ? (
-                          <Check className='h-4 w-4 text-green-500' />
-                        ) : (
-                          <Share2 className='h-4 w-4' />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t('shared')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
+                <div className='flex items-center gap-1'>
+                  {user && (
+                    <SongStatusButton
+                      song={song}
+                      onStatusChange={handleStatusChange}
+                    />
+                  )}
+                  {song.source === 'system' && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant='ghost'
+                          size='icon'
+                          onClick={handleShare}
+                          aria-label='Share'
+                        >
+                          {isCopied ? (
+                            <Check className='h-4 w-4 text-green-500' />
+                          ) : (
+                            <Share2 className='h-4 w-4' />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{t('shared')}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                  {song.url && urlPlatform && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          asChild
+                          variant='ghost'
+                          size='icon'
+                          className='text-muted-foreground'
+                        >
+                          <a
+                            href={song.url}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                          >
+                            <Music className='h-4 w-4' />
+                          </a>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Listen on {urlPlatform.name}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </div>
               </div>
             </TooltipProvider>
           </div>
