@@ -102,11 +102,11 @@ export async function saveSong(song: Song): Promise<void> {
   if (song.source === 'system' && song.userId && firestoreDb) {
     // Handle saving a SYSTEM song to a user's library (download count)
     await runTransaction(firestoreDb, async (transaction) => {
-      const mainSongRef = doc(firestoreDb, 'songs', song.id);
+      const mainSongRef = doc(firestoreDb!, 'songs', song.id);
       const userSongRef = doc(
-        firestoreDb,
+        firestoreDb!,
         'users',
-        song.userId,
+        String(song.userId),
         'userSongs',
         song.id
       );
@@ -170,9 +170,9 @@ export async function deleteSong(id: string, userId: string): Promise<void> {
 
   // If it's a SYSTEM song being removed from a user's library
   if (songToDelete.source === 'system' && userId && firestoreDb) {
-    await runTransaction(firestoreDb, async (transaction) => {
-      const mainSongRef = doc(firestoreDb, 'songs', id);
-      const userSongRef = doc(firestoreDb, 'users', userId, 'userSongs', id);
+    await runTransaction(firestoreDb!, async (transaction) => {
+      const mainSongRef = doc(firestoreDb!, 'songs', id);
+      const userSongRef = doc(firestoreDb!, 'users', userId, 'userSongs', id);
       const userSongSnap = await transaction.get(userSongRef);
 
       if (userSongSnap.exists()) {

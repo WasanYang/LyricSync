@@ -8,7 +8,14 @@ import Header from './Header';
 import BottomNavBar from './BottomNavBar';
 import { Button } from '@/components/ui/button';
 import SongStatusButton from './SongStatusButton';
-import { Play, Share2, ChevronDown, ChevronUp, Check, Download } from 'lucide-react';
+import {
+  Play,
+  Share2,
+  ChevronDown,
+  ChevronUp,
+  Check,
+  Download,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useSafeDataLoader } from '@/hooks/use-offline-storage';
@@ -205,7 +212,12 @@ export function SongDetail({
                     </Link>
                   </Button>
                 )}
-                {user && <SongStatusButton song={song} onStatusChange={handleStatusChange} />}
+                {user && (
+                  <SongStatusButton
+                    song={song}
+                    onStatusChange={handleStatusChange}
+                  />
+                )}
                 {song.source === 'system' && (
                   <Tooltip>
                     <TooltipTrigger asChild>
