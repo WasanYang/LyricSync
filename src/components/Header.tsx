@@ -55,8 +55,8 @@ export default function Header() {
             <button
               className={`px-2 py-1 rounded text-xs font-semibold transition-colors ${
                 language === 'th'
-                  ? 'bg-primary text-black'
-                  : 'bg-muted text-gray-500'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground'
               }`}
               onClick={() => setLanguage('th')}
               aria-label='เปลี่ยนเป็นภาษาไทย'
@@ -67,8 +67,8 @@ export default function Header() {
             <button
               className={`px-2 py-1 rounded text-xs font-semibold transition-colors ${
                 language === 'en'
-                  ? 'bg-primary text-black'
-                  : 'bg-muted text-gray-500'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground'
               }`}
               onClick={() => setLanguage('en')}
               aria-label='Switch to English'
