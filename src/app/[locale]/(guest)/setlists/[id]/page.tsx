@@ -53,7 +53,7 @@ function SetlistDetailContent({
   const { user } = useAuth();
   const { toast } = useToast();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  const t = useTranslations();
+  const t = useTranslations('setlist');
 
   const [setlist, setSetlist] = useState<Setlist | null>(null);
   const [songs, setSongs] = useState<Song[]>([]);
@@ -134,8 +134,8 @@ function SetlistDetailContent({
       () => {
         setIsCopied(true);
         toast({
-          title: t('setlist.linkCopiedToastTitle'),
-          description: t('setlist.linkCopiedToastDesc'),
+          title: t('linkCopiedToastTitle'),
+          description: t('linkCopiedToastDesc'),
         });
         setTimeout(() => setIsCopied(false), 2000);
       },
@@ -182,7 +182,7 @@ function SetlistDetailContent({
       <div className='space-y-2 pt-8 text-center'>
         <h1 className='text-4xl font-bold font-headline'>{setlist.title}</h1>
         <p className='text-muted-foreground'>
-          {t('setlist.songCount', { count: songs.length })}
+          {t('songCount', { count: songs.length })}
         </p>
       </div>
       <div className='flex flex-wrap gap-2 justify-center'>
@@ -231,7 +231,7 @@ function SetlistDetailContent({
 export default function SetlistDetailPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const t = useTranslations();
+  const t = useTranslations('setlist');
   return (
     <div className='flex-grow flex flex-col'>
       {user && <Header />}
@@ -250,7 +250,7 @@ export default function SetlistDetailPage() {
             }}
           >
             <ArrowLeft className='h-5 w-5' />
-            <span className='sr-only'>{t('setlist.backButton')}</span>
+            <span className='sr-only'>{t('backButton')}</span>
           </Button>
         )}
         <SetlistDetailContent />

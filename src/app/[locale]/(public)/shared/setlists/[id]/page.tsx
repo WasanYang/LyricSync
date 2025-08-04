@@ -51,7 +51,7 @@ function SharedSetlistContent() {
   const { toast } = useToast();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const isAdminMode = searchParams.get('mode') === 'admin';
-  const t = useTranslations();
+  const t = useTranslations('setlist');
 
   const [setlist, setSetlist] = useState<Setlist | null>(null);
   const [songs, setSongs] = useState<Song[]>([]);
@@ -123,8 +123,8 @@ function SharedSetlistContent() {
       () => {
         setIsCopied(true);
         toast({
-          title: t('setlist.linkCopiedToastTitle'),
-          description: t('setlist.linkCopiedToastDesc'),
+          title: t('linkCopiedToastTitle'),
+          description: t('linkCopiedToastDesc'),
         });
         setTimeout(() => setIsCopied(false), 2000);
       },
@@ -170,8 +170,8 @@ function SharedSetlistContent() {
       await saveSetlist(savedSetlistReference);
 
       toast({
-        title: t('setlist.savedToLibraryToastTitle'),
-        description: t('setlist.savedToLibraryToastDesc', {
+        title: t('savedToLibraryToastTitle'),
+        description: t('savedToLibraryToastDesc', {
           title: setlist.title,
         }),
       });
@@ -234,7 +234,7 @@ function SharedSetlistContent() {
                   variant='outline'
                   onClick={handleSaveToLibrary}
                   disabled={isSaving || isSaved}
-                  aria-label={t('setlist.saveToMySetlistsAria')}
+                  aria-label={t('saveToMySetlistsAria')}
                 >
                   {isSaved ? (
                     <Check className='h-5 w-5 text-green-500' />
@@ -246,8 +246,8 @@ function SharedSetlistContent() {
               <TooltipContent>
                 <p>
                   {isSaved
-                    ? t('setlist.savedInYourSetlistsTooltip')
-                    : t('setlist.saveToMySetlistsTooltip')}
+                    ? t('savedInYourSetlistsTooltip')
+                    : t('saveToMySetlistsTooltip')}
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -258,7 +258,7 @@ function SharedSetlistContent() {
                 size='icon'
                 variant='outline'
                 onClick={handleShare}
-                aria-label={t('setlist.shareTooltip')}
+                aria-label={t('shareTooltip')}
               >
                 {isCopied ? (
                   <Check className='h-5 w-5 text-green-500' />
@@ -268,7 +268,7 @@ function SharedSetlistContent() {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{t('setlist.shareTooltip')}</p>
+              <p>{t('shareTooltip')}</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -281,8 +281,8 @@ function SharedSetlistContent() {
       <div className='space-y-2 pt-8 text-center'>
         <h1 className='text-4xl font-bold font-headline'>{setlist.title}</h1>
         <p className='text-muted-foreground'>
-          {t('setlist.songCount', { count: songs.length })} •{' '}
-          {t('setlist.byAuthor', { authorName: setlist.authorName })}
+          {t('songCount', { count: songs.length })} •{' '}
+          {t('byAuthor', { authorName: setlist.authorName })}
         </p>
       </div>
 
@@ -298,7 +298,7 @@ function SharedSetlistContent() {
           ))}
         {!isLoading && songs.length === 0 && (
           <div className='text-center py-10 text-muted-foreground'>
-            <p>{t('setlist.emptySetlist')}</p>
+            <p>{t('emptySetlist')}</p>
           </div>
         )}
       </div>
