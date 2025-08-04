@@ -9,15 +9,7 @@ import Header from './Header';
 import BottomNavBar from './BottomNavBar';
 import { Button } from '@/components/ui/button';
 import SongStatusButton from './SongStatusButton';
-import {
-  Play,
-  Share2,
-  ChevronDown,
-  ChevronUp,
-  Check,
-  Download,
-  Music,
-} from 'lucide-react';
+import { Play, Share2, ChevronDown, ChevronUp, Check, Download } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useSafeDataLoader } from '@/hooks/use-offline-storage';
@@ -30,6 +22,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { notFound } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { PlatformIcons } from './ui/PlatformIcons';
 
 function LoadingSkeleton() {
   return (
@@ -189,6 +182,7 @@ export function SongDetail({
   }
 
   const urlPlatform = song.url ? getUrlPlatform(song.url) : null;
+  const PlatformIcon = urlPlatform ? PlatformIcons[urlPlatform.name] : null;
 
   return (
     <div className='flex-grow flex flex-col'>
@@ -255,7 +249,7 @@ export function SongDetail({
                       </TooltipContent>
                     </Tooltip>
                   )}
-                  {song.url && urlPlatform && (
+                  {song.url && PlatformIcon && (
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -269,12 +263,12 @@ export function SongDetail({
                             target='_blank'
                             rel='noopener noreferrer'
                           >
-                            <Music className='h-4 w-4' />
+                            <PlatformIcon className='h-4 w-4' />
                           </a>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Listen on {urlPlatform.name}</p>
+                        <p>Listen on {urlPlatform?.name}</p>
                       </TooltipContent>
                     </Tooltip>
                   )}
