@@ -88,14 +88,14 @@ export default function LyricLineDisplay({
   }
 
   return (
-    <div className='flex flex-col items-start leading-tight'>
+    <div className='flex flex-col items-start leading-snug'>
       {/* Chord Line */}
       <div
-        className='-mb-1'
+        className='-mb-1.5'
         style={{
           color: chordColor,
           fontSize: `calc(${fontSize}px - 2px)`,
-          marginBottom: '-1px',
+          marginBottom: '-1.5px',
         }}
       >
         {parsedLine.map((part, index) => (
