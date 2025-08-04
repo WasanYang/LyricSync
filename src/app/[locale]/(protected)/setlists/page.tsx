@@ -119,9 +119,6 @@ function SetlistItem({
     if (!isOwner) {
       icon = <Users className='h-5 w-5 text-purple-500 flex-shrink-0' />;
       tooltipText = `Saved from ${setlist.authorName}`;
-    } else if (setlist.containsCustomSongs) {
-      icon = <AlertTriangle className='h-5 w-5 text-amber-500 flex-shrink-0' />;
-      tooltipText = 'Cannot sync setlists with custom songs.';
     } else if (setlist.needsSync) {
       icon = <UploadCloud className='h-5 w-5 text-blue-500 flex-shrink-0' />;
       tooltipText = 'Changes need to be synced.';
@@ -223,47 +220,8 @@ function SetlistItem({
                 </Tooltip>
               )}
 
-              {!setlist.containsCustomSongs &&
-                (setlist.isSynced ? (
-                  setlist.needsSync ? (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          onClick={handleSync}
-                          disabled={isSyncing}
-                          variant='ghost'
-                          size='icon'
-                          className='h-8 w-8 text-muted-foreground'
-                        >
-                          {isSyncing ? (
-                            <RefreshCw className='h-4 w-4 animate-spin' />
-                          ) : (
-                            <UploadCloud className='h-4 w-4 text-blue-500' />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Sync Changes</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  ) : (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant='ghost'
-                          size='icon'
-                          className='h-8 w-8 text-green-500'
-                          disabled
-                        >
-                          <CheckCircle className='h-4 w-4' />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Synced</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  )
-                ) : (
+              {setlist.isSynced ? (
+                setlist.needsSync ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -276,15 +234,53 @@ function SetlistItem({
                         {isSyncing ? (
                           <RefreshCw className='h-4 w-4 animate-spin' />
                         ) : (
-                          <UploadCloud className='h-4 w-4' />
+                          <UploadCloud className='h-4 w-4 text-blue-500' />
                         )}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Sync to Cloud</p>
+                      <p>Sync Changes</p>
                     </TooltipContent>
                   </Tooltip>
-                ))}
+                ) : (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant='ghost'
+                        size='icon'
+                        className='h-8 w-8 text-green-500'
+                        disabled
+                      >
+                        <CheckCircle className='h-4 w-4' />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Synced</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={handleSync}
+                      disabled={isSyncing}
+                      variant='ghost'
+                      size='icon'
+                      className='h-8 w-8 text-muted-foreground'
+                    >
+                      {isSyncing ? (
+                        <RefreshCw className='h-4 w-4 animate-spin' />
+                      ) : (
+                        <UploadCloud className='h-4 w-4' />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Sync to Cloud</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </>
           )}
 

@@ -596,19 +596,14 @@ export async function getSetlists(
     userId
   );
 
-  // 5. Fetch all songs to check source for custom song validation
-  const allLocalSongs = await db.getAll(SONGS_STORE);
-  const songSourceMap = new Map(allLocalSongs.map((s) => [s.id, s.source]));
-
-  // 6. Calculate sync status for owned setlists
+  // 5. Calculate sync status for owned setlists
   const results = finalUserSetlists.map((local) => {
     if (local.source === 'saved') {
       return { ...local, containsCustomSongs: false, needsSync: false };
     }
 
-    const containsCustomSongs = local.songIds.some(
-      (id) => songSourceMap.get(id) === 'user'
-    );
+    // Since all songs are on the cloud, this check is no longer needed.
+    const containsCustomSongs = false;
     let needsSync = false;
     if (local.isSynced) {
       // A setlist needs sync if its local update time is more recent than its last cloud sync time.
@@ -735,19 +730,6 @@ export async function syncSetlist(
 
   if (!setlist) throw new Error('Setlist not found locally.');
   if (setlist.userId !== userId) throw new Error('Unauthorized');
-
-  // Check if any song in the setlist is a 'user' song.
-  const allSongs = await db.getAll(SONGS_STORE);
-  const songSourceMap = new Map(allSongs.map((s) => [s.id, s.source]));
-  const containsUserSongs = setlist.songIds.some(
-    (id) => songSourceMap.get(id) === 'user'
-  );
-
-  if (containsUserSongs) {
-    throw new Error(
-      'Cannot sync setlists with custom songs. All songs must be system songs.'
-    );
-  }
 
   const now = serverTimestamp();
   const dataToSync: any = {
