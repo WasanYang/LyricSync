@@ -96,37 +96,38 @@ export default function LyricLineDisplay({
           fontSize: `calc(${fontSize}px - 2px)`,
         }}
       >
-        {parsedLine.map((part, index) => (
-          <span key={`chord-${index}`} className='whitespace-pre'>
-            <span>
-              {part.chord
-                ? part.chord
-                    .split(/(\s*\|\s*)/)
-                    .map((segment) => {
-                      // If it's a separator (|), keep it as is
-                      if (segment.trim() === '|' || segment.includes('|')) {
+        {parsedLine.map((part, index) => {
+          const chordLen = part.text ? part.text.length : 0;
+          const lyricPadding = chordLen > 0 ? '\u00A0'.repeat(chordLen) : '';
+          return (
+            <span key={`chord-${index}`} className='whitespace-pre'>
+              <span>
+                {part.chord
+                  ? part.chord
+                      .split(/(\s*\|\s*)/)
+                      .map((segment) => {
+                        if (segment.trim() === '|' || segment.includes('|')) {
+                          return segment;
+                        }
+                        const trimmedSegment = segment.trim();
+                        if (trimmedSegment && trimmedSegment !== '') {
+                          return transposeChord(trimmedSegment, transpose);
+                        }
                         return segment;
-                      }
-                      // If it's a chord, transpose it
-                      const trimmedSegment = segment.trim();
-                      if (trimmedSegment && trimmedSegment !== '') {
-                        return transposeChord(trimmedSegment, transpose);
-                      }
-                      return segment;
-                    })
-                    .join('')
-                : ''}
+                      })
+                      .join('')
+                  : ''}
+              </span>
+              <span
+                aria-hidden='true'
+                style={{ visibility: 'hidden', fontWeight }}
+              >
+                {lyricPadding}
+              </span>
             </span>
-            <span
-              aria-hidden='true'
-              style={{ visibility: 'hidden', fontWeight }}
-            >
-              {part.text}
-            </span>
-          </span>
-        ))}
+          );
+        })}
       </div>
-      {/* Lyric Line */}
       <div style={{ fontWeight }}>{cleanLyricText}</div>
     </div>
   );

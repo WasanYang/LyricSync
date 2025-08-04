@@ -2,6 +2,8 @@
 declare module 'lucide-react' {
   import { FC, SVGProps } from 'react';
 
+  export const Save: FC<SVGProps<SVGSVGElement>>;
+  export const Expand: FC<SVGProps<SVGSVGElement>>;
   export const AlertTriangle: FC<SVGProps<SVGSVGElement>>;
   export const UploadCloud: FC<SVGProps<SVGSVGElement>>;
   export const RefreshCw: FC<SVGProps<SVGSVGElement>>;
