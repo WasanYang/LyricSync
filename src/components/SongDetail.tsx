@@ -228,9 +228,14 @@ export function SongDetail({
                   </Button>
                 )}
                 {song.url && urlPlatform && (
-                  <Button asChild variant='outline' size='lg'>
+                  <Button
+                    asChild
+                    variant='ghost'
+                    size='sm'
+                    className='text-muted-foreground'
+                  >
                     <a href={song.url} target='_blank' rel='noopener noreferrer'>
-                      <Music className='mr-2 h-5 w-5' />
+                      <Music className='mr-2 h-4 w-4' />
                       {urlPlatform.name}
                     </a>
                   </Button>
