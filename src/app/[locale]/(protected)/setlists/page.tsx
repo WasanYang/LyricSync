@@ -61,7 +61,7 @@ function SetlistItem({
   onSetlistChange: () => void;
   onSyncLimitReached: () => void;
 }) {
-  const t = useTranslations('setlist');
+  const t = useTranslations();
   const { toast } = useToast();
   const { user } = useAuth();
   const [isSyncing, setIsSyncing] = useState(false);
@@ -73,8 +73,8 @@ function SetlistItem({
     try {
       await deleteSetlistFromDb(setlist.id, user.uid);
       toast({
-        title: t('setlistRemovedToastTitle'),
-        description: t('setlistRemovedToastDesc', {
+        title: t('setlist.setlistRemovedToastTitle'),
+        description: t('setlist.setlistRemovedToastDesc', {
           title: setlist.title,
         }),
       });
@@ -82,7 +82,7 @@ function SetlistItem({
     } catch {
       toast({
         title: 'Error',
-        description: t('setlistRemoveErrorToast'),
+        description: t('setlist.setlistRemoveErrorToast'),
         variant: 'destructive',
       });
     }
@@ -97,8 +97,8 @@ function SetlistItem({
     try {
       await syncSetlist(setlist.id, user.uid, user.displayName || 'Anonymous');
       toast({
-        title: t('syncedToastTitle'),
-        description: t('syncedToastDesc', { title: setlist.title }),
+        title: t('setlist.syncedToastTitle'),
+        description: t('setlist.syncedToastDesc', { title: setlist.title }),
       });
       onSetlistChange();
     } catch (error: any) {
@@ -107,7 +107,7 @@ function SetlistItem({
         onSyncLimitReached();
       } else {
         toast({
-          title: t('syncErrorTitle'),
+          title: t('setlist.syncErrorTitle'),
           description: error.message,
           variant: 'destructive',
         });
@@ -123,20 +123,20 @@ function SetlistItem({
 
     if (!isOwner) {
       icon = <Users className='h-5 w-5 text-purple-500 flex-shrink-0' />;
-      tooltipText = t('savedFromTooltip', {
+      tooltipText = t('setlist.savedFromTooltip', {
         authorName: setlist.authorName,
       });
     } else if (setlist.needsSync) {
       icon = <UploadCloud className='h-5 w-5 text-blue-500 flex-shrink-0' />;
-      tooltipText = t('needsSyncTooltip');
+      tooltipText = t('setlist.needsSyncTooltip');
     } else if (setlist.isSynced) {
       icon = <CheckCircle className='h-5 w-5 text-green-500 flex-shrink-0' />;
-      tooltipText = t('syncedTooltip');
+      tooltipText = t('setlist.syncedTooltip');
     } else {
       icon = (
         <ListMusic className='h-5 w-5 text-muted-foreground flex-shrink-0' />
       );
-      tooltipText = t('localOnlyTooltip');
+      tooltipText = t('setlist.localOnlyTooltip');
     }
 
     return (
@@ -176,8 +176,8 @@ function SetlistItem({
             </h2>
             <p className='text-sm text-muted-foreground'>
               {isOwner
-                ? t('songCount', { count: songCount })
-                : t('byAuthor', { authorName: setlist.authorName })}
+                ? t('setlist.songCount', { count: songCount })
+                : t('setlist.byAuthor', { authorName: setlist.authorName })}
             </p>
           </div>
         </Link>
@@ -201,7 +201,7 @@ function SetlistItem({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{t('editTooltip')}</p>
+                  <p>{t('setlist.editTooltip')}</p>
                 </TooltipContent>
               </Tooltip>
 
@@ -222,7 +222,7 @@ function SetlistItem({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{t('shareTooltip')}</p>
+                    <p>{t('setlist.shareTooltip')}</p>
                   </TooltipContent>
                 </Tooltip>
               )}
@@ -246,7 +246,7 @@ function SetlistItem({
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{t('syncChangesTooltip')}</p>
+                      <p>{t('setlist.syncChangesTooltip')}</p>
                     </TooltipContent>
                   </Tooltip>
                 ) : (
@@ -262,7 +262,7 @@ function SetlistItem({
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>{t('syncedTooltip')}</p>
+                      <p>{t('setlist.syncedTooltip')}</p>
                     </TooltipContent>
                   </Tooltip>
                 )
@@ -284,7 +284,7 @@ function SetlistItem({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{t('syncToCloudTooltip')}</p>
+                    <p>{t('setlist.syncToCloudTooltip')}</p>
                   </TooltipContent>
                 </Tooltip>
               )}
@@ -307,20 +307,20 @@ function SetlistItem({
               <TooltipContent>
                 <p>
                   {isOwner
-                    ? t('deleteTooltip')
-                    : t('removeFromListTooltip')}
+                    ? t('setlist.deleteTooltip')
+                    : t('setlist.removeFromListTooltip')}
                 </p>
               </TooltipContent>
             </Tooltip>
             <AlertDialogContent onClick={(e) => e.stopPropagation()}>
               <AlertDialogHeader>
                 <AlertDialogTitle>
-                  {t('deleteDialogTitle')}
+                  {t('setlist.deleteDialogTitle')}
                 </AlertDialogTitle>
                 <AlertDialogDescription>
                   {isOwner
-                    ? t('deleteDialogDesc', { title: setlist.title })
-                    : t('removeDialogDesc', { title: setlist.title })}
+                    ? t('setlist.deleteDialogDesc', { title: setlist.title })
+                    : t('setlist.removeDialogDesc', { title: setlist.title })}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -330,8 +330,8 @@ function SetlistItem({
                   className='bg-destructive hover:bg-destructive/90'
                 >
                   {isOwner
-                    ? t('deleteButton')
-                    : t('removeButton')}
+                    ? t('setlist.deleteButton')
+                    : t('setlist.removeButton')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
