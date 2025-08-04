@@ -71,6 +71,7 @@ import Link from 'next/link';
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
   artist: z.string(),
+  url: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
   lyrics: z.string().min(1, 'Lyrics are required.'),
   originalKey: z.string().min(1, 'Key is required'),
   bpm: z.coerce
@@ -180,6 +181,7 @@ export default function SongCreator() {
     defaultValues: {
       title: '',
       artist: '',
+      url: '',
       lyrics: '',
       originalKey: 'C',
       bpm: 120,
@@ -217,6 +219,7 @@ export default function SongCreator() {
             form.reset({
               title: existingSong.title,
               artist: existingSong.artist,
+              url: existingSong.url || '',
               lyrics: formatLyricsToString(existingSong.lyrics),
               originalKey: existingSong.originalKey || 'C',
               bpm: existingSong.bpm || 120,
@@ -259,6 +262,7 @@ export default function SongCreator() {
       id: songId || 'preview',
       title: formData.title || 'Untitled',
       artist: formData.artist || 'Unknown Artist',
+      url: formData.url,
       updatedAt: new Date(),
       lyrics: parseLyricsFromString(formData.lyrics || ''),
       originalKey: formData.originalKey,
@@ -286,6 +290,7 @@ export default function SongCreator() {
       id: isUpdating ? songId : uuidv4(),
       title: data.title,
       artist: data.artist,
+      url: data.url,
       lyrics: parseLyricsFromString(data.lyrics),
       originalKey: data.originalKey,
       bpm: data.bpm,
@@ -493,6 +498,23 @@ export default function SongCreator() {
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name='url'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sample URL (YouTube, etc.)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder='https://youtube.com/watch?v=...'
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                 <FormField

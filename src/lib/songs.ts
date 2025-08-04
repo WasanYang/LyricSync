@@ -13,6 +13,7 @@ export type Song = {
   originalKey?: string;
   bpm?: number;
   timeSignature?: string;
+  url?: string; // Link to YouTube, Spotify, etc.
   source: 'system' | 'user'; // system: from the app, user: custom song or upload
   downloadCount?: number;
   // Fields for user-uploaded songs

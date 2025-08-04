@@ -1,3 +1,4 @@
+// src/components/SongDetail.tsx
 'use client';
 
 import type { LyricLine, Song } from '@/lib/songs';
@@ -15,6 +16,7 @@ import {
   ChevronUp,
   Check,
   Download,
+  Music,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
@@ -90,6 +92,17 @@ export interface SongDetailProps {
   showPlayerLink?: boolean;
   isSharePage?: boolean;
 }
+
+const getUrlPlatform = (
+  url: string
+): { name: 'YouTube' | 'Spotify' | 'Apple Music' | 'SoundCloud' | 'Link' } => {
+  if (url.includes('youtube.com') || url.includes('youtu.be'))
+    return { name: 'YouTube' };
+  if (url.includes('spotify.com')) return { name: 'Spotify' };
+  if (url.includes('music.apple.com')) return { name: 'Apple Music' };
+  if (url.includes('soundcloud.com')) return { name: 'SoundCloud' };
+  return { name: 'Link' };
+};
 
 export function SongDetail({
   songId,
@@ -175,6 +188,8 @@ export function SongDetail({
     return notFound();
   }
 
+  const urlPlatform = song.url ? getUrlPlatform(song.url) : null;
+
   return (
     <div className='flex-grow flex flex-col'>
       <Header />
@@ -203,13 +218,21 @@ export function SongDetail({
               )}
             </div>
             <TooltipProvider>
-              <div className='flex items-center justify-center gap-3 pt-4 sm:justify-start'>
+              <div className='flex flex-wrap items-center justify-center gap-3 pt-4 sm:justify-start'>
                 {showPlayerLink && (
                   <Button asChild size='lg'>
                     <Link href={url}>
                       <Play className='mr-2 h-5 w-5' />
                       {t('viewInPlayer')}
                     </Link>
+                  </Button>
+                )}
+                {song.url && urlPlatform && (
+                  <Button asChild variant='outline' size='lg'>
+                    <a href={song.url} target='_blank' rel='noopener noreferrer'>
+                      <Music className='mr-2 h-5 w-5' />
+                      Listen on {urlPlatform.name}
+                    </a>
                   </Button>
                 )}
                 {user && (

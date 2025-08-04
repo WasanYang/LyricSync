@@ -292,6 +292,28 @@ export async function uploadSongToCloud(song: Song): Promise<void> {
   }
 }
 
+const songFromDoc = (doc: any): Song => {
+  const data = doc.data();
+  const updatedAt = data.updatedAt;
+  return {
+    id: doc.id,
+    title: data.title,
+    artist: data.artist,
+    lyrics: data.lyrics,
+    originalKey: data.originalKey,
+    bpm: data.bpm,
+    timeSignature: data.timeSignature,
+    url: data.url,
+    userId: data.userId,
+    uploaderName: data.uploaderName,
+    uploaderEmail: data.uploaderEmail,
+    source: data.source,
+    downloadCount: data.downloadCount || 0,
+    updatedAt:
+      updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
+  };
+};
+
 export async function getPaginatedSystemSongs(
   page: number,
   pageSize: number
@@ -325,28 +347,7 @@ export async function getPaginatedSystemSongs(
 
   const documentSnapshots = await getDocs(q);
 
-  const songs: Song[] = [];
-  documentSnapshots.forEach((doc) => {
-    const data = doc.data();
-    const updatedAt = data.updatedAt;
-    songs.push({
-      id: doc.id,
-      title: data.title,
-      artist: data.artist,
-      lyrics: data.lyrics,
-      originalKey: data.originalKey,
-      bpm: data.bpm,
-      timeSignature: data.timeSignature,
-      userId: data.userId,
-      uploaderName: data.uploaderName,
-      uploaderEmail: data.uploaderEmail,
-      source: data.source,
-      downloadCount: data.downloadCount || 0,
-      updatedAt:
-        updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
-    } as Song);
-  });
-
+  const songs: Song[] = documentSnapshots.docs.map(songFromDoc);
   return { songs, totalPages, totalSongs };
 }
 
@@ -357,28 +358,7 @@ export async function getAllCloudSongs(): Promise<Song[]> {
   const q = query(songsCollection);
   const querySnapshot = await getDocs(q);
 
-  const songs: Song[] = [];
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
-    const updatedAt = data.updatedAt;
-    songs.push({
-      id: doc.id,
-      title: data.title,
-      artist: data.artist,
-      lyrics: data.lyrics,
-      originalKey: data.originalKey,
-      bpm: data.bpm,
-      timeSignature: data.timeSignature,
-      userId: data.userId,
-      uploaderName: data.uploaderName,
-      uploaderEmail: data.uploaderEmail,
-      source: data.source,
-      downloadCount: data.downloadCount || 0,
-      updatedAt:
-        updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
-    } as Song);
-  });
-
+  const songs: Song[] = querySnapshot.docs.map(songFromDoc);
   return songs;
 }
 
@@ -393,16 +373,7 @@ export async function getCloudSongById(songId: string): Promise<Song | null> {
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-      const data = docSnap.data();
-      const updatedAt = data.updatedAt;
-      const song = {
-        id: docSnap.id,
-        ...data,
-        downloadCount: data.downloadCount || 0,
-        updatedAt:
-          updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
-      } as Song;
-
+      const song = songFromDoc(docSnap);
       console.log(`☁️ Successfully fetched song "${song.title}" from cloud`);
       return song;
     } else {
