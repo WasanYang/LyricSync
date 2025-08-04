@@ -53,7 +53,7 @@ function SetlistDetailContent({
   const { user } = useAuth();
   const { toast } = useToast();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  const t = useTranslations('setlist');
+  const t = useTranslations();
 
   const [setlist, setSetlist] = useState<Setlist | null>(null);
   const [songs, setSongs] = useState<Song[]>([]);
@@ -134,8 +134,8 @@ function SetlistDetailContent({
       () => {
         setIsCopied(true);
         toast({
-          title: t('linkCopiedToastTitle'),
-          description: t('linkCopiedToastDesc'),
+          title: t('setlist.linkCopiedToastTitle'),
+          description: t('setlist.linkCopiedToastDesc'),
         });
         setTimeout(() => setIsCopied(false), 2000);
       },
@@ -182,7 +182,7 @@ function SetlistDetailContent({
       <div className='space-y-2 pt-8 text-center'>
         <h1 className='text-4xl font-bold font-headline'>{setlist.title}</h1>
         <p className='text-muted-foreground'>
-          {t('songCount', { count: songs.length })}
+          {t('setlist.songCount', { count: songs.length })}
         </p>
       </div>
       <div className='flex flex-wrap gap-2 justify-center'>
