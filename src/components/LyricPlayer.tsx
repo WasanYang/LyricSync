@@ -526,7 +526,7 @@ export default function LyricPlayer({
                     isSectionBreak ? 'h-[0.5em]' : '',
                     isHighlighted
                       ? 'text-foreground scale-105'
-                      : 'text-muted-foreground/40',
+                      : 'text-muted-foreground/60',
                     fontWeight === 400 && 'font-normal',
                     fontWeight === 600 && 'font-semibold',
                     fontWeight === 700 && 'font-bold'
