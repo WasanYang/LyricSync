@@ -27,9 +27,29 @@ export async function GET() {
 
     const urls = songs
       .map((song) => {
-        const lastMod = song.updatedAt
-          ? new Date(song.updatedAt).toISOString().split('T')[0]
-          : new Date().toISOString().split('T')[0];
+        let lastMod: string;
+
+        if (
+          song.updatedAt &&
+          typeof song.updatedAt === 'object' &&
+          song.updatedAt !== null &&
+          typeof (song.updatedAt as { toDate?: Function }).toDate === 'function'
+        ) {
+          // Firestore Timestamp object
+          lastMod = (song.updatedAt as unknown as { toDate: () => Date })
+            .toDate()
+            .toISOString()
+            .split('T')[0];
+        } else if (song.updatedAt && song.updatedAt instanceof Date) {
+          lastMod = song.updatedAt.toISOString().split('T')[0];
+        } else if (
+          song.updatedAt &&
+          !isNaN(new Date(song.updatedAt).getTime())
+        ) {
+          lastMod = new Date(song.updatedAt).toISOString().split('T')[0];
+        } else {
+          lastMod = new Date().toISOString().split('T')[0];
+        }
 
         return `
     <url>
