@@ -231,7 +231,7 @@ export function SongDetail({
                   <Button asChild variant='outline' size='lg'>
                     <a href={song.url} target='_blank' rel='noopener noreferrer'>
                       <Music className='mr-2 h-5 w-5' />
-                      Listen on {urlPlatform.name}
+                      {urlPlatform.name}
                     </a>
                   </Button>
                 )}
