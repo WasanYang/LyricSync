@@ -1,3 +1,4 @@
+// src/components/ShareSetlistDialog.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -19,6 +20,7 @@ import type { Setlist } from '@/lib/db';
 import { Switch } from './ui/switch';
 import { updateSetlistPublicStatus } from '@/lib/db';
 import { Separator } from './ui/separator';
+import { useTranslations } from 'next-intl';
 
 interface ShareSetlistDialogProps {
   isOpen: boolean;
@@ -33,6 +35,7 @@ export function ShareSetlistDialog({
   setlist,
   onStatusChange,
 }: ShareSetlistDialogProps) {
+  const t = useTranslations('shareSetlist');
   const { toast } = useToast();
   const [shareUrl, setShareUrl] = useState('');
   const [isCopied, setIsCopied] = useState(false);
@@ -60,8 +63,8 @@ export function ShareSetlistDialog({
       () => {
         setIsCopied(true);
         toast({
-          title: 'Link Copied!',
-          description: 'The shareable link has been copied to your clipboard.',
+          title: t('linkCopiedToastTitle'),
+          description: t('linkCopiedToastDesc'),
         });
       },
       () => {
@@ -80,10 +83,10 @@ export function ShareSetlistDialog({
       setIsPublic(checked); // Optimistic UI update
       await updateSetlistPublicStatus(setlist.firestoreId, checked);
       toast({
-        title: `Setlist is now ${checked ? 'Public' : 'Private'}`,
+        title: checked ? t('nowPublicToastTitle') : t('nowPrivateToastTitle'),
         description: checked
-          ? 'Other users can now find and use this setlist.'
-          : 'This setlist is no longer publicly searchable.',
+          ? t('nowPublicToastDesc')
+          : t('nowPrivateToastDesc'),
       });
       onStatusChange(); // Refresh the list on the main page
     } catch {
@@ -100,17 +103,14 @@ export function ShareSetlistDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className='sm:max-w-md'>
         <DialogHeader>
-          <DialogTitle>Share &quot;{setlist.title}&quot;</DialogTitle>
-          <DialogDescription>
-            Use the link to share this setlist, or make it public for others to
-            discover.
-          </DialogDescription>
+          <DialogTitle>{t('title', { title: setlist.title })}</DialogTitle>
+          <DialogDescription>{t('desc')}</DialogDescription>
         </DialogHeader>
         <div className='space-y-4 py-2'>
           <div className='flex items-center space-x-2'>
             <div className='grid flex-1 gap-2'>
               <Label htmlFor='link' className='sr-only'>
-                Link
+                {t('linkLabel')}
               </Label>
               <Input id='link' defaultValue={shareUrl} readOnly />
             </div>
@@ -125,15 +125,15 @@ export function ShareSetlistDialog({
               ) : (
                 <Copy className='h-4 w-4' />
               )}
-              <span className='sr-only'>Copy Link</span>
+              <span className='sr-only'>{t('copyButton')}</span>
             </Button>
           </div>
           <Separator />
           <div className='flex items-center justify-between rounded-lg border p-3'>
             <div className='space-y-0.5'>
-              <Label htmlFor='public-switch'>Public Setlist</Label>
+              <Label htmlFor='public-switch'>{t('publicSwitchLabel')}</Label>
               <p className='text-xs text-muted-foreground'>
-                Allow other users to find and use this setlist.
+                {t('publicSwitchDesc')}
               </p>
             </div>
             <Switch
@@ -146,7 +146,7 @@ export function ShareSetlistDialog({
         <DialogFooter className='sm:justify-end'>
           <DialogClose asChild>
             <Button type='button' variant='secondary'>
-              Done
+              {t('doneButton')}
             </Button>
           </DialogClose>
         </DialogFooter>
@@ -154,5 +154,3 @@ export function ShareSetlistDialog({
     </Dialog>
   );
 }
-
-    

@@ -1,3 +1,4 @@
+// src/app/[locale]/(guest)/setlists/[id]/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -18,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
+import { useTranslations } from 'next-intl';
 
 function LoadingSkeleton() {
   return (
@@ -41,8 +43,6 @@ function LoadingSkeleton() {
   );
 }
 
-// Removed local SongItem, use shared
-
 function SetlistDetailContent({
   onLoadingChange,
 }: {
@@ -53,6 +53,7 @@ function SetlistDetailContent({
   const { user } = useAuth();
   const { toast } = useToast();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const t = useTranslations();
 
   const [setlist, setSetlist] = useState<Setlist | null>(null);
   const [songs, setSongs] = useState<Song[]>([]);
@@ -81,7 +82,6 @@ function SetlistDetailContent({
       try {
         setIsLoading(true);
         const loadedSetlist = await getSetlistFromDb(id);
-        // Ensure the user viewing this local setlist is the owner
         if (loadedSetlist && loadedSetlist.userId === user.uid) {
           setSetlist(loadedSetlist);
           const songPromises = loadedSetlist.songIds.map(findSong);
@@ -89,7 +89,6 @@ function SetlistDetailContent({
             Boolean
           ) as Song[];
 
-          // Make sure all songs were found before setting state
           if (loadedSongs.length === loadedSetlist.songIds.length) {
             setSongs(loadedSongs);
           } else {
@@ -99,7 +98,6 @@ function SetlistDetailContent({
                 'Some songs in this setlist could not be found and may have been deleted.',
               variant: 'destructive',
             });
-            // Set only the songs that were found
             setSongs(loadedSongs);
           }
         } else {
@@ -136,8 +134,8 @@ function SetlistDetailContent({
       () => {
         setIsCopied(true);
         toast({
-          title: 'Link Copied!',
-          description: 'A shareable link has been copied to your clipboard.',
+          title: t('setlist.linkCopiedToastTitle'),
+          description: t('setlist.linkCopiedToastDesc'),
         });
         setTimeout(() => setIsCopied(false), 2000);
       },
@@ -163,7 +161,6 @@ function SetlistDetailContent({
     if (!setlist) return;
     setIsSaving(true);
     try {
-      // Save logic here (customize as needed)
       setIsSaved(true);
       toast({
         title: 'Setlist Saved!',
@@ -185,13 +182,13 @@ function SetlistDetailContent({
       <div className='space-y-2 pt-8 text-center'>
         <h1 className='text-4xl font-bold font-headline'>{setlist.title}</h1>
         <p className='text-muted-foreground'>
-          {songs.length} {songs.length === 1 ? 'song' : 'songs'}
+          {t('setlist.songCount', { count: songs.length })}
         </p>
       </div>
       <div className='flex flex-wrap gap-2 justify-center'>
         <Button asChild size='lg'>
           <Link href={`/setlists/${setlist.id}/player`}>
-            <Play className='mr-2 h-5 w-5' /> View in Player
+            <Play className='mr-2 h-5 w-5' /> {t('viewInPlayer')}
           </Link>
         </Button>
         {!isOwner && (
@@ -234,6 +231,7 @@ function SetlistDetailContent({
 export default function SetlistDetailPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const t = useTranslations();
   return (
     <div className='flex-grow flex flex-col'>
       {user && <Header />}
@@ -252,7 +250,7 @@ export default function SetlistDetailPage() {
             }}
           >
             <ArrowLeft className='h-5 w-5' />
-            <span className='sr-only'>Back</span>
+            <span className='sr-only'>{t('setlist.backButton')}</span>
           </Button>
         )}
         <SetlistDetailContent />

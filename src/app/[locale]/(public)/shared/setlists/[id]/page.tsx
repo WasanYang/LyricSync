@@ -35,6 +35,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip';
+import { useTranslations } from 'next-intl';
 
 function LoadingSkeleton() {
   return <SetlistSkeleton />;
@@ -50,6 +51,7 @@ function SharedSetlistContent() {
   const { toast } = useToast();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const isAdminMode = searchParams.get('mode') === 'admin';
+  const t = useTranslations();
 
   const [setlist, setSetlist] = useState<Setlist | null>(null);
   const [songs, setSongs] = useState<Song[]>([]);
@@ -121,8 +123,8 @@ function SharedSetlistContent() {
       () => {
         setIsCopied(true);
         toast({
-          title: 'Link Copied!',
-          description: 'A shareable link has been copied to your clipboard.',
+          title: t('setlist.linkCopiedToastTitle'),
+          description: t('setlist.linkCopiedToastDesc'),
         });
         setTimeout(() => setIsCopied(false), 2000);
       },
@@ -168,8 +170,10 @@ function SharedSetlistContent() {
       await saveSetlist(savedSetlistReference);
 
       toast({
-        title: 'Setlist Saved!',
-        description: `"${setlist.title}" has been saved to your setlists.`,
+        title: t('setlist.savedToLibraryToastTitle'),
+        description: t('setlist.savedToLibraryToastDesc', {
+          title: setlist.title,
+        }),
       });
       setIsSaved(true);
     } catch (error) {
@@ -208,7 +212,7 @@ function SharedSetlistContent() {
       return (
         <Button asChild size='lg'>
           <Link href={`/setlists/${id}/player`}>
-            <Play className='mr-2 h-5 w-5' /> View in Player
+            <Play className='mr-2 h-5 w-5' /> {t('viewInPlayer')}
           </Link>
         </Button>
       );
@@ -219,7 +223,7 @@ function SharedSetlistContent() {
         <div className='flex items-center gap-2'>
           <Button asChild size='lg'>
             <Link href={`/shared/setlists/${id}/player`}>
-              <Play className='mr-2 h-5 w-5' /> View in Player
+              <Play className='mr-2 h-5 w-5' /> {t('viewInPlayer')}
             </Link>
           </Button>
           {!isAnonymous && (
@@ -230,7 +234,7 @@ function SharedSetlistContent() {
                   variant='outline'
                   onClick={handleSaveToLibrary}
                   disabled={isSaving || isSaved}
-                  aria-label='Save to My Setlists'
+                  aria-label={t('setlist.saveToMySetlistsAria')}
                 >
                   {isSaved ? (
                     <Check className='h-5 w-5 text-green-500' />
@@ -241,7 +245,9 @@ function SharedSetlistContent() {
               </TooltipTrigger>
               <TooltipContent>
                 <p>
-                  {isSaved ? 'Saved in your setlists' : 'Save to My Setlists'}
+                  {isSaved
+                    ? t('setlist.savedInYourSetlistsTooltip')
+                    : t('setlist.saveToMySetlistsTooltip')}
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -252,7 +258,7 @@ function SharedSetlistContent() {
                 size='icon'
                 variant='outline'
                 onClick={handleShare}
-                aria-label='Share Setlist'
+                aria-label={t('setlist.shareTooltip')}
               >
                 {isCopied ? (
                   <Check className='h-5 w-5 text-green-500' />
@@ -262,7 +268,7 @@ function SharedSetlistContent() {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>Share Setlist</p>
+              <p>{t('setlist.shareTooltip')}</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -275,8 +281,8 @@ function SharedSetlistContent() {
       <div className='space-y-2 pt-8 text-center'>
         <h1 className='text-4xl font-bold font-headline'>{setlist.title}</h1>
         <p className='text-muted-foreground'>
-          {songs.length} {songs.length === 1 ? 'song' : 'songs'} • By{' '}
-          {setlist.authorName}
+          {t('setlist.songCount', { count: songs.length })} •{' '}
+          {t('setlist.byAuthor', { authorName: setlist.authorName })}
         </p>
       </div>
 
@@ -292,7 +298,7 @@ function SharedSetlistContent() {
           ))}
         {!isLoading && songs.length === 0 && (
           <div className='text-center py-10 text-muted-foreground'>
-            <p>This setlist is empty or the songs could not be loaded.</p>
+            <p>{t('setlist.emptySetlist')}</p>
           </div>
         )}
       </div>
@@ -303,6 +309,8 @@ function SharedSetlistContent() {
 export default function SharedSetlistPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const t = useTranslations('setlist');
+
   return (
     <div className='flex-grow flex flex-col'>
       <Header />
@@ -321,7 +329,7 @@ export default function SharedSetlistPage() {
             }}
           >
             <ArrowLeft className='h-5 w-5' />
-            <span className='sr-only'>Back</span>
+            <span className='sr-only'>{t('backButton')}</span>
           </Button>
         )}
         <SharedSetlistContent />
