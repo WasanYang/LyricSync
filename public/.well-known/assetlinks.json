@@ -1,0 +1,13 @@
+
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.lyricsync.lyricsync",
+      "sha256_cert_fingerprints": [
+        "A3:7A:B4:A3:3A:4C:A6:61:0A:0A:74:35:86:13:25:F4:79:47:C5:3A:E1:92:4B:B5:36:31:94:1E:E2:B6:5D:1E"
+      ]
+    }
+  }
+]

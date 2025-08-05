@@ -1,0 +1,17 @@
+
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "5X585W399F.app.lyricsync.lyricsync",
+        "paths": [
+          "/shared/song/*",
+          "/shared/setlists/*",
+          "/lyrics/*",
+          "/setlists/*"
+        ]
+      }
+    ]
+  }
+}
