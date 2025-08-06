@@ -147,6 +147,7 @@ export function generateMetadata(config: SEOConfig): Metadata {
       'mobile-web-app-capable': 'yes',
       'apple-mobile-web-app-capable': 'yes',
       'apple-mobile-web-app-status-bar-style': 'default',
+      'fb:app_id': '1294970252255739',
     },
   };
 
