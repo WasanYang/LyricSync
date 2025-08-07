@@ -37,13 +37,19 @@
   "profile": {
     "title": "Profile",
     "guestUser": "Guest User",
-    "stats": "My Music",
+    "myMusic": "My Music",
     "mySongs": "My Library",
     "mySetlists": "My Setlists",
     "signOut": "Sign Out",
     "unlockTitle": "Unlock Full Access",
     "unlockDesc": "Sign in with Google to save your songs, create setlists, and sync your data across devices.",
-    "signInGoogle": "Sign In with Google"
+    "signInGoogle": "Sign In with Google",
+    "settingsTitle": "Settings",
+    "publicProfileLabel": "Public Profile",
+    "publicProfileDesc": "Allow other users to see your profile and public setlists.",
+    "publicStatusUpdated": "Profile Status Updated",
+    "nowPublicDesc": "Your profile is now public.",
+    "nowPrivateDesc": "Your profile is now private."
   },
   "library": "Library",
   "setlists": "Setlists",
@@ -58,10 +64,17 @@
     "browseByLetter": "Browse by Letter (A-Z, ก-ฮ)"
   },
   "explore": {
-    "title": "Explore Public Setlists",
+    "title": "Explore Setlists",
     "description": "Discover setlists shared by the LyricSync community.",
     "placeholder": "Search public setlists...",
-    "noResults": "No public setlists found matching \"{searchTerm}\"."
+    "noResults": "No public setlists found matching \"{searchTerm}\".",
+    "titleUsers": "Explore Users",
+    "descriptionUsers": "Discover other users and their shared setlists.",
+    "placeholderUsers": "Search for users...",
+    "noResultsUsers": "No users found matching \"{searchTerm}\".",
+    "sharedSetlistsCount": "{count} shared setlists",
+    "publicSetlistsTitle": "Public Setlists",
+    "noPublicSetlists": "This user has no public setlists yet."
   },
   "premium": "Premium",
   "admin": "Admin",

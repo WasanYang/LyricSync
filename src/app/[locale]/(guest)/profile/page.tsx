@@ -25,6 +25,8 @@ import {
   Save,
   X,
   Loader2,
+  Lock,
+  Globe,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GoogleIcon } from '@/components/ui/GoogleIcon';
@@ -32,6 +34,8 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 function StatCard({
   icon: Icon,
@@ -68,8 +72,6 @@ function StatCard({
       </CardContent>
     </Card>
   );
-
-  return <Link href={href}>{content}</Link>;
 }
 
 function ProfileLoadingSkeleton() {
@@ -88,7 +90,7 @@ function ProfileLoadingSkeleton() {
             </div>
           </div>
           <div>
-            <h2 className='text-lg font-semibold mb-4'>{t('stats')}</h2>
+            <h2 className='text-lg font-semibold mb-4'>{t('myMusic')}</h2>
             <div className='grid gap-4 md:grid-cols-1'>
               <Card>
                 <CardContent className='p-4 flex items-center justify-between'>
@@ -133,6 +135,7 @@ export default function ProfilePage() {
     logout,
     signInWithGoogle,
     updateProfileName,
+    updateProfilePublicStatus,
   } = useAuth();
 
   const [songCount, setSongCount] = useState(0);
@@ -143,6 +146,17 @@ export default function ProfilePage() {
   const [newDisplayName, setNewDisplayName] = useState('');
   const [isSavingName, setIsSavingName] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const [isProfilePublic, setIsProfilePublic] = useState(user?.isProfilePublic || false);
+  const [isUpdatingPublicStatus, setIsUpdatingPublicStatus] = useState(false);
+
+
+  useEffect(() => {
+    if (user?.isProfilePublic !== undefined) {
+      setIsProfilePublic(user.isProfilePublic);
+    }
+  }, [user?.isProfilePublic]);
+
 
   useEffect(() => {
     async function fetchStats() {
@@ -214,6 +228,26 @@ export default function ProfilePage() {
       setIsSavingName(false);
     }
   };
+
+  const handlePublicToggle = async (checked: boolean) => {
+    setIsUpdatingPublicStatus(true);
+    try {
+      await updateProfilePublicStatus(checked);
+      setIsProfilePublic(checked);
+      toast({
+        title: t('publicStatusUpdated'),
+        description: checked ? t('nowPublicDesc') : t('nowPrivateDesc'),
+      });
+    } catch (error) {
+       toast({
+        title: 'Error',
+        description: 'Could not update your profile status.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUpdatingPublicStatus(false);
+    }
+  }
 
   if (authLoading || !user) {
     return <ProfileLoadingSkeleton />;
@@ -316,25 +350,49 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
           ) : (
-            <div>
-              <h2 className='text-lg font-semibold mb-4'>{t('stats')}</h2>
-              <div className='grid gap-3 md:grid-cols-1'>
-                <StatCard
-                  icon={Music}
-                  title={t('mySongs')}
-                  value={songCount}
-                  isLoading={isLoadingStats}
-                  href='/library'
-                />
-                <StatCard
-                  icon={ListMusic}
-                  title={t('mySetlists')}
-                  value={setlistCount}
-                  isLoading={isLoadingStats}
-                  href='/setlists'
-                />
+            <>
+              <div>
+                <h2 className='text-lg font-semibold mb-4'>{t('myMusic')}</h2>
+                <div className='grid gap-3 md:grid-cols-1'>
+                  <StatCard
+                    icon={Music}
+                    title={t('mySongs')}
+                    value={songCount}
+                    isLoading={isLoadingStats}
+                    href='/library'
+                  />
+                  <StatCard
+                    icon={ListMusic}
+                    title={t('mySetlists')}
+                    value={setlistCount}
+                    isLoading={isLoadingStats}
+                    href='/setlists'
+                  />
+                </div>
               </div>
-            </div>
+              <div>
+                <h2 className='text-lg font-semibold mb-4'>{t('settingsTitle')}</h2>
+                 <Card>
+                    <CardContent className="p-4 flex items-center justify-between">
+                      <div className='space-y-0.5'>
+                        <Label htmlFor='public-profile-switch' className="flex items-center gap-2">
+                           {isProfilePublic ? <Globe className="h-4 w-4 text-blue-500" /> : <Lock className="h-4 w-4 text-yellow-500" />}
+                           {t('publicProfileLabel')}
+                        </Label>
+                        <p className='text-sm text-muted-foreground'>
+                         {t('publicProfileDesc')}
+                        </p>
+                      </div>
+                      <Switch
+                        id='public-profile-switch'
+                        checked={isProfilePublic}
+                        onCheckedChange={handlePublicToggle}
+                        disabled={isUpdatingPublicStatus}
+                      />
+                    </CardContent>
+                  </Card>
+              </div>
+            </>
           )}
 
           <Button

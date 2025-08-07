@@ -51,6 +51,13 @@ export type SetlistWithSyncStatus = Setlist & {
   needsSync: boolean; // Local is newer than cloud
 };
 
+export interface PublicUser {
+  uid: string;
+  displayName: string;
+  photoURL?: string;
+  publicSetlistsCount: number;
+}
+
 interface LyricSyncDB extends DBSchema {
   [SONGS_STORE]: {
     key: string;
@@ -848,4 +855,78 @@ export async function getAllCloudSetlists(): Promise<Setlist[]> {
   });
 
   return setlists;
+}
+
+// --- User Profile Functions ---
+
+export async function updateUserProfilePublicStatus(
+  userId: string,
+  isPublic: boolean
+): Promise<void> {
+  if (!firestoreDb) throw new Error('Firebase is not configured.');
+  const userRef = doc(firestoreDb, 'users', userId);
+  await updateDoc(userRef, { isProfilePublic: isPublic });
+}
+
+export async function getPublicUsers(): Promise<PublicUser[]> {
+  if (!firestoreDb) throw new Error('Firebase is not configured.');
+  const usersRef = collection(firestoreDb, 'users');
+  const q = query(usersRef, where('isProfilePublic', '==', true));
+
+  const usersSnapshot = await getDocs(q);
+  const publicUsers: PublicUser[] = [];
+
+  for (const userDoc of usersSnapshot.docs) {
+    const userData = userDoc.data();
+    const setlistsRef = collection(
+      firestoreDb,
+      `users/${userDoc.id}/userSetlists`
+    );
+    const setlistsSnapshot = await getDocs(
+      query(setlistsRef)
+    );
+    const publicSetlistsCount = setlistsSnapshot.size;
+
+    if (publicSetlistsCount > 0) {
+      publicUsers.push({
+        uid: userData.uid,
+        displayName: userData.displayName,
+        photoURL: userData.photoURL,
+        publicSetlistsCount,
+      });
+    }
+  }
+
+  return publicUsers;
+}
+
+
+export async function getPublicSetlistsByUserId(userId: string): Promise<Setlist[]> {
+    if (!firestoreDb) throw new Error('Firebase is not configured.');
+    const q = query(
+        collection(firestoreDb, 'setlists'),
+        where('userId', '==', userId),
+        where('isPublic', '==', true),
+        orderBy('syncedAt', 'desc')
+    );
+
+    const querySnapshot = await getDocs(q);
+    const setlists: Setlist[] = [];
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const syncedAt = data.syncedAt as Timestamp;
+        setlists.push({
+            id: doc.id,
+            firestoreId: doc.id,
+            title: data.title,
+            songIds: data.songIds,
+            userId: data.userId,
+            createdAt: syncedAt?.toMillis() || Date.now(),
+            isSynced: true,
+            isPublic: true,
+            authorName: data.authorName || 'Anonymous',
+            source: 'saved',
+        });
+    });
+    return setlists;
 }

@@ -1,4 +1,3 @@
-
 // src/context/AuthContext.tsx
 'use client';
 
@@ -19,24 +18,30 @@ import {
   type User,
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import { updateUserProfilePublicStatus } from '@/lib/db';
+import { doc, serverTimestamp, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 
 const SUPER_ADMIN_EMAIL = 'esxy26@gmail.com';
 
+interface AppUser extends User {
+  isProfilePublic?: boolean;
+}
+
 interface AuthContextType {
-  user: User | null;
+  user: AppUser | null;
   loading: boolean;
   isSuperAdmin: boolean;
   signInWithGoogle: () => Promise<void>;
   signInAnonymously: () => Promise<void>;
   logout: () => Promise<void>;
   updateProfileName: (newName: string) => Promise<void>;
+  updateProfilePublicStatus: (isPublic: boolean) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
@@ -44,40 +49,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Only subscribe if auth is initialized
     if (auth && db) {
       const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        if (user && !user.isAnonymous && db) {
-          // If user is logged in and not a guest, create/update their doc in Firestore
+        if (user) {
           const userRef = doc(db, 'users', user.uid);
-          try {
-            await setDoc(
-              userRef,
-              {
-                uid: user.uid,
-                displayName: user.displayName,
-                email: user.email,
-                photoURL: user.photoURL,
-                lastLoginAt: serverTimestamp(),
-                isSuperAdmin: user.email === SUPER_ADMIN_EMAIL,
-              },
-              { merge: true }
-            );
-            setIsSuperAdmin(user.email === SUPER_ADMIN_EMAIL);
-          } catch (error) {
-            console.error('Error updating user document:', error);
+          const userSnap = await getDoc(userRef);
+
+          if (userSnap.exists()) {
+            // User exists, update last login and get their public status
+            await updateDoc(userRef, { lastLoginAt: serverTimestamp() });
+            const userData = userSnap.data();
+            setUser({
+              ...user,
+              isProfilePublic: userData.isProfilePublic || false,
+            });
+            setIsSuperAdmin(userData.isSuperAdmin || false);
+          } else if (!user.isAnonymous) {
+            // New user, create their document
+            const isUserSuperAdmin = user.email === SUPER_ADMIN_EMAIL;
+            const newUserDoc = {
+              uid: user.uid,
+              displayName: user.displayName,
+              email: user.email,
+              photoURL: user.photoURL,
+              createdAt: serverTimestamp(),
+              lastLoginAt: serverTimestamp(),
+              isSuperAdmin: isUserSuperAdmin,
+              isProfilePublic: false, // Default to private
+            };
+            await setDoc(userRef, newUserDoc);
+            setUser({ ...user, isProfilePublic: false });
+            setIsSuperAdmin(isUserSuperAdmin);
+          } else {
+            // Anonymous user
+            setUser(user);
+            setIsSuperAdmin(false);
           }
         } else {
+          setUser(null);
           setIsSuperAdmin(false);
         }
-        setUser(user);
         setLoading(false);
       });
       return () => unsubscribe();
     } else {
-      // If auth is not initialized, stop loading and show the app
-      // The user will be null, so public content is visible.
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const signInWithGoogle = async () => {
     if (!auth) {
@@ -134,20 +151,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const currentUser = auth.currentUser;
 
     try {
-      // Update Firebase Auth profile
       await updateProfile(currentUser, { displayName: newName });
-
-      // Update Firestore user document
       const userRef = doc(db, 'users', currentUser.uid);
       await updateDoc(userRef, { displayName: newName });
-
-      // Manually update the user state in the context to reflect changes immediately
-      setUser({ ...currentUser, displayName: newName });
+      setUser((prevUser) =>
+        prevUser ? { ...prevUser, displayName: newName } : null
+      );
     } catch (error) {
       console.error('Error updating profile name:', error);
       throw new Error('Failed to update profile name.');
     }
   };
+
+  const _updateProfilePublicStatus = async (isPublic: boolean) => {
+    if (!user || user.isAnonymous) {
+      throw new Error('User not authenticated.');
+    }
+    try {
+      await updateUserProfilePublicStatus(user.uid, isPublic);
+      setUser((prevUser) =>
+        prevUser ? { ...prevUser, isProfilePublic: isPublic } : null
+      );
+    } catch (error) {
+      console.error('Error updating profile public status:', error);
+      throw new Error('Could not update profile status.');
+    }
+  };
+
 
   const value = {
     user,
@@ -157,6 +187,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signInAnonymously,
     logout,
     updateProfileName,
+    updateProfilePublicStatus: _updateProfilePublicStatus,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

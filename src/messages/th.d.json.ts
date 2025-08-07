@@ -39,13 +39,19 @@ declare const messages: {
   "profile": {
     "title": "โปรไฟล์",
     "guestUser": "ผู้ใช้ทั่วไป",
-    "stats": "เพลงของฉัน",
+    "myMusic": "เพลงของฉัน",
     "mySongs": "คลังเพลงของฉัน",
     "mySetlists": "เซ็ตลิสต์ของฉัน",
     "signOut": "ออกจากระบบ",
     "unlockTitle": "ปลดล็อกฟังก์ชันทั้งหมด",
     "unlockDesc": "เข้าสู่ระบบด้วย Google เพื่อบันทึกเพลง, สร้างเซ็ตลิสต์, และซิงค์ข้อมูลของคุณข้ามอุปกรณ์",
-    "signInGoogle": "เข้าสู่ระบบด้วย Google"
+    "signInGoogle": "เข้าสู่ระบบด้วย Google",
+    "settingsTitle": "การตั้งค่า",
+    "publicProfileLabel": "โปรไฟล์สาธารณะ",
+    "publicProfileDesc": "อนุญาตให้ผู้ใช้อื่นเห็นโปรไฟล์และเซ็ตลิสต์สาธารณะของคุณ",
+    "publicStatusUpdated": "อัปเดตสถานะโปรไฟล์แล้ว",
+    "nowPublicDesc": "ขณะนี้โปรไฟล์ของคุณเป็นสาธารณะ",
+    "nowPrivateDesc": "ขณะนี้โปรไฟล์ของคุณเป็นส่วนตัว"
   },
   "library": "คลังเพลง",
   "setlists": "เซ็ตลิสต์",
@@ -60,10 +66,17 @@ declare const messages: {
     "browseByLetter": "ค้นหาจากตัวอักษร (ก-ฮ, A-Z)"
   },
   "explore": {
-    "title": "สำรวจเซ็ตลิสต์สาธารณะ",
+    "title": "สำรวจเซ็ตลิสต์",
     "description": "ค้นหาและเลือกใช้เซ็ตลิสต์ที่เพื่อนๆ ในชุมชน LyricSync แบ่งปันไว้",
     "placeholder": "ค้นหาเซ็ตลิสต์สาธารณะ...",
-    "noResults": "ไม่พบเซ็ตลิสต์ที่ตรงกับ \"{searchTerm}\""
+    "noResults": "ไม่พบเซ็ตลิสต์ที่ตรงกับ \"{searchTerm}\"",
+    "titleUsers": "สำรวจผู้ใช้",
+    "descriptionUsers": "ค้นพบผู้ใช้และเซ็ตลิสต์ที่พวกเขาแบ่งปัน",
+    "placeholderUsers": "ค้นหาผู้ใช้...",
+    "noResultsUsers": "ไม่พบผู้ใช้ที่ตรงกับ \"{searchTerm}\"",
+    "sharedSetlistsCount": "แชร์ {count} เซ็ตลิสต์",
+    "publicSetlistsTitle": "เซ็ตลิสต์สาธารณะ",
+    "noPublicSetlists": "ผู้ใช้คนนี้ยังไม่มีเซ็ตลิสต์สาธารณะ"
   },
   "premium": "พรีเมียม",
   "admin": "ผู้ดูแลระบบ",

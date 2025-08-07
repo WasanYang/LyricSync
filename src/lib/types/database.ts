@@ -8,6 +8,7 @@ export interface User {
   photoURL?: string;
   createdAt: Date;
   updatedAt: Date;
+  isProfilePublic?: boolean;
 
   // User preferences
   preferences: {
