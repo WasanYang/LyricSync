@@ -106,7 +106,7 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
           <Check className='mr-2 h-4 w-4' /> {t('markAllAsRead')}
         </Button>
         <Button asChild size='sm' className='w-full'>
-          <Link href='/notifications' onClick={onClose}>
+          <Link href='/updates' onClick={onClose}>
             {t('viewAll')}
           </Link>
         </Button>

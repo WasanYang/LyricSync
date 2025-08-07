@@ -12,6 +12,7 @@ export async function GET() {
     '/search',
     '/premium',
     '/donate',
+    '/updates',
   ];
 
   const urls = staticPages
