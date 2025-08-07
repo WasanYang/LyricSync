@@ -35,7 +35,7 @@ import {
 } from '@/lib/notifications';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
-import { Send, Loader2, Calendar as CalendarIcon, User, Users } from 'lucide-react';
+import { Save, Loader2, Calendar as CalendarIcon, User, Users, X } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -388,14 +388,21 @@ export default function NotificationForm({
                 )}
               </fieldset>
 
-              <Button type='submit' size='lg' disabled={isSubmitting || isSent}>
-                {isSubmitting ? (
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                ) : (
-                  <Send className='mr-2 h-4 w-4' />
-                )}
-                Save Notification
-              </Button>
+              <div className="flex items-center gap-4">
+                 <Button type='submit' size='lg' disabled={isSubmitting || isSent}>
+                  {isSubmitting ? (
+                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  ) : (
+                    <Save className='mr-2 h-4 w-4' />
+                  )}
+                  Save
+                </Button>
+                <Button type="button" variant="outline" size="lg" onClick={() => router.push('/dashboard/notifications')}>
+                  <X className='mr-2 h-4 w-4' />
+                  Cancel
+                </Button>
+              </div>
+
             </form>
           </Form>
         </div>
