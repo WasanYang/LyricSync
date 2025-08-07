@@ -39,7 +39,7 @@ declare const messages: {
   "profile": {
     "title": "โปรไฟล์",
     "guestUser": "ผู้ใช้ทั่วไป",
-    "stats": "ข้อมูลสรุป",
+    "stats": "เพลงของฉัน",
     "mySongs": "คลังเพลงของฉัน",
     "mySetlists": "เซ็ตลิสต์ของฉัน",
     "signOut": "ออกจากระบบ",
