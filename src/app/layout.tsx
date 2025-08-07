@@ -1,18 +1,18 @@
-
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { viewport, metadata } from './metadata';
+import { use } from 'react';
 
 export { viewport, metadata };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
   params,
 }: Readonly<{
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }>) {
-  const { locale = 'th' } = params || {};
+  const { locale = 'th' } = use(params);
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>

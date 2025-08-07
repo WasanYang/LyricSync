@@ -29,7 +29,7 @@ export default function NotFound() {
   return (
     <div className='flex-grow flex flex-col min-h-screen bg-background'>
       <header className='sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-        <div className='flex h-16 items-center justify-between px-4 max-w-4xl mx-auto'>
+        {/* <div className='flex h-16 items-center justify-between px-4 max-w-4xl mx-auto'>
           <Link href='/' className='flex items-center space-x-2'>
             <Image
               src='/icons/logo-72.webp'
@@ -40,7 +40,7 @@ export default function NotFound() {
             />
             <span className='font-bold font-headline text-lg'>LyricSync</span>
           </Link>
-        </div>
+        </div> */}
       </header>
       <main className='flex-grow flex items-center justify-center'>
         <div className='text-center p-8'>
