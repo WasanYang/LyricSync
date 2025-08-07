@@ -50,27 +50,29 @@ function StatCard({
   isLoading: boolean;
   href: string;
 }) {
-  const content = (
-    <Card className='hover:bg-muted/80 transition-colors'>
-      <CardContent className='p-4 flex items-center justify-between'>
-        <div className='flex items-center gap-4'>
-          <div className='p-3 bg-muted rounded-full'>
-            <Icon className='h-6 w-6 text-muted-foreground' />
+  return (
+    <Link href={href} className='block'>
+      <Card className='hover:bg-muted/80 transition-colors'>
+        <CardContent className='p-4 flex items-center justify-between'>
+          <div className='flex items-center gap-4'>
+            <div className='p-3 bg-muted rounded-full'>
+              <Icon className='h-6 w-6 text-muted-foreground' />
+            </div>
+            <div>
+              <p className='font-semibold'>{title}</p>
+              {isLoading ? (
+                <Skeleton className='h-6 w-12 mt-1' />
+              ) : (
+                <p className='text-sm text-muted-foreground'>
+                  {value} {value === 1 ? 'item' : 'items'}
+                </p>
+              )}
+            </div>
           </div>
-          <div>
-            <p className='font-semibold'>{title}</p>
-            {isLoading ? (
-              <Skeleton className='h-6 w-12 mt-1' />
-            ) : (
-              <p className='text-sm text-muted-foreground'>
-                {value} {value === 1 ? 'item' : 'items'}
-              </p>
-            )}
-          </div>
-        </div>
-        <ChevronRight className='h-5 w-5 text-muted-foreground' />
-      </CardContent>
-    </Card>
+          <ChevronRight className='h-5 w-5 text-muted-foreground' />
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
