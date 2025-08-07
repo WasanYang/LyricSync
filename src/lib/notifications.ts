@@ -9,10 +9,12 @@ import {
   writeBatch,
   serverTimestamp,
   onSnapshot,
-  addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   Timestamp,
+  where,
+  limit,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { useState, useEffect, useCallback } from 'react';
