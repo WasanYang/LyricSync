@@ -45,6 +45,7 @@ export default function AdminNotificationsListPage() {
       const notifs = await getAllAdminNotifications();
       setNotifications(notifs);
     } catch (error) {
+      console.log('Failed to fetch notifications:', error);
       toast({
         title: 'Error',
         description: 'Failed to fetch notifications.',
@@ -84,7 +85,7 @@ export default function AdminNotificationsListPage() {
       sent: 'outline',
     } as const;
     return (
-      <Badge variant={variants[status]} className="capitalize">
+      <Badge variant={variants[status]} className='capitalize'>
         {status}
       </Badge>
     );
@@ -125,7 +126,9 @@ export default function AdminNotificationsListPage() {
                 ) : notifications.length > 0 ? (
                   notifications.map((notif) => (
                     <TableRow key={notif.id}>
-                      <TableCell className='font-medium'>{notif.title}</TableCell>
+                      <TableCell className='font-medium'>
+                        {notif.title}
+                      </TableCell>
                       <TableCell>{getStatusBadge(notif.status)}</TableCell>
                       <TableCell>
                         {new Date(notif.createdAt).toLocaleString()}
@@ -137,13 +140,19 @@ export default function AdminNotificationsListPage() {
                       </TableCell>
                       <TableCell className='text-right'>
                         <Button asChild variant='ghost' size='icon'>
-                          <Link href={`/dashboard/notifications/edit/${notif.id}`}>
+                          <Link
+                            href={`/dashboard/notifications/edit/${notif.id}`}
+                          >
                             <Edit className='h-4 w-4' />
                           </Link>
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant='ghost' size='icon' className='text-destructive'>
+                            <Button
+                              variant='ghost'
+                              size='icon'
+                              className='text-destructive'
+                            >
                               <Trash2 className='h-4 w-4' />
                             </Button>
                           </AlertDialogTrigger>
@@ -151,13 +160,16 @@ export default function AdminNotificationsListPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This will permanently delete the notification "{notif.title}".
+                                This will permanently delete the notification "
+                                {notif.title}".
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction
-                                onClick={() => handleDelete(notif.id, notif.title)}
+                                onClick={() =>
+                                  handleDelete(notif.id, notif.title)
+                                }
                                 className='bg-destructive hover:bg-destructive/90'
                               >
                                 Delete

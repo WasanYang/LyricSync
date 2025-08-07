@@ -59,6 +59,18 @@ export async function saveNotification(
   return id;
 }
 
+function toMillisSafe(ts: unknown): number | null {
+  // ถ้าไม่มีข้อมูลหรือไม่ใช่ Timestamp ให้คืน null
+  if (
+    !ts ||
+    typeof ts !== 'object' ||
+    typeof (ts as any).toMillis !== 'function'
+  ) {
+    return null;
+  }
+  return (ts as Timestamp).toMillis();
+}
+
 // Function to get a single notification for editing
 export async function getNotification(
   id: string
@@ -74,7 +86,7 @@ export async function getNotification(
     id: docSnap.id,
     ...data,
     createdAt: (data.createdAt as Timestamp)?.toMillis(),
-    scheduledAt: (data.scheduledAt as Timestamp)?.toMillis(),
+    scheduledAt: toMillisSafe(data.scheduledAt),
   } as AppNotification;
 }
 
@@ -91,7 +103,7 @@ export async function getAllAdminNotifications(): Promise<AppNotification[]> {
       id: doc.id,
       ...data,
       createdAt: (data.createdAt as Timestamp)?.toMillis(),
-      scheduledAt: (data.scheduledAt as Timestamp)?.toMillis(),
+      scheduledAt: toMillisSafe(data.scheduledAt),
     } as AppNotification;
   });
 }
@@ -147,7 +159,11 @@ export async function getUserNotifications(
     userId,
     'user_notifications'
   );
-  const q = query(userNotificationsRef, orderBy('createdAt', 'desc'), limit(50));
+  const q = query(
+    userNotificationsRef,
+    orderBy('createdAt', 'desc'),
+    limit(50)
+  );
 
   const querySnapshot = await getDocs(q);
   if (querySnapshot.empty) return [];
@@ -181,7 +197,9 @@ export async function getUserNotifications(
 }
 
 // Function to mark all unread notifications as read for a user
-export async function markAllNotificationsAsRead(userId: string): Promise<void> {
+export async function markAllNotificationsAsRead(
+  userId: string
+): Promise<void> {
   if (!db) return;
   const userNotificationsRef = collection(
     db,
