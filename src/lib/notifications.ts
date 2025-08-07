@@ -29,6 +29,8 @@ export interface AppNotification {
   // New fields for scheduling
   status: 'draft' | 'scheduled' | 'sent';
   scheduledAt?: number | null; // Timestamp for when to send
+  recipientType?: 'ALL_USERS' | 'SPECIFIC_USERS';
+  recipientIds?: string[];
 }
 
 export interface UserNotification {
@@ -59,16 +61,14 @@ export async function saveNotification(
   return id;
 }
 
-function toMillisSafe(ts: unknown): number | null {
-  // ถ้าไม่มีข้อมูลหรือไม่ใช่ Timestamp ให้คืน null
-  if (
-    !ts ||
-    typeof ts !== 'object' ||
-    typeof (ts as any).toMillis !== 'function'
-  ) {
-    return null;
+const toDateSafe = (ts: unknown): Date | null => {
+  if (ts instanceof Timestamp) {
+    return ts.toDate();
   }
-  return (ts as Timestamp).toMillis();
+  if (typeof ts === 'number') {
+    return new Date(ts);
+  }
+  return null;
 }
 
 // Function to get a single notification for editing
@@ -86,7 +86,7 @@ export async function getNotification(
     id: docSnap.id,
     ...data,
     createdAt: (data.createdAt as Timestamp)?.toMillis(),
-    scheduledAt: toMillisSafe(data.scheduledAt),
+    scheduledAt: toDateSafe(data.scheduledAt)?.getTime() ?? null,
   } as AppNotification;
 }
 
@@ -103,7 +103,7 @@ export async function getAllAdminNotifications(): Promise<AppNotification[]> {
       id: doc.id,
       ...data,
       createdAt: (data.createdAt as Timestamp)?.toMillis(),
-      scheduledAt: toMillisSafe(data.scheduledAt),
+      scheduledAt: toDateSafe(data.scheduledAt)?.getTime() ?? null,
     } as AppNotification;
   });
 }
