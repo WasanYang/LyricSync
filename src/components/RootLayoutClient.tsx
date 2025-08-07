@@ -1,7 +1,7 @@
 'use client';
 
 import { useOnlineStatus } from '@/hooks/use-online-status';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { registerSW } from '@/lib/pwa';
 import { iOSUtils } from '@/lib/ios-utils';
 import { IOSErrorBoundary } from '@/components/IOSErrorBoundary';
@@ -15,12 +15,12 @@ interface RootLayoutClientProps {
 
 export function RootLayoutClient({ children }: RootLayoutClientProps) {
   const isOnline = useOnlineStatus();
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     document.documentElement.classList.toggle('is-offline', !isOnline);
+  }, [isOnline]);
 
+  useEffect(() => {
     // Initialize iOS-specific fixes
     iOSUtils.init();
 
@@ -28,12 +28,7 @@ export function RootLayoutClient({ children }: RootLayoutClientProps) {
     if (process.env.NODE_ENV === 'production') {
       registerSW();
     }
-  }, [isOnline]);
-
-  // Show loading state during hydration to prevent mismatch
-  if (!mounted) {
-    return null;
-  }
+  }, []);
 
   return (
     <IOSErrorBoundary>

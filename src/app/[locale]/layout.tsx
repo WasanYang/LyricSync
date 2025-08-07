@@ -1,34 +1,34 @@
+// src/app/[locale]/layout.tsx
+'use client';
 import '../globals.css';
 import { NextIntlClientProvider, AbstractIntlMessages } from 'next-intl';
 import { RootLayoutClient } from '@/components/RootLayoutClient';
-import {
-  generateMetadata as generateSEOMetadata,
-  pageSEOConfigs,
-} from '@/lib/seo';
-import { notFound } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { locale: string };
-}) {
-  const { locale } = await params;
-  return generateSEOMetadata(pageSEOConfigs.home(locale || 'th'));
-}
+// NOTE: We can't use generateMetadata here because this is now a client component.
+// Metadata will be handled by the root layout in src/app/layout.tsx.
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
   params,
 }: Readonly<{
   children: React.ReactNode;
   params: { locale: string };
 }>) {
-  const { locale } = await params;
-  let messages: AbstractIntlMessages;
-  try {
-    messages = (await import(`../../messages/${locale}.json`)).default;
-  } catch (error) {
-    notFound();
+  const { locale } = params;
+  const [messages, setMessages] = useState<AbstractIntlMessages | null>(null);
+
+  useEffect(() => {
+    // Dynamically import messages on the client to avoid hydration issues
+    // with server/client mismatch on what messages are available.
+    import(`../../messages/${locale}.json`)
+      .then((mod) => setMessages(mod.default))
+      .catch(() => console.error(`Failed to load messages for locale: ${locale}`));
+  }, [locale]);
+
+  if (!messages) {
+    // You can render a loading state here if you want
+    return null;
   }
 
   return (
