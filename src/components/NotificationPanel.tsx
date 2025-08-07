@@ -13,6 +13,7 @@ import { BellRing, Check, X } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { SheetTitle } from './ui/sheet';
 
 function PanelNotificationItem({
   notification,
@@ -68,6 +69,8 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
     <div className='flex flex-col h-full'>
       <header className='p-4 border-b flex items-center justify-between'>
         <h2 className='text-lg font-semibold font-headline'>{t('title')}</h2>
+        {/* Visually hidden title for accessibility */}
+        <SheetTitle className='sr-only'>{t('title')}</SheetTitle>
         <Button variant='ghost' size='icon' onClick={onClose}>
           <X className='h-4 w-4' />
         </Button>
