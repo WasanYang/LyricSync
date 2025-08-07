@@ -38,11 +38,11 @@ export default function UserListItem({ user }: UserListItemProps) {
         <div className='flex items-center gap-4 text-sm text-muted-foreground'>
           <div className='flex items-center gap-1'>
             <Music className='h-3 w-3' />
-            <span>{user.songsCount}</span>
+            <span>{user.songsCount || 0}</span>
           </div>
           <div className='flex items-center gap-1'>
             <ListMusic className='h-3 w-3' />
-            <span>{user.setlistsCount}</span>
+            <span>{user.setlistsCount || 0}</span>
           </div>
         </div>
       </TableCell>
