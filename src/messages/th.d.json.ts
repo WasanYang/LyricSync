@@ -119,6 +119,7 @@ declare const messages: {
   "aboutApp": "เกี่ยวกับแอป",
   "cloudSongs": "เพลงบนคลาวด์",
   "userSetlists": "เซ็ตลิสต์ผู้ใช้",
+  "manageUsers": "จัดการผู้ใช้",
   "theme": "ธีม",
   "onlineMode": "ออนไลน์",
   "offlineMode": "ออฟไลน์",

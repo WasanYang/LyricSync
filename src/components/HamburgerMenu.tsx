@@ -200,6 +200,15 @@ export default function HamburgerMenu() {
                         <span>{t('notifications.title')}</span>
                       </Link>
                     </SheetClose>
+                    <SheetClose asChild>
+                      <Link
+                        href='/dashboard/users'
+                        className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
+                      >
+                        <Users className='h-5 w-5' />
+                        <span>{t('manageUsers')}</span>
+                      </Link>
+                    </SheetClose>
                   </>
                 )}
                 <Separator />

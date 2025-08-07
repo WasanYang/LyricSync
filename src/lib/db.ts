@@ -23,6 +23,7 @@ import {
   runTransaction,
   increment,
 } from 'firebase/firestore';
+import type { User } from './types/database';
 
 const DB_NAME = 'LyricSyncDB';
 const DB_VERSION = 2; // Incremented version
@@ -927,4 +928,26 @@ export async function getPublicSetlistsByUserId(
     });
   });
   return setlists;
+}
+
+export async function getAllUsers(): Promise<User[]> {
+  if (!firestoreDb) {
+    throw new Error('Firebase not initialized.');
+  }
+
+  const usersRef = collection(firestoreDb, 'users');
+  const q = query(usersRef, orderBy('createdAt', 'desc'));
+  const querySnapshot = await getDocs(q);
+
+  const users = querySnapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      uid: doc.id,
+      ...data,
+      createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
+      lastLoginAt: (data.lastLoginAt as Timestamp)?.toDate() || new Date(),
+    } as User;
+  });
+
+  return users;
 }
