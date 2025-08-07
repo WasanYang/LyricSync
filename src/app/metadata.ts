@@ -27,6 +27,7 @@ export const metadata: Metadata = {
 
     // Additional PWA
     'format-detection': 'telephone=no',
+    'fb:app_id': '1136346271737388',
   },
   icons: {
     icon: '/icons/logo.webp',

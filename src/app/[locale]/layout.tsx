@@ -1,9 +1,7 @@
-// src/app/[locale]/layout.tsx
-// 'use client';
 import '../globals.css';
 import { NextIntlClientProvider, AbstractIntlMessages } from 'next-intl';
 import { RootLayoutClient } from '@/components/RootLayoutClient';
-import React, { use } from 'react';
+import React from 'react';
 import { notFound } from 'next/navigation';
 
 export default async function LocaleLayout({
