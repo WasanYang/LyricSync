@@ -1,18 +1,16 @@
-// src/app/[locale]/(guest)/notifications/page.tsx
+// src/app/[locale]/(public)/notifications/page.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/context/AuthContext';
 import {
-  getUserNotifications,
-  markAllNotificationsAsRead,
+  getAllAdminNotifications,
   type AppNotification,
 } from '@/lib/notifications';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { BellRing, Check } from 'lucide-react';
+import { BellRing } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 
@@ -60,38 +58,27 @@ function LoadingSkeleton() {
 }
 
 export default function NotificationsPage() {
-  const { user, loading: authLoading } = useAuth();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const t = useTranslations('notifications');
+  const t = useTranslations('updates');
 
   const loadNotifications = useCallback(async () => {
-    if (!user) {
-      setIsLoading(false);
-      return;
-    }
     setIsLoading(true);
     try {
-      const fetchedNotifications = await getUserNotifications(user.uid);
-      setNotifications(fetchedNotifications);
-      // Mark all as read when the page is viewed
-      await markAllNotificationsAsRead(user.uid);
+      // Fetch all "sent" public notifications
+      const fetchedNotifications = await getAllAdminNotifications();
+      const publicNotifications = fetchedNotifications.filter(notif => notif.status === 'sent');
+      setNotifications(publicNotifications);
     } catch (error) {
       console.error('Failed to load notifications:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
-    if (!authLoading) {
-      loadNotifications();
-    }
-  }, [authLoading, loadNotifications]);
-
-  if (authLoading) {
-    return <LoadingSkeleton />;
-  }
+    loadNotifications();
+  }, [loadNotifications]);
 
   return (
     <div className='flex-grow flex flex-col'>

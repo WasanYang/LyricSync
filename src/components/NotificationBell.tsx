@@ -16,11 +16,11 @@ import { useAuth } from '@/context/AuthContext';
 import { useUnreadNotifications } from '@/lib/notifications';
 
 export function NotificationBell() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { unreadCount } = useUnreadNotifications(user?.uid);
   const [isOpen, setIsOpen] = useState(false);
 
-  if (!user) return null;
+  if (loading || !user || user.isAnonymous) return null;
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>

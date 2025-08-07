@@ -45,7 +45,7 @@ const navLinks = [
   { href: '/', key: 'home.title', icon: Home },
   { href: '/search', key: 'search.title', icon: Search },
   { href: '/explore', key: 'explore.title', icon: Compass },
-  { href: '/notifications', key: 'notifications.title', icon: Bell },
+  { href: '/notifications', key: 'updates.title', icon: Bell },
 ];
 
 const mobileOnlyLinks = [

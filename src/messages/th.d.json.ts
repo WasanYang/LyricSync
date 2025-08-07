@@ -206,6 +206,9 @@ declare const messages: {
     "emptyDesc": "คุณยังไม่มีการแจ้งเตือนใหม่",
     "markAllAsRead": "ทำเครื่องหมายว่าอ่านแล้วทั้งหมด",
     "viewAll": "ดูการแจ้งเตือนทั้งหมด"
+  },
+  "updates": {
+    "title": "อัปเดต"
   }
 };
 export default messages;
