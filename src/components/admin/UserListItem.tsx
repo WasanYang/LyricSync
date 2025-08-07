@@ -17,6 +17,17 @@ function formatDate(date: Date | number): string {
   return dateObj.toLocaleDateString('en-CA');
 }
 
+function obfuscateEmail(email: string): string {
+  if (!email || !email.includes('@')) {
+    return email;
+  }
+  const [localPart, domain] = email.split('@');
+  if (localPart.length <= 2) {
+    return `${localPart}...@${domain}`;
+  }
+  return `${localPart.substring(0, 2)}...@${domain}`;
+}
+
 export default function UserListItem({ user }: UserListItemProps) {
   return (
     <TableRow className='hover:bg-muted/50'>
@@ -32,7 +43,7 @@ export default function UserListItem({ user }: UserListItemProps) {
         </div>
       </TableCell>
       <TableCell className='hidden md:table-cell truncate'>
-        {user.email}
+        {user.email ? obfuscateEmail(user.email) : 'No Email'}
       </TableCell>
       <TableCell className='hidden lg:table-cell'>
         <div className='flex items-center gap-4 text-sm text-muted-foreground'>
