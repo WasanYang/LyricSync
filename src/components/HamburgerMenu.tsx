@@ -20,6 +20,7 @@ import {
   Users,
   Compass,
   Bell,
+  MessageSquarePlus,
 } from 'lucide-react';
 import { Heart as HeartIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -190,6 +191,15 @@ export default function HamburgerMenu() {
                       >
                         <ListMusic className='h-5 w-5' />
                         <span>{t('userSetlists')}</span>
+                      </Link>
+                    </SheetClose>
+                    <SheetClose asChild>
+                      <Link
+                        href='/dashboard/notifications'
+                        className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
+                      >
+                        <MessageSquarePlus className='h-5 w-5' />
+                        <span>{t('notifications.title')}</span>
                       </Link>
                     </SheetClose>
                   </>

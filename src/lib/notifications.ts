@@ -11,6 +11,7 @@ import {
   writeBatch,
   serverTimestamp,
   onSnapshot,
+  addDoc,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { useState, useEffect, useCallback } from 'react';
@@ -28,6 +29,54 @@ export interface UserNotification {
   notificationId: string;
   read: boolean;
 }
+
+// Admin function to create a notification and distribute it
+export async function createNotification(
+  notificationData: Omit<AppNotification, 'id' | 'createdAt'> & {
+    recipientType: 'ALL_USERS' | 'SPECIFIC_USERS';
+    recipientIds?: string[];
+  }
+) {
+  if (!db) throw new Error('Firebase not initialized.');
+
+  const { recipientType, recipientIds, ...notifContent } = notificationData;
+
+  const batch = writeBatch(db);
+
+  // 1. Create the main notification document
+  const newNotifRef = doc(collection(db, 'notifications'));
+  batch.set(newNotifRef, {
+    ...notifContent,
+    createdAt: serverTimestamp(),
+  });
+
+  // 2. Distribute to users
+  if (recipientType === 'ALL_USERS') {
+    // In a real large-scale app, this should be handled by a Cloud Function
+    // to avoid client-side iteration over all users.
+    const usersSnapshot = await getDocs(collection(db, 'users'));
+    usersSnapshot.forEach((userDoc) => {
+      const userNotifRef = doc(
+        db,
+        `users/${userDoc.id}/user_notifications`,
+        newNotifRef.id
+      );
+      batch.set(userNotifRef, { read: false, createdAt: serverTimestamp() });
+    });
+  } else if (recipientType === 'SPECIFIC_USERS' && recipientIds) {
+    recipientIds.forEach((userId) => {
+      const userNotifRef = doc(
+        db,
+        `users/${userId}/user_notifications`,
+        newNotifRef.id
+      );
+      batch.set(userNotifRef, { read: false, createdAt: serverTimestamp() });
+    });
+  }
+
+  await batch.commit();
+}
+
 
 // Function to fetch all notifications for a user (read and unread)
 export async function getUserNotifications(
