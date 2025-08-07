@@ -21,7 +21,7 @@ export default function UserList({ users }: UserListProps) {
           <TableRow>
             <TableHead className='w-[250px]'>Display Name</TableHead>
             <TableHead className='hidden md:table-cell'>Email</TableHead>
-            <TableHead className='hidden lg:table-cell'>Created At</TableHead>
+            <TableHead className='hidden lg:table-cell'>Content</TableHead>
             <TableHead className='hidden lg:table-cell'>Last Login</TableHead>
             <TableHead className='text-right'>Status</TableHead>
           </TableRow>

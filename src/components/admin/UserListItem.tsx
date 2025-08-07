@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { TableCell, TableRow } from '@/components/ui/table';
 import type { User } from '@/lib/types/database';
+import { ListMusic, Music } from 'lucide-react';
 
 interface UserListItemProps {
   user: User;
@@ -33,8 +34,17 @@ export default function UserListItem({ user }: UserListItemProps) {
       <TableCell className='hidden md:table-cell truncate'>
         {user.email}
       </TableCell>
-      <TableCell className='hidden lg:table-cell text-sm text-muted-foreground'>
-        {formatDate(user.createdAt)}
+      <TableCell className='hidden lg:table-cell'>
+        <div className='flex items-center gap-4 text-sm text-muted-foreground'>
+          <div className='flex items-center gap-1'>
+            <Music className='h-3 w-3' />
+            <span>{user.songsCount}</span>
+          </div>
+          <div className='flex items-center gap-1'>
+            <ListMusic className='h-3 w-3' />
+            <span>{user.setlistsCount}</span>
+          </div>
+        </div>
       </TableCell>
       <TableCell className='hidden lg:table-cell text-sm text-muted-foreground'>
         {formatDate(user.updatedAt)}

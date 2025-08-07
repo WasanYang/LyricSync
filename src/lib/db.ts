@@ -939,15 +939,30 @@ export async function getAllUsers(): Promise<User[]> {
   const q = query(usersRef);
   const querySnapshot = await getDocs(q);
 
-  const users = querySnapshot.docs.map((doc) => {
-    const data = doc.data();
+  const usersPromises = querySnapshot.docs.map(async (userDoc) => {
+    const data = userDoc.data();
+
+    // Fetch song and setlist counts for each user
+    const songsRef = collection(firestoreDb!, 'users', userDoc.id, 'userSongs');
+    const setlistsRef = collection(
+      firestoreDb!,
+      'users',
+      userDoc.id,
+      'userSetlists'
+    );
+
+    const songsCountSnapshot = await getCountFromServer(songsRef);
+    const setlistsCountSnapshot = await getCountFromServer(setlistsRef);
+
     return {
-      uid: doc.id,
+      uid: userDoc.id,
       ...data,
       createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
-      updatedAt: (data.updatedAt as Timestamp)?.toDate() || new Date(), // Use updatedAt for last login
+      updatedAt: (data.lastLoginAt as Timestamp)?.toDate() || new Date(),
+      songsCount: songsCountSnapshot.data().count,
+      setlistsCount: setlistsCountSnapshot.data().count,
     } as User;
   });
 
-  return users;
+  return Promise.all(usersPromises);
 }

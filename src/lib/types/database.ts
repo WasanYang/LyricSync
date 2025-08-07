@@ -7,8 +7,11 @@ export interface User {
   displayName: string;
   photoURL?: string;
   createdAt: Date;
-  updatedAt: Date;
+  updatedAt: Date; // This is used as Last Login At
   isProfilePublic?: boolean;
+  isSuperAdmin?: boolean;
+  songsCount?: number;
+  setlistsCount?: number;
 
   // User preferences
   preferences: {
