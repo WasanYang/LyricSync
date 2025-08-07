@@ -33,16 +33,12 @@ export function RootLayoutClient({ children }: RootLayoutClientProps) {
   // Show loading state during hydration to prevent mismatch
   if (!mounted) {
     return (
-      <html lang='th' suppressHydrationWarning>
-        <body>
-            <div className='flex h-screen items-center justify-center'>
-              <div className='text-center'>
-                <div className='h-32 w-32 mx-auto mb-4 animate-spin rounded-full border-4 border-primary border-t-transparent'></div>
-                <p className='text-muted-foreground'>กำลังโหลด...</p>
-              </div>
-            </div>
-        </body>
-      </html>
+      <div className='flex h-screen items-center justify-center'>
+        <div className='text-center'>
+          <div className='h-32 w-32 mx-auto mb-4 animate-spin rounded-full border-4 border-primary border-t-transparent'></div>
+          <p className='text-muted-foreground'>กำลังโหลด...</p>
+        </div>
+      </div>
     );
   }
 
