@@ -42,32 +42,34 @@ function UserProfileSkeleton() {
 }
 
 function SetlistCard({ setlist }: { setlist: Setlist }) {
-    const songCount = setlist.songIds.length;
-    const t = useTranslations('setlist');
-    return (
-      <Link href={`/shared/setlists/${setlist.firestoreId}`} className='block'>
-        <Card className='hover:bg-muted/50 transition-colors'>
-          <CardContent className='p-4 flex items-center gap-4'>
-            <div className='p-3 bg-muted rounded-md'>
-              <ListMusic className='h-6 w-6 text-muted-foreground' />
-            </div>
-            <div>
-              <p className='font-semibold font-headline truncate'>
-                {setlist.title}
-              </p>
-              <p className='text-sm text-muted-foreground truncate'>
-                {t('songCount', { count: songCount })}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </Link>
-    );
-  }
+  const songCount = setlist.songIds.length;
+  const t = useTranslations('setlist');
+  return (
+    <Link href={`/shared/setlists/${setlist.firestoreId}`} className='block'>
+      <Card className='hover:bg-muted/50 transition-colors'>
+        <CardContent className='p-4 flex items-center gap-4'>
+          <div className='p-3 bg-muted rounded-md'>
+            <ListMusic className='h-6 w-6 text-muted-foreground' />
+          </div>
+          <div>
+            <p className='font-semibold font-headline truncate'>
+              {setlist.title}
+            </p>
+            <p className='text-sm text-muted-foreground truncate'>
+              {t('songCount', { count: songCount })}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
 
 export default function UserPublicProfilePage() {
   const params = useParams();
-  const userId = Array.isArray(params.userId) ? params.userId[0] : params.userId;
+  const userId = Array.isArray(params.userId)
+    ? params.userId[0]
+    : params.userId;
   const t = useTranslations('explore');
 
   const [user, setUser] = useState<User | null>(null);
@@ -77,7 +79,6 @@ export default function UserPublicProfilePage() {
   useEffect(() => {
     if (!userId || !db) {
       notFound();
-      return;
     }
 
     async function fetchData() {
@@ -96,9 +97,8 @@ export default function UserPublicProfilePage() {
 
         const userSetlists = await getPublicSetlistsByUserId(userId);
         setSetlists(userSetlists);
-
       } catch (error) {
-        console.error("Failed to fetch user profile:", error);
+        console.error('Failed to fetch user profile:', error);
         notFound();
       } finally {
         setIsLoading(false);
@@ -122,11 +122,17 @@ export default function UserPublicProfilePage() {
       <main className='container mx-auto px-4 py-8 pb-24 md:pb-8 space-y-8'>
         <section className='flex items-center gap-4'>
           <Avatar className='h-20 w-20 text-3xl'>
-            {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName} />}
-            <AvatarFallback>{user.displayName?.[0].toUpperCase() || 'U'}</AvatarFallback>
+            {user.photoURL && (
+              <AvatarImage src={user.photoURL} alt={user.displayName} />
+            )}
+            <AvatarFallback>
+              {user.displayName?.[0].toUpperCase() || 'U'}
+            </AvatarFallback>
           </Avatar>
           <div>
-            <h1 className='text-3xl font-bold font-headline'>{user.displayName}</h1>
+            <h1 className='text-3xl font-bold font-headline'>
+              {user.displayName}
+            </h1>
           </div>
         </section>
 
@@ -135,18 +141,17 @@ export default function UserPublicProfilePage() {
             {t('publicSetlistsTitle')} ({setlists.length})
           </h2>
           {setlists.length > 0 ? (
-             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                {setlists.map((setlist) => (
-                    <SetlistCard key={setlist.firestoreId} setlist={setlist} />
-                ))}
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              {setlists.map((setlist) => (
+                <SetlistCard key={setlist.firestoreId} setlist={setlist} />
+              ))}
             </div>
           ) : (
             <div className='text-center py-16 border-2 border-dashed rounded-lg'>
-                <p className='text-muted-foreground'>{t('noPublicSetlists')}</p>
+              <p className='text-muted-foreground'>{t('noPublicSetlists')}</p>
             </div>
           )}
         </section>
-
       </main>
       <BottomNavBar />
     </div>
