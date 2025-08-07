@@ -1,3 +1,4 @@
+
 // src/lib/db.ts
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Song } from './songs';
@@ -936,20 +937,15 @@ export async function getAllUsers(): Promise<User[]> {
   }
 
   const usersRef = collection(firestoreDb, 'users');
-  const q = query(usersRef);
+  const q = query(usersRef); // Removed orderBy to avoid needing a composite index
   const querySnapshot = await getDocs(q);
 
   const usersPromises = querySnapshot.docs.map(async (userDoc) => {
     const data = userDoc.data();
 
-    // Fetch song and setlist counts for each user
+    // Correctly reference sub-collections for counting
     const songsRef = collection(firestoreDb!, 'users', userDoc.id, 'userSongs');
-    const setlistsRef = collection(
-      firestoreDb!,
-      'users',
-      userDoc.id,
-      'userSetlists'
-    );
+    const setlistsRef = collection(firestoreDb!, 'users', userDoc.id, 'userSetlists');
 
     const songsCountSnapshot = await getCountFromServer(songsRef);
     const setlistsCountSnapshot = await getCountFromServer(setlistsRef);
