@@ -19,6 +19,7 @@ import {
   Database,
   Users,
   Compass,
+  Bell,
 } from 'lucide-react';
 import { Heart as HeartIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -43,6 +44,7 @@ const navLinks = [
   { href: '/', key: 'home.title', icon: Home },
   { href: '/search', key: 'search.title', icon: Search },
   { href: '/explore', key: 'explore.title', icon: Compass },
+  { href: '/notifications', key: 'notifications.title', icon: Bell },
 ];
 
 const mobileOnlyLinks = [
@@ -90,7 +92,7 @@ export default function HamburgerMenu() {
                   LyricSync
                 </span>
                 <span className='text-xs text-muted-foreground leading-tight'>
-                  Synchronized Worship Lyrics
+                  {t('welcome.descShort')}
                 </span>
               </div>
             </Link>

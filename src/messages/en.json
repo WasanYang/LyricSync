@@ -197,5 +197,12 @@
     "nowPublicToastDesc": "Other users can now find and use this setlist.",
     "nowPrivateToastTitle": "Setlist is now Private",
     "nowPrivateToastDesc": "This setlist is no longer publicly searchable."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "emptyTitle": "No Notifications",
+    "emptyDesc": "You don't have any notifications yet.",
+    "markAllAsRead": "Mark all as read",
+    "viewAll": "View all notifications"
   }
 }

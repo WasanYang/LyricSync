@@ -66,7 +66,7 @@ declare const messages: {
     "browseByLetter": "ค้นหาจากตัวอักษร (ก-ฮ, A-Z)"
   },
   "explore": {
-    "title": "สำรวจเซ็ตลิสต์",
+    "title": "สำรวจ",
     "description": "ค้นหาและเลือกใช้เซ็ตลิสต์ที่เพื่อนๆ ในชุมชน LyricSync แบ่งปันไว้",
     "placeholder": "ค้นหาเซ็ตลิสต์สาธารณะ...",
     "noResults": "ไม่พบเซ็ตลิสต์ที่ตรงกับ \"{searchTerm}\"",
@@ -199,6 +199,13 @@ declare const messages: {
     "nowPublicToastDesc": "ผู้ใช้อื่นสามารถค้นหาและใช้เซ็ตลิสต์นี้ได้",
     "nowPrivateToastTitle": "เซ็ตลิสต์เป็นส่วนตัวแล้ว",
     "nowPrivateToastDesc": "เซ็ตลิสต์นี้จะไม่ปรากฏในการค้นหาสาธารณะอีกต่อไป"
+  },
+  "notifications": {
+    "title": "การแจ้งเตือน",
+    "emptyTitle": "ไม่มีการแจ้งเตือน",
+    "emptyDesc": "คุณยังไม่มีการแจ้งเตือนใหม่",
+    "markAllAsRead": "ทำเครื่องหมายว่าอ่านแล้วทั้งหมด",
+    "viewAll": "ดูการแจ้งเตือนทั้งหมด"
   }
 };
 export default messages;

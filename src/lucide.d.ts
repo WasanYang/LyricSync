@@ -70,6 +70,7 @@ declare module 'lucide-react' {
   export const MoreHorizontal: FC<SVGProps<SVGSVGElement>>;
   export const Loader2: FC<SVGProps<SVGSVGElement>>;
   export const Compass: FC<SVGProps<SVGSVGElement>>;
+  export const Bell: FC<SVGProps<SVGSVGElement>>;
 
   // Add other icons you use here to avoid TypeScript errors
   // if they are not directly in the main library type definitions.

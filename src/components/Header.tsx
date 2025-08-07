@@ -1,3 +1,4 @@
+// src/components/Header.tsx
 'use client';
 
 import Link from 'next/link';
@@ -5,6 +6,7 @@ import Image from 'next/image';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import dynamic from 'next/dynamic';
+import { NotificationBell } from './NotificationBell';
 
 const HamburgerMenu = dynamic(() => import('./HamburgerMenu'), {
   ssr: false,
@@ -43,14 +45,15 @@ export default function Header() {
                 LyricSync
               </span>
               <span className='text-xs text-muted-foreground leading-tight hidden sm:block'>
-                {t('welcome.desc')}
+                {t('welcome.descShort')}
               </span>
             </div>
           </Link>
         </div>
 
         {/* Right side actions */}
-        <div className='flex items-center justify-end space-x-2'>
+        <div className='flex items-center justify-end space-x-1'>
+          <NotificationBell />
           <div className='flex items-center'>
             <button
               className={`px-2 py-1 rounded text-xs font-semibold transition-colors ${
