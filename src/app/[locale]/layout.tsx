@@ -3,7 +3,7 @@
 import '../globals.css';
 import { NextIntlClientProvider, AbstractIntlMessages } from 'next-intl';
 import { RootLayoutClient } from '@/components/RootLayoutClient';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // NOTE: We can't use generateMetadata here because this is now a client component.
 // Metadata will be handled by the root layout in src/app/layout.tsx.
@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
   params: { locale: string };
 }>) {
-  const { locale } = params;
+  const { locale } = React.use(params);
   const [messages, setMessages] = useState<AbstractIntlMessages | null>(null);
 
   useEffect(() => {
