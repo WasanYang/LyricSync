@@ -2,7 +2,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import NotificationForm from '../_components/NotificationForm';
+import NotificationForm from '@/app/[locale]/(admin)/dashboard/notifications/_components/NotificationForm';
 
 export default function EditNotificationPage() {
   const params = useParams();
