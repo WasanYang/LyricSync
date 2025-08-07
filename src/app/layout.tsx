@@ -1,3 +1,4 @@
+
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { viewport, metadata } from './metadata';
@@ -11,7 +12,7 @@ export default async function RootLayout({
   children: React.ReactNode;
   params: { locale: string };
 }>) {
-  const { locale = 'th' } = await params;
+  const { locale = 'th' } = params || {};
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
@@ -24,7 +25,9 @@ export default async function RootLayout({
           'font-body antialiased min-h-screen flex flex-col bg-background'
         )}
       >
-        {children}
+        <div className='w-full max-w-[768px] mx-auto flex-grow flex flex-col'>
+          {children}
+        </div>
       </body>
     </html>
   );
