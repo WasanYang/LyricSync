@@ -4,7 +4,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import { getDoc, doc } from 'firebase/firestore';
-import { db, getPublicSetlistsByUserId, type Setlist } from '@/lib/db';
+import { getPublicSetlistsByUserId, type Setlist } from '@/lib/db';
+import { db } from '@/lib/firebase';
 import type { User } from '@/lib/types/database';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
