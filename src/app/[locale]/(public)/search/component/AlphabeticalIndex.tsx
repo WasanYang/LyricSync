@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import {
   Collapsible,
   CollapsibleContent,
@@ -13,7 +12,48 @@ import { ChevronsUpDown, CaseSensitive } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 const THAI_ALPHABET = [
-  'ก', 'ข', 'ค', 'ฆ', 'ง', 'จ', 'ฉ', 'ช', 'ซ', 'ฌ', 'ญ', 'ฎ', 'ฏ', 'ฐ', 'ฑ', 'ฒ', 'ณ', 'ด', 'ต', 'ถ', 'ท', 'ธ', 'น', 'บ', 'ป', 'ผ', 'ฝ', 'พ', 'ฟ', 'ภ', 'ม', 'ย', 'ร', 'ล', 'ว', 'ศ', 'ษ', 'ส', 'ห', 'ฬ', 'อ', 'ฮ'
+  'ก',
+  'ข',
+  'ค',
+  'ฆ',
+  'ง',
+  'จ',
+  'ฉ',
+  'ช',
+  'ซ',
+  'ฌ',
+  'ญ',
+  'ฎ',
+  'ฏ',
+  'ฐ',
+  'ฑ',
+  'ฒ',
+  'ณ',
+  'ด',
+  'ต',
+  'ถ',
+  'ท',
+  'ธ',
+  'น',
+  'บ',
+  'ป',
+  'ผ',
+  'ฝ',
+  'พ',
+  'ฟ',
+  'ภ',
+  'ม',
+  'ย',
+  'ร',
+  'ล',
+  'ว',
+  'ศ',
+  'ษ',
+  'ส',
+  'ห',
+  'ฬ',
+  'อ',
+  'ฮ',
 ];
 const ENG_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 

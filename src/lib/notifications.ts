@@ -10,7 +10,6 @@ import {
   serverTimestamp,
   onSnapshot,
   setDoc,
-  updateDoc,
   deleteDoc,
   Timestamp,
   where,
@@ -69,7 +68,7 @@ const toDateSafe = (ts: unknown): Date | null => {
     return new Date(ts);
   }
   return null;
-}
+};
 
 // Function to get a single notification for editing
 export async function getNotification(

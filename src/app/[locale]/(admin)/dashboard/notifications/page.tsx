@@ -69,7 +69,7 @@ export default function AdminNotificationsListPage() {
         description: `"${title}" has been successfully deleted.`,
       });
       fetchNotifications(); // Refresh the list
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Failed to delete notification.',

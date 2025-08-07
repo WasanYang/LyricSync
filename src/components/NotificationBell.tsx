@@ -3,13 +3,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Bell } from 'lucide-react';
 import { NotificationPanel } from './NotificationPanel';
 import { useAuth } from '@/context/AuthContext';

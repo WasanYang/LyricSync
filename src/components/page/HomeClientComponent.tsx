@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  getSetlists,
-  type Setlist,
-  getAllCloudSongs,
-  getPublicSetlists,
-} from '@/lib/db';
+import { getSetlists, type Setlist, getAllCloudSongs } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import Header from '@/components/Header';
 import { useAuth } from '@/context/AuthContext';

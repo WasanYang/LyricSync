@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -149,16 +148,16 @@ export default function ProfilePage() {
   const [isSavingName, setIsSavingName] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [isProfilePublic, setIsProfilePublic] = useState(user?.isProfilePublic || false);
+  const [isProfilePublic, setIsProfilePublic] = useState(
+    user?.isProfilePublic || false
+  );
   const [isUpdatingPublicStatus, setIsUpdatingPublicStatus] = useState(false);
-
 
   useEffect(() => {
     if (user?.isProfilePublic !== undefined) {
       setIsProfilePublic(user.isProfilePublic);
     }
   }, [user?.isProfilePublic]);
-
 
   useEffect(() => {
     async function fetchStats() {
@@ -220,7 +219,7 @@ export default function ProfilePage() {
         description: 'Your display name has been updated successfully.',
       });
       setIsEditingName(false);
-    } catch (error) {
+    } catch {
       toast({
         title: 'Error',
         description: 'Could not update your display name.',
@@ -240,8 +239,8 @@ export default function ProfilePage() {
         title: t('publicStatusUpdated'),
         description: checked ? t('nowPublicDesc') : t('nowPrivateDesc'),
       });
-    } catch (error) {
-       toast({
+    } catch {
+      toast({
         title: 'Error',
         description: 'Could not update your profile status.',
         variant: 'destructive',
@@ -249,7 +248,7 @@ export default function ProfilePage() {
     } finally {
       setIsUpdatingPublicStatus(false);
     }
-  }
+  };
 
   if (authLoading || !user) {
     return <ProfileLoadingSkeleton />;
@@ -373,26 +372,35 @@ export default function ProfilePage() {
                 </div>
               </div>
               <div>
-                <h2 className='text-lg font-semibold mb-4'>{t('settingsTitle')}</h2>
-                 <Card>
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <div className='space-y-0.5'>
-                        <Label htmlFor='public-profile-switch' className="flex items-center gap-2">
-                           {isProfilePublic ? <Globe className="h-4 w-4 text-blue-500" /> : <Lock className="h-4 w-4 text-yellow-500" />}
-                           {t('publicProfileLabel')}
-                        </Label>
-                        <p className='text-sm text-muted-foreground'>
-                         {t('publicProfileDesc')}
-                        </p>
-                      </div>
-                      <Switch
-                        id='public-profile-switch'
-                        checked={isProfilePublic}
-                        onCheckedChange={handlePublicToggle}
-                        disabled={isUpdatingPublicStatus}
-                      />
-                    </CardContent>
-                  </Card>
+                <h2 className='text-lg font-semibold mb-4'>
+                  {t('settingsTitle')}
+                </h2>
+                <Card>
+                  <CardContent className='p-4 flex items-center justify-between'>
+                    <div className='space-y-0.5'>
+                      <Label
+                        htmlFor='public-profile-switch'
+                        className='flex items-center gap-2'
+                      >
+                        {isProfilePublic ? (
+                          <Globe className='h-4 w-4 text-blue-500' />
+                        ) : (
+                          <Lock className='h-4 w-4 text-yellow-500' />
+                        )}
+                        {t('publicProfileLabel')}
+                      </Label>
+                      <p className='text-sm text-muted-foreground'>
+                        {t('publicProfileDesc')}
+                      </p>
+                    </div>
+                    <Switch
+                      id='public-profile-switch'
+                      checked={isProfilePublic}
+                      onCheckedChange={handlePublicToggle}
+                      disabled={isUpdatingPublicStatus}
+                    />
+                  </CardContent>
+                </Card>
               </div>
             </>
           )}

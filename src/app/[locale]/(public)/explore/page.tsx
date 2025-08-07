@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { getPublicUsers, type PublicUser } from '@/lib/db';
 import { Input } from '@/components/ui/input';
-import { Search, Users } from 'lucide-react';
+import { Search } from 'lucide-react';
 import BottomNavBar from '@/components/BottomNavBar';
 import Link from 'next/link';
 import Header from '@/components/Header';
@@ -17,7 +17,6 @@ import { useTranslations } from 'next-intl';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ListMusic } from 'lucide-react';
 
-
 function UserCard({ user }: { user: PublicUser }) {
   const t = useTranslations('explore');
   return (
@@ -25,13 +24,19 @@ function UserCard({ user }: { user: PublicUser }) {
       <Card className='hover:bg-muted/50 transition-colors'>
         <CardContent className='p-4 flex items-center gap-4'>
           <Avatar className='h-12 w-12'>
-            {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName} />}
-            <AvatarFallback>{user.displayName?.[0].toUpperCase() || 'U'}</AvatarFallback>
+            {user.photoURL && (
+              <AvatarImage src={user.photoURL} alt={user.displayName} />
+            )}
+            <AvatarFallback>
+              {user.displayName?.[0].toUpperCase() || 'U'}
+            </AvatarFallback>
           </Avatar>
           <div>
-            <p className='font-semibold font-headline truncate'>{user.displayName}</p>
+            <p className='font-semibold font-headline truncate'>
+              {user.displayName}
+            </p>
             <p className='text-sm text-muted-foreground truncate flex items-center gap-1.5'>
-              <ListMusic className="h-3 w-3" />
+              <ListMusic className='h-3 w-3' />
               {t('sharedSetlistsCount', { count: user.publicSetlistsCount })}
             </p>
           </div>
@@ -42,17 +47,17 @@ function UserCard({ user }: { user: PublicUser }) {
 }
 
 function LoadingSkeleton() {
-    return (
-        <div className='space-y-4'>
-            <Skeleton className='h-10 w-full' />
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                <Skeleton className='h-20 w-full' />
-                <Skeleton className='h-20 w-full' />
-                <Skeleton className='h-20 w-full' />
-                <Skeleton className='h-20 w-full' />
-            </div>
-        </div>
-    )
+  return (
+    <div className='space-y-4'>
+      <Skeleton className='h-10 w-full' />
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+        <Skeleton className='h-20 w-full' />
+        <Skeleton className='h-20 w-full' />
+        <Skeleton className='h-20 w-full' />
+        <Skeleton className='h-20 w-full' />
+      </div>
+    </div>
+  );
 }
 
 export default function ExplorePage() {
@@ -103,12 +108,10 @@ export default function ExplorePage() {
 
   const filteredUsers = useMemo(() => {
     if (!searchTerm) return publicUsers;
-    return publicUsers.filter(
-      (user) =>
-        user.displayName.toLowerCase().includes(searchTerm.toLowerCase())
+    return publicUsers.filter((user) =>
+      user.displayName.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm, publicUsers]);
-
 
   return (
     <>
@@ -118,7 +121,9 @@ export default function ExplorePage() {
         <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
           <div className='space-y-8'>
             <div>
-              <h1 className='text-3xl font-bold font-headline mb-2'>{t('titleUsers')}</h1>
+              <h1 className='text-3xl font-bold font-headline mb-2'>
+                {t('titleUsers')}
+              </h1>
               <p className='text-muted-foreground'>{t('descriptionUsers')}</p>
             </div>
             <div className='relative'>
@@ -131,21 +136,23 @@ export default function ExplorePage() {
                 onChange={(e) => setInputValue(e.target.value)}
               />
             </div>
-            
-            {isLoading ? <LoadingSkeleton /> : (
-                <div className='space-y-4'>
-                    {filteredUsers.length > 0 ? (
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                            {filteredUsers.map((user) => (
-                                <UserCard key={user.uid} user={user} />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className='text-center py-16 text-muted-foreground'>
-                            <p>{t('noResultsUsers', {searchTerm})}</p>
-                        </div>
-                    )}
-                </div>
+
+            {isLoading ? (
+              <LoadingSkeleton />
+            ) : (
+              <div className='space-y-4'>
+                {filteredUsers.length > 0 ? (
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    {filteredUsers.map((user) => (
+                      <UserCard key={user.uid} user={user} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className='text-center py-16 text-muted-foreground'>
+                    <p>{t('noResultsUsers', { searchTerm })}</p>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </main>
