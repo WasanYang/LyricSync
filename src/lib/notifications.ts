@@ -2,9 +2,7 @@
 import {
   collection,
   query,
-  where,
   orderBy,
-  limit,
   getDocs,
   doc,
   getDoc,
@@ -12,6 +10,9 @@ import {
   serverTimestamp,
   onSnapshot,
   addDoc,
+  updateDoc,
+  deleteDoc,
+  Timestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { useState, useEffect, useCallback } from 'react';
@@ -19,10 +20,13 @@ import { useState, useEffect, useCallback } from 'react';
 export interface AppNotification {
   id: string; // The original notification ID from the 'notifications' collection
   title: string;
-  message: string;
-  details?: string;
+  message: string; // Short message for panel
+  details?: string; // Full markdown details
   targetUrl?: string;
   createdAt: number; // Timestamp
+  // New fields for scheduling
+  status: 'draft' | 'scheduled' | 'sent';
+  scheduledAt?: number | null; // Timestamp for when to send
 }
 
 export interface UserNotification {
@@ -30,53 +34,105 @@ export interface UserNotification {
   read: boolean;
 }
 
-// Admin function to create a notification and distribute it
-export async function createNotification(
-  notificationData: Omit<AppNotification, 'id' | 'createdAt'> & {
-    recipientType: 'ALL_USERS' | 'SPECIFIC_USERS';
-    recipientIds?: string[];
-  }
-) {
+// Admin function to create or update a notification document
+export async function saveNotification(
+  notificationData: Omit<AppNotification, 'createdAt'>
+): Promise<string> {
   if (!db) throw new Error('Firebase not initialized.');
 
-  const { recipientType, recipientIds, ...notifContent } = notificationData;
+  const { id, ...dataToSave } = notificationData;
 
-  const batch = writeBatch(db);
+  const docRef = doc(db, 'notifications', id);
 
-  // 1. Create the main notification document
-  const newNotifRef = doc(collection(db, 'notifications'));
-  batch.set(newNotifRef, {
-    ...notifContent,
-    createdAt: serverTimestamp(),
-  });
+  await setDoc(
+    docRef,
+    {
+      ...dataToSave,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(), // Keep track of edits
+    },
+    { merge: true }
+  );
 
-  // 2. Distribute to users
-  if (recipientType === 'ALL_USERS') {
-    // In a real large-scale app, this should be handled by a Cloud Function
-    // to avoid client-side iteration over all users.
-    const usersSnapshot = await getDocs(collection(db, 'users'));
-    usersSnapshot.forEach((userDoc) => {
-      const userNotifRef = doc(
-        db,
-        `users/${userDoc.id}/user_notifications`,
-        newNotifRef.id
-      );
-      batch.set(userNotifRef, { read: false, createdAt: serverTimestamp() });
-    });
-  } else if (recipientType === 'SPECIFIC_USERS' && recipientIds) {
-    recipientIds.forEach((userId) => {
-      const userNotifRef = doc(
-        db,
-        `users/${userId}/user_notifications`,
-        newNotifRef.id
-      );
-      batch.set(userNotifRef, { read: false, createdAt: serverTimestamp() });
-    });
-  }
-
-  await batch.commit();
+  return id;
 }
 
+// Function to get a single notification for editing
+export async function getNotification(
+  id: string
+): Promise<AppNotification | null> {
+  if (!db) return null;
+  const docRef = doc(db, 'notifications', id);
+  const docSnap = await getDoc(docRef);
+
+  if (!docSnap.exists()) return null;
+
+  const data = docSnap.data();
+  return {
+    id: docSnap.id,
+    ...data,
+    createdAt: (data.createdAt as Timestamp)?.toMillis(),
+    scheduledAt: (data.scheduledAt as Timestamp)?.toMillis(),
+  } as AppNotification;
+}
+
+// Function to fetch all notifications for the admin list
+export async function getAllAdminNotifications(): Promise<AppNotification[]> {
+  if (!db) return [];
+  const notificationsRef = collection(db, 'notifications');
+  const q = query(notificationsRef, orderBy('createdAt', 'desc'));
+
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      createdAt: (data.createdAt as Timestamp)?.toMillis(),
+      scheduledAt: (data.scheduledAt as Timestamp)?.toMillis(),
+    } as AppNotification;
+  });
+}
+
+// Function to delete a notification
+export async function deleteNotification(id: string): Promise<void> {
+  if (!db) throw new Error('Firebase not initialized.');
+  // Note: This only deletes the main notification. It doesn't remove it
+  // from users' sub-collections for performance reasons. They will just
+  // point to a non-existent document.
+  const docRef = doc(db, 'notifications', id);
+  await deleteDoc(docRef);
+}
+
+// This function would typically be a Cloud Function triggered on a schedule
+// to check for and send scheduled notifications.
+export async function sendNotification(notificationId: string) {
+  if (!db) throw new Error('Firebase not initialized.');
+
+  const notification = await getNotification(notificationId);
+  if (!notification || notification.status !== 'scheduled') {
+    throw new Error('Notification not found or not in a sendable state.');
+  }
+
+  // --- This part should be a Cloud Function ---
+  const batch = writeBatch(db);
+  const usersSnapshot = await getDocs(collection(db, 'users'));
+  usersSnapshot.forEach((userDoc) => {
+    const userNotifRef = doc(
+      db,
+      `users/${userDoc.id}/user_notifications`,
+      notificationId
+    );
+    batch.set(userNotifRef, { read: false, createdAt: serverTimestamp() });
+  });
+
+  // Mark the notification as sent
+  const notifRef = doc(db, 'notifications', notificationId);
+  batch.update(notifRef, { status: 'sent' });
+
+  await batch.commit();
+  // --- End of Cloud Function part ---
+}
 
 // Function to fetch all notifications for a user (read and unread)
 export async function getUserNotifications(
@@ -108,14 +164,15 @@ export async function getUserNotifications(
         details: data.details,
         targetUrl: data.targetUrl,
         createdAt: data.createdAt.toMillis(),
+        status: data.status,
         read: userNotifData.read,
-      };
+      } as AppNotification & { read: boolean };
     }
     return null;
   });
 
   const notifications = (await Promise.all(notificationPromises)).filter(
-    (n): n is AppNotification => n !== null
+    (n): n is AppNotification & { read: boolean } => n !== null
   );
 
   return notifications;
@@ -182,14 +239,15 @@ export function useUnreadNotifications(userId?: string) {
           message: data.message,
           targetUrl: data.targetUrl,
           createdAt: data.createdAt.toMillis(),
+          status: data.status,
         };
       }
       return null;
     });
 
-    const fetchedNotifications = (await Promise.all(notificationPromises)).filter(
-      (n): n is AppNotification => n !== null
-    );
+    const fetchedNotifications = (
+      await Promise.all(notificationPromises)
+    ).filter((n): n is AppNotification => n !== null);
     setNotifications(fetchedNotifications);
     setLoading(false);
   }, []);
@@ -228,5 +286,10 @@ export function useUnreadNotifications(userId?: string) {
     return () => unsubscribe();
   }, [userId, fetchAndSetNotifications]);
 
-  return { notifications, unreadCount, loading, refresh: () => userId && fetchAndSetNotifications(userId) };
+  return {
+    notifications,
+    unreadCount,
+    loading,
+    refresh: () => userId && fetchAndSetNotifications(userId),
+  };
 }

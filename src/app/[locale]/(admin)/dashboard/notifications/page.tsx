@@ -1,230 +1,183 @@
 // src/app/[locale]/(admin)/dashboard/notifications/page.tsx
 'use client';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useToast } from '@/hooks/use-toast';
-import { createNotification } from '@/lib/notifications';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { PlusCircle, Edit, Trash2 } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
-import { Send, Loader2 } from 'lucide-react';
+import {
+  getAllAdminNotifications,
+  deleteNotification,
+  type AppNotification,
+} from '@/lib/notifications';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
-const notificationFormSchema = z.object({
-  title: z.string().min(1, 'Title is required.'),
-  message: z.string().min(1, 'Short message is required.'),
-  details: z.string().optional(),
-  targetUrl: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
-  recipientType: z.enum(['ALL_USERS', 'SPECIFIC_USERS']),
-  recipientIds: z.string().optional(),
-});
-
-type NotificationFormValues = z.infer<typeof notificationFormSchema>;
-
-export default function AdminNotificationsPage() {
+export default function AdminNotificationsListPage() {
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const form = useForm<NotificationFormValues>({
-    resolver: zodResolver(notificationFormSchema),
-    defaultValues: {
-      title: '',
-      message: '',
-      details: '',
-      targetUrl: '',
-      recipientType: 'ALL_USERS',
-      recipientIds: '',
-    },
-  });
 
-  const {
-    formState: { isSubmitting },
-    watch,
-  } = form;
-  const recipientType = watch('recipientType');
-
-  async function onSubmit(data: NotificationFormValues) {
+  const fetchNotifications = async () => {
+    setIsLoading(true);
     try {
-      await createNotification({
-        ...data,
-        recipientIds: data.recipientIds
-          ?.split(',')
-          .map((id) => id.trim())
-          .filter(Boolean),
-      });
-      toast({
-        title: 'Notification Sent',
-        description: 'The notification has been successfully sent.',
-      });
-      form.reset();
+      const notifs = await getAllAdminNotifications();
+      setNotifications(notifs);
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Failed to send notification.',
+        description: 'Failed to fetch notifications.',
         variant: 'destructive',
       });
-      console.error('Failed to send notification:', error);
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleDelete = async (id: string, title: string) => {
+    try {
+      await deleteNotification(id);
+      toast({
+        title: 'Notification Deleted',
+        description: `"${title}" has been successfully deleted.`,
+      });
+      fetchNotifications(); // Refresh the list
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete notification.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const getStatusBadge = (status: AppNotification['status']) => {
+    const variants = {
+      draft: 'secondary',
+      scheduled: 'default',
+      sent: 'outline',
+    } as const;
+    return (
+      <Badge variant={variants[status]} className="capitalize">
+        {status}
+      </Badge>
+    );
+  };
 
   return (
     <div className='flex-grow flex flex-col'>
       <Header />
       <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
-        <div className='max-w-2xl mx-auto space-y-8'>
-          <div>
-            <h1 className='text-3xl font-bold font-headline'>
-              Create Notification
-            </h1>
-            <p className='text-muted-foreground'>
-              Send a message to your users.
-            </p>
+        <div className='space-y-8'>
+          <div className='flex justify-between items-center'>
+            <h1 className='text-3xl font-bold font-headline'>Notifications</h1>
+            <Button asChild>
+              <Link href='/dashboard/notifications/create'>
+                <PlusCircle className='mr-2 h-4 w-4' />
+                Create Notification
+              </Link>
+            </Button>
           </div>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-              <FormField
-                control={form.control}
-                name='title'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title</FormLabel>
-                    <FormControl>
-                      <Input placeholder='New feature available!' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='message'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Short Message (for Panel)</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder='Check out the new lyric import feature.'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='details'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Details (Markdown supported)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder='You can now import songs from...'
-                        className='min-h-[150px]'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name='targetUrl'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Target URL (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder='/new-feature-page' {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      The page users will be sent to when they click the
-                      notification.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='recipientType'
-                render={({ field }) => (
-                  <FormItem className='space-y-3'>
-                    <FormLabel>Recipients</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className='flex flex-col space-y-1'
-                      >
-                        <FormItem className='flex items-center space-x-3 space-y-0'>
-                          <FormControl>
-                            <RadioGroupItem value='ALL_USERS' />
-                          </FormControl>
-                          <FormLabel className='font-normal'>
-                            All Users
-                          </FormLabel>
-                        </FormItem>
-                        <FormItem className='flex items-center space-x-3 space-y-0'>
-                          <FormControl>
-                            <RadioGroupItem value='SPECIFIC_USERS' />
-                          </FormControl>
-                          <FormLabel className='font-normal'>
-                            Specific Users
-                          </FormLabel>
-                        </FormItem>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {recipientType === 'SPECIFIC_USERS' && (
-                <FormField
-                  control={form.control}
-                  name='recipientIds'
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>User IDs</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder='user_id_1, user_id_2, ...'
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Comma-separated list of user IDs to send the
-                        notification to.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              <Button type='submit' size='lg' disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+          <div className='border rounded-lg'>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created At</TableHead>
+                  <TableHead>Scheduled For</TableHead>
+                  <TableHead className='text-right'>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className='h-24 text-center'>
+                      Loading...
+                    </TableCell>
+                  </TableRow>
+                ) : notifications.length > 0 ? (
+                  notifications.map((notif) => (
+                    <TableRow key={notif.id}>
+                      <TableCell className='font-medium'>{notif.title}</TableCell>
+                      <TableCell>{getStatusBadge(notif.status)}</TableCell>
+                      <TableCell>
+                        {new Date(notif.createdAt).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        {notif.scheduledAt
+                          ? new Date(notif.scheduledAt).toLocaleString()
+                          : 'Not scheduled'}
+                      </TableCell>
+                      <TableCell className='text-right'>
+                        <Button asChild variant='ghost' size='icon'>
+                          <Link href={`/dashboard/notifications/edit/${notif.id}`}>
+                            <Edit className='h-4 w-4' />
+                          </Link>
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant='ghost' size='icon' className='text-destructive'>
+                              <Trash2 className='h-4 w-4' />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete the notification "{notif.title}".
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(notif.id, notif.title)}
+                                className='bg-destructive hover:bg-destructive/90'
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 ) : (
-                  <Send className='mr-2 h-4 w-4' />
+                  <TableRow>
+                    <TableCell colSpan={5} className='h-24 text-center'>
+                      No notifications found.
+                    </TableCell>
+                  </TableRow>
                 )}
-                Send Notification
-              </Button>
-            </form>
-          </Form>
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </main>
       <BottomNavBar />
