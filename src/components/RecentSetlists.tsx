@@ -4,6 +4,7 @@ import { Skeleton } from './ui/skeleton';
 import { Button } from './ui/button';
 import Link from 'next/link';
 import { ChevronRight, ListMusic, Music } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 function RecentSetlistItem({ setlist }: { setlist: Setlist }) {
   const isOwner = setlist.source !== 'saved';
@@ -11,7 +12,7 @@ function RecentSetlistItem({ setlist }: { setlist: Setlist }) {
   const linkHref = isOwner
     ? `/setlists/${setlist.id}`
     : `/shared/setlists/${setlist.firestoreId}`;
-
+  const t = useTranslations('setlist');
   return (
     <Link
       href={linkHref}
@@ -30,8 +31,8 @@ function RecentSetlistItem({ setlist }: { setlist: Setlist }) {
             </p>
             <p className='text-sm text-muted-foreground'>
               {isOwner
-                ? `${songCount} ${songCount === 1 ? 'song' : 'songs'}`
-                : `By ${setlist.authorName}`}
+                ? t('songCount', { count: songCount })
+                : t('byAuthor', { authorName: setlist.authorName })}
             </p>
           </div>
         </div>
@@ -50,6 +51,8 @@ export function RecentSetlists({
   recentSetlists: Setlist[];
   isLoadingSetlists: boolean;
 }) {
+  const t = useTranslations('home');
+
   return (
     <>
       {user &&
@@ -67,10 +70,10 @@ export function RecentSetlists({
             <section>
               <div className='flex items-center justify-between mb-4'>
                 <h2 className='text-xl font-headline font-semibold'>
-                  Recent Setlists
+                  {t('recentSetlists')}
                 </h2>
                 <Button variant='link' asChild>
-                  <Link href='/setlists'>View All</Link>
+                  <Link href='/setlists'>{t('viewAll')}</Link>
                 </Button>
               </div>
               <div className='space-y-2'>
