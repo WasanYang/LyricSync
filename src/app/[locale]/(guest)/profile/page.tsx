@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -14,94 +15,94 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Music, ListMusic, User, LogOut } from 'lucide-react';
+import { Music, ListMusic, User, LogOut, ChevronRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-
-function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox='0 0 48 48' {...props}>
-      <path
-        fill='#FFC107'
-        d='M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z'
-      ></path>
-      <path
-        fill='#FF3D00'
-        d='M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z'
-      ></path>
-      <path
-        fill='#4CAF50'
-        d='M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z'
-      ></path>
-      <path
-        fill='#1976D2'
-        d='M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C43.021,36.251,44,30.638,44,24C44,22.659,43.862,21.35,43.611,20.083z'
-      ></path>
-    </svg>
-  );
-}
+import { GoogleIcon } from '@/components/ui/GoogleIcon';
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 function StatCard({
   icon: Icon,
   title,
   value,
   isLoading,
+  href,
 }: {
   icon: React.ElementType;
   title: string;
   value: number;
   isLoading: boolean;
+  href: string;
 }) {
-  return (
-    <Card>
-      <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-        <CardTitle className='text-sm font-medium'>{title}</CardTitle>
-        <Icon className='h-4 w-4 text-muted-foreground' />
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <Skeleton className='h-8 w-1/4' />
-        ) : (
-          <div className='text-2xl font-bold'>{value}</div>
-        )}
+  const content = (
+    <Card className='hover:bg-muted/80 transition-colors'>
+      <CardContent className='p-4 flex items-center justify-between'>
+        <div className='flex items-center gap-4'>
+          <div className='p-3 bg-muted rounded-full'>
+            <Icon className='h-6 w-6 text-muted-foreground' />
+          </div>
+          <div>
+            <p className='font-semibold'>{title}</p>
+            {isLoading ? (
+              <Skeleton className='h-6 w-12 mt-1' />
+            ) : (
+              <p className='text-sm text-muted-foreground'>
+                {value} {value === 1 ? 'item' : 'items'}
+              </p>
+            )}
+          </div>
+        </div>
+        <ChevronRight className='h-5 w-5 text-muted-foreground' />
       </CardContent>
     </Card>
   );
+
+  return <Link href={href}>{content}</Link>;
 }
 
 function ProfileLoadingSkeleton() {
+  const t = useTranslations('profile');
+
   return (
     <div className='flex-grow flex flex-col'>
       <Header />
       <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
-        <div className='space-y-8'>
-          <div className='flex items-center gap-4'>
-            <Skeleton className='h-20 w-20 rounded-full' />
+        <div className='space-y-8 max-w-2xl mx-auto'>
+          <div className='flex flex-col items-center text-center space-y-4 md:flex-row md:text-left md:space-y-0 md:space-x-6'>
+            <Skeleton className='h-24 w-24 rounded-full' />
             <div className='space-y-2'>
               <Skeleton className='h-7 w-48' />
               <Skeleton className='h-5 w-64' />
             </div>
           </div>
-          <div className='grid gap-4 md:grid-cols-2'>
-            <Card>
-              <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>My Songs</CardTitle>
-                <Music className='h-4 w-4 text-muted-foreground' />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className='h-8 w-1/4' />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                <CardTitle className='text-sm font-medium'>
-                  My Setlists
-                </CardTitle>
-                <ListMusic className='h-4 w-4 text-muted-foreground' />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className='h-8 w-1/4' />
-              </CardContent>
-            </Card>
+          <div>
+            <h2 className='text-lg font-semibold mb-4'>{t('stats')}</h2>
+            <div className='grid gap-4 md:grid-cols-1'>
+              <Card>
+                <CardContent className='p-4 flex items-center justify-between'>
+                  <div className='flex items-center gap-4'>
+                    <Skeleton className='h-12 w-12 rounded-full' />
+                    <div>
+                      <Skeleton className='h-5 w-24' />
+                      <Skeleton className='h-4 w-16 mt-1' />
+                    </div>
+                  </div>
+                  <Skeleton className='h-5 w-5' />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className='p-4 flex items-center justify-between'>
+                  <div className='flex items-center gap-4'>
+                    <Skeleton className='h-12 w-12 rounded-full' />
+                    <div>
+                      <Skeleton className='h-5 w-24' />
+                      <Skeleton className='h-4 w-16 mt-1' />
+                    </div>
+                  </div>
+                  <Skeleton className='h-5 w-5' />
+                </CardContent>
+              </Card>
+            </div>
           </div>
           <Skeleton className='h-10 w-full md:w-48' />
         </div>
@@ -112,6 +113,7 @@ function ProfileLoadingSkeleton() {
 }
 
 export default function ProfilePage() {
+  const t = useTranslations('profile');
   const { user, loading: authLoading, logout, signInWithGoogle } = useAuth();
 
   const [songCount, setSongCount] = useState(0);
@@ -152,9 +154,9 @@ export default function ProfilePage() {
         <div className='space-y-8 max-w-2xl mx-auto'>
           <div className='flex flex-col items-center text-center space-y-4 md:flex-row md:text-left md:space-y-0 md:space-x-6'>
             <Avatar className='h-24 w-24 text-4xl'>
-              {!isAnonymous && (
+              {!isAnonymous && user.photoURL && (
                 <AvatarImage
-                  src={user.photoURL || ''}
+                  src={user.photoURL}
                   alt={user.displayName || 'User'}
                 />
               )}
@@ -168,7 +170,7 @@ export default function ProfilePage() {
             </Avatar>
             <div className='space-y-1'>
               <h1 className='text-2xl font-bold font-headline'>
-                {isAnonymous ? 'Guest User' : user.displayName}
+                {isAnonymous ? t('guestUser') : user.displayName}
               </h1>
               {!isAnonymous && (
                 <p className='text-muted-foreground'>{user.email}</p>
@@ -180,35 +182,36 @@ export default function ProfilePage() {
             <Card className='bg-primary/10 border-primary/20'>
               <CardHeader>
                 <CardTitle className='font-headline text-center'>
-                  Unlock Full Access
+                  {t('unlockTitle')}
                 </CardTitle>
                 <CardDescription className='text-center'>
-                  Sign in with Google to save your songs, create setlists, and
-                  sync your data across devices.
+                  {t('unlockDesc')}
                 </CardDescription>
               </CardHeader>
               <CardContent className='flex justify-center'>
                 <Button onClick={signInWithGoogle} size='lg'>
                   <GoogleIcon className='mr-2 h-5 w-5' />
-                  Sign In with Google
+                  {t('signInGoogle')}
                 </Button>
               </CardContent>
             </Card>
           ) : (
             <div>
-              <h2 className='text-lg font-semibold mb-4'>Statistics</h2>
-              <div className='grid gap-4 md:grid-cols-2'>
+              <h2 className='text-lg font-semibold mb-4'>{t('stats')}</h2>
+              <div className='grid gap-3 md:grid-cols-1'>
                 <StatCard
                   icon={Music}
-                  title='My Songs'
+                  title={t('mySongs')}
                   value={songCount}
                   isLoading={isLoadingStats}
+                  href='/library'
                 />
                 <StatCard
                   icon={ListMusic}
-                  title='My Setlists'
+                  title={t('mySetlists')}
                   value={setlistCount}
                   isLoading={isLoadingStats}
+                  href='/setlists'
                 />
               </div>
             </div>
@@ -219,7 +222,7 @@ export default function ProfilePage() {
             variant='outline'
             className='w-full md:w-auto'
           >
-            <LogOut className='mr-2 h-4 w-4' /> Sign Out
+            <LogOut className='mr-2 h-4 w-4' /> {t('signOut')}
           </Button>
         </div>
       </main>

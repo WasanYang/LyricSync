@@ -34,7 +34,17 @@
   },
   "login": "Login",
   "logout": "Logout",
-  "profile": "Profile",
+  "profile": {
+    "title": "Profile",
+    "guestUser": "Guest User",
+    "stats": "Statistics",
+    "mySongs": "My Library",
+    "mySetlists": "My Setlists",
+    "signOut": "Sign Out",
+    "unlockTitle": "Unlock Full Access",
+    "unlockDesc": "Sign in with Google to save your songs, create setlists, and sync your data across devices.",
+    "signInGoogle": "Sign In with Google"
+  },
   "library": "Library",
   "setlists": "Setlists",
   "songs": "Songs",
