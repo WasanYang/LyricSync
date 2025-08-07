@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { getAllSavedSongs, getSetlists } from '@/lib/db';
 import Header from '@/components/Header';
@@ -15,11 +15,23 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Music, ListMusic, User, LogOut, ChevronRight } from 'lucide-react';
+import {
+  Music,
+  ListMusic,
+  User,
+  LogOut,
+  ChevronRight,
+  Edit,
+  Save,
+  X,
+  Loader2,
+} from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GoogleIcon } from '@/components/ui/GoogleIcon';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 
 function StatCard({
   icon: Icon,
@@ -114,11 +126,23 @@ function ProfileLoadingSkeleton() {
 
 export default function ProfilePage() {
   const t = useTranslations('profile');
-  const { user, loading: authLoading, logout, signInWithGoogle } = useAuth();
+  const { toast } = useToast();
+  const {
+    user,
+    loading: authLoading,
+    logout,
+    signInWithGoogle,
+    updateProfileName,
+  } = useAuth();
 
   const [songCount, setSongCount] = useState(0);
   const [setlistCount, setSetlistCount] = useState(0);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newDisplayName, setNewDisplayName] = useState('');
+  const [isSavingName, setIsSavingName] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function fetchStats() {
@@ -140,6 +164,56 @@ export default function ProfilePage() {
     }
     fetchStats();
   }, [user]);
+
+  useEffect(() => {
+    if (isEditingName && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isEditingName]);
+
+  const handleEditName = () => {
+    if (user?.displayName) {
+      setNewDisplayName(user.displayName);
+      setIsEditingName(true);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingName(false);
+    setNewDisplayName('');
+  };
+
+  const handleSaveName = async () => {
+    if (!newDisplayName.trim()) {
+      toast({
+        title: 'Invalid Name',
+        description: 'Display name cannot be empty.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (newDisplayName.trim() === user?.displayName) {
+      setIsEditingName(false);
+      return;
+    }
+    setIsSavingName(true);
+    try {
+      await updateProfileName(newDisplayName.trim());
+      toast({
+        title: 'Name Updated',
+        description: 'Your display name has been updated successfully.',
+      });
+      setIsEditingName(false);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Could not update your display name.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSavingName(false);
+    }
+  };
 
   if (authLoading || !user) {
     return <ProfileLoadingSkeleton />;
@@ -169,9 +243,55 @@ export default function ProfilePage() {
               </AvatarFallback>
             </Avatar>
             <div className='space-y-1'>
-              <h1 className='text-2xl font-bold font-headline'>
-                {isAnonymous ? t('guestUser') : user.displayName}
-              </h1>
+              {isEditingName ? (
+                <div className='flex items-center gap-2'>
+                  <Input
+                    ref={inputRef}
+                    value={newDisplayName}
+                    onChange={(e) => setNewDisplayName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
+                    disabled={isSavingName}
+                    className='h-9'
+                  />
+                  <Button
+                    size='icon'
+                    onClick={handleSaveName}
+                    disabled={isSavingName}
+                    className='h-9 w-9'
+                  >
+                    {isSavingName ? (
+                      <Loader2 className='h-4 w-4 animate-spin' />
+                    ) : (
+                      <Save className='h-4 w-4' />
+                    )}
+                  </Button>
+                  <Button
+                    variant='ghost'
+                    size='icon'
+                    onClick={handleCancelEdit}
+                    disabled={isSavingName}
+                    className='h-9 w-9'
+                  >
+                    <X className='h-4 w-4' />
+                  </Button>
+                </div>
+              ) : (
+                <div className='flex items-center gap-2 group'>
+                  <h1 className='text-2xl font-bold font-headline'>
+                    {isAnonymous ? t('guestUser') : user.displayName}
+                  </h1>
+                  {!isAnonymous && (
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      onClick={handleEditName}
+                      className='h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity'
+                    >
+                      <Edit className='h-4 w-4 text-muted-foreground' />
+                    </Button>
+                  )}
+                </div>
+              )}
               {!isAnonymous && (
                 <p className='text-muted-foreground'>{user.email}</p>
               )}

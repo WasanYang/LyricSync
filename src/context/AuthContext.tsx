@@ -1,3 +1,4 @@
+
 // src/context/AuthContext.tsx
 'use client';
 
@@ -14,10 +15,11 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signInAnonymously as firebaseSignInAnonymously,
+  updateProfile,
   type User,
 } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 
 const SUPER_ADMIN_EMAIL = 'esxy26@gmail.com';
 
@@ -28,6 +30,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signInAnonymously: () => Promise<void>;
   logout: () => Promise<void>;
+  updateProfileName: (newName: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -123,6 +126,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updateProfileName = async (newName: string) => {
+    if (!auth?.currentUser || !db) {
+      throw new Error('User not authenticated or Firebase not available.');
+    }
+
+    const currentUser = auth.currentUser;
+
+    try {
+      // Update Firebase Auth profile
+      await updateProfile(currentUser, { displayName: newName });
+
+      // Update Firestore user document
+      const userRef = doc(db, 'users', currentUser.uid);
+      await updateDoc(userRef, { displayName: newName });
+
+      // Manually update the user state in the context to reflect changes immediately
+      setUser({ ...currentUser, displayName: newName });
+    } catch (error) {
+      console.error('Error updating profile name:', error);
+      throw new Error('Failed to update profile name.');
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -130,28 +156,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signInWithGoogle,
     signInAnonymously,
     logout,
+    updateProfileName,
   };
-
-  // Render a loading screen while auth state is being determined
-  // if (loading) {
-  //   return (
-  //     <div className='flex flex-col h-screen'>
-  //       <header className='sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-  //         <div className='flex h-16 items-center justify-between px-4'>
-  //           <div className='flex items-center'>
-  //             <Skeleton className='h-6 w-40' />
-  //           </div>
-  //           <div className='flex items-center justify-end space-x-2'>
-  //             <Skeleton className='h-8 w-8 rounded-full' />
-  //           </div>
-  //         </div>
-  //       </header>
-  //       <main className='flex-grow container mx-auto p-8'>
-  //         <Skeleton className='h-48 w-full' />
-  //       </main>
-  //     </div>
-  //   );
-  // }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
