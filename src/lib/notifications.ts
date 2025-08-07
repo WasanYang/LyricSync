@@ -107,6 +107,27 @@ export async function getAllAdminNotifications(): Promise<AppNotification[]> {
   });
 }
 
+export async function getUpdates(): Promise<AppNotification[]> {
+  if (!db) return [];
+  const notificationsRef = collection(db, 'notifications');
+  const q = query(
+    notificationsRef,
+    where('recipientType', '==', 'ALL_USERS'),
+    orderBy('createdAt', 'desc')
+  );
+
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      createdAt: (data.createdAt as Timestamp)?.toMillis(),
+      scheduledAt: toDateSafe(data.scheduledAt)?.getTime() ?? null,
+    } as AppNotification;
+  });
+}
+
 // Function to delete a notification
 export async function deleteNotification(id: string): Promise<void> {
   if (!db) throw new Error('Firebase not initialized.');

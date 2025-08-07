@@ -45,7 +45,7 @@ export default function Header() {
                 LyricSync
               </span>
               <span className='text-xs text-muted-foreground leading-tight hidden sm:block'>
-                {t('welcome.descShort')}
+                {t('welcome.desc')}
               </span>
             </div>
           </Link>

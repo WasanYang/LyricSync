@@ -92,6 +92,11 @@ function SetlistDetailContent({
           if (loadedSongs.length === loadedSetlist.songIds.length) {
             setSongs(loadedSongs);
           } else {
+            console.log(
+              'loadedSongs',
+              loadedSongs.length,
+              loadedSetlist.songIds.length
+            );
             toast({
               title: 'Error Loading Songs',
               description:

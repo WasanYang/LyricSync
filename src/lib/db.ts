@@ -350,8 +350,7 @@ const songFromDoc = (doc: any): Song => {
     uploaderEmail: data.uploaderEmail,
     source: data.source,
     downloadCount: data.downloadCount || 0,
-    updatedAt:
-      updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
+    updatedAt: updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
   };
 };
 
@@ -882,9 +881,7 @@ export async function getPublicUsers(): Promise<PublicUser[]> {
       firestoreDb,
       `users/${userDoc.id}/userSetlists`
     );
-    const setlistsSnapshot = await getDocs(
-      query(setlistsRef)
-    );
+    const setlistsSnapshot = await getDocs(query(setlistsRef));
     const publicSetlistsCount = setlistsSnapshot.size;
 
     if (publicSetlistsCount > 0) {
@@ -900,33 +897,34 @@ export async function getPublicUsers(): Promise<PublicUser[]> {
   return publicUsers;
 }
 
+export async function getPublicSetlistsByUserId(
+  userId: string
+): Promise<Setlist[]> {
+  if (!firestoreDb) throw new Error('Firebase is not configured.');
+  const q = query(
+    collection(firestoreDb, 'setlists'),
+    where('userId', '==', userId),
+    where('isPublic', '==', true),
+    orderBy('syncedAt', 'desc')
+  );
 
-export async function getPublicSetlistsByUserId(userId: string): Promise<Setlist[]> {
-    if (!firestoreDb) throw new Error('Firebase is not configured.');
-    const q = query(
-        collection(firestoreDb, 'setlists'),
-        where('userId', '==', userId),
-        where('isPublic', '==', true),
-        orderBy('syncedAt', 'desc')
-    );
-
-    const querySnapshot = await getDocs(q);
-    const setlists: Setlist[] = [];
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const syncedAt = data.syncedAt as Timestamp;
-        setlists.push({
-            id: doc.id,
-            firestoreId: doc.id,
-            title: data.title,
-            songIds: data.songIds,
-            userId: data.userId,
-            createdAt: syncedAt?.toMillis() || Date.now(),
-            isSynced: true,
-            isPublic: true,
-            authorName: data.authorName || 'Anonymous',
-            source: 'saved',
-        });
+  const querySnapshot = await getDocs(q);
+  const setlists: Setlist[] = [];
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    const syncedAt = data.syncedAt as Timestamp;
+    setlists.push({
+      id: doc.id,
+      firestoreId: doc.id,
+      title: data.title,
+      songIds: data.songIds,
+      userId: data.userId,
+      createdAt: syncedAt?.toMillis() || Date.now(),
+      isSynced: true,
+      isPublic: true,
+      authorName: data.authorName || 'Anonymous',
+      source: 'saved',
     });
-    return setlists;
+  });
+  return setlists;
 }

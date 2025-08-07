@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   getAllAdminNotifications,
+  getUpdates,
   type AppNotification,
 } from '@/lib/notifications';
 import Header from '@/components/Header';
@@ -14,11 +15,7 @@ import { BellRing } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 
-function NotificationItem({
-  notification,
-}: {
-  notification: AppNotification;
-}) {
+function NotificationItem({ notification }: { notification: AppNotification }) {
   return (
     <div className='p-4 border-b last:border-b-0'>
       <div className='flex justify-between items-start'>
@@ -66,8 +63,10 @@ export default function UpdatesPage() {
     setIsLoading(true);
     try {
       // Fetch all "sent" public notifications
-      const fetchedNotifications = await getAllAdminNotifications();
-      const publicNotifications = fetchedNotifications.filter(notif => notif.status === 'sent');
+      const fetchedNotifications = await getUpdates();
+      const publicNotifications = fetchedNotifications.filter(
+        (notif) => notif.status === 'sent'
+      );
       setNotifications(publicNotifications);
     } catch (error) {
       console.error('Failed to load notifications:', error);
