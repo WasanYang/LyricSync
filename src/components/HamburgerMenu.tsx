@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -151,7 +152,7 @@ export default function HamburgerMenu() {
                     className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                   >
                     <UserCircle className='h-5 w-5' />
-                    <span>{t('profile')}</span>
+                    <span>{t('profile.title')}</span>
                   </Link>
                 </SheetClose>
                 {isSuperAdmin && (
