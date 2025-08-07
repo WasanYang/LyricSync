@@ -936,7 +936,7 @@ export async function getAllUsers(): Promise<User[]> {
   }
 
   const usersRef = collection(firestoreDb, 'users');
-  const q = query(usersRef, orderBy('createdAt', 'desc'));
+  const q = query(usersRef);
   const querySnapshot = await getDocs(q);
 
   const users = querySnapshot.docs.map((doc) => {
@@ -945,7 +945,7 @@ export async function getAllUsers(): Promise<User[]> {
       uid: doc.id,
       ...data,
       createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
-      lastLoginAt: (data.lastLoginAt as Timestamp)?.toDate() || new Date(),
+      updatedAt: (data.updatedAt as Timestamp)?.toDate() || new Date(), // Use updatedAt for last login
     } as User;
   });
 
