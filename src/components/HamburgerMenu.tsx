@@ -18,6 +18,7 @@ import {
   UserCircle,
   Database,
   Users,
+  Compass,
 } from 'lucide-react';
 import { Heart as HeartIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -41,6 +42,7 @@ import Image from 'next/image';
 const navLinks = [
   { href: '/', key: 'home.title', icon: Home },
   { href: '/search', key: 'search.title', icon: Search },
+  { href: '/explore', key: 'explore.title', icon: Compass },
 ];
 
 const mobileOnlyLinks = [

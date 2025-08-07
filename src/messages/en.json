@@ -57,6 +57,12 @@
     "placeholder": "Search songs, artists, and public setlists...",
     "browseByLetter": "Browse by Letter (A-Z, ก-ฮ)"
   },
+  "explore": {
+    "title": "Explore Public Setlists",
+    "description": "Discover setlists shared by the LyricSync community.",
+    "placeholder": "Search public setlists...",
+    "noResults": "No public setlists found matching \"{searchTerm}\"."
+  },
   "premium": "Premium",
   "admin": "Admin",
   "userUploads": "User Uploads",
