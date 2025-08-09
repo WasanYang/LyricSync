@@ -6,7 +6,7 @@ import type { Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 
 import { ALL_NOTES } from '@/lib/chords';
-import { useSafeDataLoader } from '@/hooks/use-offline-storage';
+import { getSetlist as getSetlistFromDb, getCloudSongById } from '@/lib/db';
 
 import LyricPlayer from '@/components/LyricPlayer';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -59,18 +59,17 @@ export default function SetlistPlayerPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [transpose, _setTranspose] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const { loadSong, loadSetlist } = useSafeDataLoader();
 
   useEffect(() => {
     async function loadSetlistAndSongs() {
       if (!id) return;
       try {
         setIsLoading(true);
-        const loadedSetlist = await loadSetlist(id);
+        const loadedSetlist = await getSetlistFromDb(id);
         if (loadedSetlist) {
           setSetlist(loadedSetlist);
           const songPromises = loadedSetlist.songIds.map((songId) =>
-            loadSong(songId)
+            getCloudSongById(songId)
           );
           const loadedSongs = (await Promise.all(songPromises)).filter(
             Boolean
@@ -87,7 +86,7 @@ export default function SetlistPlayerPage() {
       }
     }
     loadSetlistAndSongs();
-  }, [id, loadSetlist, loadSong]);
+  }, [id]);
 
   const handleNextSong = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1 < songs.length ? prev + 1 : prev));

@@ -9,10 +9,17 @@ import Header from './Header';
 import BottomNavBar from './BottomNavBar';
 import { Button } from '@/components/ui/button';
 import SongStatusButton from './SongStatusButton';
-import { Play, Share2, ChevronDown, ChevronUp, Check, Download } from 'lucide-react';
+import {
+  Play,
+  Share2,
+  ChevronDown,
+  ChevronUp,
+  Check,
+  Download,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { useSafeDataLoader } from '@/hooks/use-offline-storage';
+import { getCloudSongById } from '@/lib/db';
 import {
   Tooltip,
   TooltipContent,
@@ -109,7 +116,6 @@ export function SongDetail({
   const [isLoading, setIsLoading] = useState(true);
   const [isLyricsExpanded, setIsLyricsExpanded] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const { loadSong, isOnline } = useSafeDataLoader();
   const { toast } = useToast();
   const url = isSharePage
     ? `/shared/song/${songId}/player`
@@ -120,7 +126,7 @@ export function SongDetail({
       if (!songId) return;
       try {
         setIsLoading(true);
-        const fetchedSong = await loadSong(songId);
+        const fetchedSong = await getCloudSongById(songId);
         if (fetchedSong) {
           setSong(fetchedSong);
         } else {
@@ -134,7 +140,7 @@ export function SongDetail({
       }
     }
     fetchSong();
-  }, [songId, loadSong, isOnline]);
+  }, [songId]);
 
   const handleShare = () => {
     if (!song) return;

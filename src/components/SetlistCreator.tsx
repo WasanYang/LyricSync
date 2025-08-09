@@ -213,6 +213,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   useEffect(() => {
     const fetchAllSongs = async () => {
       if (!user) return;
+      // Always fetch from cloud
       const cloudSongs = await getAllCloudSongs();
       setAllSongs(cloudSongs);
     };
@@ -227,7 +228,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
       }
 
       // Ensure songs are loaded before fetching the setlist
-      if (allSongs.length === 0) return;
+      if (allSongs.length === 0 && user) return;
 
       setIsLoading(true);
       try {
@@ -235,20 +236,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
         if (existingSetlist) {
           form.reset({ title: existingSetlist.title });
 
-          // Create a Map for efficient lookup of all available songs.
-          const allAvailableSongsMap = new Map(
-            allSongs.map((s) => [s.id, s])
-          );
-
-          // Map song IDs from the setlist to the full song objects.
           const songPromises = existingSetlist.songIds.map(async (id) => {
-            if (allAvailableSongsMap.has(id)) {
-              return allAvailableSongsMap.get(id);
-            }
-            // Fallback: If the song isn't in our pre-loaded lists, fetch it directly from the cloud.
-            console.warn(
-              `Song ${id} not found in pre-loaded list, fetching from cloud.`
-            );
             return await getCloudSongById(id);
           });
 
@@ -278,7 +266,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
 
     fetchSetlistData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setlistId, allSongs]); // Depend on songs being loaded.
+  }, [setlistId, allSongs, user]);
 
   const availableSongs = useMemo(() => {
     const filterBySearchTerm = (song: Song) =>
