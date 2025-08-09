@@ -21,9 +21,10 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Minus, Plus, RotateCcw } from 'lucide-react';
+import { Minus, Plus, RotateCcw, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ALL_NOTES } from '@/lib/chords';
+import { Slider } from '../ui/slider';
 
 type HighlightMode = 'line' | 'section' | 'none';
 
@@ -38,6 +39,8 @@ interface SettingsSheetProps {
   showFloatingNavigator: boolean;
   theme: string;
   bpm: number;
+  isMetronomeEnabled: boolean;
+  metronomeVolume: number;
   onToggleChords: () => void;
   onTransposeDown: () => void;
   onTransposeUp: () => void;
@@ -49,6 +52,8 @@ interface SettingsSheetProps {
   onToggleTheme: () => void;
   onBpmChange: (bpm: number) => void;
   onResetSettings: () => void;
+  onToggleMetronome: () => void;
+  onMetronomeVolumeChange: (volume: number) => void;
 }
 
 const HIGHLIGHT_OPTIONS: { value: HighlightMode; label: string }[] = [
@@ -68,6 +73,8 @@ export default function SettingsSheet({
   showFloatingNavigator,
   theme,
   bpm,
+  isMetronomeEnabled,
+  metronomeVolume,
   onToggleChords,
   onTransposeDown,
   onTransposeUp,
@@ -79,6 +86,8 @@ export default function SettingsSheet({
   onToggleTheme,
   onBpmChange,
   onResetSettings,
+  onToggleMetronome,
+  onMetronomeVolumeChange,
 }: SettingsSheetProps) {
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -262,6 +271,27 @@ export default function SettingsSheet({
                   >
                     <Plus className='h-4 w-4' />
                   </Button>
+                </div>
+              </div>
+              <div className='flex items-center justify-between'>
+                <Label htmlFor='metronome-enabled'>Metronome</Label>
+                <Switch
+                  id='metronome-enabled'
+                  checked={isMetronomeEnabled}
+                  onCheckedChange={onToggleMetronome}
+                />
+              </div>
+              <div className='space-y-2'>
+                <Label>Metronome Volume</Label>
+                <div className='flex items-center gap-2'>
+                  <Volume2 className='h-4 w-4 text-muted-foreground' />
+                  <Slider
+                    defaultValue={[metronomeVolume]}
+                    max={1}
+                    step={0.1}
+                    onValueChange={(value) => onMetronomeVolumeChange(value[0])}
+                    disabled={!isMetronomeEnabled}
+                  />
                 </div>
               </div>
             </div>

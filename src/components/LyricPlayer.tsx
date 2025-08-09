@@ -28,6 +28,7 @@ import {
   type FontWeight,
   type HighlightMode,
 } from '@/lib/local-storage';
+import { Metronome } from '@/lib/metronome';
 
 type State = {
   isPlaying: boolean;
@@ -41,6 +42,8 @@ type State = {
   highlightMode: HighlightMode;
   bpm: number;
   transpose: number;
+  isMetronomeEnabled: boolean;
+  metronomeVolume: number;
 };
 
 type Action =
@@ -59,6 +62,8 @@ type Action =
   | { type: 'TRANSPOSE_DOWN' }
   | { type: 'RESET_TRANSPOSE' }
   | { type: 'SET_BPM'; payload: number }
+  | { type: 'TOGGLE_METRONOME' }
+  | { type: 'SET_METRONOME_VOLUME'; payload: number }
   | { type: 'RESET_PLAYER_STATE'; payload: PlayerSettings };
 
 type PlayerSettings = {
@@ -67,6 +72,8 @@ type PlayerSettings = {
   fontWeight?: FontWeight;
   highlightMode?: HighlightMode;
   showChords?: boolean;
+  isMetronomeEnabled?: boolean;
+  metronomeVolume?: number;
 };
 
 const getInitialState = (settings: PlayerSettings): State => ({
@@ -81,6 +88,8 @@ const getInitialState = (settings: PlayerSettings): State => ({
   highlightMode: settings.highlightMode || 'line',
   bpm: settings.bpm || 120,
   transpose: 0,
+  isMetronomeEnabled: settings.isMetronomeEnabled || false,
+  metronomeVolume: settings.metronomeVolume || 0.5,
 });
 
 function lyricPlayerReducer(state: State, action: Action): State {
@@ -138,6 +147,16 @@ function lyricPlayerReducer(state: State, action: Action): State {
       return { ...state, transpose: 0 };
     case 'SET_BPM':
       return { ...state, bpm: action.payload };
+    case 'TOGGLE_METRONOME':
+      localStorageManager.setUserPreferences({
+        isMetronomeEnabled: !state.isMetronomeEnabled,
+      });
+      return { ...state, isMetronomeEnabled: !state.isMetronomeEnabled };
+    case 'SET_METRONOME_VOLUME':
+      localStorageManager.setUserPreferences({
+        metronomeVolume: action.payload,
+      });
+      return { ...state, metronomeVolume: action.payload };
     case 'RESET_PLAYER_STATE':
       return getInitialState({
         ...action.payload,
@@ -164,6 +183,7 @@ export default function LyricPlayer({
   onClose,
 }: LyricPlayerProps) {
   const [initialState, setInitialState] = useState<State | null>(null);
+  const metronomeRef = useRef<Metronome | null>(null);
 
   useEffect(() => {
     // This effect runs only on the client
@@ -175,8 +195,13 @@ export default function LyricPlayer({
         fontWeight: prefs.fontWeight,
         highlightMode: prefs.highlightMode,
         showChords: prefs.showChords,
+        isMetronomeEnabled: prefs.isMetronomeEnabled,
+        metronomeVolume: prefs.metronomeVolume,
       })
     );
+    if (!metronomeRef.current) {
+      metronomeRef.current = new Metronome();
+    }
   }, [song.id, song.bpm]);
 
   const [state, dispatch] = useReducer(lyricPlayerReducer, getInitialState({}));
@@ -192,6 +217,8 @@ export default function LyricPlayer({
     highlightMode,
     bpm,
     transpose,
+    isMetronomeEnabled,
+    metronomeVolume,
   } = state;
 
   useEffect(() => {
@@ -211,12 +238,12 @@ export default function LyricPlayer({
 
   const { theme, setTheme } = useTheme();
 
-  const { processedLyrics, totalDuration } = useMemo(() => {
+  const { processedLyrics, totalDuration, timeSignatureBeats } = useMemo(() => {
     let cumulativeTime = 0;
     const currentBpm = typeof bpm === 'number' && bpm > 0 ? bpm : 120;
     const timeSignature = song.timeSignature || '4/4';
-    const timeSignatureBeats = parseInt(timeSignature.split('/')[0], 10) || 4;
-    const secondsPerMeasure = (60 / currentBpm) * timeSignatureBeats;
+    const beats = parseInt(timeSignature.split('/')[0], 10) || 4;
+    const secondsPerMeasure = (60 / currentBpm) * beats;
 
     const lyricsWithTiming = song.lyrics.map((line, index) => {
       const startTimeSeconds = cumulativeTime;
@@ -235,15 +262,35 @@ export default function LyricPlayer({
     return {
       processedLyrics: lyricsWithTiming,
       totalDuration: cumulativeTime,
+      timeSignatureBeats: beats,
     };
   }, [song.lyrics, bpm, song.timeSignature]);
 
   useEffect(() => {
     dispatch({
       type: 'RESET_PLAYER_STATE',
-      payload: { ...localStorageManager.getUserPreferences(), bpm: song.bpm },
+      payload: {
+        ...localStorageManager.getUserPreferences(),
+        bpm: song.bpm,
+      },
     });
   }, [song.id, song.bpm]);
+
+  useEffect(() => {
+    if (metronomeRef.current) {
+      metronomeRef.current.setBpm(bpm);
+      metronomeRef.current.setTimeSignature(timeSignatureBeats);
+      metronomeRef.current.setVolume(metronomeVolume);
+    }
+  }, [bpm, timeSignatureBeats, metronomeVolume]);
+
+  useEffect(() => {
+    if (isPlaying && isMetronomeEnabled) {
+      metronomeRef.current?.start();
+    } else {
+      metronomeRef.current?.stop();
+    }
+  }, [isPlaying, isMetronomeEnabled]);
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -601,6 +648,8 @@ export default function LyricPlayer({
           showFloatingNavigator={floatingNavigator.isVisible}
           theme={theme || 'light'}
           bpm={bpm}
+          isMetronomeEnabled={isMetronomeEnabled}
+          metronomeVolume={metronomeVolume}
           onToggleChords={() => dispatch({ type: 'TOGGLE_CHORDS' })}
           onTransposeDown={() => dispatch({ type: 'TRANSPOSE_DOWN' })}
           onTransposeUp={() => dispatch({ type: 'TRANSPOSE_UP' })}
@@ -623,6 +672,10 @@ export default function LyricPlayer({
                 bpm: song.bpm,
               },
             })
+          }
+          onToggleMetronome={() => dispatch({ type: 'TOGGLE_METRONOME' })}
+          onMetronomeVolumeChange={(vol: number) =>
+            dispatch({ type: 'SET_METRONOME_VOLUME', payload: vol })
           }
         />
       </div>

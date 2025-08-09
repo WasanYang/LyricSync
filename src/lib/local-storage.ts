@@ -17,6 +17,8 @@ interface UserPreferences {
   language: 'th' | 'en';
   soundEnabled: boolean;
   vibrationEnabled: boolean;
+  isMetronomeEnabled: boolean;
+  metronomeVolume: number;
 }
 
 interface RecentActivity {
@@ -56,6 +58,8 @@ class LocalStorageManager {
     language: 'th',
     soundEnabled: true,
     vibrationEnabled: true,
+    isMetronomeEnabled: false,
+    metronomeVolume: 0.5,
   };
 
   private readonly DEFAULT_ACTIVITY: RecentActivity = {
