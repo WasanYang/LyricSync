@@ -302,6 +302,10 @@ export default function LyricPlayer({
     } else {
       metronomeRef.current?.stop();
     }
+    // Cleanup function to stop metronome when component unmounts
+    return () => {
+      metronomeRef.current?.stop();
+    };
   }, [isPlaying, isMetronomeEnabled]);
 
   const toggleTheme = () => {
