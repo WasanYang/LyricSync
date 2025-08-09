@@ -75,13 +75,24 @@ const getTransposedNote = (note: string, amount: number): string => {
 export const transposeChord = (chord: string, amount: number): string => {
   if (amount === 0) return chord;
 
-  // Handle multi-chord groups like [G/B|C|D|G]
-  if (chord.includes('|')) {
-    return chord
-      .split('|')
-      .map((c) => transposeChord(c, amount))
-      .join('|');
+  // This regex splits by `|` or `-` while keeping the delimiters.
+  // This allows us to rejoin the string with the correct separator.
+  const separatorRegex = /([|-])/;
+  if (separatorRegex.test(chord)) {
+    // Split the string into chords and delimiters
+    const parts = chord.split(separatorRegex);
+    const transposedParts = parts.map((part) => {
+      // If the part is a delimiter, return it as is.
+      if (part === '|' || part === '-') {
+        return part;
+      }
+      // Otherwise, it's a chord, so transpose it.
+      return transposeChord(part, amount);
+    });
+    // Rejoin the parts to form the final string.
+    return transposedParts.join('');
   }
+
 
   // This regex handles standard chords, slash chords (e.g., G/B), and complex chords (e.g., Asus4, Cmaj7).
   // 1. ([A-G][b#]?): Captures the root note (e.g., 'A', 'C#', 'Bb').
