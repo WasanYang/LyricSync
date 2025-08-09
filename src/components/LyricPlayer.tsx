@@ -471,12 +471,28 @@ export default function LyricPlayer({
             style={{ fontSize: `${fontSize}px` }}
           >
             {processedLyrics.map((line, index) => {
-              const parsedLine = parseLyrics(line.text);
-              const hasText = parsedLine.some((p) => p.text.trim() !== '');
-              const hasChords = parsedLine.some((p) => p.chord);
-
+              const isComment = line.text.trim().startsWith('*');
               const isSectionHeader =
                 line.text.startsWith('(') && line.text.endsWith(')');
+
+              if (isComment) {
+                return (
+                  <li
+                    key={`${song.id}-${line.originalIndex}-comment`}
+                    ref={(el) => {
+                      lineRefs.current[index] = el;
+                    }}
+                    className='pt-2 text-left'
+                  >
+                    <p
+                      className='text-muted-foreground italic'
+                      style={{ fontSize: `calc(${fontSize}px * 0.9)` }}
+                    >
+                      {line.text.substring(1).trim()}
+                    </p>
+                  </li>
+                );
+              }
 
               if (isSectionHeader) {
                 return (
@@ -496,6 +512,10 @@ export default function LyricPlayer({
                   </li>
                 );
               }
+
+              const parsedLine = parseLyrics(line.text);
+              const hasText = parsedLine.some((p) => p.text.trim() !== '');
+              const hasChords = parsedLine.some((p) => p.chord);
 
               if (!showChords && !hasText && hasChords) {
                 return null;

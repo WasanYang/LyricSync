@@ -76,6 +76,12 @@ export function LyricsHelpDialog({ className }: { className?: string }) {
                 (Intro), (Verse), or (Chorus), use `0` for the number of
                 measures.
               </li>
+              <li>
+                <strong>Comments:</strong> To add a non-lyric comment (e.g.,
+                instrumental cue, vocal instruction), start the line with a `*`
+                character. These lines will be displayed in italics. The number
+                of measures for comments will be ignored.
+              </li>
             </ul>
           </div>
 
@@ -84,12 +90,14 @@ export function LyricsHelpDialog({ className }: { className?: string }) {
             <p>0 | (Intro)</p>
             <p>4 | [Am] [G] [C] [F]</p>
             <p>4 | [C]This is a [G]line with chords.</p>
+            <p>0 | * Instrumental break</p>
             <p>4 | This is a line with no chords.</p>
             <p>0 | (Verse 1)</p>
             <p>4 | The quick [Am]brown fox [G]jumps over the [C]lazy dog.[F]</p>
             <p>
               0 | This is the second line of lyrics for the 4 measures above.
             </p>
+            <p>0 | * Sing softly</p>
           </div>
         </div>
       </DialogContent>
