@@ -374,14 +374,17 @@ export async function getSetlists(userId: string): Promise<SetlistWithSyncStatus
 
   const userSetlistsRef = collection(firestoreDb, 'users', userId, 'userSetlists');
   const userSetlistsSnapshot = await getDocs(query(userSetlistsRef, orderBy('syncedAt', 'desc')));
-  const syncedSetlistIds = userSetlistsSnapshot.docs.map(doc => doc.id);
+  const ownedSetlistIds = userSetlistsSnapshot.docs.map(doc => doc.id);
 
-  const setlistPromises = syncedSetlistIds.map(id => getCloudSetlistById(id));
-  const results = (await Promise.all(setlistPromises)).filter(Boolean) as Setlist[];
+  const ownedSetlistsPromises = ownedSetlistIds.map(id => getCloudSetlistById(id, 'owner'));
+
+  // TODO: Add fetching for 'saved' setlists from a different subcollection if needed.
+
+  const results = (await Promise.all(ownedSetlistsPromises)).filter(Boolean) as Setlist[];
   
   return results.map(setlist => ({
     ...setlist,
-    needsSync: (setlist.updatedAt || 0) > (setlist.syncedAt || 0),
+    needsSync: false, // This is now handled by direct Firestore updates, so effectively always false from client's view
     containsCustomSongs: false, // This logic is simplified as all songs are from cloud now
   }));
 }
@@ -392,7 +395,7 @@ export async function getSetlist(id: string): Promise<Setlist | undefined> {
 }
 
 
-async function getCloudSetlistById(id: string): Promise<Setlist | undefined> {
+async function getCloudSetlistById(id: string, source: 'owner' | 'saved' = 'saved'): Promise<Setlist | undefined> {
   if (!firestoreDb) return undefined;
   const docRef = doc(firestoreDb, 'setlists', id);
   const docSnap = await getDoc(docRef);
@@ -410,7 +413,7 @@ async function getCloudSetlistById(id: string): Promise<Setlist | undefined> {
       isSynced: true,
       isPublic: data.isPublic || false,
       authorName: data.authorName || 'Unknown',
-      source: 'owner', // Assume owner when fetched directly by its ID like this
+      source: source,
     } as Setlist;
   }
   return undefined;
@@ -467,8 +470,8 @@ export async function deleteSetlist(id: string, userId: string): Promise<void> {
 export async function getSyncedSetlistsCount(userId: string): Promise<number> {
   if (!firestoreDb) return 0;
   const q = query(collection(firestoreDb, 'users', userId, 'userSetlists'));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.size;
+  const countSnapshot = await getCountFromServer(q);
+  return countSnapshot.data().count;
 }
 
 export async function syncSetlist(

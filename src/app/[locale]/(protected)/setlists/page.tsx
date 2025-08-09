@@ -8,7 +8,6 @@ import Link from 'next/link';
 import {
   getSetlists,
   deleteSetlist as deleteSetlistFromDb,
-  syncSetlist,
   getSyncedSetlistsCount,
   type SetlistWithSyncStatus,
 } from '@/lib/db';
@@ -18,10 +17,8 @@ import { Button } from '@/components/ui/button';
 import {
   Trash2,
   ListMusic,
-  UploadCloud,
   CheckCircle,
   Edit,
-  RefreshCw,
   PlusCircle,
   Share2,
   Users,
@@ -55,23 +52,20 @@ const SYNC_LIMIT = 10;
 function SetlistItem({
   setlist,
   onSetlistChange,
-  onSyncLimitReached,
 }: {
   setlist: SetlistWithSyncStatus;
   onSetlistChange: () => void;
-  onSyncLimitReached: () => void;
 }) {
   const t = useTranslations();
   const { toast } = useToast();
   const { user } = useAuth();
-  const [isSyncing, setIsSyncing] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const isOwner = setlist.source === 'owner';
 
   const handleDelete = async () => {
-    if (!user) return;
+    if (!user || !setlist.firestoreId) return;
     try {
-      await deleteSetlistFromDb(setlist.id, user.uid);
+      await deleteSetlistFromDb(setlist.firestoreId, user.uid);
       toast({
         title: t('setlist.setlistRemovedToastTitle'),
         description: t('setlist.setlistRemovedToastDesc', {
@@ -88,35 +82,6 @@ function SetlistItem({
     }
   };
 
-  const handleSync = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!user) return;
-    setIsSyncing(true);
-
-    try {
-      await syncSetlist(setlist.id, user.uid, user.displayName || 'Anonymous');
-      toast({
-        title: t('setlist.syncedToastTitle'),
-        description: t('setlist.syncedToastDesc', { title: setlist.title }),
-      });
-      onSetlistChange();
-    } catch (error: any) {
-      console.error('Sync error:', error);
-      if (error.message === 'SYNC_LIMIT_REACHED') {
-        onSyncLimitReached();
-      } else {
-        toast({
-          title: t('setlist.syncErrorTitle'),
-          description: error.message,
-          variant: 'destructive',
-        });
-      }
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
   const getStatusIcon = () => {
     let icon: React.ReactNode;
     let tooltipText: string;
@@ -126,17 +91,14 @@ function SetlistItem({
       tooltipText = t('setlist.savedFromTooltip', {
         authorName: setlist.authorName,
       });
-    } else if (setlist.needsSync) {
-      icon = <UploadCloud className='h-5 w-5 text-blue-500 flex-shrink-0' />;
-      tooltipText = t('setlist.needsSyncTooltip');
-    } else if (setlist.isSynced) {
+    } else if (setlist.isPublic) {
       icon = <CheckCircle className='h-5 w-5 text-green-500 flex-shrink-0' />;
       tooltipText = t('setlist.syncedTooltip');
     } else {
       icon = (
         <ListMusic className='h-5 w-5 text-muted-foreground flex-shrink-0' />
       );
-      tooltipText = t('setlist.localOnlyTooltip');
+      tooltipText = t('setlist.localOnlyTooltip'); // This might need a new translation key
     }
 
     return (
@@ -205,89 +167,25 @@ function SetlistItem({
                 </TooltipContent>
               </Tooltip>
 
-              {setlist.isSynced && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setIsShareOpen(true);
-                      }}
-                      variant='ghost'
-                      size='icon'
-                      className='h-8 w-8 text-muted-foreground'
-                    >
-                      <Share2 className='h-4 w-4' />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t('setlist.shareTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-
-              {setlist.isSynced ? (
-                setlist.needsSync ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        onClick={handleSync}
-                        disabled={isSyncing}
-                        variant='ghost'
-                        size='icon'
-                        className='h-8 w-8 text-muted-foreground'
-                      >
-                        {isSyncing ? (
-                          <RefreshCw className='h-4 w-4 animate-spin' />
-                        ) : (
-                          <UploadCloud className='h-4 w-4 text-blue-500' />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t('setlist.syncChangesTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant='ghost'
-                        size='icon'
-                        className='h-8 w-8 text-green-500'
-                        disabled
-                      >
-                        <CheckCircle className='h-4 w-4' />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t('setlist.syncedTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )
-              ) : (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={handleSync}
-                      disabled={isSyncing}
-                      variant='ghost'
-                      size='icon'
-                      className='h-8 w-8 text-muted-foreground'
-                    >
-                      {isSyncing ? (
-                        <RefreshCw className='h-4 w-4 animate-spin' />
-                      ) : (
-                        <UploadCloud className='h-4 w-4' />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t('setlist.syncToCloudTooltip')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsShareOpen(true);
+                    }}
+                    variant='ghost'
+                    size='icon'
+                    className='h-8 w-8 text-muted-foreground'
+                  >
+                    <Share2 className='h-4 w-4' />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t('setlist.shareTooltip')}</p>
+                </TooltipContent>
+              </Tooltip>
             </>
           )}
 
@@ -338,7 +236,7 @@ function SetlistItem({
           </AlertDialog>
         </div>
       </div>
-      {setlist.isSynced && setlist.firestoreId && (
+      {setlist.firestoreId && (
         <ShareSetlistDialog
           isOpen={isShareOpen}
           onOpenChange={setIsShareOpen}
@@ -396,14 +294,6 @@ export default function SetlistsPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
-
-  const handleSyncLimitReached = () => {
-    toast({
-      title: t('setlist.syncLimitReachedTitle'),
-      description: t('setlist.syncLimitReachedDesc', { limit: SYNC_LIMIT }),
-      variant: 'destructive',
-    });
-  };
 
   if (authLoading || !user) {
     return (
@@ -472,7 +362,6 @@ export default function SetlistsPage() {
                     key={setlist.id}
                     setlist={setlist}
                     onSetlistChange={loadData}
-                    onSyncLimitReached={handleSyncLimitReached}
                   />
                 ))}
               </div>
