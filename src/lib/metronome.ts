@@ -44,28 +44,40 @@ class Metronome {
     const secondsPerBeat = 60.0 / this.bpm;
     this.nextNoteTime += secondsPerBeat; // Add beat length to last beat time
 
-    this.currentBeatInMeasure = (this.currentBeatInMeasure + 1) % this.timeSignatureBeats;
+    this.currentBeatInMeasure =
+      (this.currentBeatInMeasure + 1) % this.timeSignatureBeats;
   }
 
   private scheduleNote(beatNumber: number, time: number) {
     if (!this.audioContext || !this.gainNode) return;
 
-    // create an oscillator
+    // Create an oscillator and a gain node for each note to control its volume envelope independently.
     const osc = this.audioContext.createOscillator();
-    osc.connect(this.gainNode);
-    
-    // Set frequency based on the beat number
-    osc.frequency.value = beatNumber === 0 ? 880.0 : 440.0; // Downbeat is higher pitch
+    const envelope = this.audioContext.createGain();
+
+    // Set frequencies for "tok" (downbeat) and "tik" (off-beat)
+    osc.frequency.value = beatNumber === 0 ? 220.0 : 440.0;
+    envelope.gain.value = 0;
+
+    // Create the percussive sound envelope
+    envelope.gain.setValueAtTime(1, time);
+    envelope.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+
+    osc.connect(envelope);
+    envelope.connect(this.gainNode); // Connect to the main volume control
 
     osc.start(time);
-    osc.stop(time + 0.05); // Play a short beep
+    osc.stop(time + 0.1);
   }
 
   private scheduler() {
     if (!this.audioContext) return;
     // while there are notes that will need to play before the next interval,
     // schedule them and advance the pointer.
-    while (this.nextNoteTime < this.audioContext.currentTime + this.scheduleAheadTime) {
+    while (
+      this.nextNoteTime <
+      this.audioContext.currentTime + this.scheduleAheadTime
+    ) {
       this.scheduleNote(this.currentBeatInMeasure, this.nextNoteTime);
       this.nextNote();
     }
@@ -81,7 +93,7 @@ class Metronome {
 
     this.isRunning = true;
     this.currentBeatInMeasure = 0;
-    this.nextNoteTime = this.audioContext.currentTime;
+    this.nextNoteTime = this.audioContext.currentTime + 0.1; // Start with a small delay
     this.scheduler();
   }
 
