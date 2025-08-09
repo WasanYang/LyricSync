@@ -39,6 +39,7 @@ type State = {
   fontWeight: FontWeight;
   showChords: boolean;
   chordColor: string;
+  inlineCommentColor: string;
   highlightMode: HighlightMode;
   bpm: number;
   transpose: number;
@@ -56,6 +57,7 @@ type Action =
   | { type: 'SET_FONT_WEIGHT'; payload: FontWeight }
   | { type: 'TOGGLE_CHORDS' }
   | { type: 'SET_CHORD_COLOR'; payload: string }
+  | { type: 'SET_INLINE_COMMENT_COLOR'; payload: string }
   | { type: 'SET_HIGHLIGHT_MODE'; payload: HighlightMode }
   | { type: 'SET_TRANSPOSE'; payload: number }
   | { type: 'TRANSPOSE_UP' }
@@ -72,6 +74,7 @@ type PlayerSettings = {
   fontWeight?: FontWeight;
   highlightMode?: HighlightMode;
   showChords?: boolean;
+  inlineCommentColor?: string;
   isMetronomeEnabled?: boolean;
   metronomeVolume?: number;
 };
@@ -85,6 +88,8 @@ const getInitialState = (settings: PlayerSettings): State => ({
   fontWeight: settings.fontWeight || 400,
   showChords: settings.showChords !== false, // default to true
   chordColor: 'hsl(var(--primary))',
+  inlineCommentColor:
+    settings.inlineCommentColor || 'hsl(var(--destructive))',
   highlightMode: settings.highlightMode || 'line',
   bpm: settings.bpm || 120,
   transpose: 0,
@@ -132,6 +137,11 @@ function lyricPlayerReducer(state: State, action: Action): State {
       return { ...state, showChords: !state.showChords };
     case 'SET_CHORD_COLOR':
       return { ...state, chordColor: action.payload };
+    case 'SET_INLINE_COMMENT_COLOR':
+      localStorageManager.setUserPreferences({
+        inlineCommentColor: action.payload,
+      });
+      return { ...state, inlineCommentColor: action.payload };
     case 'SET_HIGHLIGHT_MODE':
       localStorageManager.setUserPreferences({
         highlightMode: action.payload,
@@ -195,6 +205,7 @@ export default function LyricPlayer({
         fontWeight: prefs.fontWeight,
         highlightMode: prefs.highlightMode,
         showChords: prefs.showChords,
+        inlineCommentColor: prefs.inlineCommentColor,
         isMetronomeEnabled: prefs.isMetronomeEnabled,
         metronomeVolume: prefs.metronomeVolume,
       })
@@ -214,6 +225,7 @@ export default function LyricPlayer({
     fontWeight,
     showChords,
     chordColor,
+    inlineCommentColor,
     highlightMode,
     bpm,
     transpose,
@@ -559,10 +571,9 @@ export default function LyricPlayer({
                   </li>
                 );
               }
-
-              const parsedLine = parseLyrics(line.text);
-              const hasText = parsedLine.some((p) => p.text.trim() !== '');
-              const hasChords = parsedLine.some((p) => p.chord);
+              const hasText = line.text.replace(/\[[^\]]+\]/g, '').trim() !== '';
+              const hasChords = /\[[^\]]+\]/.test(line.text);
+              
 
               if (!showChords && !hasText && hasChords) {
                 return null;
@@ -609,6 +620,7 @@ export default function LyricPlayer({
                       line={line}
                       showChords={showChords}
                       chordColor={chordColor}
+                      inlineCommentColor={inlineCommentColor}
                       transpose={transpose}
                       fontWeight={fontWeight}
                       fontSize={fontSize}
@@ -644,6 +656,7 @@ export default function LyricPlayer({
           currentKey={currentKey}
           fontSize={fontSize}
           highlightMode={highlightMode}
+          inlineCommentColor={inlineCommentColor}
           showFloatingControls={floatingControls.isVisible}
           showFloatingNavigator={floatingNavigator.isVisible}
           theme={theme || 'light'}
@@ -657,6 +670,9 @@ export default function LyricPlayer({
           onFontSizeChange={changeFontSize}
           onHighlightModeChange={(mode: HighlightMode) =>
             dispatch({ type: 'SET_HIGHLIGHT_MODE', payload: mode })
+          }
+          onInlineCommentColorChange={(color: string) =>
+            dispatch({ type: 'SET_INLINE_COMMENT_COLOR', payload: color })
           }
           onToggleFloatingControls={floatingControls.toggleVisibility}
           onToggleFloatingNavigator={floatingNavigator.toggleVisibility}
@@ -682,44 +698,3 @@ export default function LyricPlayer({
     </>
   );
 }
-
-const parseLyrics = (
-  line: string
-): Array<{ chord: string | null; text: string }> => {
-  const regex = /\[([^\]]+)\]([^\[]*)/g;
-  const parts: Array<{ chord: string | null; text: string }> = [];
-  let lastIndex = 0;
-  let match;
-
-  while ((match = regex.exec(line)) !== null) {
-    // Text before the current match
-    if (match.index > lastIndex) {
-      parts.push({ chord: null, text: line.substring(lastIndex, match.index) });
-    }
-
-    let text = match[2];
-    // If the text part is empty and there's another chord immediately after, add a space.
-    if (text === '' && line.substring(regex.lastIndex).startsWith('[')) {
-      text = ' ';
-    }
-
-    parts.push({ chord: match[1], text });
-    lastIndex = regex.lastIndex;
-  }
-
-  // Text after the last match
-  if (lastIndex < line.length) {
-    parts.push({ chord: null, text: line.substring(lastIndex) });
-  }
-
-  // If the line was empty or only whitespace
-  if (parts.length === 0 && line.trim() === '') {
-    return [{ chord: null, text: line }];
-  }
-
-  if (parts.length === 0) {
-    return [{ chord: null, text: line }];
-  }
-
-  return parts;
-};

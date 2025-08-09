@@ -12,6 +12,7 @@ interface UserPreferences {
   defaultKey: string;
   autoScroll: boolean;
   showChords: boolean;
+  inlineCommentColor: string;
   floatingControls: boolean;
   floatingNavigator: boolean;
   language: 'th' | 'en';
@@ -53,6 +54,7 @@ class LocalStorageManager {
     defaultKey: 'C',
     autoScroll: true,
     showChords: true,
+    inlineCommentColor: 'hsl(var(--destructive))',
     floatingControls: true,
     floatingNavigator: true,
     language: 'th',

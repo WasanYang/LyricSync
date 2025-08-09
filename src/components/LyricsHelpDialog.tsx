@@ -77,10 +77,17 @@ export function LyricsHelpDialog({ className }: { className?: string }) {
                 measures.
               </li>
               <li>
-                <strong>Comments:</strong> To add a non-lyric comment (e.g.,
-                instrumental cue, vocal instruction), start the line with a `*`
-                character. These lines will be displayed in italics. The number
-                of measures for comments will be ignored.
+                <strong>Line Comments:</strong> To add a non-lyric comment that
+                takes up its own line (e.g., instrumental cue), start the line
+                with a `*` character. These lines will be displayed in italics.
+              </li>
+              <li>
+                <strong>Inline Comments:</strong> To add a comment within a line
+                of lyrics, wrap it in `#` symbols, like{' '}
+                <code className='bg-muted px-1 py-0.5 rounded'>
+                  #sing softly#
+                </code>
+                . These will appear in a different color.
               </li>
             </ul>
           </div>
@@ -91,7 +98,7 @@ export function LyricsHelpDialog({ className }: { className?: string }) {
             <p>4 | [Am] [G] [C] [F]</p>
             <p>4 | [C]This is a [G]line with chords.</p>
             <p>0 | * Instrumental break</p>
-            <p>4 | This is a line with no chords.</p>
+            <p>4 | This line has an #inline comment# inside it.</p>
             <p>0 | (Verse 1)</p>
             <p>4 | The quick [Am]brown fox [G]jumps over the [C]lazy dog.[F]</p>
             <p>

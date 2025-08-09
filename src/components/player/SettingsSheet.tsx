@@ -35,6 +35,7 @@ interface SettingsSheetProps {
   currentKey: string;
   fontSize: number;
   highlightMode: HighlightMode;
+  inlineCommentColor: string;
   showFloatingControls: boolean;
   showFloatingNavigator: boolean;
   theme: string;
@@ -47,6 +48,7 @@ interface SettingsSheetProps {
   onKeyChange: (key: string) => void;
   onFontSizeChange: (amount: number) => void;
   onHighlightModeChange: (mode: HighlightMode) => void;
+  onInlineCommentColorChange: (color: string) => void;
   onToggleFloatingControls: () => void;
   onToggleFloatingNavigator: () => void;
   onToggleTheme: () => void;
@@ -69,6 +71,7 @@ export default function SettingsSheet({
   currentKey,
   fontSize,
   highlightMode,
+  inlineCommentColor,
   showFloatingControls,
   showFloatingNavigator,
   theme,
@@ -81,6 +84,7 @@ export default function SettingsSheet({
   onKeyChange,
   onFontSizeChange,
   onHighlightModeChange,
+  onInlineCommentColorChange,
   onToggleFloatingControls,
   onToggleFloatingNavigator,
   onToggleTheme,
@@ -208,6 +212,16 @@ export default function SettingsSheet({
                     </Label>
                   ))}
                 </RadioGroup>
+              </div>
+              <div className='flex items-center justify-between'>
+                <Label htmlFor='inline-comment-color'>Comment Color</Label>
+                <Input
+                  id='inline-comment-color'
+                  type='color'
+                  value={inlineCommentColor}
+                  onChange={(e) => onInlineCommentColorChange(e.target.value)}
+                  className='h-8 w-10 p-1'
+                />
               </div>
               <div className='flex items-center justify-between'>
                 <Label htmlFor='show-floating-controls'>
