@@ -1,7 +1,4 @@
 // src/lib/db.ts
-import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { Song } from './songs';
-import { db as firestoreDb } from './firebase';
 import {
   collection,
   addDoc,
@@ -23,12 +20,12 @@ import {
   runTransaction,
   increment,
 } from 'firebase/firestore';
+import { db as firestoreDb } from './firebase';
+import type { Song } from './songs';
 import type { User } from './types/database';
 
 const DB_NAME = 'LyricSyncDB';
 const DB_VERSION = 2; // Incremented version
-const SONGS_STORE = 'songs';
-const SETLISTS_STORE = 'setlists';
 const SYNC_LIMIT = 10;
 
 // This represents a setlist stored in the local IndexedDB.
@@ -59,60 +56,12 @@ export interface PublicUser {
   publicSetlistsCount: number;
 }
 
-interface LyricSyncDB extends DBSchema {
-  [SONGS_STORE]: {
-    key: string;
-    value: Song;
-  };
-  [SETLISTS_STORE]: {
-    key: string;
-    value: Setlist;
-    indexes: { 'by-userId': string };
-  };
-}
-
-let dbPromise: Promise<IDBPDatabase<LyricSyncDB>> | null = null;
-
-function getDb(): Promise<IDBPDatabase<LyricSyncDB>> {
-  if (!dbPromise) {
-    dbPromise = openDB<LyricSyncDB>(DB_NAME, DB_VERSION, {
-      upgrade(db, oldVersion, newVersion, transaction) {
-        if (oldVersion < 1) {
-          if (!db.objectStoreNames.contains(SONGS_STORE)) {
-            db.createObjectStore(SONGS_STORE, { keyPath: 'id' });
-          }
-          if (!db.objectStoreNames.contains(SETLISTS_STORE)) {
-            const _setlistStore = db.createObjectStore(SETLISTS_STORE, {
-              keyPath: 'id',
-            });
-          }
-        }
-        if (oldVersion < 2) {
-          // Must use the existing transaction in an upgrade function.
-          // Must use the existing transaction in an upgrade function.
-          const setlistStore = transaction.objectStore(SETLISTS_STORE);
-          if (!setlistStore.indexNames.contains('by-userId')) {
-            setlistStore.createIndex('by-userId', 'userId');
-          }
-        }
-      },
-    });
-  }
-  return dbPromise;
-}
-
 // --- Song Functions ---
 
 export async function saveSong(song: Song): Promise<void> {
-  const db = await getDb();
-  const songToSave = { ...song, updatedAt: new Date() };
-
   // Ensure there's a user and Firestore is available for cloud operations
   if (!song.userId || !firestoreDb) {
-    // If not, just save locally. This might happen in offline mode.
-    await db.put(SONGS_STORE, songToSave);
-    console.warn('No user or firestore. Song saved locally only.');
-    return;
+    throw new Error('User not logged in or Firebase not initialized.');
   }
 
   // Case 1: Saving a SYSTEM song to a user's library (downloading)
@@ -151,7 +100,7 @@ export async function saveSong(song: Song): Promise<void> {
 
     // Prepare main song document in `songs` collection
     const mainSongRef = doc(firestoreDb, 'songs', song.id);
-    const { updatedAt: _, ...songDataForFirestore } = songToSave;
+    const { updatedAt: _, ...songDataForFirestore } = song;
     batch.set(
       mainSongRef,
       { ...songDataForFirestore, updatedAt: serverTimestamp() },
@@ -176,41 +125,18 @@ export async function saveSong(song: Song): Promise<void> {
       { merge: true }
     );
 
-    // Commit both writes to Firestore atomically
     await batch.commit();
   }
-
-  // Finally, always save to local IndexedDB for offline access
-  await db.put(SONGS_STORE, songToSave);
-}
-
-export async function updateSong(song: Song): Promise<void> {
-  const db = await getDb();
-  const latestSong = await getCloudSongById(song.id);
-  if (!latestSong) {
-    throw new Error('Could not find the latest version of this song.');
-  }
-  // This function is for updating a locally-cached SYSTEM song.
-  // The main saveSong handles user-created songs.
-  await db.put(SONGS_STORE, { ...latestSong, updatedAt: new Date() });
-}
-
-export async function getSong(id: string): Promise<Song | undefined> {
-  // Always fetch from cloud to ensure data is up-to-date
-  return getCloudSongById(id);
 }
 
 export async function deleteSong(id: string, userId: string): Promise<void> {
-  const db = await getDb();
-  const songToDelete = await getCloudSongById(id); // Get from cloud
+  const songToDelete = await getCloudSongById(id);
 
   if (!songToDelete) {
-    // If not in cloud, maybe it's a stale local one. Try deleting from local anyway.
-    await db.delete(SONGS_STORE, id);
+    console.warn(`Song with id ${id} not found in cloud. Nothing to delete.`);
     return;
   }
 
-  // If it's a SYSTEM song being removed from a user's library
   if (songToDelete.source === 'system' && userId && firestoreDb) {
     await runTransaction(firestoreDb!, async (transaction) => {
       const mainSongRef = doc(firestoreDb!, 'songs', id);
@@ -230,24 +156,17 @@ export async function deleteSong(id: string, userId: string): Promise<void> {
         transaction.delete(userSongRef);
       }
     });
-  }
-  // If it's a USER-CREATED song being deleted entirely
-  else if (songToDelete.source === 'user' && userId && firestoreDb) {
+  } else if (songToDelete.source === 'user' && userId && firestoreDb) {
     const batch = writeBatch(firestoreDb);
     batch.delete(doc(firestoreDb, 'songs', id));
-    // Also delete the reference in the user's subcollection
     batch.delete(doc(firestoreDb, 'users', userId, 'userSongs', id));
     await batch.commit();
   }
-
-  // Always delete from local IndexedDB
-  await db.delete(SONGS_STORE, id);
 }
 
 export async function isSongSaved(
   id: string
 ): Promise<{ saved: boolean; needsUpdate: boolean }> {
-  // This check is now based on whether the song exists in the user's subcollection in Firestore
   const { auth } = await import('./firebase');
   const user = auth.currentUser;
   if (!user || !firestoreDb) return { saved: false, needsUpdate: false };
@@ -259,12 +178,10 @@ export async function isSongSaved(
     return { saved: false, needsUpdate: false };
   }
 
-  // If saved, check if the main song document has been updated since
   const mainSongRef = doc(firestoreDb, 'songs', id);
   const mainSongSnap = await getDoc(mainSongRef);
 
   if (!mainSongSnap.exists()) {
-    // Song was deleted from main collection, but user still has a reference
     return { saved: true, needsUpdate: false };
   }
 
@@ -274,12 +191,10 @@ export async function isSongSaved(
   const mainUpdatedAt = (mainSongData.updatedAt as Timestamp)?.toMillis() || 0;
   const userSavedAt = (userSongData.savedAt as Timestamp)?.toMillis() || 0;
 
-  // If main song is newer than when user saved it, an update is needed.
   return { saved: true, needsUpdate: mainUpdatedAt > userSavedAt };
 }
 
 export async function getAllSavedSongs(userId: string): Promise<Song[]> {
-  // This function now exclusively fetches from Firestore to ensure data is current.
   if (!firestoreDb || !userId) {
     return [];
   }
@@ -297,20 +212,6 @@ export async function getAllSavedSongs(userId: string): Promise<Song[]> {
   return cloudSongs;
 }
 
-
-export async function getAllSavedSongIds(): Promise<string[]> {
-  const { auth } = await import('./firebase');
-  const user = auth.currentUser;
-  if (!user || !firestoreDb) return [];
-
-  const userSongsRef = collection(firestoreDb, 'users', user.uid, 'userSongs');
-  const q = query(userSongsRef);
-  const userSongsSnapshot = await getDocs(q);
-
-  return userSongsSnapshot.docs.map((doc) => doc.id);
-}
-
-// --- Super Admin Song Upload ---
 export async function uploadSongToCloud(song: Song): Promise<void> {
   if (!firestoreDb) throw new Error('Firebase is not configured.');
 
@@ -318,13 +219,13 @@ export async function uploadSongToCloud(song: Song): Promise<void> {
 
   const dataToUpload = {
     ...songData,
-    updatedAt: serverTimestamp(), // Use Firestore server timestamp for consistency
-    source: 'system', // Ensure source is 'system' when using this function
+    updatedAt: serverTimestamp(),
+    source: 'system',
   };
 
   try {
     const songDocRef = doc(firestoreDb, 'songs', dataToUpload.id);
-    await setDoc(songDocRef, dataToUpload, { merge: true }); // Use setDoc with merge to create or update
+    await setDoc(songDocRef, dataToUpload, { merge: true });
   } catch (e: any) {
     console.error('Error uploading song to cloud:', e);
     if (e.code === 'permission-denied') {
@@ -364,22 +265,18 @@ export async function getPaginatedSystemSongs(
   const songsCollection = collection(firestoreDb, 'songs');
   const qBase = query(songsCollection, where('source', '==', 'system'));
 
-  // Get total count for pagination
   const countSnapshot = await getCountFromServer(qBase);
   const totalSongs = countSnapshot.data().count;
   const totalPages = Math.ceil(totalSongs / pageSize);
 
   if (page > totalPages && totalSongs > 0) {
-    // If requested page is out of bounds, return empty
     return { songs: [], totalPages, totalSongs };
   }
 
-  // Fetch the specific page
   let q;
   if (page === 1) {
     q = query(qBase, limit(pageSize));
   } else {
-    // To get to page `page`, we need to skip `(page - 1) * pageSize` documents
     const prevPageQuery = query(qBase, limit((page - 1) * pageSize));
     const prevPageSnapshot = await getDocs(prevPageQuery);
     const lastVisible = prevPageSnapshot.docs[prevPageSnapshot.docs.length - 1];
@@ -387,7 +284,6 @@ export async function getPaginatedSystemSongs(
   }
 
   const documentSnapshots = await getDocs(q);
-
   const songs: Song[] = documentSnapshots.docs.map(songFromDoc);
   return { songs, totalPages, totalSongs };
 }
@@ -414,23 +310,12 @@ export async function getCloudSongById(songId: string): Promise<Song | null> {
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-      const song = songFromDoc(docSnap);
-      console.log(`☁️ Successfully fetched song "${song.title}" from cloud`);
-      return song;
+      return songFromDoc(docSnap);
     } else {
-      console.log(`❌ Cloud song ${songId} not found`);
       return null;
     }
   } catch (error: any) {
-    console.error('❌ Error getting cloud song:', error);
-
-    // Handle specific Firebase errors
-    if (error.code === 'unavailable') {
-      console.warn('Firebase is temporarily unavailable - working offline');
-    } else if (error.code === 'permission-denied') {
-      console.warn('Permission denied for song access');
-    }
-
+    console.error('Error getting cloud song:', error);
     return null;
   }
 }
@@ -452,191 +337,90 @@ export async function deleteCloudSong(songId: string): Promise<void> {
 // --- Setlist Functions ---
 
 export async function saveSetlist(setlist: Setlist): Promise<void> {
-  const db = await getDb();
-  // Always update the local updatedAt timestamp on any save operation.
+  if (!firestoreDb) throw new Error('Firebase is not configured.');
+
   const setlistToSave: Setlist = {
     ...setlist,
     updatedAt: Date.now(),
     source: setlist.source || 'owner',
   };
 
-  // 1. Save to local IndexedDB first to ensure data is never lost.
-  await db.put(SETLISTS_STORE, setlistToSave);
-
-  // 2. If the setlist is an "owned" and synced setlist, also update Firestore.
-  if (
-    firestoreDb &&
-    setlistToSave.source === 'owner' &&
-    setlistToSave.isSynced &&
-    setlistToSave.firestoreId
-  ) {
-    try {
-      const setlistDocRef = doc(
-        firestoreDb,
-        'setlists',
-        setlistToSave.firestoreId
-      );
-      const dataForFirestore = {
-        title: setlistToSave.title,
-        songIds: setlistToSave.songIds,
-        syncedAt: serverTimestamp(), // Use server timestamp to mark the update time
-      };
-      await updateDoc(setlistDocRef, dataForFirestore);
-
-      // Also update the user's reference doc to keep the synced time consistent
-      const userSetlistRef = doc(
-        firestoreDb,
-        'users',
-        setlistToSave.userId,
-        'userSetlists',
-        setlistToSave.firestoreId
-      );
-      await updateDoc(userSetlistRef, {
-        syncedAt: dataForFirestore.syncedAt,
-        title: dataForFirestore.title, // Also update title here
-      });
-
-      // Update local record with new syncedAt time from the server for consistency
-      const updatedSetlist = await getDoc(setlistDocRef);
-      if (updatedSetlist.exists()) {
-        const cloudData = updatedSetlist.data();
-        setlistToSave.syncedAt = (cloudData.syncedAt as Timestamp).toMillis();
-        await db.put(SETLISTS_STORE, setlistToSave);
-      }
-    } catch (error) {
-      console.error('Error updating synced setlist in Firestore:', error);
-      // Optional: Handle this error, e.g., by marking the setlist as needing sync again.
-    }
+  if (setlistToSave.source === 'owner' && setlistToSave.isSynced && setlistToSave.firestoreId) {
+    const setlistDocRef = doc(firestoreDb, 'setlists', setlistToSave.firestoreId);
+    const dataForFirestore = {
+      title: setlistToSave.title,
+      songIds: setlistToSave.songIds,
+      syncedAt: serverTimestamp(),
+    };
+    await updateDoc(setlistDocRef, dataForFirestore);
+    const userSetlistRef = doc(firestoreDb, 'users', setlistToSave.userId, 'userSetlists', setlistToSave.firestoreId);
+    await updateDoc(userSetlistRef, {
+      syncedAt: dataForFirestore.syncedAt,
+      title: dataForFirestore.title,
+    });
+  } else if (setlistToSave.source === 'saved') {
+    // Logic for saving a reference to a shared setlist
+    const setlistRef = doc(firestoreDb, 'users', setlistToSave.userId, 'savedSetlists', setlistToSave.firestoreId!);
+    await setDoc(setlistRef, {
+      title: setlistToSave.title,
+      originalAuthorName: setlistToSave.authorName,
+      savedAt: serverTimestamp(),
+    });
   }
 }
 
-export async function getSetlists(
-  userId: string
-): Promise<SetlistWithSyncStatus[]> {
-  const db = await getDb(); // This `db` is for IndexedDB
+export async function getSetlists(userId: string): Promise<SetlistWithSyncStatus[]> {
+  if (!firestoreDb) return [];
 
-  // If firestore isn't configured, just return local results.
-  if (!firestoreDb) {
-    const localSetlists = await db.getAllFromIndex(
-      SETLISTS_STORE,
-      'by-userId',
-      userId
-    );
-    return localSetlists.map((sl) => ({
-      ...sl,
-      containsCustomSongs: false, // Cannot determine without song sources
-      needsSync: false,
-    }));
-  }
+  const userSetlistsRef = collection(firestoreDb, 'users', userId, 'userSetlists');
+  const userSetlistsSnapshot = await getDocs(query(userSetlistsRef, orderBy('syncedAt', 'desc')));
+  const syncedSetlistIds = userSetlistsSnapshot.docs.map(doc => doc.id);
 
-  // 1. Fetch user's OWNED & SYNCED setlist references from sub-collection
-  const userSetlistsRef = collection(
-    firestoreDb,
-    'users',
-    userId,
-    'userSetlists'
-  );
-  const userSetlistsSnapshot = await getDocs(
-    query(userSetlistsRef, orderBy('syncedAt', 'desc'))
-  );
-  const syncedSetlistIds = userSetlistsSnapshot.docs.map((doc) => doc.id);
-
-  // 2. Fetch full setlist data for the referenced setlists
-  const syncedSetlistsData: Setlist[] = [];
-  if (syncedSetlistIds.length > 0) {
-    const setlistPromises = syncedSetlistIds.map((id) =>
-      getDoc(doc(firestoreDb!, 'setlists', id))
-    );
-    const setlistDocs = await Promise.all(setlistPromises);
-
-    setlistDocs.forEach((docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const syncedAt = data.syncedAt as Timestamp;
-        syncedSetlistsData.push({
-          id: data.id || docSnap.id,
-          firestoreId: docSnap.id,
-          title: data.title,
-          songIds: data.songIds,
-          userId: data.userId,
-          createdAt: syncedAt?.toMillis() || Date.now(),
-          updatedAt: syncedAt?.toMillis() || Date.now(),
-          syncedAt: syncedAt?.toMillis() || Date.now(),
-          isSynced: true,
-          isPublic: data.isPublic || false,
-          authorName: data.authorName || '',
-          source: 'owner',
-        });
-      }
-    });
-  }
-
-  // 3. Update local DB with the latest synced versions of owned setlists
-  const localDb = await getDb();
-  const tx = localDb.transaction(SETLISTS_STORE, 'readwrite');
-  const store = tx.objectStore(SETLISTS_STORE);
-
-  const allUserSetlists = await store.index('by-userId').getAll(userId);
-  for (const sl of allUserSetlists) {
-    // Remove old synced versions to replace them with fresh data from cloud
-    if (sl.isSynced && sl.source === 'owner') {
-      await store.delete(sl.id);
-    }
-  }
-  // Add the fresh data from firestore
-  for (const sl of syncedSetlistsData) {
-    // Check if a local version already exists to preserve its local ID
-    const existingLocal = allUserSetlists.find(
-      (l) => l.firestoreId === sl.firestoreId
-    );
-    await store.put({
-      ...sl,
-      id: existingLocal?.id || sl.firestoreId || sl.id,
-    });
-  }
-  await tx.done;
-
-  // 4. Get all setlists (owned, local-only, and saved) for the user from local DB
-  const finalUserSetlists = await localDb.getAllFromIndex(
-    SETLISTS_STORE,
-    'by-userId',
-    userId
-  );
-
-  // 5. Calculate sync status for owned setlists
-  const results = finalUserSetlists.map((local) => {
-    if (local.source === 'saved') {
-      return { ...local, containsCustomSongs: false, needsSync: false };
-    }
-
-    // Since all songs are on the cloud, this check is no longer needed.
-    const containsCustomSongs = false;
-    let needsSync = false;
-    if (local.isSynced) {
-      // A setlist needs sync if its local update time is more recent than its last cloud sync time.
-      needsSync = (local.updatedAt || 0) > (local.syncedAt || 0);
-    }
-
-    return {
-      ...local,
-      containsCustomSongs,
-      needsSync,
-    };
-  });
-
-  return results;
+  const setlistPromises = syncedSetlistIds.map(id => getCloudSetlistById(id));
+  const results = (await Promise.all(setlistPromises)).filter(Boolean) as Setlist[];
+  
+  return results.map(setlist => ({
+    ...setlist,
+    needsSync: (setlist.updatedAt || 0) > (setlist.syncedAt || 0),
+    containsCustomSongs: false, // This logic is simplified as all songs are from cloud now
+  }));
 }
 
 export async function getSetlist(id: string): Promise<Setlist | undefined> {
-  const db = await getDb();
-  return db.get(SETLISTS_STORE, id);
+  // This function now primarily gets from cloud.
+  return getCloudSetlistById(id);
 }
+
+
+async function getCloudSetlistById(id: string): Promise<Setlist | undefined> {
+  if (!firestoreDb) return undefined;
+  const docRef = doc(firestoreDb, 'setlists', id);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+    const syncedAt = data.syncedAt as Timestamp;
+    return {
+      id: docSnap.id,
+      firestoreId: docSnap.id,
+      title: data.title,
+      songIds: data.songIds,
+      userId: data.userId,
+      createdAt: syncedAt?.toMillis() || Date.now(),
+      updatedAt: syncedAt?.toMillis() || Date.now(),
+      isSynced: true,
+      isPublic: data.isPublic || false,
+      authorName: data.authorName || 'Unknown',
+      source: 'owner', // Assume owner when fetched directly by its ID like this
+    } as Setlist;
+  }
+  return undefined;
+}
+
 
 export async function getSetlistByFirestoreId(
   firestoreId: string
 ): Promise<Setlist | null> {
   if (!firestoreDb) {
-    console.warn('Firebase is not configured - cannot fetch cloud setlist');
     return null;
   }
 
@@ -647,7 +431,7 @@ export async function getSetlistByFirestoreId(
     if (docSnap.exists()) {
       const data = docSnap.data();
       const syncedAt = data.syncedAt as Timestamp;
-      const setlist = {
+      return {
         id: docSnap.id,
         firestoreId: docSnap.id,
         title: data.title,
@@ -658,65 +442,27 @@ export async function getSetlistByFirestoreId(
         isSynced: true,
         isPublic: data.isPublic || false,
         authorName: data.authorName || 'Unknown',
-        source: 'saved' as const, // A setlist retrieved by Firestore ID is always from another source
+        source: 'saved',
       };
-
-      console.log(
-        `☁️ Successfully fetched setlist "${setlist.title}" from cloud`
-      );
-      return setlist;
     } else {
-      console.log(`❌ Cloud setlist ${firestoreId} not found`);
       return null;
     }
   } catch (error: any) {
-    console.error('❌ Error getting shared setlist:', error);
-
-    // Handle specific Firebase errors
-    if (error.code === 'unavailable') {
-      console.warn('Firebase is temporarily unavailable - working offline');
-    } else if (error.code === 'permission-denied') {
-      console.warn('Permission denied for setlist access');
-    }
-
     return null;
   }
 }
 
 export async function deleteSetlist(id: string, userId: string): Promise<void> {
-  const db = await getDb();
-  const setlistToDelete = await db.get(SETLISTS_STORE, id);
+    if (!firestoreDb) throw new Error("Firestore not initialized");
 
-  if (!setlistToDelete) throw new Error('Setlist not found in local DB.');
-  if (setlistToDelete.userId !== userId)
-    throw new Error('Unauthorized to delete this setlist.');
-
-  // If it's a synced, owned setlist, delete from Firestore first
-  if (
-    firestoreDb &&
-    setlistToDelete.isSynced &&
-    setlistToDelete.firestoreId &&
-    setlistToDelete.source === 'owner'
-  ) {
     const batch = writeBatch(firestoreDb);
     // Delete from main setlists collection
-    batch.delete(doc(firestoreDb, 'setlists', setlistToDelete.firestoreId));
+    batch.delete(doc(firestoreDb, 'setlists', id));
     // Delete from user's sub-collection
-    batch.delete(
-      doc(
-        firestoreDb,
-        'users',
-        userId,
-        'userSetlists',
-        setlistToDelete.firestoreId
-      )
-    );
+    batch.delete(doc(firestoreDb, 'users', userId, 'userSetlists', id));
     await batch.commit();
-  }
-
-  // Always delete from local DB (for both owned and saved setlists)
-  await db.delete(SETLISTS_STORE, id);
 }
+
 
 export async function getSyncedSetlistsCount(userId: string): Promise<number> {
   if (!firestoreDb) return 0;
@@ -726,66 +472,40 @@ export async function getSyncedSetlistsCount(userId: string): Promise<number> {
 }
 
 export async function syncSetlist(
-  setlistId: string,
+  setlist: Omit<Setlist, 'id'>,
   userId: string,
   authorName?: string
-): Promise<void> {
+): Promise<string> {
   if (!firestoreDb) throw new Error('Firebase is not configured.');
 
-  const db = await getDb();
-  const setlist = await db.get(SETLISTS_STORE, setlistId);
-
-  if (!setlist) throw new Error('Setlist not found locally.');
-  if (setlist.userId !== userId) throw new Error('Unauthorized');
+  const count = await getSyncedSetlistsCount(userId);
+  if (count >= SYNC_LIMIT) {
+    throw new Error('SYNC_LIMIT_REACHED');
+  }
 
   const now = serverTimestamp();
   const dataToSync: any = {
-    id: setlist.id,
-    title: setlist.title,
-    songIds: setlist.songIds,
-    userId: setlist.userId,
+    ...setlist,
+    userId,
     syncedAt: now,
     authorName: authorName || 'Anonymous',
+    isPublic: false,
   };
 
-  let firestoreId = setlist.firestoreId;
+  const newDocRef = await addDoc(collection(firestoreDb, 'setlists'), dataToSync);
+  const firestoreId = newDocRef.id;
 
-  if (setlist.isSynced && firestoreId) {
-    // This is an update to an existing synced setlist
-    await updateDoc(doc(firestoreDb, 'setlists', firestoreId), dataToSync);
-    // Also update the reference doc timestamp
-    await updateDoc(
-      doc(firestoreDb, 'users', userId, 'userSetlists', firestoreId),
-      { syncedAt: now }
-    );
-  } else {
-    // This is a new setlist being synced for the first time
-    const count = await getSyncedSetlistsCount(userId);
-    if (count >= SYNC_LIMIT) {
-      throw new Error('SYNC_LIMIT_REACHED');
+  await setDoc(
+    doc(firestoreDb, 'users', userId, 'userSetlists', firestoreId),
+    {
+      title: setlist.title,
+      syncedAt: now,
     }
-    // New setlists are not public by default
-    dataToSync.isPublic = false;
-    const newDocRef = await addDoc(
-      collection(firestoreDb, 'setlists'),
-      dataToSync
-    );
-    firestoreId = newDocRef.id;
-    // Create reference in user's sub-collection
-    await setDoc(
-      doc(firestoreDb, 'users', userId, 'userSetlists', firestoreId),
-      {
-        title: setlist.title,
-        syncedAt: now,
-      }
-    );
-  }
-
-  setlist.firestoreId = firestoreId;
-  setlist.isSynced = true;
-  setlist.syncedAt = Date.now(); // Mark local sync time to current client time
-  await db.put(SETLISTS_STORE, setlist);
+  );
+  
+  return firestoreId;
 }
+
 
 export async function updateSetlistPublicStatus(
   firestoreId: string,
@@ -936,13 +656,12 @@ export async function getAllUsers(): Promise<User[]> {
   }
 
   const usersRef = collection(firestoreDb, 'users');
-  const q = query(usersRef); // Removed orderBy to avoid needing a composite index
+  const q = query(usersRef); 
   const querySnapshot = await getDocs(q);
 
   const usersPromises = querySnapshot.docs.map(async (userDoc) => {
     const data = userDoc.data();
 
-    // Correctly reference sub-collections for counting
     const songsRef = collection(firestoreDb!, 'users', userDoc.id, 'userSongs');
     const setlistsRef = collection(firestoreDb!, 'users', userDoc.id, 'userSetlists');
 
