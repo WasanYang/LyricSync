@@ -7,7 +7,6 @@ import type { Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import {
   getSetlist as getSetlistFromDb,
-  getSong as getSongFromLocalDb,
   getCloudSongById,
 } from '@/lib/db';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -63,11 +62,7 @@ function SetlistDetailContent({
   const [isSaving, setIsSaving] = useState(false);
 
   const findSong = async (songId: string): Promise<Song | undefined> => {
-    const song: Song | undefined = await getSongFromLocalDb(songId);
-    if (song) return song;
-
     const cloudSong = await getCloudSongById(songId);
-
     // Convert null to undefined for correct type
     return cloudSong === null ? undefined : cloudSong;
   };

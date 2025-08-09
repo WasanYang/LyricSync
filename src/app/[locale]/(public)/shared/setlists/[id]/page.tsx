@@ -13,7 +13,6 @@ import type { Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import {
   getSetlistByFirestoreId,
-  getSong as getSongFromLocalDb,
   getCloudSongById,
   saveSetlist,
   getSetlists,
@@ -61,8 +60,6 @@ function SharedSetlistContent() {
   const [isLoading, setIsLoading] = useState(true);
 
   const findSong = async (songId: string): Promise<Song | undefined> => {
-    const song = await getSongFromLocalDb(songId);
-    if (song) return song;
     const cloudSong = await getCloudSongById(songId);
     return cloudSong === null ? undefined : cloudSong;
   };
