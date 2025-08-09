@@ -9,9 +9,8 @@ import type { Song } from '@/lib/songs';
 import {
   saveSetlist,
   getSetlist as getSetlistFromDb,
-  getSong as getSongFromDb,
-  getAllSavedSongs,
   getAllCloudSongs,
+  getCloudSongById,
 } from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -195,8 +194,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
   const [selectedSongs, setSelectedSongs] = useState<Song[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [localSongs, setLocalSongs] = useState<Song[]>([]);
-  const [cloudSongs, setCloudSongs] = useState<Song[]>([]);
+  const [allSongs, setAllSongs] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const isMobile = useIsMobile();
@@ -212,31 +210,13 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
     formState: { isDirty },
   } = form;
 
-  const fetchAllSongs = async () => {
-    if (!user) return;
-
-    const [local, cloud] = await Promise.all([
-      getAllSavedSongs(user.uid),
-      getAllCloudSongs(),
-    ]);
-
-    const systemCloudSongs = cloud.filter((s) => s.source === 'system');
-
-    local.sort((a, b) => {
-      const aIsUser = a.source === 'user';
-      const bIsUser = b.source === 'user';
-      if (aIsUser && !bIsUser) return -1;
-      if (!aIsUser && bIsUser) return 1;
-      return a.title.localeCompare(b.title);
-    });
-
-    setLocalSongs(local);
-    setCloudSongs(systemCloudSongs);
-  };
-
   useEffect(() => {
+    const fetchAllSongs = async () => {
+      if (!user) return;
+      const cloudSongs = await getAllCloudSongs();
+      setAllSongs(cloudSongs);
+    };
     fetchAllSongs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   useEffect(() => {
@@ -247,7 +227,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
       }
 
       // Ensure songs are loaded before fetching the setlist
-      if (localSongs.length === 0 && cloudSongs.length === 0) return;
+      if (allSongs.length === 0) return;
 
       setIsLoading(true);
       try {
@@ -257,7 +237,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
 
           // Create a Map for efficient lookup of all available songs.
           const allAvailableSongsMap = new Map(
-            [...localSongs, ...cloudSongs].map((s) => [s.id, s])
+            allSongs.map((s) => [s.id, s])
           );
 
           // Map song IDs from the setlist to the full song objects.
@@ -265,12 +245,11 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
             if (allAvailableSongsMap.has(id)) {
               return allAvailableSongsMap.get(id);
             }
-            // Fallback: If the song isn't in our pre-loaded lists, fetch it directly.
-            // This can happen if a song was deleted or is new.
+            // Fallback: If the song isn't in our pre-loaded lists, fetch it directly from the cloud.
             console.warn(
-              `Song ${id} not found in pre-loaded lists, fetching directly.`
+              `Song ${id} not found in pre-loaded list, fetching from cloud.`
             );
-            return await getSongFromDb(id);
+            return await getCloudSongById(id);
           });
 
           const loadedSongs = (await Promise.all(songPromises)).filter(
@@ -299,27 +278,19 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
 
     fetchSetlistData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setlistId, localSongs, cloudSongs]); // Depend on songs being loaded.
+  }, [setlistId, allSongs]); // Depend on songs being loaded.
 
   const availableSongs = useMemo(() => {
     const filterBySearchTerm = (song: Song) =>
       song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       song.artist.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const allSongsToConsider = searchTerm
-      ? [
-          ...new Map(
-            [...localSongs, ...cloudSongs].map((item) => [item['id'], item])
-          ).values(),
-        ]
-      : localSongs;
-
-    return allSongsToConsider
+    return allSongs
       .filter(
         (song) => !selectedSongs.some((selected) => selected.id === song.id)
       )
       .filter((song) => !searchTerm || filterBySearchTerm(song));
-  }, [localSongs, cloudSongs, selectedSongs, searchTerm]);
+  }, [allSongs, selectedSongs, searchTerm]);
 
   const addSong = (song: Song) => {
     setSelectedSongs((prev) => [...prev, song]);

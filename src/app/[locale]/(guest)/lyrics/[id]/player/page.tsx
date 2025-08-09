@@ -1,13 +1,12 @@
 
 'use client';
 
-import { getSong as getSongFromDb, getCloudSongById } from '@/lib/db';
+import { getCloudSongById } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import { notFound, useParams } from 'next/navigation';
 import LyricPlayer from '@/components/LyricPlayer';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from '@/context/AuthContext';
 
 function LoadingSkeleton() {
   return (
@@ -43,23 +42,14 @@ export default function LyricPlayerPage() {
   const [song, setSong] = useState<Song | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth(); // Still need auth context for conditional DB access
 
   useEffect(() => {
     async function fetchSong() {
       if (!id) return;
       try {
         setIsLoading(true);
-        // Priority: Local DB (if logged in) > Cloud.
-        let fetchedSong: Song | null | undefined = null;
-
-        if (user) {
-           fetchedSong = await getSongFromDb(id);
-        }
-
-        if (!fetchedSong) {
-          fetchedSong = await getCloudSongById(id);
-        }
+        // Always fetch directly from the cloud to ensure data is up-to-date
+        const fetchedSong = await getCloudSongById(id);
 
         if (fetchedSong) {
           setSong(fetchedSong);
@@ -75,7 +65,7 @@ export default function LyricPlayerPage() {
     }
 
     fetchSong();
-  }, [id, user]);
+  }, [id]);
 
   if (isLoading) {
     return <LoadingSkeleton />;

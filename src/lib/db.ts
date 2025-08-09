@@ -1,4 +1,3 @@
-
 // src/lib/db.ts
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Song } from './songs';
@@ -197,15 +196,17 @@ export async function updateSong(song: Song): Promise<void> {
 }
 
 export async function getSong(id: string): Promise<Song | undefined> {
-  const db = await getDb();
-  return db.get(SONGS_STORE, id);
+  // Always fetch from cloud to ensure data is up-to-date
+  return getCloudSongById(id);
 }
 
 export async function deleteSong(id: string, userId: string): Promise<void> {
   const db = await getDb();
-  const songToDelete = await db.get(SONGS_STORE, id);
+  const songToDelete = await getCloudSongById(id); // Get from cloud
 
   if (!songToDelete) {
+    // If not in cloud, maybe it's a stale local one. Try deleting from local anyway.
+    await db.delete(SONGS_STORE, id);
     return;
   }
 
@@ -246,69 +247,67 @@ export async function deleteSong(id: string, userId: string): Promise<void> {
 export async function isSongSaved(
   id: string
 ): Promise<{ saved: boolean; needsUpdate: boolean }> {
-  const db = await getDb();
-  const savedSong = await db.get(SONGS_STORE, id);
+  // This check is now based on whether the song exists in the user's subcollection in Firestore
+  const { auth } = await import('./firebase');
+  const user = auth.currentUser;
+  if (!user || !firestoreDb) return { saved: false, needsUpdate: false };
 
-  if (!savedSong) {
+  const userSongRef = doc(firestoreDb, 'users', user.uid, 'userSongs', id);
+  const userSongSnap = await getDoc(userSongRef);
+
+  if (!userSongSnap.exists()) {
     return { saved: false, needsUpdate: false };
   }
 
-  // For user-created songs, they are "saved" by definition if they exist locally.
-  // We rely on the sync process in getAllSavedSongs to keep them updated.
-  if (savedSong.source === 'user') {
+  // If saved, check if the main song document has been updated since
+  const mainSongRef = doc(firestoreDb, 'songs', id);
+  const mainSongSnap = await getDoc(mainSongRef);
+
+  if (!mainSongSnap.exists()) {
+    // Song was deleted from main collection, but user still has a reference
     return { saved: true, needsUpdate: false };
   }
 
-  // For system songs, check against the cloud version for updates.
-  const latestSong = await getCloudSongById(id);
+  const mainSongData = mainSongSnap.data();
+  const userSongData = userSongSnap.data();
 
-  if (!latestSong) {
-    // The system song was removed from the cloud.
-    return { saved: true, needsUpdate: false };
-  }
+  const mainUpdatedAt = (mainSongData.updatedAt as Timestamp)?.toMillis() || 0;
+  const userSavedAt = (userSongData.savedAt as Timestamp)?.toMillis() || 0;
 
-  const cloudVersionDate = new Date(latestSong.updatedAt).getTime();
-  const localVersionDate = savedSong.updatedAt
-    ? new Date(savedSong.updatedAt).getTime()
-    : 0;
-
-  return { saved: true, needsUpdate: cloudVersionDate > localVersionDate };
+  // If main song is newer than when user saved it, an update is needed.
+  return { saved: true, needsUpdate: mainUpdatedAt > userSavedAt };
 }
 
 export async function getAllSavedSongs(userId: string): Promise<Song[]> {
-  const db = await getDb();
-
-  // Sync user songs from Firestore to IndexedDB first
-  if (firestoreDb && userId) {
-    const userSongsRef = collection(firestoreDb, 'users', userId, 'userSongs');
-    const q = query(userSongsRef);
-    const userSongsSnapshot = await getDocs(q);
-
-    const songIds = userSongsSnapshot.docs.map((doc) => doc.id);
-    const songPromises = songIds.map((id) => getCloudSongById(id));
-    const cloudSongs = (await Promise.all(songPromises)).filter(
-      Boolean
-    ) as Song[];
-
-    // Update local IndexedDB with the latest from the cloud
-    const tx = db.transaction(SONGS_STORE, 'readwrite');
-    const store = tx.objectStore(SONGS_STORE);
-
-    // Efficiently update local store with latest cloud versions of user songs
-    const writePromises = cloudSongs.map((song) => store.put(song));
-
-    await Promise.all(writePromises);
-    await tx.done;
+  // This function now exclusively fetches from Firestore to ensure data is current.
+  if (!firestoreDb || !userId) {
+    return [];
   }
 
-  // Return all songs from IndexedDB. This will include system songs
-  // that were downloaded manually and all of the user's own songs synced from the cloud.
-  return db.getAll(SONGS_STORE);
+  const userSongsRef = collection(firestoreDb, 'users', userId, 'userSongs');
+  const q = query(userSongsRef);
+  const userSongsSnapshot = await getDocs(q);
+
+  const songIds = userSongsSnapshot.docs.map((doc) => doc.id);
+  const songPromises = songIds.map((id) => getCloudSongById(id));
+  const cloudSongs = (await Promise.all(songPromises)).filter(
+    Boolean
+  ) as Song[];
+
+  return cloudSongs;
 }
 
+
 export async function getAllSavedSongIds(): Promise<string[]> {
-  const db = await getDb();
-  return db.getAllKeys(SONGS_STORE);
+  const { auth } = await import('./firebase');
+  const user = auth.currentUser;
+  if (!user || !firestoreDb) return [];
+
+  const userSongsRef = collection(firestoreDb, 'users', user.uid, 'userSongs');
+  const q = query(userSongsRef);
+  const userSongsSnapshot = await getDocs(q);
+
+  return userSongsSnapshot.docs.map((doc) => doc.id);
 }
 
 // --- Super Admin Song Upload ---
