@@ -56,7 +56,7 @@ class Metronome {
     const envelope = this.audioContext.createGain();
 
     // Set frequencies for "tok" (downbeat) and "tik" (off-beat)
-    osc.frequency.value = beatNumber === 0 ? 220.0 : 440.0;
+    osc.frequency.value = beatNumber === 0 ? 440.0 : 220.0;
     envelope.gain.value = 0;
 
     // Create the percussive sound envelope
