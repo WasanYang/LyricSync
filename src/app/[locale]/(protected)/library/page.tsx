@@ -269,7 +269,13 @@ export default function LibraryPage() {
     if (!user) return;
     setIsLoading(true);
     const loadedSongs = await getAllSavedSongs(user.uid);
-    setSongs(loadedSongs);
+    // Sort songs: user-created first, then by updated date
+    const sortedSongs = loadedSongs.sort((a, b) => {
+      if (a.source === 'user' && b.source !== 'user') return -1;
+      if (a.source !== 'user' && b.source === 'user') return 1;
+      return b.updatedAt.getTime() - a.updatedAt.getTime();
+    });
+    setSongs(sortedSongs);
     setIsLoading(false);
   }, [user]);
 
