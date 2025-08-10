@@ -259,42 +259,24 @@ const songFromDoc = (doc: any): Song => {
 export async function getPaginatedSystemSongs(
   page: number,
   pageSize: number
-): Promise<{ songs: Song[]; totalPages: number; totalSongs: number }> {
+): Promise<{ songs: Song[]; totalPages: number }> {
   if (!firestoreDb) throw new Error('Firebase is not configured.');
 
+  // This implementation fetches all system songs and paginates on the client.
+  // It's simpler and fine for a few hundred songs.
+  // For thousands of songs, a cursor-based server-side pagination would be better.
   const songsCollection = collection(firestoreDb, 'songs');
-  const qBase = query(songsCollection, where('source', '==', 'system'));
+  const qBase = query(songsCollection, where('source', '==', 'system'), orderBy('title'));
 
-  const countSnapshot = await getCountFromServer(qBase);
-  const totalSongs = countSnapshot.data().count;
+  const querySnapshot = await getDocs(qBase);
+  const allSongs: Song[] = querySnapshot.docs.map(songFromDoc);
+
+  const totalSongs = allSongs.length;
   const totalPages = Math.ceil(totalSongs / pageSize);
+  const startIndex = (page - 1) * pageSize;
+  const songsForPage = allSongs.slice(startIndex, startIndex + pageSize);
 
-  if (page > totalPages && totalSongs > 0) {
-    return { songs: [], totalPages, totalSongs };
-  }
-
-  let finalQuery;
-  if (page === 1) {
-    finalQuery = query(qBase, orderBy('title'), limit(pageSize));
-  } else {
-    const lastDocQuery = query(
-      qBase,
-      orderBy('title'),
-      limit((page - 1) * pageSize)
-    );
-    const lastDocSnapshot = await getDocs(lastDocQuery);
-    const lastVisible = lastDocSnapshot.docs[lastDocSnapshot.docs.length - 1];
-    finalQuery = query(
-      qBase,
-      orderBy('title'),
-      startAfter(lastVisible),
-      limit(pageSize)
-    );
-  }
-
-  const documentSnapshots = await getDocs(finalQuery);
-  const songs: Song[] = documentSnapshots.docs.map(songFromDoc);
-  return { songs, totalPages, totalSongs };
+  return { songs: songsForPage, totalPages };
 }
 
 export async function getAllCloudSongs(): Promise<Song[]> {

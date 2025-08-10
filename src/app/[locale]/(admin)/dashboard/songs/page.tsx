@@ -30,41 +30,39 @@ export default function AdminSongsPage() {
   const { user, isSuperAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const [songs, setSongs] = useState<Song[]>([]);
+  const [allSongs, setAllSongs] = useState<Song[]>([]);
+  const [songsOnPage, setSongsOnPage] = useState<Song[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
 
-  const loadSongs = useCallback(
-    async (page: number) => {
-      setIsLoading(true);
-      try {
-        const { songs: fetchedSongs, totalPages: newTotalPages } =
-          await getPaginatedSystemSongs(page, PAGE_SIZE);
-
-        setSongs(fetchedSongs);
-        setTotalPages(newTotalPages);
-        setCurrentPage(page);
-      } catch {
-        toast({
-          title: 'Error',
-          description: 'Could not fetch songs.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [toast]
-  );
+  const loadSongs = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { songs, totalPages } = await getPaginatedSystemSongs(
+        1,
+        1000
+      ); // Load all songs initially
+      setAllSongs(songs);
+      setTotalPages(Math.ceil(songs.length / PAGE_SIZE));
+      setIsLoading(false);
+    } catch {
+      toast({
+        title: 'Error',
+        description: 'Could not fetch songs.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+    }
+  }, [toast]);
 
   useEffect(() => {
     if (!authLoading) {
       if (!user || !isSuperAdmin) {
         router.replace('/');
       } else {
-        loadSongs(1);
+        loadSongs();
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -72,16 +70,25 @@ export default function AdminSongsPage() {
 
   const filteredSongs = useMemo(() => {
     if (!searchTerm) {
-      return songs;
+      return allSongs;
     }
-    // Note: Search is only performed on the current page of songs.
-    // For a full database search, a different approach is needed.
-    return songs.filter(
+    return allSongs.filter(
       (song) =>
         song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         song.artist.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [songs, searchTerm]);
+  }, [allSongs, searchTerm]);
+
+  useEffect(() => {
+    const newTotalPages = Math.ceil(filteredSongs.length / PAGE_SIZE);
+    setTotalPages(newTotalPages);
+    if (currentPage > newTotalPages) {
+      setCurrentPage(1);
+    }
+
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    setSongsOnPage(filteredSongs.slice(startIndex, startIndex + PAGE_SIZE));
+  }, [filteredSongs, currentPage]);
 
   const handleDelete = async (songToDelete: Song) => {
     try {
@@ -90,8 +97,8 @@ export default function AdminSongsPage() {
         title: 'Song Deleted',
         description: `"${songToDelete.title}" has been removed from the cloud.`,
       });
-      // Refresh the current page
-      loadSongs(currentPage);
+      // Refresh the list
+      loadSongs();
     } catch {
       toast({
         title: 'Error',
@@ -103,7 +110,7 @@ export default function AdminSongsPage() {
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
-      loadSongs(page);
+      setCurrentPage(page);
     }
   };
 
@@ -183,8 +190,11 @@ export default function AdminSongsPage() {
 
           <SearchInput
             value={searchTerm}
-            onChange={setSearchTerm}
-            placeholder='Search loaded songs...'
+            onChange={(val) => {
+              setSearchTerm(val);
+              setCurrentPage(1); // Reset page on new search
+            }}
+            placeholder='Search all songs...'
           />
 
           {isLoading ? (
@@ -194,11 +204,11 @@ export default function AdminSongsPage() {
               <Skeleton className='h-16 w-full' />
               <Skeleton className='h-16 w-full' />
             </div>
-          ) : songs.length > 0 || searchTerm ? (
+          ) : allSongs.length > 0 ? (
             <div className='space-y-6'>
               {filteredSongs.length > 0 ? (
                 <section>
-                  <SongList songs={filteredSongs} onDelete={handleDelete} />
+                  <SongList songs={songsOnPage} onDelete={handleDelete} />
                 </section>
               ) : (
                 <EmptyState
@@ -208,7 +218,7 @@ export default function AdminSongsPage() {
                   searchTerm={searchTerm}
                 />
               )}
-              {!searchTerm && renderPagination()}
+              {renderPagination()}
             </div>
           ) : (
             <EmptyState
