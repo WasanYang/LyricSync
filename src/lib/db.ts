@@ -275,12 +275,17 @@ export async function getPaginatedSystemSongs(
 
   let q;
   if (page === 1) {
-    q = query(qBase, limit(pageSize));
+    q = query(qBase, orderBy('title'), limit(pageSize));
   } else {
-    const prevPageQuery = query(qBase, limit((page - 1) * pageSize));
-    const prevPageSnapshot = await getDocs(prevPageQuery);
+    // To get the last document of the previous page, we fetch all documents up to the start of the current page.
+    const prevPageLastDocQuery = query(
+      qBase,
+      orderBy('title'),
+      limit((page - 1) * pageSize)
+    );
+    const prevPageSnapshot = await getDocs(prevPageLastDocQuery);
     const lastVisible = prevPageSnapshot.docs[prevPageSnapshot.docs.length - 1];
-    q = query(qBase, startAfter(lastVisible), limit(pageSize));
+    q = query(qBase, orderBy('title'), startAfter(lastVisible), limit(pageSize));
   }
 
   const documentSnapshots = await getDocs(q);
