@@ -43,7 +43,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import SongStatusButton from '@/components/SongStatusButton';
 import { SearchInput, EmptyState } from '@/components/shared';
 import {
   Pagination,
@@ -107,6 +106,13 @@ function SongListItem({
         variant: 'destructive',
       });
     }
+  };
+
+  const getDeleteDialogDescription = () => {
+    if (isUserSong) {
+      return `This action cannot be undone. This will permanently delete "${song.title}" from your library and the cloud.`;
+    }
+    return `This will remove "${song.title}" from your library. You can always add it back from the Search page.`;
   };
 
   return (
@@ -178,93 +184,79 @@ function SongListItem({
             </TooltipContent>
           </Tooltip>
 
-          {isUserSong ? (
-            <>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    asChild
-                    variant='ghost'
-                    size='icon'
-                    className='h-8 w-8 text-muted-foreground'
+          {isUserSong && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  asChild
+                  variant='ghost'
+                  size='icon'
+                  className='h-8 w-8 text-muted-foreground'
+                >
+                  <Link
+                    href={`/song-editor?id=${song.id}`}
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <Link
-                      href={`/song-editor?id=${song.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Edit className='h-4 w-4' />
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Edit</p>
-                </TooltipContent>
-              </Tooltip>
-              {isSuperAdmin && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant='ghost'
-                      size='icon'
-                      className='h-8 w-8 text-muted-foreground'
-                      onClick={handlePromoteToSystem}
-                    >
-                      <Music className='h-4 w-4' />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Promote to System Song</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-               <Tooltip>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant='ghost'
-                      size='icon'
-                      className='h-8 w-8 text-muted-foreground hover:text-destructive'
-                    >
-                      <Trash2 className='h-4 w-4' />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete
-                        &quot;{song.title}&quot; from your library and the cloud.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleDelete}
-                        className='bg-destructive hover:bg-destructive/90'
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-                <TooltipContent>
-                  <p>Delete</p>
-                </TooltipContent>
-              </Tooltip>
-            </>
-          ) : (
-             <div
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-            >
-              <SongStatusButton
-                song={song}
-                onStatusChange={() => onUpdate(song.id)}
-              />
-            </div>
+                    <Edit className='h-4 w-4' />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Edit</p>
+              </TooltipContent>
+            </Tooltip>
           )}
+
+          {isSuperAdmin && isUserSong && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='h-8 w-8 text-muted-foreground'
+                  onClick={handlePromoteToSystem}
+                >
+                  <Music className='h-4 w-4' />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Promote to System Song</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+          <Tooltip>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='h-8 w-8 text-muted-foreground hover:text-destructive'
+                >
+                  <Trash2 className='h-4 w-4' />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {getDeleteDialogDescription()}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDelete}
+                    className='bg-destructive hover:bg-destructive/90'
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <TooltipContent>
+              <p>Delete</p>
+            </TooltipContent>
+          </Tooltip>
         </TooltipProvider>
       </div>
     </div>
