@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { type Song } from '@/lib/songs';
 import { saveSong, isSongSaved, deleteSong } from '@/lib/db';
-import { Check, PlusCircle, Trash2 } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from './ui/skeleton';
@@ -118,22 +118,22 @@ export default function SongStatusButton({
           <Button
             variant='ghost'
             size='icon'
-            className='h-7 w-7 text-green-500 hover:text-green-600'
+            className='h-7 w-7 text-primary hover:text-primary/80'
             aria-label='Song is in your library'
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
             }}
           >
-            <Check className='h-5 w-5' />
+            <BookmarkCheck className='h-5 w-5' />
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent onClick={(e) => e.stopPropagation()}>
           <AlertDialogHeader>
             <AlertDialogTitle>Remove from Library?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove "{song.title}" from your personal library. You can
-              add it back again later from the Search page.
+              This will remove "{song.title}" from your personal library. You
+              can add it back again later from the Search page.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -158,7 +158,7 @@ export default function SongStatusButton({
       className='h-7 w-7 text-muted-foreground hover:text-primary'
       aria-label='Save song to library'
     >
-      <PlusCircle className='h-5 w-5' />
+      <Bookmark className='h-5 w-5' />
     </Button>
   );
 }
