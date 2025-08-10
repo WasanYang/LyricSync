@@ -120,6 +120,10 @@ export default function SongStatusButton({
             size='icon'
             className='h-7 w-7 text-green-500 hover:text-green-600'
             aria-label='Song is in your library'
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
           >
             <Check className='h-5 w-5' />
           </Button>
