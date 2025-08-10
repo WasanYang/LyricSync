@@ -1,6 +1,7 @@
+// src/app/[locale]/(protected)/library/page.tsx
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   getAllSavedSongs,
   deleteSong as deleteSongFromDb,
@@ -19,6 +20,7 @@ import {
   Play,
   Download,
   Cloud,
+  Search as SearchIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -42,6 +44,17 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import SongStatusButton from '@/components/SongStatusButton';
+import { SearchInput, EmptyState } from '@/components/shared';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+
+const PAGE_SIZE = 10;
 
 function SongListItem({
   song,
@@ -251,7 +264,10 @@ function SongListItem({
                 e.stopPropagation();
               }}
             >
-              <SongStatusButton song={song} onStatusChange={() => onUpdate(song.id)} />
+              <SongStatusButton
+                song={song}
+                onStatusChange={() => onUpdate(song.id)}
+              />
             </div>
           )}
         </TooltipProvider>
@@ -261,21 +277,24 @@ function SongListItem({
 }
 
 export default function LibraryPage() {
-  const [songs, setSongs] = useState<Song[]>([]);
+  const [allSongs, setAllSongs] = useState<Song[]>([]);
+  const [songsOnPage, setSongsOnPage] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user, loading: authLoading } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
 
   const loadSongs = useCallback(async () => {
     if (!user) return;
     setIsLoading(true);
     const loadedSongs = await getAllSavedSongs(user.uid);
-    // Sort songs: user-created first, then by updated date
     const sortedSongs = loadedSongs.sort((a, b) => {
       if (a.source === 'user' && b.source !== 'user') return -1;
       if (a.source !== 'user' && b.source === 'user') return 1;
-      return b.updatedAt.getTime() - a.updatedAt.getTime();
+      return (b.updatedAt?.getTime() || 0) - (a.updatedAt?.getTime() || 0);
     });
-    setSongs(sortedSongs);
+    setAllSongs(sortedSongs);
     setIsLoading(false);
   }, [user]);
 
@@ -285,18 +304,98 @@ export default function LibraryPage() {
     }
   }, [user, loadSongs]);
 
+  const filteredSongs = useMemo(() => {
+    if (!searchTerm) {
+      return allSongs;
+    }
+    return allSongs.filter(
+      (song) =>
+        song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        song.artist.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [allSongs, searchTerm]);
+
+  useEffect(() => {
+    const newTotalPages = Math.ceil(filteredSongs.length / PAGE_SIZE);
+    setTotalPages(newTotalPages);
+
+    let pageToSet = currentPage;
+    if (currentPage > newTotalPages) {
+      pageToSet = Math.max(1, newTotalPages);
+      setCurrentPage(pageToSet);
+    }
+
+    const startIndex = (pageToSet - 1) * PAGE_SIZE;
+    setSongsOnPage(filteredSongs.slice(startIndex, startIndex + PAGE_SIZE));
+  }, [filteredSongs, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              href='#'
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageChange(currentPage - 1);
+              }}
+              aria-disabled={currentPage <= 1}
+              className={
+                currentPage <= 1 ? 'pointer-events-none opacity-50' : ''
+              }
+            />
+          </PaginationItem>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <PaginationItem key={page}>
+              <PaginationLink
+                href='#'
+                isActive={page === currentPage}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handlePageChange(page);
+                }}
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+          <PaginationItem>
+            <PaginationNext
+              href='#'
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageChange(currentPage + 1);
+              }}
+              aria-disabled={currentPage >= totalPages}
+              className={
+                currentPage >= totalPages
+                  ? 'pointer-events-none opacity-50'
+                  : ''
+              }
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
+  };
+
   const handleSongDeleted = (deletedId: string) => {
-    setSongs((prevSongs) => prevSongs.filter((song) => song.id !== deletedId));
+    setAllSongs((prevSongs) =>
+      prevSongs.filter((song) => song.id !== deletedId)
+    );
   };
 
   const handleSongUpdated = (songId: string) => {
-    setSongs(prevSongs =>
-      prevSongs.map(song =>
-        song.id === songId
-          ? { ...song, downloadCount: (song.downloadCount || 0) + 1 }
-          : song
-      )
-    );
+    loadSongs(); // For now, just reload all songs to get updated state
   };
 
   if (authLoading || !user) {
@@ -340,23 +439,44 @@ export default function LibraryPage() {
               )}
             </div>
 
+            <SearchInput
+              value={searchTerm}
+              onChange={(val) => {
+                setSearchTerm(val);
+                setCurrentPage(1); // Reset page on new search
+              }}
+              placeholder='Search your library...'
+            />
+
             {isLoading ? (
               <div className='space-y-2'>
                 <Skeleton className='h-16 w-full' />
                 <Skeleton className='h-16 w-full' />
                 <Skeleton className='h-16 w-full' />
               </div>
-            ) : songs.length > 0 ? (
-              <div className='flex flex-col space-y-1'>
-                {songs.map((song) => (
-                  <SongListItem
-                    key={song.id}
-                    song={song}
-                    onDelete={handleSongDeleted}
-                    onUpdate={handleSongUpdated}
-                  />
-                ))}
-              </div>
+            ) : allSongs.length > 0 ? (
+              filteredSongs.length > 0 ? (
+                <div className='space-y-4'>
+                  <div className='flex flex-col space-y-1'>
+                    {songsOnPage.map((song) => (
+                      <SongListItem
+                        key={song.id}
+                        song={song}
+                        onDelete={handleSongDeleted}
+                        onUpdate={handleSongUpdated}
+                      />
+                    ))}
+                  </div>
+                  {renderPagination()}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={SearchIcon}
+                  title='No Results Found'
+                  description='No songs matched your search for'
+                  searchTerm={searchTerm}
+                />
+              )
             ) : (
               <div className='text-center py-16 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full'>
                 <Music className='h-12 w-12 text-muted-foreground mb-4' />
