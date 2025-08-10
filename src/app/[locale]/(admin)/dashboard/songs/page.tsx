@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { getPaginatedSystemSongs, deleteCloudSong } from '@/lib/db';
+import { getAllCloudSongs, deleteCloudSong } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,19 +40,16 @@ export default function AdminSongsPage() {
   const loadSongs = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { songs, totalPages } = await getPaginatedSystemSongs(
-        1,
-        1000
-      ); // Load all songs initially
-      setAllSongs(songs);
-      setTotalPages(Math.ceil(songs.length / PAGE_SIZE));
-      setIsLoading(false);
+      const allCloudSongs = await getAllCloudSongs();
+      const systemSongs = allCloudSongs.filter((s) => s.source === 'system');
+      setAllSongs(systemSongs);
     } catch {
       toast({
         title: 'Error',
         description: 'Could not fetch songs.',
         variant: 'destructive',
       });
+    } finally {
       setIsLoading(false);
     }
   }, [toast]);
@@ -82,11 +79,14 @@ export default function AdminSongsPage() {
   useEffect(() => {
     const newTotalPages = Math.ceil(filteredSongs.length / PAGE_SIZE);
     setTotalPages(newTotalPages);
+
+    let pageToSet = currentPage;
     if (currentPage > newTotalPages) {
-      setCurrentPage(1);
+      pageToSet = Math.max(1, newTotalPages);
+      setCurrentPage(pageToSet);
     }
 
-    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    const startIndex = (pageToSet - 1) * PAGE_SIZE;
     setSongsOnPage(filteredSongs.slice(startIndex, startIndex + PAGE_SIZE));
   }, [filteredSongs, currentPage]);
 

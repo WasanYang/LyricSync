@@ -261,10 +261,7 @@ export async function getPaginatedSystemSongs(
   pageSize: number
 ): Promise<{ songs: Song[]; totalPages: number }> {
   if (!firestoreDb) throw new Error('Firebase is not configured.');
-
-  // This implementation fetches all system songs and paginates on the client.
-  // It's simpler and fine for a few hundred songs.
-  // For thousands of songs, a cursor-based server-side pagination would be better.
+  
   const songsCollection = collection(firestoreDb, 'songs');
   const qBase = query(songsCollection, where('source', '==', 'system'), orderBy('title'));
 
@@ -276,7 +273,7 @@ export async function getPaginatedSystemSongs(
   const startIndex = (page - 1) * pageSize;
   const songsForPage = allSongs.slice(startIndex, startIndex + pageSize);
 
-  return { songs: songsForPage, totalPages };
+  return { songs: songsForPage, totalPages: totalPages };
 }
 
 export async function getAllCloudSongs(): Promise<Song[]> {
