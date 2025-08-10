@@ -8,7 +8,6 @@ import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import {
   saveSong,
-  getSong as getSongFromDb,
   uploadSongToCloud,
   getCloudSongById,
 } from '@/lib/db';
@@ -211,11 +210,21 @@ export default function SongCreator() {
       setIsLoading(true);
       const fetchSong = async () => {
         try {
-          const existingSong = isCloudMode
-            ? await getCloudSongById(songId)
-            : await getSongFromDb(songId);
+          // Always fetch from cloud now
+          const existingSong = await getCloudSongById(songId);
 
           if (existingSong) {
+            // Non-admins can't edit system songs, they can only edit their own user songs.
+            if (existingSong.source === 'system' && !isSuperAdmin) {
+                 toast({
+                    title: 'Permission Denied',
+                    description: 'You cannot edit a system song.',
+                    variant: 'destructive',
+                });
+                router.push('/library');
+                return;
+            }
+
             form.reset({
               title: existingSong.title,
               artist: existingSong.artist,
@@ -321,7 +330,7 @@ export default function SongCreator() {
         });
       }
     } else {
-      // Regular user saving to local IndexedDB and their userSongs subcollection
+      // Regular user saving to their userSongs subcollection
       try {
         const localSong = {
           ...newSongData,
