@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import { UserList } from '@/components/admin';
-import { EmptyState, SearchInput, LoadingSkeleton } from '@/components/shared';
+import { EmptyState, SearchInput } from '@/components/shared';
 import { useToast } from '@/hooks/use-toast';
 import { Users } from 'lucide-react';
 import {
@@ -29,6 +29,26 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+
+function LoadingSkeleton() {
+  return (
+    <div className='flex-grow flex flex-col'>
+      <Header />
+      <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
+        <div className='space-y-6'>
+          <Skeleton className='h-8 w-64' />
+          <Skeleton className='h-10 w-full' />
+          <div className='space-y-2'>
+            <Skeleton className='h-16 w-full' />
+            <Skeleton className='h-16 w-full' />
+            <Skeleton className='h-16 w-full' />
+          </div>
+        </div>
+      </main>
+      <BottomNavBar />
+    </div>
+  );
+}
 
 export default function AdminUsersPage() {
   const { user, isSuperAdmin, loading: authLoading } = useAuth();

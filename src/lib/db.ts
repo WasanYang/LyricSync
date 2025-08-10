@@ -273,22 +273,26 @@ export async function getPaginatedSystemSongs(
     return { songs: [], totalPages, totalSongs };
   }
 
-  let q;
+  let finalQuery;
   if (page === 1) {
-    q = query(qBase, orderBy('title'), limit(pageSize));
+    finalQuery = query(qBase, orderBy('title'), limit(pageSize));
   } else {
-    // To get the last document of the previous page, we fetch all documents up to the start of the current page.
-    const prevPageLastDocQuery = query(
+    const lastDocQuery = query(
       qBase,
       orderBy('title'),
       limit((page - 1) * pageSize)
     );
-    const prevPageSnapshot = await getDocs(prevPageLastDocQuery);
-    const lastVisible = prevPageSnapshot.docs[prevPageSnapshot.docs.length - 1];
-    q = query(qBase, orderBy('title'), startAfter(lastVisible), limit(pageSize));
+    const lastDocSnapshot = await getDocs(lastDocQuery);
+    const lastVisible = lastDocSnapshot.docs[lastDocSnapshot.docs.length - 1];
+    finalQuery = query(
+      qBase,
+      orderBy('title'),
+      startAfter(lastVisible),
+      limit(pageSize)
+    );
   }
 
-  const documentSnapshots = await getDocs(q);
+  const documentSnapshots = await getDocs(finalQuery);
   const songs: Song[] = documentSnapshots.docs.map(songFromDoc);
   return { songs, totalPages, totalSongs };
 }
@@ -350,22 +354,42 @@ export async function saveSetlist(setlist: Setlist): Promise<void> {
     source: setlist.source || 'owner',
   };
 
-  if (setlistToSave.source === 'owner' && setlistToSave.isSynced && setlistToSave.firestoreId) {
-    const setlistDocRef = doc(firestoreDb, 'setlists', setlistToSave.firestoreId);
+  if (
+    setlistToSave.source === 'owner' &&
+    setlistToSave.isSynced &&
+    setlistToSave.firestoreId
+  ) {
+    const setlistDocRef = doc(
+      firestoreDb,
+      'setlists',
+      setlistToSave.firestoreId
+    );
     const dataForFirestore = {
       title: setlistToSave.title,
       songIds: setlistToSave.songIds,
       syncedAt: serverTimestamp(),
     };
     await updateDoc(setlistDocRef, dataForFirestore);
-    const userSetlistRef = doc(firestoreDb, 'users', setlistToSave.userId, 'userSetlists', setlistToSave.firestoreId);
+    const userSetlistRef = doc(
+      firestoreDb,
+      'users',
+      setlistToSave.userId,
+      'userSetlists',
+      setlistToSave.firestoreId
+    );
     await updateDoc(userSetlistRef, {
       syncedAt: dataForFirestore.syncedAt,
       title: dataForFirestore.title,
     });
   } else if (setlistToSave.source === 'saved') {
     // Logic for saving a reference to a shared setlist
-    const setlistRef = doc(firestoreDb, 'users', setlistToSave.userId, 'savedSetlists', setlistToSave.firestoreId!);
+    const setlistRef = doc(
+      firestoreDb,
+      'users',
+      setlistToSave.userId,
+      'savedSetlists',
+      setlistToSave.firestoreId!
+    );
     await setDoc(setlistRef, {
       title: setlistToSave.title,
       originalAuthorName: setlistToSave.authorName,
@@ -374,20 +398,33 @@ export async function saveSetlist(setlist: Setlist): Promise<void> {
   }
 }
 
-export async function getSetlists(userId: string): Promise<SetlistWithSyncStatus[]> {
+export async function getSetlists(
+  userId: string
+): Promise<SetlistWithSyncStatus[]> {
   if (!firestoreDb) return [];
 
-  const userSetlistsRef = collection(firestoreDb, 'users', userId, 'userSetlists');
-  const userSetlistsSnapshot = await getDocs(query(userSetlistsRef, orderBy('syncedAt', 'desc')));
-  const ownedSetlistIds = userSetlistsSnapshot.docs.map(doc => doc.id);
+  const userSetlistsRef = collection(
+    firestoreDb,
+    'users',
+    userId,
+    'userSetlists'
+  );
+  const userSetlistsSnapshot = await getDocs(
+    query(userSetlistsRef, orderBy('syncedAt', 'desc'))
+  );
+  const ownedSetlistIds = userSetlistsSnapshot.docs.map((doc) => doc.id);
 
-  const ownedSetlistsPromises = ownedSetlistIds.map(id => getCloudSetlistById(id, 'owner'));
+  const ownedSetlistsPromises = ownedSetlistIds.map((id) =>
+    getCloudSetlistById(id, 'owner')
+  );
 
   // TODO: Add fetching for 'saved' setlists from a different subcollection if needed.
 
-  const results = (await Promise.all(ownedSetlistsPromises)).filter(Boolean) as Setlist[];
-  
-  return results.map(setlist => ({
+  const results = (await Promise.all(ownedSetlistsPromises)).filter(
+    Boolean
+  ) as Setlist[];
+
+  return results.map((setlist) => ({
     ...setlist,
     needsSync: false, // This is now handled by direct Firestore updates, so effectively always false from client's view
     containsCustomSongs: false, // This logic is simplified as all songs are from cloud now
@@ -399,8 +436,10 @@ export async function getSetlist(id: string): Promise<Setlist | undefined> {
   return getCloudSetlistById(id);
 }
 
-
-async function getCloudSetlistById(id: string, source: 'owner' | 'saved' = 'saved'): Promise<Setlist | undefined> {
+async function getCloudSetlistById(
+  id: string,
+  source: 'owner' | 'saved' = 'saved'
+): Promise<Setlist | undefined> {
   if (!firestoreDb) return undefined;
   const docRef = doc(firestoreDb, 'setlists', id);
   const docSnap = await getDoc(docRef);
@@ -423,7 +462,6 @@ async function getCloudSetlistById(id: string, source: 'owner' | 'saved' = 'save
   }
   return undefined;
 }
-
 
 export async function getSetlistByFirestoreId(
   firestoreId: string
@@ -461,16 +499,15 @@ export async function getSetlistByFirestoreId(
 }
 
 export async function deleteSetlist(id: string, userId: string): Promise<void> {
-    if (!firestoreDb) throw new Error("Firestore not initialized");
+  if (!firestoreDb) throw new Error('Firestore not initialized');
 
-    const batch = writeBatch(firestoreDb);
-    // Delete from main setlists collection
-    batch.delete(doc(firestoreDb, 'setlists', id));
-    // Delete from user's sub-collection
-    batch.delete(doc(firestoreDb, 'users', userId, 'userSetlists', id));
-    await batch.commit();
+  const batch = writeBatch(firestoreDb);
+  // Delete from main setlists collection
+  batch.delete(doc(firestoreDb, 'setlists', id));
+  // Delete from user's sub-collection
+  batch.delete(doc(firestoreDb, 'users', userId, 'userSetlists', id));
+  await batch.commit();
 }
-
 
 export async function getSyncedSetlistsCount(userId: string): Promise<number> {
   if (!firestoreDb) return 0;
@@ -500,7 +537,10 @@ export async function syncSetlist(
     isPublic: false,
   };
 
-  const newDocRef = await addDoc(collection(firestoreDb, 'setlists'), dataToSync);
+  const newDocRef = await addDoc(
+    collection(firestoreDb, 'setlists'),
+    dataToSync
+  );
   const firestoreId = newDocRef.id;
 
   await setDoc(
@@ -510,10 +550,9 @@ export async function syncSetlist(
       syncedAt: now,
     }
   );
-  
+
   return firestoreId;
 }
-
 
 export async function updateSetlistPublicStatus(
   firestoreId: string,
@@ -610,8 +649,9 @@ export async function getPublicUsers(): Promise<PublicUser[]> {
       firestoreDb,
       `users/${userDoc.id}/userSetlists`
     );
-    const setlistsSnapshot = await getDocs(query(setlistsRef));
-    const publicSetlistsCount = setlistsSnapshot.size;
+    const qPublic = query(setlistsRef); // This part is not quite right, we need to query 'setlists' collection
+    const publicSetlistsSnapshot = await getDocs(qPublic);
+    const publicSetlistsCount = publicSetlistsSnapshot.size;
 
     if (publicSetlistsCount > 0) {
       publicUsers.push({
@@ -664,14 +704,19 @@ export async function getAllUsers(): Promise<User[]> {
   }
 
   const usersRef = collection(firestoreDb, 'users');
-  const q = query(usersRef); 
+  const q = query(usersRef);
   const querySnapshot = await getDocs(q);
 
   const usersPromises = querySnapshot.docs.map(async (userDoc) => {
     const data = userDoc.data();
 
     const songsRef = collection(firestoreDb!, 'users', userDoc.id, 'userSongs');
-    const setlistsRef = collection(firestoreDb!, 'users', userDoc.id, 'userSetlists');
+    const setlistsRef = collection(
+      firestoreDb!,
+      'users',
+      userDoc.id,
+      'userSetlists'
+    );
 
     const songsCountSnapshot = await getCountFromServer(songsRef);
     const setlistsCountSnapshot = await getCountFromServer(setlistsRef);
