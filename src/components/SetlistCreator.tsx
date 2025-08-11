@@ -1,7 +1,7 @@
 // src/components/SetlistCreator.tsx
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,6 +11,8 @@ import {
   getSetlist as getSetlistFromDb,
   getAllCloudSongs,
   getCloudSongById,
+  getSyncedSetlistsCount,
+  SYNC_LIMIT,
 } from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -350,6 +352,18 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
     }
 
     const isEditing = !!setlistId;
+
+    if (!isEditing) {
+      const count = await getSyncedSetlistsCount(user.uid);
+      if (count >= SYNC_LIMIT) {
+        toast({
+          title: 'Setlist Limit Reached',
+          description: `You can only create up to ${SYNC_LIMIT} setlists. Please upgrade for more.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
 
     const existingSetlist = isEditing
       ? await getSetlistFromDb(setlistId)

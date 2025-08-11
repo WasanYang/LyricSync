@@ -16,6 +16,7 @@ import {
   getCountFromServer,
   runTransaction,
   increment,
+  limit,
 } from 'firebase/firestore';
 import { db as firestoreDb } from './firebase';
 import type { Song as SongType } from './songs';
@@ -25,7 +26,7 @@ import { v4 as uuidv4 } from 'uuid';
 export type Song = SongType;
 export type User = UserType;
 
-const SYNC_LIMIT = 10;
+export const SYNC_LIMIT = 10;
 
 // This represents a setlist stored in the local IndexedDB.
 export type Setlist = {
@@ -429,7 +430,8 @@ export async function getSyncedSetlistsCount(userId: string): Promise<number> {
   if (!firestoreDb) return 0;
   const q = query(
     collection(firestoreDb, 'setlists'),
-    where('userId', '==', userId)
+    where('userId', '==', userId),
+    where('source', '==', 'owner')
   );
   const countSnapshot = await getCountFromServer(q);
   return countSnapshot.data().count;
