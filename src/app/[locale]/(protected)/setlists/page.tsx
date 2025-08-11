@@ -11,6 +11,7 @@ import {
   saveSetlist,
   type SetlistWithSyncStatus,
   type Setlist,
+  SYNC_LIMIT,
 } from '@/lib/db';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
@@ -48,15 +49,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ShareSetlistDialog } from '@/components/ShareSetlistDialog';
 import { useTranslations } from 'next-intl';
 
-const SYNC_LIMIT = 10;
-
-function SetlistItem({
+const SetlistItem = ({
   setlist,
   onSetlistChange,
 }: {
-  setlist: SetlistWithSyncStatus;
+  setlist: Setlist;
   onSetlistChange: () => void;
-}) {
+}) => {
   const t = useTranslations();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -249,11 +248,11 @@ function SetlistItem({
       )}
     </>
   );
-}
+};
 
 export default function SetlistsPage() {
   const t = useTranslations();
-  const [setlists, setSetlists] = useState<SetlistWithSyncStatus[]>([]);
+  const [setlists, setSetlists] = useState<Setlist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
@@ -264,7 +263,6 @@ export default function SetlistsPage() {
     setIsLoading(true);
     try {
       const loadedSetlists = await getSetlists(user.uid);
-      console.log('getSetlists', getSetlists);
       setSetlists(
         loadedSetlists.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
       );
@@ -315,17 +313,24 @@ export default function SetlistsPage() {
   }
 
   const isAnonymous = user.isAnonymous;
+  const ownerSetlists = setlists.filter((s) => s.source === 'owner');
 
   return (
     <div className='flex-grow flex flex-col'>
       <Header />
       <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
         <div className='space-y-8'>
-          <div className='flex justify-between items-center'>
+          <div className='flex justify-between items-start'>
             <div>
               <h1 className='text-3xl font-headline font-bold tracking-tight'>
                 {t('setlist.title')}
               </h1>
+              <p className='text-sm text-muted-foreground'>
+                {t('setlist.syncedCount', {
+                  count: ownerSetlists.length,
+                  limit: SYNC_LIMIT,
+                })}
+              </p>
             </div>
             {!isAnonymous && (
               <Button asChild>

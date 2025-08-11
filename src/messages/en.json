@@ -143,7 +143,7 @@
   "showLess": "Show Less",
   "setlist": {
     "title": "Setlists",
-    "syncedCount": "Synced: {syncedCount}/{limit}",
+    "syncedCount": "You have {count} of {limit} setlists",
     "createNew": "Create New",
     "noSetlistsTitle": "No Setlists Found",
     "noSetlistsDesc": "You haven't created or saved any setlists yet.",

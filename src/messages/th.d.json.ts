@@ -146,7 +146,7 @@ declare const messages: {
   "showLess": "แสดงน้อยลง",
   "setlist": {
     "title": "เซ็ตลิสต์",
-    "syncedCount": "ซิงค์แล้ว: {syncedCount}/{limit}",
+    "syncedCount": "คุณมี {count} จาก {limit} เซ็ตลิสต์",
     "createNew": "สร้างใหม่",
     "noSetlistsTitle": "ยังไม่มีเซ็ตลิสต์",
     "noSetlistsDesc": "คุณยังไม่ได้สร้างหรือบันทึกเซ็ตลิสต์ใดๆ",
