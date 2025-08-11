@@ -74,18 +74,19 @@ function SetlistDetailContent({
         
         if (loadedSetlist && loadedSetlist.userId === user.uid) {
           setSetlist(loadedSetlist);
-          const songPromises = loadedSetlist.songIds.map(getCloudSongById);
+          const songIds = loadedSetlist.songIds || [];
+          const songPromises = songIds.map(getCloudSongById);
           const loadedSongs = (await Promise.all(songPromises)).filter(
             Boolean
           ) as Song[];
 
-          if (loadedSongs.length === loadedSetlist.songIds.length) {
+          if (loadedSongs.length === songIds.length) {
             setSongs(loadedSongs);
           } else {
             console.log(
               'loadedSongs',
               loadedSongs.length,
-              loadedSetlist.songIds.length
+              songIds.length
             );
             toast({
               title: 'Error Loading Songs',
