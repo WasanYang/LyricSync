@@ -325,15 +325,18 @@ export async function deleteCloudSong(songId: string): Promise<void> {
 export async function saveSetlist(setlist: Partial<Setlist>): Promise<string> {
   if (!firestoreDb || !setlist.userId)
     throw new Error('DB not init or user not found');
+
   const { id, ...dataToSave } = setlist;
-  const docRef = doc(firestoreDb, 'setlists', id || uuidv4());
-  // console.log('dataToSave', dataToSave);
-  // ดักกรณี syncedAt เป็น undefined
-  if ('syncedAt' in dataToSave && dataToSave.syncedAt === undefined) {
-    delete dataToSave.syncedAt;
-    // หรือถ้าต้องการให้มี field นี้แต่ไม่มีค่า ให้ใช้ null
-    // dataToSave.syncedAt = null;
+
+  // Use the existing ID if it's an update, otherwise generate a new one
+  const docId = id || uuidv4();
+  const docRef = doc(firestoreDb, 'setlists', docId);
+
+  // If it's a new setlist, we need to set the firestoreId
+  if (!dataToSave.firestoreId) {
+    dataToSave.firestoreId = docId;
   }
+  
   await setDoc(
     docRef,
     { ...dataToSave, updatedAt: serverTimestamp() },
@@ -345,50 +348,24 @@ export async function saveSetlist(setlist: Partial<Setlist>): Promise<string> {
 
 export async function getSetlists(
   userId: string
-): Promise<SetlistWithSyncStatus[]> {
+): Promise<Setlist[]> {
   if (!firestoreDb) return [];
 
-  const ownedQuery = query(
+  const q = query(
     collection(firestoreDb, 'setlists'),
-    where('userId', '==', userId),
-    where('source', '==', 'owner')
+    where('userId', '==', userId)
   );
 
-  const savedQuery = query(
-    collection(firestoreDb, 'setlists'),
-    where('userId', '==', userId),
-    where('source', '==', 'saved')
-  );
+  const querySnapshot = await getDocs(q);
 
-  const [ownedSnapshot, savedSnapshot] = await Promise.all([
-    getDocs(ownedQuery),
-    getDocs(savedQuery),
-  ]);
+  const setlists: Setlist[] = [];
 
-  const setlists: SetlistWithSyncStatus[] = [];
-
-  ownedSnapshot.forEach((doc) => {
+  querySnapshot.forEach((doc) => {
     const data = doc.data();
     setlists.push({
       id: doc.id,
       firestoreId: doc.id,
-      isSynced: true, // Always synced if it's from firestore
-      needsSync: false,
-      containsCustomSongs: false,
-      ...(data as any),
-      createdAt: toMillisSafe(data.createdAt),
-      updatedAt: toMillisSafe(data.updatedAt),
-    });
-  });
-
-  savedSnapshot.forEach((doc) => {
-    const data = doc.data();
-    setlists.push({
-      id: doc.id,
-      firestoreId: data.firestoreId,
-      isSynced: false,
-      needsSync: false,
-      containsCustomSongs: false,
+      isSynced: true,
       ...(data as any),
       createdAt: toMillisSafe(data.createdAt),
       updatedAt: toMillisSafe(data.updatedAt),
@@ -481,14 +458,13 @@ export async function getAllCloudSetlists(): Promise<Setlist[]> {
 
   const q = query(
     collection(firestoreDb, 'setlists'),
-    orderBy('syncedAt', 'desc')
+    orderBy('updatedAt', 'desc')
   );
 
   const querySnapshot = await getDocs(q);
   const setlists: Setlist[] = [];
   querySnapshot.forEach((doc) => {
     const data = doc.data();
-    const syncedAt = data.syncedAt as Timestamp;
     setlists.push({
       id: doc.id,
       firestoreId: doc.id,
