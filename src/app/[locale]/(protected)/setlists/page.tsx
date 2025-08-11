@@ -113,7 +113,7 @@ const SetlistItem = ({
     );
   };
 
-  const songCount = setlist.songIds.length;
+  const songCount = setlist.songIds?.length || 0;
   const linkHref = isOwner
     ? `/setlists/${setlist.id}`
     : `/shared/setlists/${setlist.firestoreId}`;
