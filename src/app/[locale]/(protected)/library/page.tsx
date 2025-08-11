@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { getAllSavedSongs } from '@/lib/db';
+import { getAllSavedSongs, toMillisSafe } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
@@ -40,9 +40,11 @@ export default function LibraryPage() {
     const sortedSongs = loadedSongs.sort((a, b) => {
       if (a.source === 'user' && b.source !== 'user') return -1;
       if (a.source !== 'user' && b.source === 'user') return 1;
-      return (b.updatedAt?.getTime() || 0) - (a.updatedAt?.getTime() || 0);
+      return (
+        (toMillisSafe(b.updatedAt) || 0) - (toMillisSafe(a.updatedAt) || 0)
+      );
     });
-    setAllSongs(sortedSongs);
+    setAllSongs(loadedSongs);
     setIsLoading(false);
   }, [user]);
 

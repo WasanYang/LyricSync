@@ -49,7 +49,7 @@ const navLinks = [
 ];
 
 const mobileOnlyLinks = [
-  { href: '/setlists', key: 'setlists', icon: ListMusic },
+  { href: '/my-setlists', key: 'setlists', icon: ListMusic },
   { href: '/library', key: 'library', icon: Library },
 ];
 

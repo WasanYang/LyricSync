@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { getSetlists, type Setlist, SYNC_LIMIT } from '@/lib/db';
+import { type Setlist, SYNC_LIMIT } from '@/lib/db';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import { Button } from '@/components/ui/button';
@@ -20,45 +19,21 @@ import LocalsLink from '@/components/ui/LocalsLink';
 export default function SetlistsPage() {
   const t = useTranslations();
   const [setlists, setSetlists] = useState<Setlist[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const { data } = useGetUserSetlistQuery(user?.uid || '', {
-    skip: !user?.uid,
-  });
+  const { data, isLoading, refetch } = useGetUserSetlistQuery(user?.uid || '');
 
-  const loadData = async () => {
-    if (!user) return;
-    setIsLoading(true);
-    try {
-      const loadedSetlists = await getSetlists(user.uid);
-      setSetlists(
-        loadedSetlists.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
-      );
-    } catch (error) {
-      console.error('Failed to load setlist data:', error);
-      toast({
-        title: 'Error',
-        description: 'Could not load your setlists.',
-        variant: 'destructive',
-      });
+  useEffect(() => {
+    if (data) {
+      setSetlists(data);
     }
-    setIsLoading(false);
-  };
-
+  }, [data]);
   useEffect(() => {
     if (!authLoading && !user) {
       router.replace('/');
     }
   }, [user, authLoading, router]);
-
-  useEffect(() => {
-    if (user) {
-      loadData();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
 
   if (authLoading || !user) {
     return (
@@ -125,7 +100,7 @@ export default function SetlistsPage() {
                   <SetlistItem
                     key={setlist.id}
                     setlist={setlist}
-                    onSetlistChange={loadData}
+                    onSetlistChange={refetch}
                   />
                 ))}
               </div>

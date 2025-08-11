@@ -69,6 +69,7 @@ function HomeClientComponent() {
       if (user && !user.isAnonymous) {
         try {
           const allSetlists = await getSetlists(user.uid);
+          console.log('allSetlists', allSetlists);
           const sorted = allSetlists.sort(
             (a, b) =>
               (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt)

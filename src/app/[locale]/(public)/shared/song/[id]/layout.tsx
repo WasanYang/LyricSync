@@ -43,7 +43,7 @@ export default async function Layout({
   children: React.ReactNode;
   params: { id: string; locale: string };
 }) {
-  const { id, locale } = params;
+  const { id, locale } = await params;
   const song: Song | null = await getCloudSongById(id);
 
   // Prepare JSON-LD structured data

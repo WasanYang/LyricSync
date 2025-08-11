@@ -4,7 +4,7 @@ type Props = {
   params: { id: string; locale?: string };
 };
 export default async function SongDetailPage({ params }: Props) {
-  const { id } = params;
+  const { id } = await params;
 
   return (
     <>

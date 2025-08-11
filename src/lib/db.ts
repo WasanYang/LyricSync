@@ -19,7 +19,7 @@ import {
   limit,
 } from 'firebase/firestore';
 import { db as firestoreDb } from './firebase';
-import type { Song as SongType } from './songs';
+import { songFromDoc, type Song as SongType } from './songs';
 import type { User as UserType } from './types/database';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -58,7 +58,7 @@ export interface PublicUser {
 
 // --- Song Functions ---
 
-function toMillisSafe(ts: unknown): number {
+export function toMillisSafe(ts: unknown): number {
   if (ts && typeof (ts as { toMillis?: Function }).toMillis === 'function') {
     return (ts as { toMillis: () => number }).toMillis();
   }
@@ -226,7 +226,7 @@ export async function getAllSavedSongs(userId: string): Promise<Song[]> {
   return cloudSongs.sort((a, b) => {
     if (a.source === 'user' && b.source !== 'user') return -1;
     if (a.source !== 'user' && b.source === 'user') return 1;
-    return (b.updatedAt?.getTime() || 0) - (a.updatedAt?.getTime() || 0);
+    return (toMillisSafe(b.updatedAt) || 0) - (toMillisSafe(a.updatedAt) || 0);
   });
 }
 
@@ -252,27 +252,6 @@ export async function uploadSongToCloud(song: Song): Promise<void> {
     throw new Error('Failed to upload song to the cloud.');
   }
 }
-
-const songFromDoc = (doc: any): Song => {
-  const data = doc.data();
-  const updatedAt = data.updatedAt;
-  return {
-    id: doc.id,
-    title: data.title,
-    artist: data.artist,
-    lyrics: data.lyrics,
-    originalKey: data.originalKey,
-    bpm: data.bpm,
-    timeSignature: data.timeSignature,
-    url: data.url,
-    userId: data.userId,
-    uploaderName: data.uploaderName,
-    uploaderEmail: data.uploaderEmail,
-    source: data.source,
-    downloadCount: data.downloadCount || 0,
-    updatedAt: updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
-  };
-};
 
 export async function getAllCloudSongs(): Promise<Song[]> {
   if (!firestoreDb) throw new Error('Firebase is not configured.');
@@ -336,7 +315,7 @@ export async function saveSetlist(setlist: Partial<Setlist>): Promise<string> {
   if (!dataToSave.firestoreId) {
     dataToSave.firestoreId = docId;
   }
-  
+
   await setDoc(
     docRef,
     { ...dataToSave, updatedAt: serverTimestamp() },
@@ -346,9 +325,7 @@ export async function saveSetlist(setlist: Partial<Setlist>): Promise<string> {
   return docRef.id;
 }
 
-export async function getSetlists(
-  userId: string
-): Promise<Setlist[]> {
+export async function getSetlists(userId: string): Promise<Setlist[]> {
   if (!firestoreDb) return [];
 
   const q = query(
@@ -371,7 +348,7 @@ export async function getSetlists(
       updatedAt: toMillisSafe(data.updatedAt),
     });
   });
-
+  console.log('setlists', setlists);
   return setlists;
 }
 
