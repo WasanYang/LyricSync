@@ -7,6 +7,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter } from '@/i18n/navigation';
 import dynamic from 'next/dynamic';
 import { NotificationBell } from './NotificationBell';
+import LocalsLink from './ui/LocalsLink';
 
 const HamburgerMenu = dynamic(() => import('./HamburgerMenu'), {
   ssr: false,
@@ -32,7 +33,7 @@ export default function Header() {
       <div className='flex h-16 items-center justify-between px-4'>
         {/* Title */}
         <div className='flex items-center'>
-          <Link href='/' className='flex items-center space-x-2'>
+          <LocalsLink href='/' className='flex items-center space-x-2'>
             <Image
               src='/icons/logo-72.webp'
               alt='LyricSync'
@@ -48,7 +49,7 @@ export default function Header() {
                 {t('welcome.desc')}
               </span>
             </div>
-          </Link>
+          </LocalsLink>
         </div>
 
         {/* Right side actions */}

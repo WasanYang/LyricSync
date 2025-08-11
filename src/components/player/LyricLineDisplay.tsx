@@ -30,7 +30,10 @@ const parseRichLyrics = (
   while ((match = regex.exec(line)) !== null) {
     // Text before the current match
     if (match.index > lastIndex) {
-      parts.push({ type: 'text', content: line.substring(lastIndex, match.index) });
+      parts.push({
+        type: 'text',
+        content: line.substring(lastIndex, match.index),
+      });
     }
 
     const matchedContent = match[0];
@@ -52,14 +55,13 @@ const parseRichLyrics = (
   if (lastIndex < line.length) {
     parts.push({ type: 'text', content: line.substring(lastIndex) });
   }
-  
+
   if (parts.length === 0) {
     return [{ type: 'text', content: line }];
   }
 
   return parts;
 };
-
 
 export default function LyricLineDisplay({
   line,
@@ -75,7 +77,7 @@ export default function LyricLineDisplay({
     () => parsedLine.some((p) => p.type === 'chord'),
     [parsedLine]
   );
-  
+
   const cleanLyricText = useMemo(
     () =>
       parsedLine
@@ -86,7 +88,6 @@ export default function LyricLineDisplay({
         .trimStart(),
     [parsedLine]
   );
-
 
   if (!showChords && !hasChords) {
     return <p style={{ fontWeight }}>{cleanLyricText}</p>;
@@ -100,41 +101,68 @@ export default function LyricLineDisplay({
           style={{
             color: chordColor,
           }}
-          className="whitespace-pre"
+          className='whitespace-pre'
         >
           {parsedLine.map((part, index) => {
-             if (part.type === 'chord') {
-               const transposed = part.content.split(/(\s*\|\s*)/).map(segment => {
+            if (part.type === 'chord') {
+              const transposed = part.content
+                .split(/(\s*\|\s*)/)
+                .map((segment) => {
                   if (segment.trim() === '|' || segment.includes('|')) {
-                     return segment;
+                    return segment;
                   }
                   const trimmedSegment = segment.trim();
                   if (trimmedSegment) {
                     return transposeChord(trimmedSegment, transpose);
                   }
                   return segment;
-               }).join('');
-               return <span key={`chord-${index}`}>{transposed}</span>
-             }
-             if (part.type === 'text') {
-                return <span key={`chord-pad-${index}`} className="invisible" style={{fontWeight}}>{part.content}</span>
-             }
-             if (part.type === 'comment') {
-                return <span key={`chord-pad-${index}`} className="invisible" style={{fontWeight}}>{part.content}</span>
-             }
-             return null;
+                })
+                .join('');
+              return <span key={`chord-${index}`}>{transposed}</span>;
+            }
+            if (part.type === 'text') {
+              return (
+                <span
+                  key={`chord-pad-${index}`}
+                  className='invisible'
+                  style={{ fontWeight }}
+                >
+                  {part.content}
+                </span>
+              );
+            }
+            // if (part.type === 'comment') {
+            //   return (
+            //     <span
+            //       key={`chord-pad-${index}`}
+            //       className='invisible'
+            //       style={{ fontWeight }}
+            //     >
+            //       {part.content}
+            //     </span>
+            //   );
+            // }
+            return null;
           })}
         </div>
       )}
 
       {/* Lyric Line */}
-      <div style={{ fontWeight }} className="whitespace-pre">
+      <div style={{ fontWeight }} className='whitespace-pre'>
         {parsedLine.map((part, index) => {
-          if(part.type === 'text') {
-            return <span key={`text-${index}`}>{part.content}</span>
+          if (part.type === 'text') {
+            return <span key={`text-${index}`}>{part.content}</span>;
           }
-          if(part.type === 'comment') {
-            return <span key={`comment-${index}`} style={{color: inlineCommentColor}} className="italic">{part.content}</span>
+          if (part.type === 'comment') {
+            return (
+              <span
+                key={`comment-${index}`}
+                style={{ color: inlineCommentColor }}
+                className='italic'
+              >
+                {part.content}
+              </span>
+            );
           }
           return null;
         })}

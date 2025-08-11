@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
+import LocalsLink from '@/components/ui/LocalsLink';
 
 function UserProfileSkeleton() {
   return (
@@ -45,7 +46,10 @@ function SetlistCard({ setlist }: { setlist: Setlist }) {
   const songCount = setlist.songIds.length;
   const t = useTranslations('setlist');
   return (
-    <Link href={`/shared/setlists/${setlist.firestoreId}`} className='block'>
+    <LocalsLink
+      href={`/shared/setlists/${setlist.firestoreId}`}
+      className='block'
+    >
       <Card className='hover:bg-muted/50 transition-colors'>
         <CardContent className='p-4 flex items-center gap-4'>
           <div className='p-3 bg-muted rounded-md'>
@@ -61,7 +65,7 @@ function SetlistCard({ setlist }: { setlist: Setlist }) {
           </div>
         </CardContent>
       </Card>
-    </Link>
+    </LocalsLink>
   );
 }
 

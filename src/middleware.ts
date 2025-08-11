@@ -8,7 +8,15 @@ const defaultLocale = 'th';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // ถ้า path ไม่มี locale prefix และไม่ใช่ path ที่ matcher กันไว้
+  let currentLocale =
+    request.cookies.get('NEXT_LOCALE')?.value ||
+    request.headers.get('accept-language')?.split(',')[0]?.split('-')[0] ||
+    defaultLocale;
+
+  if (!locales.includes(currentLocale)) {
+    currentLocale = defaultLocale;
+  }
+
   const hasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
   );

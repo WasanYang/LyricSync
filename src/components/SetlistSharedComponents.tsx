@@ -2,6 +2,7 @@ import type { Song } from '@/lib/songs';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
+import LocalsLink from './ui/LocalsLink';
 
 interface SongItemProps {
   song: Song;
@@ -10,7 +11,7 @@ interface SongItemProps {
 
 export function SongItem({ song, linkPrefix = '/lyrics' }: SongItemProps) {
   return (
-    <Link
+    <LocalsLink
       href={`${linkPrefix}/${song.id}`}
       className='flex items-center space-x-4 p-3 rounded-lg hover:bg-muted/50 transition-colors'
     >
@@ -31,7 +32,7 @@ export function SongItem({ song, linkPrefix = '/lyrics' }: SongItemProps) {
       <div className='text-sm text-muted-foreground'>
         Key: {song.originalKey || 'N/A'}
       </div>
-    </Link>
+    </LocalsLink>
   );
 }
 

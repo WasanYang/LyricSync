@@ -1,4 +1,3 @@
-
 export type LyricLine = {
   measures: number; // Number of measures this line lasts for
   text: string; // Chords can be embedded like [Am]this.

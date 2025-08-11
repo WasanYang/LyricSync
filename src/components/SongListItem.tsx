@@ -20,6 +20,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { Song } from '@/lib/songs';
+import LocalsLink from './ui/LocalsLink';
 
 interface SongListItemProps {
   song: Song;
@@ -30,12 +31,12 @@ export default function SongListItem({ song, onDelete }: SongListItemProps) {
   return (
     <li className='flex items-center p-3 rounded-lg bg-muted/50 transition-colors hover:bg-muted/80 group'>
       <div className='flex-grow'>
-        <Link
+        <LocalsLink
           href={`/lyrics/${song.id}`}
           className='font-semibold hover:underline'
         >
           {song.title}
-        </Link>
+        </LocalsLink>
         <p className='text-sm text-muted-foreground'>{song.artist}</p>
       </div>
       <div className='flex items-center gap-1'>
@@ -43,9 +44,9 @@ export default function SongListItem({ song, onDelete }: SongListItemProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button asChild variant='ghost' size='icon'>
-                <Link href={`/lyrics/${song.id}/player`}>
+                <LocalsLink href={`/lyrics/${song.id}/player`}>
                   <Eye className='h-4 w-4' />
-                </Link>
+                </LocalsLink>
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -56,9 +57,9 @@ export default function SongListItem({ song, onDelete }: SongListItemProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button asChild variant='ghost' size='icon'>
-                <Link href={`/song-editor?mode=cloud&id=${song.id}`}>
+                <LocalsLink href={`/song-editor?mode=cloud&id=${song.id}`}>
                   <Edit className='h-4 w-4' />
-                </Link>
+                </LocalsLink>
               </Button>
             </TooltipTrigger>
             <TooltipContent>

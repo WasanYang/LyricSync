@@ -12,6 +12,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { HowToInstallEN, HowToInstallTH } from './component/HowToInstall';
 import { FeatureCard } from './component/FeatureCard';
 import { usePathname, useRouter } from '@/i18n/navigation';
+import LocalsLink from '@/components/ui/LocalsLink';
 
 export default function WelcomePage() {
   const t = useTranslations('welcome');
@@ -124,14 +125,14 @@ export default function WelcomePage() {
           {!user && (
             <section className='text-center mt-16 sm:mt-24'>
               <Button asChild size='lg'>
-                <Link href='/login'>{t('getStarted')}</Link>
+                <LocalsLink href='/login'>{t('getStarted')}</LocalsLink>
               </Button>
             </section>
           )}
 
           <section className='text-center mt-4 mb-6'>
             <Button asChild variant='outline' size='lg'>
-              <Link href='/'>{t('backToHome')}</Link>
+              <LocalsLink href='/'>{t('backToHome')}</LocalsLink>
             </Button>
           </section>
         </main>

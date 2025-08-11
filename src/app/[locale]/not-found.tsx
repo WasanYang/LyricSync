@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Home } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import LocalsLink from '@/components/ui/LocalsLink';
 
 export default function NotFound() {
   const t = useTranslations('notFound');
@@ -33,9 +34,9 @@ export default function NotFound() {
           <p className='mt-2 text-muted-foreground'>{t('desc')}</p>
           <div className='mt-6'>
             <Button asChild size='lg'>
-              <Link href='/'>
+              <LocalsLink href='/'>
                 <Home className='mr-2 h-4 w-4' /> {t('backHome')}
-              </Link>
+              </LocalsLink>
             </Button>
           </div>
         </div>

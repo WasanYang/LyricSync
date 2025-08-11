@@ -22,6 +22,7 @@ import {
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import type { Song } from '@/lib/songs';
+import LocalsLink from '../ui/LocalsLink';
 
 interface SongListItemProps {
   song: Song;
@@ -54,13 +55,13 @@ export default function SongListItem({ song, onDelete }: SongListItemProps) {
   return (
     <TableRow className='hover:bg-muted/50'>
       <TableCell className='font-medium max-w-0'>
-        <Link
+        <LocalsLink
           href={`/lyrics/${song.id}`}
           className='hover:underline text-blue-600 hover:text-blue-800 block truncate'
           title={song.title}
         >
           {song.title}
-        </Link>
+        </LocalsLink>
       </TableCell>
       <TableCell className='hidden md:table-cell max-w-0'>
         <div className='truncate' title={song.artist}>
@@ -84,9 +85,9 @@ export default function SongListItem({ song, onDelete }: SongListItemProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button asChild variant='ghost' size='sm'>
-                  <Link href={`/lyrics/${song.id}/player`}>
+                  <LocalsLink href={`/lyrics/${song.id}/player`}>
                     <Play className='h-3 w-3' />
-                  </Link>
+                  </LocalsLink>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -97,9 +98,9 @@ export default function SongListItem({ song, onDelete }: SongListItemProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button asChild variant='ghost' size='sm'>
-                  <Link href={`/song-editor?mode=cloud&id=${song.id}`}>
+                  <LocalsLink href={`/song-editor?mode=cloud&id=${song.id}`}>
                     <Edit className='h-3 w-3' />
-                  </Link>
+                  </LocalsLink>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>

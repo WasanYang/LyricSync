@@ -6,6 +6,7 @@ import SongStatusButton from '@/components/SongStatusButton';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
 import { Download } from 'lucide-react';
+import LocalsLink from '@/components/ui/LocalsLink';
 
 export default function SongListItem({ song }: { song: Song }) {
   const { user } = useAuth();
@@ -20,7 +21,7 @@ export default function SongListItem({ song }: { song: Song }) {
 
   return (
     <div className={cn('group')}>
-      <Link
+      <LocalsLink
         href={previewUrl || `/lyrics/${song.id}`}
         className='flex items-center space-x-3 p-2 rounded-lg transition-colors duration-200 hover:bg-muted/50'
       >
@@ -55,7 +56,7 @@ export default function SongListItem({ song }: { song: Song }) {
         >
           <SongStatusButton song={song} />
         </div>
-      </Link>
+      </LocalsLink>
     </div>
   );
 }

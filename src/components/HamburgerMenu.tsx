@@ -38,6 +38,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import Image from 'next/image';
+import LocalsLink from './ui/LocalsLink';
 
 // label จะถูกแปลใน component
 const navLinks = [
@@ -79,7 +80,7 @@ export default function HamburgerMenu() {
         <SheetContent side='right' className='w-[300px] p-0'>
           <SheetHeader className='p-4 border-b'>
             <SheetTitle className='sr-only'>Main Menu</SheetTitle>
-            <Link href='/' className='flex items-center space-x-2'>
+            <LocalsLink href='/' className='flex items-center space-x-2'>
               <Image
                 src='/icons/logo-72.webp'
                 alt='Logo'
@@ -95,7 +96,7 @@ export default function HamburgerMenu() {
                   {t('welcome.descShort')}
                 </span>
               </div>
-            </Link>
+            </LocalsLink>
           </SheetHeader>
           <div
             className={cn(
@@ -107,7 +108,7 @@ export default function HamburgerMenu() {
             <nav className='flex flex-col space-y-2'>
               {navLinks.map((link) => (
                 <SheetClose asChild key={link.href}>
-                  <Link
+                  <LocalsLink
                     href={link.href}
                     className={cn(
                       'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
@@ -118,7 +119,7 @@ export default function HamburgerMenu() {
                   >
                     <link.icon className='h-5 w-5' />
                     <span>{t(link.key)}</span>
-                  </Link>
+                  </LocalsLink>
                 </SheetClose>
               ))}
             </nav>
@@ -128,7 +129,7 @@ export default function HamburgerMenu() {
                 <nav className='flex flex-col space-y-2'>
                   {mobileOnlyLinks.map((link) => (
                     <SheetClose asChild key={link.href}>
-                      <Link
+                      <LocalsLink
                         href={link.href}
                         className={cn(
                           'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
@@ -139,7 +140,7 @@ export default function HamburgerMenu() {
                       >
                         <link.icon className='h-5 w-5' />
                         <span>{t(link.key)}</span>
-                      </Link>
+                      </LocalsLink>
                     </SheetClose>
                   ))}
                 </nav>
@@ -150,13 +151,13 @@ export default function HamburgerMenu() {
               <>
                 <Separator />
                 <SheetClose asChild>
-                  <Link
+                  <LocalsLink
                     href='/profile'
                     className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                   >
                     <UserCircle className='h-5 w-5' />
                     <span>{t('profile.title')}</span>
-                  </Link>
+                  </LocalsLink>
                 </SheetClose>
                 {isSuperAdmin && (
                   <>
@@ -165,49 +166,49 @@ export default function HamburgerMenu() {
                       Admin
                     </p>
                     <SheetClose asChild>
-                      <Link
+                      <LocalsLink
                         href='/dashboard/songs'
                         className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                       >
                         <Database className='h-5 w-5' />
                         <span>{t('cloudSongs')}</span>
-                      </Link>
+                      </LocalsLink>
                     </SheetClose>
                     <SheetClose asChild>
-                      <Link
+                      <LocalsLink
                         href='/dashboard/user-uploads'
                         className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                       >
                         <Users className='h-5 w-5' />
                         <span>{t('userUploads')}</span>
-                      </Link>
+                      </LocalsLink>
                     </SheetClose>
                     <SheetClose asChild>
-                      <Link
+                      <LocalsLink
                         href='/dashboard/user-setlists'
                         className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                       >
                         <ListMusic className='h-5 w-5' />
                         <span>{t('userSetlists')}</span>
-                      </Link>
+                      </LocalsLink>
                     </SheetClose>
                     <SheetClose asChild>
-                      <Link
+                      <LocalsLink
                         href='/dashboard/notifications'
                         className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                       >
                         <MessageSquarePlus className='h-5 w-5' />
                         <span>{t('notifications.title')}</span>
-                      </Link>
+                      </LocalsLink>
                     </SheetClose>
                     <SheetClose asChild>
-                      <Link
+                      <LocalsLink
                         href='/dashboard/users'
                         className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                       >
                         <Users className='h-5 w-5' />
                         <span>{t('manageUsers')}</span>
-                      </Link>
+                      </LocalsLink>
                     </SheetClose>
                   </>
                 )}
@@ -226,22 +227,22 @@ export default function HamburgerMenu() {
               <>
                 <Separator />
                 <SheetClose asChild>
-                  <Link
+                  <LocalsLink
                     href='/login'
                     className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                   >
                     <LogIn className='h-5 w-5' />
                     <span>{t('login')}</span>
-                  </Link>
+                  </LocalsLink>
                 </SheetClose>
                 <SheetClose asChild>
-                  <Link
+                  <LocalsLink
                     href='/welcome'
                     className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
                   >
                     <Info className='h-5 w-5' />
                     <span>{t('aboutApp')}</span>
-                  </Link>
+                  </LocalsLink>
                 </SheetClose>
               </>
             )}
@@ -249,7 +250,7 @@ export default function HamburgerMenu() {
             <Separator />
 
             <SheetClose asChild>
-              <Link
+              <LocalsLink
                 href='/donate'
                 className={cn(
                   'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
@@ -260,7 +261,7 @@ export default function HamburgerMenu() {
               >
                 <HeartIcon className='h-5 w-5' />
                 <span>{t('donate.title')}</span>
-              </Link>
+              </LocalsLink>
             </SheetClose>
 
             <div className='flex items-center justify-between rounded-md px-3 py-2 text-base font-medium text-muted-foreground'>

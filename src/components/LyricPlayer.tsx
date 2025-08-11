@@ -88,8 +88,7 @@ const getInitialState = (settings: PlayerSettings): State => ({
   fontWeight: settings.fontWeight || 400,
   showChords: settings.showChords !== false, // default to true
   chordColor: 'hsl(var(--primary))',
-  inlineCommentColor:
-    settings.inlineCommentColor || 'hsl(var(--destructive))',
+  inlineCommentColor: settings.inlineCommentColor || 'hsl(var(--destructive))',
   highlightMode: settings.highlightMode || 'line',
   bpm: settings.bpm || 120,
   transpose: 0,
@@ -534,7 +533,7 @@ export default function LyricPlayer({
             style={{ fontSize: `${fontSize}px` }}
           >
             {processedLyrics.map((line, index) => {
-              const isComment = line.text.trim().startsWith('*');
+              const isComment = line.text.trim().startsWith('#');
               const isSectionHeader =
                 line.text.startsWith('(') && line.text.endsWith(')');
 
@@ -545,7 +544,7 @@ export default function LyricPlayer({
                     ref={(el) => {
                       lineRefs.current[index] = el;
                     }}
-                    className='pt-2 text-left'
+                    className='pb-2 text-left'
                   >
                     <p
                       className='text-muted-foreground italic'
@@ -575,9 +574,9 @@ export default function LyricPlayer({
                   </li>
                 );
               }
-              const hasText = line.text.replace(/\[[^\]]+\]/g, '').trim() !== '';
+              const hasText =
+                line.text.replace(/\[[^\]]+\]/g, '').trim() !== '';
               const hasChords = /\[[^\]]+\]/.test(line.text);
-              
 
               if (!showChords && !hasText && hasChords) {
                 return null;

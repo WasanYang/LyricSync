@@ -6,11 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  saveSong,
-  uploadSongToCloud,
-  getCloudSongById,
-} from '@/lib/db';
+import { saveSong, uploadSongToCloud, getCloudSongById } from '@/lib/db';
 import type { Song, LyricLine } from '@/lib/songs';
 import { ALL_NOTES } from '@/lib/chords';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -66,6 +62,7 @@ import {
   DrawerTitle,
 } from './ui/drawer';
 import Link from 'next/link';
+import LocalsLink from './ui/LocalsLink';
 
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
@@ -216,13 +213,13 @@ export default function SongCreator() {
           if (existingSong) {
             // Non-admins can't edit system songs, they can only edit their own user songs.
             if (existingSong.source === 'system' && !isSuperAdmin) {
-                 toast({
-                    title: 'Permission Denied',
-                    description: 'You cannot edit a system song.',
-                    variant: 'destructive',
-                });
-                router.push('/library');
-                return;
+              toast({
+                title: 'Permission Denied',
+                description: 'You cannot edit a system song.',
+                variant: 'destructive',
+              });
+              router.push('/library');
+              return;
             }
 
             form.reset({
@@ -375,7 +372,7 @@ export default function SongCreator() {
           You need to sign in to create a custom song.
         </p>
         <Button variant='link' asChild className='mt-2'>
-          <Link href='/login'>Sign In</Link>
+          <LocalsLink href='/login'>Sign In</LocalsLink>
         </Button>
       </div>
     );

@@ -21,6 +21,7 @@ import {
 } from '@/app/[locale]/(public)/welcome/component/HowToInstall';
 import type { User } from 'firebase/auth';
 import { PWAPromptCard } from './PWAInstallButton';
+import LocalsLink from './ui/LocalsLink';
 
 const WELCOME_CARD_DISMISSED_KEY = 'welcomeCardDismissed';
 
@@ -87,12 +88,12 @@ export default function WelcomeCard({ user }: { user: User | null }) {
                   </div>
                   <div className='flex flex-col sm:flex-row gap-4 justify-center'>
                     <Button size='lg' asChild>
-                      <Link href='/login'>
+                      <LocalsLink href='/login'>
                         <span role='img' aria-label='unlock' className='mr-2'>
                           🔓
                         </span>
                         {t('unlock')}
-                      </Link>
+                      </LocalsLink>
                     </Button>
                   </div>
                 </>
@@ -104,10 +105,10 @@ export default function WelcomeCard({ user }: { user: User | null }) {
                     className='justify-start'
                     asChild
                   >
-                    <Link href='/setlists'>
+                    <LocalsLink href='/my-setlists'>
                       <ListMusic className='mr-3 h-5 w-5' />
                       {t('mySetlists')}
-                    </Link>
+                    </LocalsLink>
                   </Button>
                   <Button
                     variant='outline'
@@ -115,10 +116,10 @@ export default function WelcomeCard({ user }: { user: User | null }) {
                     className='justify-start'
                     asChild
                   >
-                    <Link href='/library'>
+                    <LocalsLink href='/library'>
                       <Music className='mr-3 h-5 w-5' />
                       {t('myLibrary')}
-                    </Link>
+                    </LocalsLink>
                   </Button>
                 </div>
               )}
@@ -184,10 +185,10 @@ export default function WelcomeCard({ user }: { user: User | null }) {
         <section className='text-center'>
           <div className='flex flex-col sm:flex-row gap-4 justify-center'>
             <Button size='lg' asChild>
-              <Link href='/login'>{t('getStarted')}</Link>
+              <LocalsLink href='/login'>{t('getStarted')}</LocalsLink>
             </Button>
             <Button variant='outline' size='lg' asChild>
-              <Link href='/welcome'>{t('learnMore')}</Link>
+              <LocalsLink href='/welcome'>{t('learnMore')}</LocalsLink>
             </Button>
           </div>
         </section>

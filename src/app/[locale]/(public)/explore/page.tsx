@@ -16,11 +16,12 @@ import { pageSEOConfigs } from '@/lib/seo';
 import { useTranslations } from 'next-intl';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ListMusic } from 'lucide-react';
+import LocalsLink from '@/components/ui/LocalsLink';
 
 function UserCard({ user }: { user: PublicUser }) {
   const t = useTranslations('explore');
   return (
-    <Link href={`/users/${user.uid}`} className='block'>
+    <LocalsLink href={`/users/${user.uid}`} className='block'>
       <Card className='hover:bg-muted/50 transition-colors'>
         <CardContent className='p-4 flex items-center gap-4'>
           <Avatar className='h-12 w-12'>
@@ -42,7 +43,7 @@ function UserCard({ user }: { user: PublicUser }) {
           </div>
         </CardContent>
       </Card>
-    </Link>
+    </LocalsLink>
   );
 }
 

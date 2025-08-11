@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import './globals.css';
+import LocalsLink from '@/components/ui/LocalsLink';
 export default function NotFound() {
   const pathname = usePathname();
   // Detect locale from path
@@ -50,9 +51,9 @@ export default function NotFound() {
           <p className='mt-2 text-muted-foreground'>{t.desc}</p>
           <div className='mt-6'>
             <Button asChild size='lg'>
-              <Link href={locale === 'en' ? '/en' : '/'}>
+              <LocalsLink href={locale === 'en' ? '/en' : '/'}>
                 <Home className='mr-2 h-4 w-4' /> {t.backHome}
-              </Link>
+              </LocalsLink>
             </Button>
           </div>
         </div>

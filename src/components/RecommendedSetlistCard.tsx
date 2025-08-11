@@ -1,6 +1,7 @@
 import { Setlist } from '@/lib/db';
 import Link from 'next/link';
 import Image from 'next/image';
+import LocalsLink from './ui/LocalsLink';
 
 export default function RecommendedSetlistCard({
   setlist,
@@ -10,7 +11,7 @@ export default function RecommendedSetlistCard({
   const songCount = setlist.songIds.length;
 
   return (
-    <Link
+    <LocalsLink
       href={`/shared/setlists/${setlist.firestoreId}`}
       className='block group'
     >
@@ -36,6 +37,6 @@ export default function RecommendedSetlistCard({
           </p>
         </div>
       </div>
-    </Link>
+    </LocalsLink>
   );
 }

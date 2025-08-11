@@ -7,12 +7,13 @@ import { HomeIcon, SearchIcon } from '@/components/NavIcons';
 import { cn } from '@/lib/utils';
 import { ListMusic } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import LocalsLink from './ui/LocalsLink';
 
 const allNavLinks = [
   { href: '/', label: 'Home', icon: HomeIcon, isCustom: true },
   { href: '/search', label: 'Search', icon: SearchIcon, isCustom: true },
   { href: '/library', label: 'Library', icon: 'logo', isCustom: true }, // Special case for logo
-  { href: '/setlists', label: 'Setlists', icon: ListMusic, isCustom: false },
+  { href: '/my-setlists', label: 'Setlists', icon: ListMusic, isCustom: false },
 ];
 
 const unauthenticatedNavLinks = [
@@ -41,7 +42,7 @@ export default function BottomNavBar() {
             (link.href !== '/' && pathname.startsWith(link.href));
           const IconComponent = link.icon;
           return (
-            <Link
+            <LocalsLink
               key={link.href}
               href={link.href}
               className={cn(
@@ -68,7 +69,7 @@ export default function BottomNavBar() {
                 />
               )}
               <span>{link.label}</span>
-            </Link>
+            </LocalsLink>
           );
         })}
       </nav>

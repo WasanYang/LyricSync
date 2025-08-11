@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { BellRing } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import LocalsLink from '@/components/ui/LocalsLink';
 
 function NotificationItem({ notification }: { notification: AppNotification }) {
   return (
@@ -30,7 +31,7 @@ function NotificationItem({ notification }: { notification: AppNotification }) {
       </p>
       {notification.targetUrl && (
         <Button asChild variant='link' className='p-0 h-auto mt-2'>
-          <Link href={notification.targetUrl}>View Details</Link>
+          <LocalsLink href={notification.targetUrl}>View Details</LocalsLink>
         </Button>
       )}
     </div>

@@ -78,16 +78,13 @@ export function generateMetadata(config: SEOConfig): Metadata {
     alternates,
   } = config;
 
-  const fullTitle = title.includes(defaultSEOConfig.siteName)
-    ? title
-    : `${title} | ${defaultSEOConfig.siteName}`;
+  const fullTitle = title;
 
   const metadata: Metadata = {
     title: fullTitle,
     description,
     keywords: [...defaultSEOConfig.defaultKeywords, ...keywords].join(', '),
 
-    // Robots
     robots: {
       index: !noIndex,
       follow: !noFollow,
@@ -347,8 +344,10 @@ export const pageSEOConfigs = {
       },
     };
     const t = texts[locale] || texts.th;
+    const fullArtist = !song.artist ? 'unknown artist' : song.artist;
+    const fullTitle = `${song.title} - ${fullArtist}`;
     return {
-      title: `${song.title} - ${song.artist}`,
+      title: fullTitle,
       description: t.description,
       keywords: t.keywords,
       openGraph: {
@@ -368,7 +367,7 @@ export const pageSEOConfigs = {
       },
       twitter: {
         card: 'summary_large_image',
-        title: `${song.title} - ${song.artist}`,
+        title: fullTitle,
         description: t.description,
         images: [`${defaultSEOConfig.siteUrl}/${locale}/icons/logo-512.webp`],
       },
@@ -385,7 +384,7 @@ export const pageSEOConfigs = {
         name: song.title,
         composer: {
           '@type': 'Person',
-          name: song.artist,
+          name: fullArtist,
         },
         musicalKey: song.originalKey,
         lyrics: song.lyrics

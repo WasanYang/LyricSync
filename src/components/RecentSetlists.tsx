@@ -5,16 +5,17 @@ import { Button } from './ui/button';
 import Link from 'next/link';
 import { ChevronRight, ListMusic, Music } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import LocalsLink from './ui/LocalsLink';
 
 function RecentSetlistItem({ setlist }: { setlist: Setlist }) {
   const isOwner = setlist.source !== 'saved';
   const songCount = setlist.songIds.length;
   const linkHref = isOwner
-    ? `/setlists/${setlist.id}`
+    ? `/my-setlists/${setlist.id}`
     : `/shared/setlists/${setlist.firestoreId}`;
   const t = useTranslations('setlist');
   return (
-    <Link
+    <LocalsLink
       href={linkHref}
       className='block p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors'
     >
@@ -38,7 +39,7 @@ function RecentSetlistItem({ setlist }: { setlist: Setlist }) {
         </div>
         <ChevronRight className='h-5 w-5 text-muted-foreground' />
       </div>
-    </Link>
+    </LocalsLink>
   );
 }
 
@@ -73,7 +74,7 @@ export function RecentSetlists({
                   {t('recentSetlists')}
                 </h2>
                 <Button variant='link' asChild>
-                  <Link href='/setlists'>{t('viewAll')}</Link>
+                  <LocalsLink href='/my-setlists'>{t('viewAll')}</LocalsLink>
                 </Button>
               </div>
               <div className='space-y-2'>

@@ -1,14 +1,10 @@
-// src/app/[locale]/(guest)/setlists/[id]/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useParams, notFound, useRouter } from 'next/navigation';
 import type { Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
-import {
-  getSetlist as getSetlistFromDb,
-  getCloudSongById,
-} from '@/lib/db';
+import { getSetlist as getSetlistFromDb, getCloudSongById } from '@/lib/db';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -19,6 +15,7 @@ import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import { useTranslations } from 'next-intl';
+import LocalsLink from '@/components/ui/LocalsLink';
 
 function LoadingSkeleton() {
   return (
@@ -71,7 +68,7 @@ function SetlistDetailContent({
       try {
         setIsLoading(true);
         const loadedSetlist = await getSetlistFromDb(id);
-        
+        console.log('Loaded setlist:', loadedSetlist, id);
         if (loadedSetlist && loadedSetlist.userId === user.uid) {
           setSetlist(loadedSetlist);
           const songIds = loadedSetlist.songIds || [];
@@ -83,11 +80,7 @@ function SetlistDetailContent({
           if (loadedSongs.length === songIds.length) {
             setSongs(loadedSongs);
           } else {
-            console.log(
-              'loadedSongs',
-              loadedSongs.length,
-              songIds.length
-            );
+            console.log('loadedSongs', loadedSongs.length, songIds.length);
             toast({
               title: 'Error Loading Songs',
               description:
@@ -183,9 +176,9 @@ function SetlistDetailContent({
       </div>
       <div className='flex flex-wrap gap-2 justify-center'>
         <Button asChild size='lg'>
-          <Link href={`/setlists/${setlist.id}/player`}>
+          <LocalsLink href={`/my-setlists/${setlist.id}/player`}>
             <Play className='mr-2 h-5 w-5' /> {t('viewInPlayer')}
-          </Link>
+          </LocalsLink>
         </Button>
         {!isOwner && (
           <Button

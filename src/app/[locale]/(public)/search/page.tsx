@@ -17,11 +17,15 @@ import SearchCategory from './component/SearchCategory';
 import SongListItem from './component/SongListItem';
 import AlphabeticalIndex from './component/AlphabeticalIndex';
 import { useTranslations } from 'next-intl';
+import LocalsLink from '@/components/ui/LocalsLink';
 
 function SetlistCard({ setlist }: { setlist: Setlist }) {
   const songCount = setlist.songIds.length;
   return (
-    <Link href={`/shared/setlists/${setlist.firestoreId}`} className='block'>
+    <LocalsLink
+      href={`/shared/setlists/${setlist.firestoreId}`}
+      className='block'
+    >
       <Card className='hover:bg-muted/50 transition-colors'>
         <CardContent className='p-4 flex items-center gap-4'>
           <div className='p-3 bg-muted rounded-md'>
@@ -38,7 +42,7 @@ function SetlistCard({ setlist }: { setlist: Setlist }) {
           </div>
         </CardContent>
       </Card>
-    </Link>
+    </LocalsLink>
   );
 }
 

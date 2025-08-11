@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import LocalsLink from '@/components/ui/LocalsLink';
 
 export default function AdminNotificationsListPage() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -99,10 +100,10 @@ export default function AdminNotificationsListPage() {
           <div className='flex justify-between items-center'>
             <h1 className='text-3xl font-bold font-headline'>Notifications</h1>
             <Button asChild>
-              <Link href='/dashboard/notifications/create'>
+              <LocalsLink href='/dashboard/notifications/create'>
                 <PlusCircle className='mr-2 h-4 w-4' />
                 Create Notification
-              </Link>
+              </LocalsLink>
             </Button>
           </div>
           <div className='border rounded-lg'>
@@ -140,11 +141,11 @@ export default function AdminNotificationsListPage() {
                       </TableCell>
                       <TableCell className='text-right'>
                         <Button asChild variant='ghost' size='icon'>
-                          <Link
+                          <LocalsLink
                             href={`/dashboard/notifications/edit/${notif.id}`}
                           >
                             <Edit className='h-4 w-4' />
-                          </Link>
+                          </LocalsLink>
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>

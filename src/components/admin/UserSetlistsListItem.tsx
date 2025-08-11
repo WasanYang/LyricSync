@@ -11,6 +11,7 @@ import {
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import type { Setlist } from '@/lib/db';
+import LocalsLink from '../ui/LocalsLink';
 
 interface UserSetlistsListItemProps {
   setlist: Setlist;
@@ -31,13 +32,13 @@ export default function UserSetlistsListItem({
   return (
     <TableRow className='hover:bg-muted/50'>
       <TableCell className='font-medium max-w-0'>
-        <Link
+        <LocalsLink
           href={`/shared/setlists/${setlist.firestoreId}`}
           className='hover:underline text-blue-600 hover:text-blue-800 block truncate'
           title={setlist.title}
         >
           {setlist.title}
-        </Link>
+        </LocalsLink>
       </TableCell>
       <TableCell className='hidden md:table-cell'>
         <Badge variant='outline' className='text-xs'>
@@ -59,9 +60,11 @@ export default function UserSetlistsListItem({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button asChild variant='ghost' size='sm'>
-                  <Link href={`/shared/setlists/${setlist.firestoreId}/player`}>
+                  <LocalsLink
+                    href={`/shared/setlists/${setlist.firestoreId}/player`}
+                  >
                     <Play className='h-3 w-3' />
-                  </Link>
+                  </LocalsLink>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>

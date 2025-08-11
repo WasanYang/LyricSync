@@ -69,6 +69,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import Link from 'next/link';
+import LocalsLink from './ui/LocalsLink';
 
 const setlistFormSchema = z.object({
   title: z.string().min(1, 'Setlist title is required.'),
@@ -252,7 +253,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
             description: 'The requested setlist could not be found.',
             variant: 'destructive',
           });
-          router.push('/setlists');
+          router.push('/my-setlists');
         }
       } catch (error) {
         console.error('Error fetching setlist data', error);
@@ -382,7 +383,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
       authorName:
         existingSetlist?.authorName || user.displayName || 'Anonymous',
       isPublic: existingSetlist?.isPublic || false,
-      syncedAt: existingSetlist?.syncedAt,
+      // syncedAt: existingSetlist?.syncedAt,
     };
 
     try {
@@ -398,7 +399,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
         form.reset({ title: newSetlist.title });
         // The selectedSongs state is already up-to-date
       } else {
-        router.push('/setlists');
+        router.push('/my-setlists');
       }
     } catch (error) {
       toast({
@@ -423,7 +424,7 @@ export default function SetlistCreator({ setlistId }: SetlistCreatorProps) {
           You need to sign in to create a setlist.
         </p>
         <Button variant='link' asChild className='mt-2'>
-          <Link href='/login'>Sign In</Link>
+          <LocalsLink href='/login'>Sign In</LocalsLink>
         </Button>
       </div>
     );

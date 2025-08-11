@@ -23,6 +23,7 @@ import { SongList } from '@/components/admin';
 import { EmptyState, SearchInput, LoadingSkeleton } from '@/components/shared';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import LocalsLink from '@/components/ui/LocalsLink';
 
 const PAGE_SIZE = 10;
 
@@ -181,10 +182,10 @@ export default function AdminSongsPage() {
               System Song Database
             </h1>
             <Button asChild>
-              <Link href='/song-editor?mode=cloud'>
+              <LocalsLink href='/song-editor?mode=cloud'>
                 <PlusCircle className='mr-2 h-4 w-4' />
                 Create New Song
-              </Link>
+              </LocalsLink>
             </Button>
           </div>
 

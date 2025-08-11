@@ -35,6 +35,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import LocalsLink from '@/components/ui/LocalsLink';
 
 function StatCard({
   icon: Icon,
@@ -50,7 +51,7 @@ function StatCard({
   href: string;
 }) {
   return (
-    <Link href={href} className='block'>
+    <LocalsLink href={href} className='block'>
       <Card className='hover:bg-muted/80 transition-colors'>
         <CardContent className='p-4 flex items-center justify-between'>
           <div className='flex items-center gap-4'>
@@ -71,7 +72,7 @@ function StatCard({
           <ChevronRight className='h-5 w-5 text-muted-foreground' />
         </CardContent>
       </Card>
-    </Link>
+    </LocalsLink>
   );
 }
 
@@ -367,7 +368,7 @@ export default function ProfilePage() {
                     title={t('mySetlists')}
                     value={setlistCount}
                     isLoading={isLoadingStats}
-                    href='/setlists'
+                    href='/my-setlists'
                   />
                 </div>
               </div>

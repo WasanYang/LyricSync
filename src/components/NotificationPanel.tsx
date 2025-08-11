@@ -14,6 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { SheetTitle } from './ui/sheet';
+import LocalsLink from './ui/LocalsLink';
 
 function PanelNotificationItem({
   notification,
@@ -36,9 +37,9 @@ function PanelNotificationItem({
 
   if (notification.targetUrl) {
     return (
-      <Link href={notification.targetUrl} onClick={onClose}>
+      <LocalsLink href={notification.targetUrl} onClick={onClose}>
         {content}
-      </Link>
+      </LocalsLink>
     );
   }
   return content;
@@ -106,9 +107,9 @@ export function NotificationPanel({ onClose }: { onClose: () => void }) {
           <Check className='mr-2 h-4 w-4' /> {t('markAllAsRead')}
         </Button>
         <Button asChild size='sm' className='w-full'>
-          <Link href='/updates' onClick={onClose}>
+          <LocalsLink href='/updates' onClick={onClose}>
             {t('viewAll')}
-          </Link>
+          </LocalsLink>
         </Button>
       </footer>
     </div>

@@ -3,6 +3,7 @@
 import { Zap, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from './ui/button';
+import LocalsLink from './ui/LocalsLink';
 
 export default function PremiumCard() {
   return (
@@ -26,9 +27,9 @@ export default function PremiumCard() {
           asChild
           className='bg-white text-primary hover:bg-white/90 flex-shrink-0 w-full sm:w-auto'
         >
-          <Link href='/premium'>
+          <LocalsLink href='/premium'>
             Upgrade Now <ArrowRight className='h-4 w-4 ml-2' />
-          </Link>
+          </LocalsLink>
         </Button>
       </div>
     </div>

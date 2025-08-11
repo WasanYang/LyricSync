@@ -1,7 +1,7 @@
 // src/components/SongDetail.tsx
 'use client';
 
-import type { LyricLine, Song } from '@/lib/songs';
+import { type LyricLine, type Song } from '@/lib/songs';
 import { useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import AlbumArt from './ui/AlbumArt';
@@ -30,6 +30,8 @@ import { useToast } from '@/hooks/use-toast';
 import { notFound } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { PlatformIcons } from './ui/PlatformIcons';
+import { getLyricPreview } from '@/helpers/songFormat';
+import LocalsLink from './ui/LocalsLink';
 
 function LoadingSkeleton() {
   return (
@@ -56,36 +58,6 @@ function LoadingSkeleton() {
     </div>
   );
 }
-
-const parseLyrics = (line: string) => {
-  return line
-    .replace(/\[[^\]]+\]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-};
-
-const getLyricPreview = (lyrics: LyricLine[], isExpanded: boolean) => {
-  let content = '';
-  let lineCount = 0;
-  const maxLines = isExpanded ? lyrics.length : 4;
-
-  for (const line of lyrics) {
-    if (line.text.startsWith('(')) {
-      content += `${line.text}\n`;
-      continue;
-    }
-    const textOnly = parseLyrics(line.text);
-    if (textOnly) {
-      content += textOnly + '\n';
-      lineCount++;
-      if (lineCount >= maxLines) {
-        if (!isExpanded) content += '...';
-        break;
-      }
-    }
-  }
-  return content.trim();
-};
 
 export interface SongDetailProps {
   songId: string;
@@ -221,10 +193,10 @@ export function SongDetail({
               <div className='flex flex-wrap items-center justify-center gap-2 pt-4 sm:justify-start'>
                 {showPlayerLink && (
                   <Button asChild size='lg'>
-                    <Link href={url}>
+                    <LocalsLink href={url}>
                       <Play className='mr-2 h-5 w-5' />
                       {t('viewInPlayer')}
-                    </Link>
+                    </LocalsLink>
                   </Button>
                 )}
                 <div className='flex items-center gap-1'>

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Separator } from './ui/separator';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
+import LocalsLink from './ui/LocalsLink';
 
 const FooterLink = ({
   href,
@@ -15,13 +16,13 @@ const FooterLink = ({
   target?: string;
 }) => (
   <li>
-    <Link
+    <LocalsLink
       href={href}
       target={target}
       className='text-sm text-muted-foreground hover:text-foreground transition-colors'
     >
       {children}
-    </Link>
+    </LocalsLink>
   </li>
 );
 
@@ -32,7 +33,7 @@ export default function Footer() {
       <div className='max-w-7xl mx-auto px-8 py-12'>
         <div className='grid grid-cols-1 lg:grid-cols-5 gap-8'>
           <div className='lg:col-span-2'>
-            <Link href='/' className='flex items-center space-x-2 mb-4'>
+            <LocalsLink href='/' className='flex items-center space-x-2 mb-4'>
               <Image
                 src='/icons/logo-72.webp'
                 alt='Logo'
@@ -41,7 +42,7 @@ export default function Footer() {
                 className='rounded-md'
               />
               <span className='font-bold font-headline text-lg'>LyricSync</span>
-            </Link>
+            </LocalsLink>
             <p className='text-sm text-muted-foreground'>{t('longDesc')}</p>
           </div>
 
@@ -53,7 +54,7 @@ export default function Footer() {
               <ul className='space-y-3'>
                 <FooterLink href='/welcome'>{t('about')}</FooterLink>
                 <FooterLink href='/search'>{t('searchAndSetlists')}</FooterLink>
-                <FooterLink href='/setlists'>{t('mySetlists')}</FooterLink>
+                <FooterLink href='/my-setlists'>{t('mySetlists')}</FooterLink>
                 <FooterLink href='/song-editor'>
                   {t('welcome.myLibrary')}
                 </FooterLink>

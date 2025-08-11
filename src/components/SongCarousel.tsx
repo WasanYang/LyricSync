@@ -4,6 +4,7 @@ import { Skeleton } from './ui/skeleton';
 import { Carousel, CarouselContent, CarouselItem } from './ui/carousel';
 import Link from 'next/link';
 import SongCard from './SongCard';
+import LocalsLink from './ui/LocalsLink';
 
 export function SongCarousel({
   songs,
@@ -48,16 +49,9 @@ export function SongCarousel({
               key={song.id}
               className='basis-[45%] sm:basis-1/4 md:basis-1/5 pl-4'
             >
-              <Link
-                href={
-                  !user || user.isAnonymous
-                    ? `/shared/song/${song.id}`
-                    : `/lyrics/${song.id}`
-                }
-                className='block'
-              >
+              <LocalsLink href={`/shared/song/${song.id}`} className='block'>
                 <SongCard song={song} />
-              </Link>
+              </LocalsLink>
             </CarouselItem>
           ))}
         </CarouselContent>

@@ -1,4 +1,3 @@
-// src/app/setlists/shared/[id]/page.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -35,6 +34,7 @@ import {
   TooltipContent,
 } from '@/components/ui/tooltip';
 import { useTranslations } from 'next-intl';
+import LocalsLink from '@/components/ui/LocalsLink';
 
 function LoadingSkeleton() {
   return <SetlistSkeleton />;
@@ -208,9 +208,9 @@ function SharedSetlistContent() {
       // Should not happen often due to redirect, but as a fallback
       return (
         <Button asChild size='lg'>
-          <Link href={`/setlists/${id}/player`}>
+          <LocalsLink href={`/setlists/${id}/player`}>
             <Play className='mr-2 h-5 w-5' /> {t('viewInPlayer')}
-          </Link>
+          </LocalsLink>
         </Button>
       );
     }
@@ -219,9 +219,9 @@ function SharedSetlistContent() {
       <TooltipProvider>
         <div className='flex items-center gap-2'>
           <Button asChild size='lg'>
-            <Link href={`/shared/setlists/${id}/player`}>
+            <LocalsLink href={`/shared/setlists/${id}/player`}>
               <Play className='mr-2 h-5 w-5' /> {t('viewInPlayer')}
-            </Link>
+            </LocalsLink>
           </Button>
           {!isAnonymous && (
             <Tooltip>
