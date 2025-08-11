@@ -90,7 +90,7 @@ function SetlistItem({
     if (!isOwner) {
       icon = <Users className='h-5 w-5 text-purple-500 flex-shrink-0' />;
       tooltipText = t('setlist.savedFromTooltip', {
-        authorName: setlist.authorName,
+        authorName: setlist.authorName ?? '',
       });
     } else if (setlist.isPublic) {
       icon = <CheckCircle className='h-5 w-5 text-green-500 flex-shrink-0' />;
@@ -140,7 +140,9 @@ function SetlistItem({
             <p className='text-sm text-muted-foreground'>
               {isOwner
                 ? t('setlist.songCount', { count: songCount })
-                : t('setlist.byAuthor', { authorName: setlist.authorName })}
+                : t('setlist.byAuthor', {
+                    authorName: setlist.authorName ?? '',
+                  })}
             </p>
           </div>
         </Link>
@@ -262,10 +264,9 @@ export default function SetlistsPage() {
     setIsLoading(true);
     try {
       const loadedSetlists = await getSetlists(user.uid);
+      console.log('getSetlists', getSetlists);
       setSetlists(
-        loadedSetlists.sort(
-          (a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)
-        )
+        loadedSetlists.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
       );
     } catch (error) {
       console.error('Failed to load setlist data:', error);

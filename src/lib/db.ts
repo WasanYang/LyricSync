@@ -1,7 +1,6 @@
 // src/lib/db.ts
 import {
   collection,
-  addDoc,
   getDocs,
   query,
   where,
@@ -13,8 +12,6 @@ import {
   updateDoc,
   setDoc,
   orderBy,
-  limit,
-  startAfter,
   Timestamp,
   getCountFromServer,
   runTransaction,
@@ -23,7 +20,7 @@ import {
 import { db as firestoreDb } from './firebase';
 import type { Song as SongType } from './songs';
 import type { User as UserType } from './types/database';
-import { indexedDBManager } from './indexed-db-utils';
+import { v4 as uuidv4 } from 'uuid';
 
 export type Song = SongType;
 export type User = UserType;
@@ -59,6 +56,20 @@ export interface PublicUser {
 }
 
 // --- Song Functions ---
+
+function toMillisSafe(ts: unknown): number {
+  if (ts && typeof (ts as { toMillis?: Function }).toMillis === 'function') {
+    return (ts as { toMillis: () => number }).toMillis();
+  }
+  if (typeof ts === 'number') {
+    return ts;
+  }
+  if (typeof ts === 'string') {
+    const parsed = Date.parse(ts);
+    return isNaN(parsed) ? Date.now() : parsed;
+  }
+  return Date.now();
+}
 
 export async function saveSong(song: Song): Promise<void> {
   // Ensure there's a user and Firestore is available for cloud operations
@@ -315,7 +326,13 @@ export async function saveSetlist(setlist: Partial<Setlist>): Promise<string> {
     throw new Error('DB not init or user not found');
   const { id, ...dataToSave } = setlist;
   const docRef = doc(firestoreDb, 'setlists', id || uuidv4());
-
+  // console.log('dataToSave', dataToSave);
+  // ดักกรณี syncedAt เป็น undefined
+  if ('syncedAt' in dataToSave && dataToSave.syncedAt === undefined) {
+    delete dataToSave.syncedAt;
+    // หรือถ้าต้องการให้มี field นี้แต่ไม่มีค่า ให้ใช้ null
+    // dataToSave.syncedAt = null;
+  }
   await setDoc(
     docRef,
     { ...dataToSave, updatedAt: serverTimestamp() },
@@ -358,8 +375,8 @@ export async function getSetlists(
       needsSync: false,
       containsCustomSongs: false,
       ...(data as any),
-      createdAt: (data.createdAt as Timestamp)?.toMillis() || 0,
-      updatedAt: (data.updatedAt as Timestamp)?.toMillis() || 0,
+      createdAt: toMillisSafe(data.createdAt),
+      updatedAt: toMillisSafe(data.updatedAt),
     });
   });
 
@@ -372,8 +389,8 @@ export async function getSetlists(
       needsSync: false,
       containsCustomSongs: false,
       ...(data as any),
-      createdAt: (data.createdAt as Timestamp)?.toMillis() || 0,
-      updatedAt: (data.updatedAt as Timestamp)?.toMillis() || 0,
+      createdAt: toMillisSafe(data.createdAt),
+      updatedAt: toMillisSafe(data.updatedAt),
     });
   });
 
@@ -391,8 +408,8 @@ export async function getSetlist(id: string): Promise<Setlist | undefined> {
       id: docSnap.id,
       firestoreId: docSnap.id,
       ...data,
-      createdAt: (data.createdAt as Timestamp)?.toMillis() || 0,
-      updatedAt: (data.updatedAt as Timestamp)?.toMillis() || 0,
+      createdAt: toMillisSafe(data.createdAt),
+      updatedAt: toMillisSafe(data.updatedAt),
     } as Setlist;
   }
 
@@ -446,7 +463,7 @@ export async function getPublicSetlists(): Promise<Setlist[]> {
       title: data.title,
       songIds: data.songIds,
       userId: data.userId,
-      createdAt: syncedAt?.toMillis() || Date.now(),
+      createdAt: toMillisSafe(data.createdAt),
       isSynced: true,
       isPublic: true,
       authorName: data.authorName || 'Anonymous',
@@ -476,8 +493,8 @@ export async function getAllCloudSetlists(): Promise<Setlist[]> {
       title: data.title,
       songIds: data.songIds,
       userId: data.userId,
-      createdAt: syncedAt?.toMillis() || Date.now(),
-      updatedAt: syncedAt?.toMillis() || Date.now(),
+      createdAt: toMillisSafe(data.createdAt),
+      updatedAt: toMillisSafe(data.updatedAt),
       isSynced: true,
       isPublic: data.isPublic || false,
       authorName: data.authorName || 'Anonymous',
@@ -552,7 +569,7 @@ export async function getPublicSetlistsByUserId(
       title: data.title,
       songIds: data.songIds,
       userId: data.userId,
-      createdAt: syncedAt?.toMillis() || Date.now(),
+      createdAt: toMillisSafe(data.createdAt),
       isSynced: true,
       isPublic: true,
       authorName: data.authorName || 'Anonymous',
@@ -588,11 +605,11 @@ export async function getAllUsers(): Promise<User[]> {
     return {
       uid: userDoc.id,
       ...data,
-      createdAt: (data.createdAt as Timestamp)?.toDate() || new Date(),
-      updatedAt: (data.lastLoginAt as Timestamp)?.toDate() || new Date(),
+      createdAt: toMillisSafe(data.createdAt),
+      updatedAt: toMillisSafe(data.lastLoginAt),
       songsCount: songsCountSnapshot.data().count,
       setlistsCount: setlistsCountSnapshot.data().count,
-    } as User;
+    } as unknown as User;
   });
 
   return Promise.all(usersPromises);
@@ -612,8 +629,8 @@ export async function getUserSetlist(
     return {
       id: docSnap.id,
       ...data,
-      createdAt: (data.createdAt as Timestamp)?.toMillis() || 0,
-      updatedAt: (data.updatedAt as Timestamp)?.toMillis() || 0,
+      createdAt: toMillisSafe(data.createdAt),
+      updatedAt: toMillisSafe(data.updatedAt),
     } as Setlist;
   }
   return null;
@@ -638,8 +655,8 @@ export async function getSetlistByFirestoreId(
         title: data.title,
         songIds: data.songIds,
         userId: data.userId,
-        createdAt: syncedAt?.toMillis() || Date.now(),
-        updatedAt: syncedAt?.toMillis() || Date.now(),
+        createdAt: toMillisSafe(data.createdAt),
+        updatedAt: toMillisSafe(data.updatedAt),
         isSynced: true,
         isPublic: data.isPublic || false,
         authorName: data.authorName || 'Anonymous',

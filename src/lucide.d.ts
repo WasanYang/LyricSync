@@ -2,6 +2,7 @@
 declare module 'lucide-react' {
   import { FC, SVGProps } from 'react';
 
+  export const GripVertical: FC<SVGProps<SVGSVGElement>>;
   export const BellRing: FC<SVGProps<SVGSVGElement>>;
   export const Save: FC<SVGProps<SVGSVGElement>>;
   export const Expand: FC<SVGProps<SVGSVGElement>>;
