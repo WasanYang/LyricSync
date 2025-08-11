@@ -211,7 +211,11 @@ export async function getAllSavedSongs(userId: string): Promise<Song[]> {
     Boolean
   ) as Song[];
 
-  return cloudSongs;
+  return cloudSongs.sort((a, b) => {
+    if (a.source === 'user' && b.source !== 'user') return -1;
+    if (a.source !== 'user' && b.source === 'user') return 1;
+    return (b.updatedAt?.getTime() || 0) - (a.updatedAt?.getTime() || 0);
+  });
 }
 
 export async function uploadSongToCloud(song: Song): Promise<void> {
@@ -257,30 +261,6 @@ const songFromDoc = (doc: any): Song => {
     updatedAt: updatedAt instanceof Timestamp ? updatedAt.toDate() : new Date(),
   };
 };
-
-export async function getPaginatedSystemSongs(
-  page: number,
-  pageSize: number
-): Promise<{ songs: Song[]; totalPages: number }> {
-  if (!firestoreDb) throw new Error('Firebase is not configured.');
-
-  const songsCollection = collection(firestoreDb, 'songs');
-  const qBase = query(
-    songsCollection,
-    where('source', '==', 'system'),
-    orderBy('title')
-  );
-
-  const querySnapshot = await getDocs(qBase);
-  const allSongs: Song[] = querySnapshot.docs.map(songFromDoc);
-
-  const totalSongs = allSongs.length;
-  const totalPages = Math.ceil(totalSongs / pageSize);
-  const startIndex = (page - 1) * pageSize;
-  const songsForPage = allSongs.slice(startIndex, startIndex + pageSize);
-
-  return { songs: songsForPage, totalPages: totalPages };
-}
 
 export async function getAllCloudSongs(): Promise<Song[]> {
   if (!firestoreDb) throw new Error('Firebase is not configured.');
@@ -425,8 +405,8 @@ export async function getSetlistByFirestoreId(
         title: data.title,
         songIds: data.songIds,
         userId: data.userId,
-        createdAt: syncedAt.toMillis(),
-        updatedAt: syncedAt.toMillis(),
+        createdAt: syncedAt?.toMillis() || Date.now(),
+        updatedAt: syncedAt?.toMillis() || Date.now(),
         isSynced: true,
         isPublic: data.isPublic || false,
         authorName: data.authorName || 'Unknown',

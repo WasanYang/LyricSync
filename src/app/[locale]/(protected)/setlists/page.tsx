@@ -10,6 +10,7 @@ import {
   deleteSetlist,
   getSyncedSetlistsCount,
   syncSetlist as syncSetlistToCloud,
+  saveSetlist,
   type SetlistWithSyncStatus,
   type Setlist,
 } from '@/lib/db';
