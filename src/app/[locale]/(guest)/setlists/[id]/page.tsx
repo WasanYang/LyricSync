@@ -61,12 +61,6 @@ function SetlistDetailContent({
   const [isCopied, setIsCopied] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const findSong = async (songId: string): Promise<Song | undefined> => {
-    const cloudSong = await getCloudSongById(songId);
-    // Convert null to undefined for correct type
-    return cloudSong === null ? undefined : cloudSong;
-  };
-
   useEffect(() => {
     onLoadingChange?.(isLoading);
   }, [isLoading, onLoadingChange]);
@@ -77,9 +71,10 @@ function SetlistDetailContent({
       try {
         setIsLoading(true);
         const loadedSetlist = await getSetlistFromDb(id);
+        
         if (loadedSetlist && loadedSetlist.userId === user.uid) {
           setSetlist(loadedSetlist);
-          const songPromises = loadedSetlist.songIds.map(findSong);
+          const songPromises = loadedSetlist.songIds.map(getCloudSongById);
           const loadedSongs = (await Promise.all(songPromises)).filter(
             Boolean
           ) as Song[];

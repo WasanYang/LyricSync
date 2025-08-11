@@ -1,4 +1,3 @@
-
 // src/app/[locale]/(protected)/setlists/page.tsx
 'use client';
 
@@ -9,7 +8,6 @@ import {
   getSetlists,
   deleteSetlist,
   getSyncedSetlistsCount,
-  syncSetlist as syncSetlistToCloud,
   saveSetlist,
   type SetlistWithSyncStatus,
   type Setlist,
@@ -25,8 +23,6 @@ import {
   PlusCircle,
   Share2,
   Users,
-  UploadCloud,
-  RefreshCw,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -65,7 +61,6 @@ function SetlistItem({
   const { toast } = useToast();
   const { user } = useAuth();
   const [isShareOpen, setIsShareOpen] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
   const isOwner = setlist.source !== 'saved';
 
   const handleDelete = async () => {
@@ -88,57 +83,6 @@ function SetlistItem({
     }
   };
 
-  const handleSync = async () => {
-    if (!user || !setlist) return;
-    setIsSyncing(true);
-    try {
-      let firestoreId: string;
-      if (setlist.firestoreId) {
-        // This is an update to an existing synced setlist
-        await saveSetlist({ ...setlist, isSynced: true });
-        firestoreId = setlist.firestoreId;
-      } else {
-        // This is a new setlist being synced for the first time
-        firestoreId = await syncSetlistToCloud(
-          setlist,
-          user.uid,
-          user.displayName || 'Anonymous'
-        );
-      }
-      
-      // Update local setlist with firestoreId and synced status
-      await saveSetlist({
-        ...setlist,
-        firestoreId,
-        isSynced: true,
-        syncedAt: Date.now(),
-        updatedAt: Date.now(),
-      });
-
-      toast({
-        title: t('setlist.syncedToastTitle'),
-        description: t('setlist.syncedToastDesc', { title: setlist.title }),
-      });
-      onSetlistChange();
-    } catch (error) {
-       if (error instanceof Error && error.message === 'SYNC_LIMIT_REACHED') {
-         toast({
-          title: t('setlist.syncLimitReachedTitle'),
-          description: t('setlist.syncLimitReachedDesc', {limit: SYNC_LIMIT}),
-          variant: 'destructive',
-        });
-       } else {
-        toast({
-          title: t('setlist.syncErrorTitle'),
-          description: error instanceof Error ? error.message : "An unknown error occurred.",
-          variant: 'destructive',
-        });
-       }
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
   const getStatusIcon = () => {
     let icon: React.ReactNode;
     let tooltipText: string;
@@ -148,14 +92,14 @@ function SetlistItem({
       tooltipText = t('setlist.savedFromTooltip', {
         authorName: setlist.authorName,
       });
-    } else if (setlist.isSynced) {
+    } else if (setlist.isPublic) {
       icon = <CheckCircle className='h-5 w-5 text-green-500 flex-shrink-0' />;
-      tooltipText = t('setlist.syncedTooltip');
+      tooltipText = 'Public Setlist';
     } else {
       icon = (
         <ListMusic className='h-5 w-5 text-muted-foreground flex-shrink-0' />
       );
-      tooltipText = t('setlist.localOnlyTooltip'); // This might need a new translation key
+      tooltipText = 'Private Setlist';
     }
 
     return (
@@ -223,48 +167,25 @@ function SetlistItem({
                   <p>{t('setlist.editTooltip')}</p>
                 </TooltipContent>
               </Tooltip>
-              {setlist.isSynced ? (
-                <>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setIsShareOpen(true);
-                        }}
-                        variant='ghost'
-                        size='icon'
-                        className='h-8 w-8 text-muted-foreground'
-                      >
-                        <Share2 className='h-4 w-4' />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t('setlist.shareTooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                {setlist.needsSync && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                       <Button onClick={handleSync} variant="ghost" size="icon" disabled={isSyncing} className='h-8 w-8 text-blue-500'>
-                         {isSyncing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
-                       </Button>
-                    </TooltipTrigger>
-                    <TooltipContent><p>{t('setlist.syncChangesTooltip')}</p></TooltipContent>
-                  </Tooltip>
-                )}
-                </>
-              ) : (
-                 <Tooltip>
-                    <TooltipTrigger asChild>
-                       <Button onClick={handleSync} variant="ghost" size="icon" disabled={isSyncing} className='h-8 w-8 text-muted-foreground'>
-                         {isSyncing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
-                       </Button>
-                    </TooltipTrigger>
-                    <TooltipContent><p>{t('setlist.syncToCloudTooltip')}</p></TooltipContent>
-                  </Tooltip>
-              )}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setIsShareOpen(true);
+                    }}
+                    variant='ghost'
+                    size='icon'
+                    className='h-8 w-8 text-muted-foreground'
+                  >
+                    <Share2 className='h-4 w-4' />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t('setlist.shareTooltip')}</p>
+                </TooltipContent>
+              </Tooltip>
             </>
           )}
 
@@ -332,7 +253,6 @@ export default function SetlistsPage() {
   const t = useTranslations();
   const [setlists, setSetlists] = useState<SetlistWithSyncStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [syncedCount, setSyncedCount] = useState(0);
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -341,16 +261,12 @@ export default function SetlistsPage() {
     if (!user) return;
     setIsLoading(true);
     try {
-      const [loadedSetlists, count] = await Promise.all([
-        getSetlists(user.uid),
-        getSyncedSetlistsCount(user.uid),
-      ]);
+      const loadedSetlists = await getSetlists(user.uid);
       setSetlists(
         loadedSetlists.sort(
-          (a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt)
+          (a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)
         )
       );
-      setSyncedCount(count);
     } catch (error) {
       console.error('Failed to load setlist data:', error);
       toast({
@@ -409,14 +325,6 @@ export default function SetlistsPage() {
               <h1 className='text-3xl font-headline font-bold tracking-tight'>
                 {t('setlist.title')}
               </h1>
-              {!isAnonymous && (
-                <p className='text-muted-foreground'>
-                  {t('setlist.syncedCount', {
-                    syncedCount: syncedCount,
-                    limit: SYNC_LIMIT,
-                  })}
-                </p>
-              )}
             </div>
             {!isAnonymous && (
               <Button asChild>
@@ -452,10 +360,14 @@ export default function SetlistsPage() {
               <h2 className='text-xl font-headline font-semibold'>
                 {t('setlist.noSetlistsTitle')}
               </h2>
-              <p className='text-muted-foreground'>{t('setlist.noSetlistsDesc')}</p>
+              <p className='text-muted-foreground'>
+                {t('setlist.noSetlistsDesc')}
+              </p>
               {!isAnonymous && (
                 <Button variant='link' asChild>
-                  <Link href='/setlists/create'>{t('setlist.createOneNow')}</Link>
+                  <Link href='/setlists/create'>
+                    {t('setlist.createOneNow')}
+                  </Link>
                 </Button>
               )}
             </div>
