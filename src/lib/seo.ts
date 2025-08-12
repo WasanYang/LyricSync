@@ -457,6 +457,12 @@ export const pageSEOConfigs = {
     keywords: ['offline', 'ออฟไลน์', 'ไม่มีเน็ต'],
     noIndex: true,
   }),
+  donate: (): SEOConfig => ({
+    title: 'สนับสนุนเรา',
+    description:
+      'สนับสนุนการพัฒนา LyricSync ด้วยการบริจาค เพื่อให้เราสามารถปรับปรุงและเพิ่มฟีเจอร์ใหม่ๆ ได้',
+    keywords: ['บริจาค', 'สนับสนุน', 'ช่วยเหลือ'],
+  }),
 };
 
 // Structured Data (JSON-LD) generators

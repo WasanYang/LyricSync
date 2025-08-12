@@ -1,4 +1,3 @@
-// src/app/sitemap-songs.xml/route.ts
 import { NextResponse } from 'next/server';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -27,30 +26,18 @@ export async function GET() {
 
     const urls = songs
       .map((song) => {
-        let lastMod: string;
-
-        if (
-          song.updatedAt &&
-          typeof song.updatedAt === 'object' &&
-          song.updatedAt !== null &&
-          typeof (song.updatedAt as { toDate?: Function }).toDate === 'function'
-        ) {
-          // Firestore Timestamp object
-          lastMod = (song.updatedAt as unknown as { toDate: () => Date })
-            .toDate()
-            .toISOString()
-            .split('T')[0];
-        } else if (song.updatedAt && song.updatedAt instanceof Date) {
-          lastMod = song.updatedAt.toISOString().split('T')[0];
+        let lastModDate: Date;
+        if (song.updatedAt && typeof song.updatedAt === 'number') {
+          lastModDate = new Date(song.updatedAt);
         } else if (
           song.updatedAt &&
-          !isNaN(new Date(song.updatedAt).getTime())
+          typeof (song.updatedAt as any).toDate === 'function'
         ) {
-          lastMod = new Date(song.updatedAt).toISOString().split('T')[0];
+          lastModDate = (song.updatedAt as any).toDate();
         } else {
-          lastMod = new Date().toISOString().split('T')[0];
+          lastModDate = new Date();
         }
-
+        const lastMod = lastModDate.toISOString().split('T')[0];
         return `
     <url>
       <loc>${siteUrl}/th/shared/song/${song.id}</loc>

@@ -12,7 +12,7 @@ export default function DonatePage() {
   const t = useTranslations('donate');
   return (
     <>
-      <SEOHead config={pageSEOConfigs.premium()} />
+      <SEOHead config={pageSEOConfigs.donate()} />
       <div className='flex-grow flex flex-col'>
         <Header />
         <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
