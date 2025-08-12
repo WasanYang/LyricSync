@@ -17,7 +17,8 @@ interface UserUploadsListItemProps {
   song: Song;
 }
 
-function formatDate(date: Date): string {
+function formatDate(date?: Date): string {
+  if (!date) return 'N/A';
   return date.toLocaleDateString('th-TH', {
     day: '2-digit',
     month: '2-digit',

@@ -54,10 +54,10 @@ export default function Footer() {
               <ul className='space-y-3'>
                 <FooterLink href='/welcome'>{t('about')}</FooterLink>
                 <FooterLink href='/search'>{t('searchAndSetlists')}</FooterLink>
-                <FooterLink href='/my-setlists'>{t('mySetlists')}</FooterLink>
-                <FooterLink href='/library'>
+                {/* <FooterLink href='/my-setlists'>{t('mySetlists')}</FooterLink> */}
+                {/* <FooterLink href='/library'>
                   {t('welcome.myLibrary')}
-                </FooterLink>
+                </FooterLink> */}
               </ul>
             </div>
             <div>

@@ -1,10 +1,10 @@
 // src/app/admin/songs/page.tsx
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { getAllCloudSongs, deleteCloudSong } from '@/lib/db';
+import { deleteCloudSong } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,9 +21,9 @@ import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import { SongList } from '@/components/admin';
 import { EmptyState, SearchInput, LoadingSkeleton } from '@/components/shared';
-import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import LocalsLink from '@/components/ui/LocalsLink';
+import { useSearchCloudSongsMutation } from '@/store/songApi';
 
 const PAGE_SIZE = 10;
 
@@ -32,64 +32,11 @@ export default function AdminSongsPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [allSongs, setAllSongs] = useState<Song[]>([]);
-  const [songsOnPage, setSongsOnPage] = useState<Song[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  // const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-
-  const loadSongs = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const allCloudSongs = await getAllCloudSongs();
-      const systemSongs = allCloudSongs.filter((s) => s.source === 'system');
-      setAllSongs(systemSongs);
-    } catch {
-      toast({
-        title: 'Error',
-        description: 'Could not fetch songs.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
-
-  useEffect(() => {
-    if (!authLoading) {
-      if (!user || !isSuperAdmin) {
-        router.replace('/');
-      } else {
-        loadSongs();
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, isSuperAdmin, authLoading, router]);
-
-  const filteredSongs = useMemo(() => {
-    if (!searchTerm) {
-      return allSongs;
-    }
-    return allSongs.filter(
-      (song) =>
-        song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        song.artist.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [allSongs, searchTerm]);
-
-  useEffect(() => {
-    const newTotalPages = Math.ceil(filteredSongs.length / PAGE_SIZE);
-    setTotalPages(newTotalPages);
-
-    let pageToSet = currentPage;
-    if (currentPage > newTotalPages) {
-      pageToSet = Math.max(1, newTotalPages);
-      setCurrentPage(pageToSet);
-    }
-
-    const startIndex = (pageToSet - 1) * PAGE_SIZE;
-    setSongsOnPage(filteredSongs.slice(startIndex, startIndex + PAGE_SIZE));
-  }, [filteredSongs, currentPage]);
+  const [searchCloudSongs, { error, isLoading }] =
+    useSearchCloudSongsMutation();
 
   const handleDelete = async (songToDelete: Song) => {
     try {
@@ -98,8 +45,6 @@ export default function AdminSongsPage() {
         title: 'Song Deleted',
         description: `"${songToDelete.title}" has been removed from the cloud.`,
       });
-      // Refresh the list
-      loadSongs();
     } catch {
       toast({
         title: 'Error',
@@ -118,6 +63,28 @@ export default function AdminSongsPage() {
   if (authLoading || !user || !isSuperAdmin) {
     return <LoadingSkeleton />;
   }
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: 'Error',
+        description: 'Could not search songs.',
+        variant: 'destructive',
+      });
+    }
+  }, [error, toast]);
+
+  useEffect(() => {
+    searchCloudSongs({
+      pagination: { pageIndex: currentPage - 1, pageSize: PAGE_SIZE },
+      sorting: [],
+      columnFilters: [],
+    }).then((res) => {
+      if ('data' in res && res.data && Array.isArray(res.data.songs)) {
+        setAllSongs(res.data.songs);
+        setTotalPages(Math.ceil(res.data.totalCount / PAGE_SIZE));
+      }
+    });
+  }, [searchCloudSongs, currentPage]);
 
   const renderPagination = () => {
     if (totalPages <= 1) return null;
@@ -189,14 +156,14 @@ export default function AdminSongsPage() {
             </Button>
           </div>
 
-          <SearchInput
+          {/* <SearchInput
             value={searchTerm}
             onChange={(val) => {
               setSearchTerm(val);
               setCurrentPage(1); // Reset page on new search
             }}
             placeholder='Search all songs...'
-          />
+          /> */}
 
           {isLoading ? (
             <div className='space-y-2'>
@@ -207,16 +174,16 @@ export default function AdminSongsPage() {
             </div>
           ) : allSongs.length > 0 ? (
             <div className='space-y-6'>
-              {filteredSongs.length > 0 ? (
+              {allSongs.length > 0 ? (
                 <section>
-                  <SongList songs={songsOnPage} onDelete={handleDelete} />
+                  <SongList songs={allSongs} onDelete={handleDelete} />
                 </section>
               ) : (
                 <EmptyState
                   icon={Search}
                   title='No Results Found'
                   description='No songs matched your search for'
-                  searchTerm={searchTerm}
+                  // searchTerm={searchTerm}
                 />
               )}
               {renderPagination()}

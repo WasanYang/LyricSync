@@ -10,7 +10,7 @@ export type Song = {
   title: string;
   artist: string;
   lyrics: LyricLine[];
-  updatedAt: Date;
+  updatedAt: number;
   originalKey?: string;
   bpm?: number;
   timeSignature?: string;

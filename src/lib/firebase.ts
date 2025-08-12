@@ -19,7 +19,7 @@ const firebaseConfig = {
 // Initialize Firebase
 let app: FirebaseApp | undefined;
 let auth: Auth | undefined;
-let db: Firestore | undefined;
+let db: Firestore;
 
 // Check if the API key is provided before initializing
 if (firebaseConfig.apiKey) {
