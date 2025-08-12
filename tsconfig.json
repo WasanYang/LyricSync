@@ -44,9 +44,6 @@
       "@public/*": [
         "./public/*"
       ],
-      "@assets/*": [
-        "./src/assets/*"
-      ],
       "@context/*": [
         "./src/context/*"
       ],
