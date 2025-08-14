@@ -1,13 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import {
   Menu,
   LogOut,
-  Home,
-  Search,
   Sun,
   Moon,
   ListMusic,
@@ -20,6 +17,8 @@ import {
   Compass,
   Bell,
   MessageSquarePlus,
+  User,
+  Search
 } from 'lucide-react';
 import { Heart as HeartIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -40,17 +39,11 @@ import { useOnlineStatus } from '@/hooks/use-online-status';
 import Image from 'next/image';
 import LocalsLink from './ui/LocalsLink';
 
-// label จะถูกแปลใน component
 const navLinks = [
-  { href: '/', key: 'home.title', icon: Home },
-  { href: '/search', key: 'search.title', icon: Search },
-  { href: '/explore', key: 'explore.title', icon: Compass },
-  { href: '/updates', key: 'updates.title', icon: Bell },
-];
-
-const mobileOnlyLinks = [
-  { href: '/my-setlists', key: 'setlists', icon: ListMusic },
+  { href: '/', key: 'explore.title', icon: Search },
   { href: '/library', key: 'library', icon: Library },
+  { href: '/my-setlists', key: 'setlists', icon: ListMusic },
+  { href: '/profile', key: 'profile.title', icon: User },
 ];
 
 export default function HamburgerMenu() {
@@ -112,8 +105,8 @@ export default function HamburgerMenu() {
                     href={link.href}
                     className={cn(
                       'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
-                      pathname === link.href
-                        ? 'text-primary'
+                      pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href))
+                        ? 'text-primary bg-secondary'
                         : 'text-muted-foreground'
                     )}
                   >
@@ -123,42 +116,27 @@ export default function HamburgerMenu() {
                 </SheetClose>
               ))}
             </nav>
-            {user && !user.isAnonymous && (
-              <>
-                <Separator />
-                <nav className='flex flex-col space-y-2'>
-                  {mobileOnlyLinks.map((link) => (
-                    <SheetClose asChild key={link.href}>
-                      <LocalsLink
-                        href={link.href}
-                        className={cn(
-                          'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
-                          pathname.startsWith(link.href)
-                            ? 'text-primary'
-                            : 'text-muted-foreground'
-                        )}
-                      >
-                        <link.icon className='h-5 w-5' />
-                        <span>{t(link.key)}</span>
-                      </LocalsLink>
-                    </SheetClose>
-                  ))}
-                </nav>
-              </>
-            )}
+            <Separator/>
+            <nav className='flex flex-col space-y-2'>
+                <SheetClose asChild>
+                    <LocalsLink
+                    href='/updates'
+                    className={cn(
+                        'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
+                        pathname.startsWith('/updates')
+                        ? 'text-primary bg-secondary'
+                        : 'text-muted-foreground'
+                    )}
+                    >
+                    <Bell className='h-5 w-5' />
+                    <span>{t('updates.title')}</span>
+                    </LocalsLink>
+                </SheetClose>
+            </nav>
+
 
             {user ? (
               <>
-                <Separator />
-                <SheetClose asChild>
-                  <LocalsLink
-                    href='/profile'
-                    className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
-                  >
-                    <UserCircle className='h-5 w-5' />
-                    <span>{t('profile.title')}</span>
-                  </LocalsLink>
-                </SheetClose>
                 {isSuperAdmin && (
                   <>
                     <Separator />
@@ -235,15 +213,6 @@ export default function HamburgerMenu() {
                     <span>{t('login')}</span>
                   </LocalsLink>
                 </SheetClose>
-                <SheetClose asChild>
-                  <LocalsLink
-                    href='/welcome'
-                    className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
-                  >
-                    <Info className='h-5 w-5' />
-                    <span>{t('aboutApp')}</span>
-                  </LocalsLink>
-                </SheetClose>
               </>
             )}
 
@@ -255,13 +224,23 @@ export default function HamburgerMenu() {
                 className={cn(
                   'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
                   pathname.startsWith('/donate')
-                    ? 'text-primary'
+                    ? 'text-primary bg-secondary'
                     : 'text-muted-foreground'
                 )}
               >
                 <HeartIcon className='h-5 w-5' />
                 <span>{t('donate.title')}</span>
               </LocalsLink>
+            </SheetClose>
+
+            <SheetClose asChild>
+                  <LocalsLink
+                    href='/welcome'
+                    className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
+                  >
+                    <Info className='h-5 w-5' />
+                    <span>{t('aboutApp')}</span>
+                  </LocalsLink>
             </SheetClose>
 
             <div className='flex items-center justify-between rounded-md px-3 py-2 text-base font-medium text-muted-foreground'>

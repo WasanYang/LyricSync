@@ -29,7 +29,6 @@ import {
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GoogleIcon } from '@/components/ui/GoogleIcon';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -335,7 +334,7 @@ export default function ProfilePage() {
           </div>
 
           {isAnonymous ? (
-            <Card className='bg-primary/10 border-primary/20'>
+            <Card className='bg-muted'>
               <CardHeader>
                 <CardTitle className='font-headline text-center'>
                   {t('unlockTitle')}

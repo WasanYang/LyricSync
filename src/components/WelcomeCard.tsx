@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { Button } from './ui/button';
 import {
   ListMusic,
@@ -23,7 +22,7 @@ import type { User } from 'firebase/auth';
 import { PWAPromptCard } from './PWAInstallButton';
 import LocalsLink from './ui/LocalsLink';
 
-const WELCOME_CARD_DISMISSED_KEY = 'welcomeCardDismissed';
+const WELCOME_CARD_DISMISSED_KEY = 'welcomeCardDismissed_v2'; // new key to force re-show
 
 export default function WelcomeCard({ user }: { user: User | null }) {
   const [isDismissed, setIsDismissed] = useState(true);
@@ -49,6 +48,9 @@ export default function WelcomeCard({ user }: { user: User | null }) {
       localStorage.setItem(WELCOME_CARD_DISMISSED_KEY, 'true');
     }
   };
+  
+  // Hide this component for now
+  if (true) return null;
 
   function renderLoggedInContent() {
     return (

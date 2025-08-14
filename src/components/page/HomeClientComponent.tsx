@@ -10,6 +10,8 @@ import RecommendedSongs from '@/components/RecommendedSongs';
 import WelcomeCard from '@/components/WelcomeCard';
 import { HomeLoadingSkeleton } from '@/components/HomeLoadingSkeleton';
 import dynamic from 'next/dynamic';
+import { SearchInput } from '../shared';
+import { useTranslations } from 'next-intl';
 
 const RecentSetlists = dynamic(
   () => import('@/components/RecentSetlists').then((mod) => mod.RecentSetlists),
@@ -31,6 +33,9 @@ function HomeClientComponent() {
   const [systemSongs, setSystemSongs] = useState<Song[]>([]);
   const [isLoadingSetlists, setIsLoadingSetlists] = useState(true);
   const [isLoadingSongs, setIsLoadingSongs] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const t = useTranslations('search');
+
 
   const recentReleases = useMemo(
     () =>
@@ -69,7 +74,6 @@ function HomeClientComponent() {
       if (user && !user.isAnonymous) {
         try {
           const allSetlists = await getSetlists(user.uid);
-          console.log('allSetlists', allSetlists);
           const sorted = allSetlists.sort(
             (a, b) =>
               (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt)
@@ -78,6 +82,9 @@ function HomeClientComponent() {
         } catch (error) {
           console.error('Failed to load recent setlists', error);
         }
+      } else {
+        // Fetch public setlists for guests
+        // This part can be implemented if you want to show public setlists to guests
       }
       setIsLoadingSetlists(false);
     }
@@ -96,7 +103,9 @@ function HomeClientComponent() {
       <div className='flex-grow flex flex-col'>
         <Header />
         <main className='flex-grow container mx-auto px-4 py-8 space-y-12 pb-24 md:pb-12'>
-          <WelcomeCard user={user} />
+          {/* <WelcomeCard user={user} /> */}
+          <SearchInput value={searchTerm} onChange={setSearchTerm} placeholder={t('placeholder')} />
+
 
           {/* Recent Setlists - only for logged in users */}
           <RecentSetlists

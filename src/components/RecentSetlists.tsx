@@ -54,37 +54,38 @@ export function RecentSetlists({
 }) {
   const t = useTranslations('home');
 
-  return (
-    <>
-      {user &&
-        !user.isAnonymous &&
-        (isLoadingSetlists ? (
-          <div className='space-y-4'>
-            <Skeleton className='h-7 w-32' />
-            <div className='space-y-2'>
-              <Skeleton className='h-16 w-full' />
-              <Skeleton className='h-16 w-full' />
-            </div>
+  if (isLoadingSetlists) {
+    return (
+        <div className='space-y-4'>
+          <Skeleton className='h-7 w-32' />
+          <div className='space-y-2'>
+            <Skeleton className='h-16 w-full' />
+            <Skeleton className='h-16 w-full' />
           </div>
-        ) : (
-          recentSetlists.length > 0 && (
-            <section>
-              <div className='flex items-center justify-between mb-4'>
-                <h2 className='text-xl font-headline font-semibold'>
-                  {t('recentSetlists')}
-                </h2>
-                <Button variant='link' asChild>
-                  <LocalsLink href='/my-setlists'>{t('viewAll')}</LocalsLink>
-                </Button>
-              </div>
-              <div className='space-y-2'>
-                {recentSetlists.map((setlist) => (
-                  <RecentSetlistItem key={setlist.id} setlist={setlist} />
-                ))}
-              </div>
-            </section>
-          )
+        </div>
+      );
+  }
+
+  if (recentSetlists.length === 0) {
+      return null;
+  }
+
+
+  return (
+    <section>
+        <div className='flex items-center justify-between mb-4'>
+        <h2 className='text-xl font-headline font-semibold'>
+            {t('recentSetlists')}
+        </h2>
+        <Button variant='link' asChild>
+            <LocalsLink href='/my-setlists'>{t('viewAll')}</LocalsLink>
+        </Button>
+        </div>
+        <div className='space-y-2'>
+        {recentSetlists.map((setlist) => (
+            <RecentSetlistItem key={setlist.id} setlist={setlist} />
         ))}
-    </>
+        </div>
+    </section>
   );
 }
