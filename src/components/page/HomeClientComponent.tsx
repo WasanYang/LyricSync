@@ -153,19 +153,14 @@ function HomeClientComponent() {
         {isHeaderScrolled && (
           <header className='fixed top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
             <div className='flex h-16 items-center justify-between px-4'>
-              <form
-                onSubmit={handleSearchSubmit}
-                className='w-full'
-              >
+              <form onSubmit={handleSearchSubmit} className='w-full'>
                 {searchInput}
               </form>
             </div>
           </header>
         )}
 
-        <main
-          className={cn('flex-grow container mx-auto px-4 py-4 space-y-4 pb-24 md:pb-12', isHeaderScrolled && 'pt-16')}
-        >
+        <main className='flex-grow container mx-auto px-4 py-4 space-y-4 pb-24 md:pb-12'>
           <WelcomeCard user={user} />
           <form
             ref={searchFormRef}
