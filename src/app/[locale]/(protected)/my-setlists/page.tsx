@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { type Setlist, SYNC_LIMIT } from '@/lib/db';
-import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import { Button } from '@/components/ui/button';
 import { ListMusic, PlusCircle, LogIn } from 'lucide-react';
@@ -40,11 +39,20 @@ export default function SetlistsPage() {
   if (authLoading || (!user && isLoading)) {
     return (
       <div className='flex-grow flex flex-col'>
-        <Header />
+        <header className='sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+          <div className='container mx-auto flex h-16 items-center justify-between px-4'>
+            <div className='flex items-center gap-2'>
+              <ListMusic className='h-6 w-6' />
+              <h1 className='text-2xl font-bold font-headline tracking-tight'>
+                {t('setlist.title')}
+              </h1>
+            </div>
+            <Skeleton className='h-10 w-28' />
+          </div>
+        </header>
         <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
           <div className='space-y-4'>
             <div className='space-y-1'>
-              <Skeleton className='h-8 w-36' />
               <Skeleton className='h-4 w-24' />
             </div>
             <div className='space-y-2 pt-4'>
@@ -125,32 +133,35 @@ export default function SetlistsPage() {
 
   return (
     <div className='flex-grow flex flex-col'>
-      <Header />
+      <header className='sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+        <div className='container mx-auto flex h-16 items-center justify-between px-4'>
+          <div className='flex items-center gap-2'>
+            <ListMusic className='h-6 w-6' />
+            <h1 className='text-2xl font-bold font-headline tracking-tight'>
+              {t('setlist.title')}
+            </h1>
+          </div>
+          {!isAnonymous && (
+            <Button asChild>
+              <LocalsLink href='/my-setlists/create'>
+                <PlusCircle className='mr-2 h-4 w-4' />
+                {t('setlist.createNew')}
+              </LocalsLink>
+            </Button>
+          )}
+        </div>
+      </header>
+
       <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8 flex flex-col'>
         <div className='space-y-8 flex-grow flex flex-col'>
-          <div className='flex justify-between items-start'>
-            <div>
-              <h1 className='text-3xl font-headline font-bold tracking-tight'>
-                {t('setlist.title')}
-              </h1>
-              {!isAnonymous && (
-                <p className='text-sm text-muted-foreground'>
-                  {t('setlist.syncedCount', {
-                    count: ownerSetlists.length,
-                    limit: SYNC_LIMIT,
-                  })}
-                </p>
-              )}
-            </div>
-            {!isAnonymous && (
-              <Button asChild>
-                <LocalsLink href='/my-setlists/create'>
-                  <PlusCircle className='mr-2 h-4 w-4' />
-                  {t('setlist.createNew')}
-                </LocalsLink>
-              </Button>
-            )}
-          </div>
+          {!isAnonymous && (
+            <p className='text-sm text-muted-foreground -mt-4'>
+              {t('setlist.syncedCount', {
+                count: ownerSetlists.length,
+                limit: SYNC_LIMIT,
+              })}
+            </p>
+          )}
           {renderContent()}
         </div>
       </main>
