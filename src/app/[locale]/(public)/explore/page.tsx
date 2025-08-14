@@ -1,43 +1,46 @@
 // src/app/[locale]/(public)/explore/page.tsx
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { getAllCloudSongs, type Setlist, getPublicSetlists } from '@/lib/db';
-import type { Song } from '@/lib/songs';
+import { useState, useEffect, useMemo } from 'react';
+import type { PublicUser } from '@/lib/db';
+import { getPublicUsers } from '@/lib/db';
 import { Input } from '@/components/ui/input';
-import { Search, ListMusic } from 'lucide-react';
+import { Search, Users } from 'lucide-react';
 import BottomNavBar from '@/components/BottomNavBar';
 import Link from 'next/link';
+import Header from '@/components/Header';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import SEOHead from '@/components/SEOHead';
 import { pageSEOConfigs } from '@/lib/seo';
-import SearchCategory from './component/SearchCategory';
-import SongListItem from './component/SongListItem';
-import AlphabeticalIndex from './component/AlphabeticalIndex';
 import { useTranslations } from 'next-intl';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import LocalsLink from '@/components/ui/LocalsLink';
 
-function SetlistCard({ setlist }: { setlist: Setlist }) {
-  const songCount = setlist.songIds.length;
+function UserCard({ user }: { user: PublicUser }) {
+  const t = useTranslations('explore');
   return (
-    <LocalsLink
-      href={`/shared/setlists/${setlist.firestoreId}`}
-      className='block'
-    >
-      <Card className='hover:bg-muted/50 transition-colors'>
-        <CardContent className='p-4 flex items-center gap-4'>
-          <div className='p-3 bg-muted rounded-md'>
-            <ListMusic className='h-6 w-6 text-muted-foreground' />
-          </div>
-          <div>
+    <LocalsLink href={`/users/${user.uid}`} className='block'>
+      <Card className='hover:bg-muted/50 transition-colors h-full'>
+        <CardContent className='p-4 flex flex-col items-center text-center gap-3'>
+          <Avatar className='h-16 w-16 text-2xl'>
+            <AvatarImage src={user.photoURL} alt={user.displayName} />
+            <AvatarFallback>
+              {user.displayName?.[0].toUpperCase() || 'U'}
+            </AvatarFallback>
+          </Avatar>
+          <div className='flex-grow'>
             <p className='font-semibold font-headline truncate'>
-              {setlist.title}
+              {user.displayName}
             </p>
-            <p className='text-sm text-muted-foreground truncate'>
-              {songCount} {songCount === 1 ? 'song' : 'songs'} • by{' '}
-              {setlist.authorName}
+            <p className='text-sm text-muted-foreground'>
+              {t('sharedSetlistsCount', { count: user.publicSetlistsCount })}
             </p>
           </div>
         </CardContent>
@@ -46,251 +49,94 @@ function SetlistCard({ setlist }: { setlist: Setlist }) {
   );
 }
 
-export default function ExplorePage() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const searchTerm = searchParams.get('q') || '';
-  const selectedChar = searchParams.get('char');
-  const t = useTranslations('search');
+function LoadingSkeleton() {
+  return (
+    <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
+      {[...Array(8)].map((_, i) => (
+        <Card key={i}>
+          <CardContent className='p-4 flex flex-col items-center text-center gap-3'>
+            <Skeleton className='h-16 w-16 rounded-full' />
+            <div className='w-full space-y-2'>
+              <Skeleton className='h-5 w-3/4 mx-auto' />
+              <Skeleton className='h-4 w-1/2 mx-auto' />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
 
-  const [inputValue, setInputValue] = useState(searchTerm);
-  const [allSongs, setAllSongs] = useState<Song[]>([]);
-  const [publicSetlists, setPublicSetlists] = useState<Setlist[]>([]);
+export default function ExploreUsersPage() {
+  const t = useTranslations('explore');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [allUsers, setAllUsers] = useState<PublicUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Debounce search input
   useEffect(() => {
-    const handler = setTimeout(() => {
-      handleSearchChange(inputValue);
-    }, 300); // 300ms delay
-
-    return () => {
-      clearTimeout(handler);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputValue]);
-
-  const handleSearchChange = (term: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (term) {
-      if (params.get('q') !== term) {
-        params.set('q', term);
-        params.delete('char'); // Clear char filter when searching
-        router.replace(`${pathname}?${params.toString()}`);
-      }
-    } else {
-      if (params.has('q')) {
-        params.delete('q');
-        router.replace(`${pathname}?${params.toString()}`);
-      }
-    }
-  };
-
-  const handleCharSelect = (char: string) => {
-    setInputValue(''); // Clear search input when using char filter
-    const params = new URLSearchParams(searchParams.toString());
-    if (selectedChar === char) {
-      // If the same character is clicked again, remove the filter
-      params.delete('char');
-    } else {
-      // Otherwise, set the new character filter
-      params.set('char', char);
-      // Clear search term when filtering by char
-      params.delete('q');
-    }
-    router.replace(`${pathname}?${params.toString()}`);
-  };
-
-  useEffect(() => {
-    const fetchAllData = async () => {
+    const fetchUsers = async () => {
       setIsLoading(true);
       try {
-        const [cloudSongs, publicLists] = await Promise.all([
-          getAllCloudSongs(),
-          getPublicSetlists(),
-        ]);
-        const systemSongs = cloudSongs.filter((s) => s.source === 'system');
-        setAllSongs(systemSongs);
-        setPublicSetlists(publicLists);
+        const users = await getPublicUsers();
+        setAllUsers(users);
       } catch (error) {
-        console.error('Failed to load search data:', error);
+        console.error('Failed to load public users:', error);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchAllData();
+    fetchUsers();
   }, []);
 
-  const filteredSongs = useMemo(() => {
-    if (!searchTerm) return [];
-    return allSongs.filter(
-      (song) =>
-        song.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        song.artist.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm) return allUsers;
+    return allUsers.filter((user) =>
+      user.displayName.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm, allSongs]);
-
-  const characterFilteredSongs = useMemo(() => {
-    if (!selectedChar) return [];
-    return allSongs.filter((song) =>
-      song.title.toLowerCase().startsWith(selectedChar.toLowerCase())
-    );
-  }, [selectedChar, allSongs]);
-
-  const filteredSetlists = useMemo(() => {
-    if (!searchTerm) return [];
-    return publicSetlists.filter(
-      (setlist) =>
-        setlist.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        setlist.authorName?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, publicSetlists]);
-
-  const newReleases = useMemo(
-    () =>
-      [...allSongs]
-        .sort(
-          (a, b) =>
-            new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        )
-        .slice(0, 8),
-    [allSongs]
-  );
-
-  const trendingHits = useMemo(
-    () => [...allSongs].sort(() => 0.5 - Math.random()).slice(0, 8),
-    [allSongs]
-  );
-
-  const renderDiscoveryContent = () => (
-    <div className='space-y-10'>
-      <SearchCategory
-        title='New Releases'
-        songs={newReleases}
-        isLoading={isLoading}
-      />
-      <SearchCategory
-        title='Trending Hits'
-        songs={trendingHits}
-        isLoading={isLoading}
-      />
-      <section>
-        <h2 className='text-xl font-bold font-headline mb-4'>
-          Browse Public Setlists
-        </h2>
-        {isLoading ? (
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            <Skeleton className='h-20 w-full' />
-            <Skeleton className='h-20 w-full' />
-          </div>
-        ) : publicSetlists.length > 0 ? (
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            {publicSetlists.slice(0, 4).map((setlist) => (
-              <SetlistCard key={setlist.firestoreId} setlist={setlist} />
-            ))}
-          </div>
-        ) : (
-          <div className='text-center py-10 border-2 border-dashed rounded-lg'>
-            <p className='text-muted-foreground'>
-              No public setlists available yet.
-            </p>
-          </div>
-        )}
-      </section>
-    </div>
-  );
-
-  const renderSearchResults = () => (
-    <div className='space-y-8'>
-      {filteredSongs.length > 0 && (
-        <section>
-          <h2 className='text-xl font-bold font-headline mb-4'>Songs</h2>
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2'>
-            {filteredSongs.map((song) => (
-              <SongListItem key={song.id} song={song} />
-            ))}
-          </div>
-        </section>
-      )}
-      {filteredSetlists.length > 0 && (
-        <section>
-          <h2 className='text-xl font-bold font-headline mb-4'>Setlists</h2>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-            {filteredSetlists.map((setlist) => (
-              <SetlistCard key={setlist.firestoreId} setlist={setlist} />
-            ))}
-          </div>
-        </section>
-      )}
-      {filteredSongs.length === 0 && filteredSetlists.length === 0 && (
-        <div className='text-center py-16 text-muted-foreground'>
-          <p>No results found for &quot;{searchTerm}&quot;.</p>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderCharacterFilterResults = () => (
-    <div className='space-y-8'>
-      {characterFilteredSongs.length > 0 ? (
-        <section>
-          <h2 className='text-xl font-bold font-headline mb-4'>
-            Songs starting with &quot;{selectedChar}&quot;
-          </h2>
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2'>
-            {characterFilteredSongs.map((song) => (
-              <SongListItem key={song.id} song={song} />
-            ))}
-          </div>
-        </section>
-      ) : (
-        <div className='text-center py-16 text-muted-foreground'>
-          <p>No songs found starting with &quot;{selectedChar}&quot;.</p>
-        </div>
-      )}
-    </div>
-  );
-
-  const showDiscovery = !searchTerm && !selectedChar;
+  }, [searchTerm, allUsers]);
 
   return (
     <>
       <SEOHead config={pageSEOConfigs.search(searchTerm)} />
       <div className='flex-grow flex flex-col'>
-        <header className='sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-          <div className='container mx-auto flex h-16 items-center justify-between px-4'>
-            <div className='flex items-center gap-2'>
-              <Search className='h-6 w-6' />
-              <h1 className='text-2xl font-bold font-headline tracking-tight'>
-                Explore
-              </h1>
-            </div>
-          </div>
-        </header>
+        <Header />
         <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
           <div className='space-y-8'>
-            <div className='relative'>
+            <div className='text-center'>
+              <h1 className='text-3xl font-bold font-headline'>
+                {t('titleUsers')}
+              </h1>
+              <p className='text-muted-foreground mt-1'>
+                {t('descriptionUsers')}
+              </p>
+            </div>
+            <div className='relative max-w-lg mx-auto'>
               <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10' />
               <Input
                 type='search'
-                placeholder={t('placeholder')}
+                placeholder={t('placeholderUsers')}
                 className='pl-10 text-base bg-muted focus-visible:ring-0 focus-visible:ring-offset-0'
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
-            <AlphabeticalIndex
-              selectedChar={selectedChar}
-              onCharSelect={handleCharSelect}
-            />
-
-            {showDiscovery
-              ? renderDiscoveryContent()
-              : searchTerm
-              ? renderSearchResults()
-              : renderCharacterFilterResults()}
+            {isLoading ? (
+              <LoadingSkeleton />
+            ) : filteredUsers.length > 0 ? (
+              <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
+                {filteredUsers.map((user) => (
+                  <UserCard key={user.uid} user={user} />
+                ))}
+              </div>
+            ) : (
+              <div className='text-center py-16'>
+                <Users className='mx-auto h-12 w-12 text-muted-foreground' />
+                <h3 className='mt-4 text-lg font-semibold'>
+                  {t('noResultsUsers', { searchTerm })}
+                </h3>
+              </div>
+            )}
           </div>
         </main>
         <BottomNavBar />

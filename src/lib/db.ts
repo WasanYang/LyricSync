@@ -477,29 +477,27 @@ export async function getPublicUsers(): Promise<PublicUser[]> {
   const q = query(usersRef, where('isProfilePublic', '==', true));
 
   const usersSnapshot = await getDocs(q);
-  const publicUsers: PublicUser[] = [];
-
-  for (const userDoc of usersSnapshot.docs) {
+  const publicUsersPromises = usersSnapshot.docs.map(async (userDoc) => {
     const userData = userDoc.data();
-    const setlistsRef = collection(
-      firestoreDb,
-      `users/${userDoc.id}/userSetlists`
+    const setlistsQuery = query(
+      collection(firestoreDb, 'setlists'),
+      where('userId', '==', userDoc.id),
+      where('isPublic', '==', true)
     );
-    const qPublic = query(setlistsRef); // This part is not quite right, we need to query 'setlists' collection
-    const publicSetlistsSnapshot = await getDocs(qPublic);
-    const publicSetlistsCount = publicSetlistsSnapshot.size;
+    const publicSetlistsSnapshot = await getCountFromServer(setlistsQuery);
+    const publicSetlistsCount = publicSetlistsSnapshot.data().count;
 
-    if (publicSetlistsCount > 0) {
-      publicUsers.push({
-        uid: userData.uid,
-        displayName: userData.displayName,
-        photoURL: userData.photoURL,
-        publicSetlistsCount,
-      });
-    }
-  }
+    return {
+      uid: userData.uid,
+      displayName: userData.displayName,
+      photoURL: userData.photoURL,
+      publicSetlistsCount,
+    };
+  });
 
-  return publicUsers;
+  const publicUsers = await Promise.all(publicUsersPromises);
+  // Filter out users with 0 public setlists
+  return publicUsers.filter((user) => user.publicSetlistsCount > 0);
 }
 
 export async function getPublicSetlistsByUserId(

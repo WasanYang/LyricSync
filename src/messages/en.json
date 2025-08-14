@@ -73,7 +73,7 @@
     "descriptionUsers": "Discover other users and their shared setlists.",
     "placeholderUsers": "Search for users...",
     "noResultsUsers": "No users found matching \"{searchTerm}\".",
-    "sharedSetlistsCount": "{count} shared setlists",
+    "sharedSetlistsCount": "{count, plural, one {# shared setlist} other {# shared setlists}}",
     "publicSetlistsTitle": "Public Setlists",
     "noPublicSetlists": "This user has no public setlists yet."
   },

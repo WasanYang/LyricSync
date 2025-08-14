@@ -83,6 +83,7 @@ export default function UserPublicProfilePage() {
   useEffect(() => {
     if (!userId || !db) {
       notFound();
+      return;
     }
 
     async function fetchData() {
