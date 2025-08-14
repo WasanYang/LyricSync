@@ -1,3 +1,4 @@
+// src/components/ProfileCard.tsx
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -36,7 +37,8 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import LocalsLink from '@/components/ui/LocalsLink';
 import HamburgerMenu from '@/components/HamburgerMenu';
-import { SheetClose } from './ui/sheet';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 function StatCard({
   icon: Icon,
@@ -138,6 +140,9 @@ export default function ProfileCard() {
     updateProfileName,
     updateProfilePublicStatus,
   } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const [songCount, setSongCount] = useState(0);
   const [setlistCount, setSetlistCount] = useState(0);
@@ -250,6 +255,12 @@ export default function ProfileCard() {
     }
   };
 
+  const handleClose = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('panel');
+    router.replace(`${pathname}?${params.toString()}`);
+  };
+
   if (authLoading || !user) {
     return <ProfileLoadingSkeleton />;
   }
@@ -259,13 +270,15 @@ export default function ProfileCard() {
   return (
     <div className='p-4 space-y-8'>
       <div className='flex items-center justify-between'>
-        <SheetClose asChild>
-          <Button variant='ghost' size='icon'>
-            <ArrowLeft className='h-5 w-5' />
-          </Button>
-        </SheetClose>
+        <Button variant='ghost' size='icon' onClick={handleClose}>
+          <ArrowLeft className='h-5 w-5' />
+        </Button>
         <h2 className='text-lg font-semibold font-headline'>{t('title')}</h2>
-        <HamburgerMenu />
+        <Link href={`${pathname}?panel=settings`}>
+          <Button variant='ghost' size='icon'>
+            <Settings className='h-5 w-5' />
+          </Button>
+        </Link>
       </div>
 
       <div className='flex flex-col items-center text-center space-y-4'>
@@ -380,7 +393,7 @@ export default function ProfileCard() {
           </div>
           <div>
             <h2 className='text-lg font-semibold mb-4'>
-              {t('settingsTitle')}
+              {t('profile.title')}
             </h2>
             <Card>
               <CardContent className='p-4 flex items-center justify-between'>

@@ -9,13 +9,43 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from './ui/button';
 import { User, Settings } from 'lucide-react';
-import HamburgerMenu from './HamburgerMenu';
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from './ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from './ui/sheet';
 import ProfileCard from './ProfileCard';
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 export default function Header() {
   const t = useTranslations();
   const { user } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  useEffect(() => {
+    // Control sheet visibility based on URL
+    if (searchParams.get('panel') === 'profile') {
+      setIsProfileOpen(true);
+    } else {
+      setIsProfileOpen(false);
+    }
+  }, [searchParams]);
+
+  const handleProfileOpenChange = (open: boolean) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (open) {
+      params.set('panel', 'profile');
+    } else {
+      params.delete('panel');
+    }
+    router.replace(`${pathname}?${params.toString()}`);
+  };
 
   return (
     <header className='sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
@@ -30,7 +60,7 @@ export default function Header() {
         {/* Right side actions */}
         <div className='flex items-center justify-end space-x-2'>
           <NotificationBell />
-          <Sheet>
+          <Sheet open={isProfileOpen} onOpenChange={handleProfileOpenChange}>
             <SheetTrigger asChild>
               <Button variant='ghost' size='icon'>
                 <Avatar className='h-8 w-8'>

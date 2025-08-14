@@ -1,7 +1,7 @@
+// src/components/HamburgerMenu.tsx
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { usePathname } from 'next/navigation';
 import {
   Menu,
   LogOut,
@@ -37,7 +37,7 @@ import { Separator } from './ui/separator';
 import { useTheme } from 'next-themes';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import Image from 'next/image';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import LocalsLink from './ui/LocalsLink';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { GoogleIcon } from './ui/GoogleIcon';
@@ -50,7 +50,9 @@ const navLinks = [
 ];
 
 export default function HamburgerMenu() {
+  const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user, logout, isSuperAdmin, signInWithGoogle } = useAuth();
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
@@ -58,14 +60,35 @@ export default function HamburgerMenu() {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
   const t = useTranslations();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    mounted || setMounted(true);
+  }, [mounted]);
+
+  useEffect(() => {
+    // Control sheet visibility based on URL
+    if (searchParams.get('panel') === 'settings') {
+      setIsSettingsOpen(true);
+    } else {
+      setIsSettingsOpen(false);
+    }
+  }, [searchParams]);
+
+  const handleSettingsOpenChange = (open: boolean) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (open) {
+      params.set('panel', 'settings');
+    } else {
+      params.delete('panel');
+      params.set('panel', 'profile'); // Return to profile panel when closing settings
+    }
+    router.replace(`${pathname}?${params.toString()}`);
+  };
 
   return (
     <div>
-      <Sheet>
+      <Sheet open={isSettingsOpen} onOpenChange={handleSettingsOpenChange}>
         <SheetTrigger asChild>
           <Button variant='ghost' size='icon'>
             <Settings className='h-5 w-5' />
