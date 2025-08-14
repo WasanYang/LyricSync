@@ -31,7 +31,7 @@ export default function SongListItem({ song }: { song: Song }) {
           alt={`${song.title} album art`}
           width={40}
           height={40}
-          className='rounded-md aspect-square object-cover'
+          className='rounded-md aspect-square object-cover flex-shrink-0'
           data-ai-hint='album cover'
         />
         <div
