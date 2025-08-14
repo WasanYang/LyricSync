@@ -28,6 +28,8 @@ import {
   Settings,
   ArrowLeft,
   LogIn,
+  Heart,
+  Info,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GoogleIcon } from '@/components/ui/GoogleIcon';
@@ -41,52 +43,14 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Separator } from './ui/separator';
 
-function StatCard({
-  icon: Icon,
-  title,
-  value,
-  isLoading,
-  href,
-}: {
-  icon: React.ElementType;
-  title: string;
-  value: number;
-  isLoading: boolean;
-  href: string;
-}) {
-  return (
-    <LocalsLink href={href} className='block'>
-      <Card className='hover:bg-muted/80 transition-colors'>
-        <CardContent className='p-4 flex items-center justify-between'>
-          <div className='flex items-center gap-4'>
-            <div className='p-3 bg-muted rounded-full'>
-              <Icon className='h-6 w-6 text-muted-foreground' />
-            </div>
-            <div>
-              <p className='font-semibold'>{title}</p>
-              {isLoading ? (
-                <Skeleton className='h-6 w-12 mt-1' />
-              ) : (
-                <p className='text-sm text-muted-foreground'>
-                  {value} {value === 1 ? 'item' : 'items'}
-                </p>
-              )}
-            </div>
-          </div>
-          <ChevronRight className='h-5 w-5 text-muted-foreground' />
-        </CardContent>
-      </Card>
-    </LocalsLink>
-  );
-}
-
 function ProfileLoadingSkeleton() {
   const t = useTranslations('profile');
 
   return (
     <div className='p-4 space-y-8'>
       <div className='flex items-center justify-between'>
-        <h2 className='text-lg font-semibold font-headline'>{t('title')}</h2>
+        <Skeleton className='h-8 w-8' />
+        <Skeleton className='h-6 w-24' />
         <Skeleton className='h-8 w-8' />
       </div>
       <div className='flex flex-col items-center text-center space-y-4'>
@@ -96,39 +60,44 @@ function ProfileLoadingSkeleton() {
           <Skeleton className='h-5 w-64' />
         </div>
       </div>
-      <div>
-        <h2 className='text-lg font-semibold mb-4'>{t('myMusic')}</h2>
-        <div className='grid gap-4 md:grid-cols-1'>
-          <Card>
-            <CardContent className='p-4 flex items-center justify-between'>
-              <div className='flex items-center gap-4'>
-                <Skeleton className='h-12 w-12 rounded-full' />
-                <div>
-                  <Skeleton className='h-5 w-24' />
-                  <Skeleton className='h-4 w-16 mt-1' />
-                </div>
-              </div>
-              <Skeleton className='h-5 w-5' />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className='p-4 flex items-center justify-between'>
-              <div className='flex items-center gap-4'>
-                <Skeleton className='h-12 w-12 rounded-full' />
-                <div>
-                  <Skeleton className='h-5 w-24' />
-                  <Skeleton className='h-4 w-16 mt-1' />
-                </div>
-              </div>
-              <Skeleton className='h-5 w-5' />
-            </CardContent>
-          </Card>
-        </div>
+      <div className='space-y-2'>
+        <Skeleton className='h-12 w-full' />
+        <Skeleton className='h-12 w-full' />
       </div>
       <Skeleton className='h-10 w-full' />
     </div>
   );
 }
+
+const NavLink = ({
+  href,
+  icon: Icon,
+  title,
+  value,
+  isLoading,
+}: {
+  href: string;
+  icon: React.ElementType;
+  title: string;
+  value?: number;
+  isLoading?: boolean;
+}) => (
+  <LocalsLink
+    href={href}
+    className='flex items-center p-3 rounded-lg transition-colors hover:bg-muted/80'
+  >
+    <Icon className='h-5 w-5 text-muted-foreground mr-4' />
+    <span className='flex-grow font-medium'>{title}</span>
+    {isLoading ? (
+      <Skeleton className='h-5 w-8' />
+    ) : (
+      typeof value === 'number' && (
+        <span className='text-sm text-muted-foreground'>{value}</span>
+      )
+    )}
+    <ChevronRight className='h-5 w-5 text-muted-foreground ml-2' />
+  </LocalsLink>
+);
 
 const FooterLink = ({
   href,
@@ -139,7 +108,7 @@ const FooterLink = ({
 }) => (
   <LocalsLink
     href={href}
-    className='block text-base text-muted-foreground transition-colors hover:text-primary'
+    className='block text-center text-sm text-muted-foreground transition-colors hover:text-primary'
   >
     {children}
   </LocalsLink>
@@ -284,182 +253,168 @@ export default function ProfileCard() {
 
   const isAnonymous = user?.isAnonymous ?? true;
 
-  return (
-    <div className='p-4 flex flex-col h-full'>
-      {/* Main Content Area */}
-      <div className='flex-grow space-y-8'>
-        <div className='flex items-center justify-between'>
-          <Button variant='ghost' size='icon' onClick={handleClose}>
-            <ArrowLeft className='h-5 w-5' />
-          </Button>
-          <h2 className='text-lg font-semibold font-headline'>{t('title')}</h2>
-          <Link href={`${pathname}?panel=settings`}>
-            <Button variant='ghost' size='icon'>
-              <Settings className='h-5 w-5' />
-            </Button>
-          </Link>
-        </div>
-
-        <div className='flex flex-col items-center text-center space-y-4'>
-          <Avatar className='h-24 w-24 text-4xl'>
-            {user && !isAnonymous && user.photoURL && (
-              <AvatarImage
-                src={user.photoURL}
-                alt={user.displayName || 'User'}
-              />
-            )}
-            <AvatarFallback>
-              {user && !isAnonymous ? (
-                user.displayName?.[0].toUpperCase() || 'U'
+  const renderUserProfile = () => (
+    <div className='flex flex-col items-center text-center space-y-4'>
+      <Avatar className='h-24 w-24 text-4xl'>
+        {user && !isAnonymous && user.photoURL && (
+          <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />
+        )}
+        <AvatarFallback>
+          {user && !isAnonymous ? (
+            user.displayName?.[0].toUpperCase() || 'U'
+          ) : (
+            <User className='h-10 w-10' />
+          )}
+        </AvatarFallback>
+      </Avatar>
+      <div className='space-y-1'>
+        {isEditingName ? (
+          <div className='flex items-center gap-2'>
+            <Input
+              ref={inputRef}
+              value={newDisplayName}
+              onChange={(e) => setNewDisplayName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
+              disabled={isSavingName}
+              className='h-9'
+            />
+            <Button
+              size='icon'
+              onClick={handleSaveName}
+              disabled={isSavingName}
+              className='h-9 w-9'
+            >
+              {isSavingName ? (
+                <Loader2 className='h-4 w-4 animate-spin' />
               ) : (
-                <User className='h-10 w-10' />
+                <Save className='h-4 w-4' />
               )}
-            </AvatarFallback>
-          </Avatar>
-          <div className='space-y-1'>
-            {isEditingName ? (
-              <div className='flex items-center gap-2'>
-                <Input
-                  ref={inputRef}
-                  value={newDisplayName}
-                  onChange={(e) => setNewDisplayName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
-                  disabled={isSavingName}
-                  className='h-9'
-                />
-                <Button
-                  size='icon'
-                  onClick={handleSaveName}
-                  disabled={isSavingName}
-                  className='h-9 w-9'
-                >
-                  {isSavingName ? (
-                    <Loader2 className='h-4 w-4 animate-spin' />
-                  ) : (
-                    <Save className='h-4 w-4' />
-                  )}
-                </Button>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  onClick={handleCancelEdit}
-                  disabled={isSavingName}
-                  className='h-9 w-9'
-                >
-                  <X className='h-4 w-4' />
-                </Button>
-              </div>
-            ) : (
-              <div className='flex items-center gap-2 group'>
-                <h1 className='text-2xl font-bold font-headline'>
-                  {user && !isAnonymous ? user.displayName : t('guestUser')}
-                </h1>
-                {user && !isAnonymous && (
-                  <Button
-                    variant='ghost'
-                    size='icon'
-                    onClick={handleEditName}
-                    className='h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity'
-                  >
-                    <Edit className='h-4 w-4 text-muted-foreground' />
-                  </Button>
-                )}
-              </div>
-            )}
+            </Button>
+            <Button
+              variant='ghost'
+              size='icon'
+              onClick={handleCancelEdit}
+              disabled={isSavingName}
+              className='h-9 w-9'
+            >
+              <X className='h-4 w-4' />
+            </Button>
+          </div>
+        ) : (
+          <div className='flex items-center gap-2 group'>
+            <h1 className='text-2xl font-bold font-headline'>
+              {user && !isAnonymous ? user.displayName : t('guestUser')}
+            </h1>
             {user && !isAnonymous && (
-              <p className='text-muted-foreground'>{user.email}</p>
+              <Button
+                variant='ghost'
+                size='icon'
+                onClick={handleEditName}
+                className='h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity'
+              >
+                <Edit className='h-4 w-4 text-muted-foreground' />
+              </Button>
             )}
           </div>
-        </div>
+        )}
+        {user && !isAnonymous && (
+          <p className='text-muted-foreground'>{user.email}</p>
+        )}
+      </div>
+    </div>
+  );
 
-        {user && !isAnonymous ? (
+  const renderGuestContent = () => (
+    <div className='text-center p-4 space-y-4'>
+      <div className='flex justify-center'>
+        <div className='w-24 h-24 rounded-full bg-muted flex items-center justify-center'>
+          <User className='h-12 w-12 text-muted-foreground' />
+        </div>
+      </div>
+      <h2 className='text-xl font-bold font-headline'>{t('unlockTitle')}</h2>
+      <p className='text-muted-foreground'>{t('unlockDesc')}</p>
+      <Button onClick={signInWithGoogle} size='lg' className='w-full'>
+        <GoogleIcon className='mr-2 h-5 w-5' />
+        {t('signInGoogle')}
+      </Button>
+      {user && isAnonymous && (
+        <Button onClick={logout} variant='outline' className='w-full'>
+          <LogOut className='mr-2 h-4 w-4' /> {t('signOut')}
+        </Button>
+      )}
+    </div>
+  );
+
+  return (
+    <div className='p-4 flex flex-col h-full'>
+      <header className='flex items-center justify-between mb-6'>
+        <Button variant='ghost' size='icon' onClick={handleClose}>
+          <ArrowLeft className='h-5 w-5' />
+        </Button>
+        <h2 className='text-lg font-semibold font-headline'>{t('title')}</h2>
+        <Link href={`${pathname}?panel=settings`}>
+          <Button variant='ghost' size='icon'>
+            <Settings className='h-5 w-5' />
+          </Button>
+        </Link>
+      </header>
+
+      {/* Main Content Area */}
+      <div className='flex-grow space-y-8'>
+        {user && !isAnonymous ? renderUserProfile() : renderGuestContent()}
+
+        {user && !isAnonymous && (
           <>
-            <div>
-              <h2 className='text-lg font-semibold mb-4'>{t('myMusic')}</h2>
-              <div className='grid gap-3 md:grid-cols-1'>
-                <StatCard
-                  icon={Music}
-                  title={t('mySongs')}
-                  value={songCount}
-                  isLoading={isLoadingStats}
-                  href='/library'
-                />
-                <StatCard
-                  icon={ListMusic}
-                  title={t('mySetlists')}
-                  value={setlistCount}
-                  isLoading={isLoadingStats}
-                  href='/my-setlists'
-                />
-              </div>
+            <div className='space-y-2'>
+              <NavLink
+                href='/library'
+                icon={Music}
+                title={t('mySongs')}
+                value={songCount}
+                isLoading={isLoadingStats}
+              />
+              <NavLink
+                href='/my-setlists'
+                icon={ListMusic}
+                title={t('mySetlists')}
+                value={setlistCount}
+                isLoading={isLoadingStats}
+              />
             </div>
-            <div>
-              <h2 className='text-lg font-semibold mb-4'>{t('title')}</h2>
-              <Card>
-                <CardContent className='p-4 flex items-center justify-between'>
-                  <div className='space-y-0.5'>
-                    <Label
-                      htmlFor='public-profile-switch'
-                      className='flex items-center gap-2'
-                    >
-                      {isProfilePublic ? (
-                        <Globe className='h-4 w-4 text-blue-500' />
-                      ) : (
-                        <Lock className='h-4 w-4 text-yellow-500' />
-                      )}
-                      {t('publicProfileLabel')}
-                    </Label>
-                    <p className='text-sm text-muted-foreground'>
-                      {t('publicProfileDesc')}
-                    </p>
-                  </div>
-                  <Switch
-                    id='public-profile-switch'
-                    checked={isProfilePublic}
-                    onCheckedChange={handlePublicToggle}
-                    disabled={isUpdatingPublicStatus}
-                  />
-                </CardContent>
-              </Card>
+            <div className='p-3 rounded-lg flex items-center justify-between'>
+              <Label
+                htmlFor='public-profile-switch'
+                className='flex items-center gap-4 cursor-pointer'
+              >
+                {isProfilePublic ? (
+                  <Globe className='h-5 w-5 text-muted-foreground' />
+                ) : (
+                  <Lock className='h-5 w-5 text-muted-foreground' />
+                )}
+                <span className='font-medium'>{t('publicProfileLabel')}</span>
+              </Label>
+              <Switch
+                id='public-profile-switch'
+                checked={isProfilePublic}
+                onCheckedChange={handlePublicToggle}
+                disabled={isUpdatingPublicStatus}
+              />
             </div>
           </>
-        ) : (
-          <Card className='bg-muted'>
-            <CardHeader>
-              <CardTitle className='font-headline text-center'>
-                {t('unlockTitle')}
-              </CardTitle>
-              <CardDescription className='text-center'>
-                {t('unlockDesc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='flex justify-center'>
-              <Button onClick={signInWithGoogle} size='lg'>
-                <GoogleIcon className='mr-2 h-5 w-5' />
-                {t('signInGoogle')}
-              </Button>
-            </CardContent>
-          </Card>
         )}
       </div>
 
-      {/* Footer Links Section */}
-      <div className='mt-auto space-y-4 pt-4'>
-        <div className='block md:hidden'>
-          <Separator className='mb-4' />
-          <div className='space-y-3'>
-            <FooterLink href='/donate'>{commonT('supportUs')}</FooterLink>
-            <FooterLink href='/welcome'>{commonT('aboutApp')}</FooterLink>
-            <FooterLink href='/privacy-policy'>
-              {commonT('privacyPolicy')}
-            </FooterLink>
-            <FooterLink href='/terms-of-use'>
-              {commonT('termsOfUse')}
-            </FooterLink>
-          </div>
+      {/* Footer Links & Sign Out Button */}
+      <div className='mt-auto space-y-6 pt-6'>
+        <div className='flex items-center justify-center gap-6'>
+          <FooterLink href='/donate'>{commonT('supportUs')}</FooterLink>
+          <FooterLink href='/welcome'>{commonT('aboutApp')}</FooterLink>
+          <FooterLink href='/privacy-policy'>
+            {commonT('privacyPolicy')}
+          </FooterLink>
         </div>
-        {user && (
-          <Button onClick={logout} variant='outline' className='w-full'>
+        {user && !isAnonymous && (
+          <Button onClick={logout} variant='ghost' className='w-full'>
             <LogOut className='mr-2 h-4 w-4' /> {t('signOut')}
           </Button>
         )}
