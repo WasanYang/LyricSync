@@ -13,13 +13,6 @@ import HamburgerMenu from './HamburgerMenu';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import ProfileCard from './ProfileCard';
 
-const OfflineIndicator = dynamic(
-  () => import('./OfflineIndicator').then((mod) => mod.OfflineIndicator),
-  {
-    ssr: false,
-  }
-);
-
 export default function Header() {
   const t = useTranslations();
   const { user } = useAuth();
@@ -55,7 +48,7 @@ export default function Header() {
                 <span className='sr-only'>Profile</span>
               </Button>
             </SheetTrigger>
-            <SheetContent className='p-0'>
+            <SheetContent className='w-full max-w-md p-0' showCloseButton={false}>
               <ProfileCard />
             </SheetContent>
           </Sheet>

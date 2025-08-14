@@ -25,6 +25,7 @@ import {
   Lock,
   Globe,
   Settings,
+  ArrowLeft,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GoogleIcon } from '@/components/ui/GoogleIcon';
@@ -35,6 +36,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import LocalsLink from '@/components/ui/LocalsLink';
 import HamburgerMenu from '@/components/HamburgerMenu';
+import { SheetClose } from './ui/sheet';
 
 function StatCard({
   icon: Icon,
@@ -257,6 +259,11 @@ export default function ProfileCard() {
   return (
     <div className='p-4 space-y-8'>
       <div className='flex items-center justify-between'>
+        <SheetClose asChild>
+          <Button variant='ghost' size='icon'>
+            <ArrowLeft className='h-5 w-5' />
+          </Button>
+        </SheetClose>
         <h2 className='text-lg font-semibold font-headline'>{t('title')}</h2>
         <HamburgerMenu />
       </div>
