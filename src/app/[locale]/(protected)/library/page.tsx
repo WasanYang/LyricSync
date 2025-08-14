@@ -30,6 +30,7 @@ import { useTranslations } from 'next-intl';
 import { GoogleIcon } from '@/components/ui/GoogleIcon';
 import Footer from '@/components/Footer';
 import BottomNavBar from '@/components/BottomNavBar';
+import MainLayout from '@/components/shared/MainLayout';
 
 const PAGE_SIZE = 10;
 
@@ -296,7 +297,7 @@ export default function LibraryPage() {
   };
 
   return (
-    <>
+    <MainLayout title='Library'>
       <div className='flex-grow flex flex-col'>
         <header className='sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
           <div className='container mx-auto flex h-16 items-center justify-between px-4'>
@@ -326,6 +327,6 @@ export default function LibraryPage() {
         <Footer />
         <BottomNavBar />
       </div>
-    </>
+    </MainLayout>
   );
 }

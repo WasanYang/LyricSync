@@ -131,7 +131,8 @@
   "home": {
     "title": "Explore",
     "recentSetlists": "Recent Setlists",
-    "viewAll": "View All"
+    "viewAll": "View All",
+    "newReleases": "New Releases"
   },
   "notFound": {
     "title": "Page Not Found",

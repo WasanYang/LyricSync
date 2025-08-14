@@ -3,7 +3,7 @@
 
 import { getSetlists, type Setlist, getAllCloudSongs } from '@/lib/db';
 import type { Song } from '@/lib/songs';
-import Header from '@/components/Header';
+// import Header from '@/components/Header';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState, useMemo, useRef } from 'react';
 import Footer from '@/components/Footer';
@@ -157,9 +157,7 @@ function HomeClientComponent() {
             'transition-opacity duration-300',
             isHeaderScrolled ? 'opacity-0' : 'opacity-100'
           )}
-        >
-          <Header />
-        </div>
+        ></div>
 
         {isHeaderScrolled && (
           <header className='fixed top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>

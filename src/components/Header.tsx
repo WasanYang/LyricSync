@@ -9,12 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from './ui/button';
 import { User, Settings } from 'lucide-react';
-import {
-  Sheet,
-  SheetContent,
-  SheetTitle,
-  SheetTrigger,
-} from './ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from './ui/sheet';
 import ProfileCard from './ProfileCard';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -65,9 +60,7 @@ export default function Header() {
             <SheetTrigger asChild>
               <Button variant='ghost' size='icon'>
                 <Avatar className='h-8 w-8'>
-                  {user && user.photoURL && (
-                    <AvatarImage src={user.photoURL} />
-                  )}
+                  {user && user.photoURL && <AvatarImage src={user.photoURL} />}
                   <AvatarFallback>
                     {user && !user.isAnonymous ? (
                       user.displayName?.[0].toUpperCase()

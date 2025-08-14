@@ -134,7 +134,8 @@ declare const messages: {
   "home": {
     "title": "สำรวจ",
     "recentSetlists": "เซ็ตลิสต์ล่าสุด",
-    "viewAll": "ดูทั้งหมด"
+    "viewAll": "ดูทั้งหมด",
+    "newReleases": "เพลงใหม่ล่าสุด"
   },
   "notFound": {
     "title": "ไม่พบหน้านี้",
