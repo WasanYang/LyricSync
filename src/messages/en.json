@@ -212,5 +212,10 @@
     "title": "Updates",
     "emptyTitle": "No New Updates",
     "emptyDesc": "You currently have no new updates or news from the system."
+  },
+  "settings": {
+    "general": "General",
+    "account": "Account",
+    "supportAndInfo": "Support & Info"
   }
 }

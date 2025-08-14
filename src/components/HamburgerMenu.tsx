@@ -6,9 +6,7 @@ import {
   LogOut,
   Sun,
   Moon,
-  LogIn,
   Info,
-  UserCircle,
   Database,
   Users,
   Bell,
@@ -26,7 +24,6 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetClose,
 } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from './ui/separator';
@@ -36,6 +33,28 @@ import { useAuth } from '@/context/AuthContext';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import LocalsLink from './ui/LocalsLink';
 import { GoogleIcon } from './ui/GoogleIcon';
+import { Card } from './ui/card';
+
+const NavLink = ({
+  href,
+  icon: Icon,
+  title,
+  children,
+}: {
+  href: string;
+  icon: React.ElementType;
+  title: string;
+  children?: React.ReactNode;
+}) => (
+  <LocalsLink
+    href={href}
+    className='flex items-center p-3 rounded-lg transition-colors hover:bg-muted/80'
+  >
+    <Icon className='h-5 w-5 text-muted-foreground mr-4' />
+    <span className='flex-grow font-medium'>{title}</span>
+    {children}
+  </LocalsLink>
+);
 
 export default function HamburgerMenu() {
   const router = useRouter();
@@ -80,10 +99,14 @@ export default function HamburgerMenu() {
     }
   };
 
+  const handleClose = () => {
+    handleSettingsOpenChange(false);
+  };
+
   return (
     <Sheet open={isSettingsOpen} onOpenChange={handleSettingsOpenChange}>
       <SheetTrigger asChild>
-        <Button variant='ghost' size='icon'>
+        <Button variant='ghost' size='icon' className='hidden'>
           <Settings className='h-5 w-5' />
           <span className='sr-only'>Open Menu</span>
         </Button>
@@ -94,11 +117,7 @@ export default function HamburgerMenu() {
         showCloseButton={false}
       >
         <SheetHeader className='p-4 border-b flex flex-row items-center'>
-          <Button
-            variant='ghost'
-            size='icon'
-            onClick={() => handleSettingsOpenChange(false)}
-          >
+          <Button variant='ghost' size='icon' onClick={handleClose}>
             <ArrowLeft className='h-5 w-5' />
             <span className='sr-only'>Back</span>
           </Button>
@@ -107,19 +126,17 @@ export default function HamburgerMenu() {
           </SheetTitle>
           <div className='w-8'></div>
         </SheetHeader>
-        <div
-          className={cn(
-            'p-4 space-y-4 overflow-y-auto flex-grow',
-            'scrollbar-thin scrollbar-thumb-primary scrollbar-track-background'
-          )}
-        >
+        <div className='flex-grow overflow-y-auto p-4 space-y-8'>
           {/* General Settings */}
-          <div className='space-y-2'>
-            <div className='flex items-center justify-between rounded-md px-3 py-2 text-base font-medium text-muted-foreground'>
-              <span className='flex items-center gap-3'>
-                <Languages className='h-5 w-5' />
-                {t('language')}
-              </span>
+          <section className='space-y-2'>
+            <h3 className='text-sm font-semibold text-muted-foreground px-3'>
+              {t('settings.general')}
+            </h3>
+            <div className='flex items-center p-3 justify-between'>
+              <div className='flex items-center'>
+                <Languages className='h-5 w-5 text-muted-foreground mr-4' />
+                <span className='font-medium'>{t('language')}</span>
+              </div>
               <div className='flex gap-1'>
                 <Button
                   size='sm'
@@ -137,15 +154,15 @@ export default function HamburgerMenu() {
                 </Button>
               </div>
             </div>
-            <div className='flex items-center justify-between rounded-md px-3 py-2 text-base font-medium text-muted-foreground'>
-              <span className='flex items-center gap-3'>
+            <div className='flex items-center p-3 justify-between'>
+              <div className='flex items-center'>
                 {theme === 'light' ? (
-                  <Sun className='h-5 w-5' />
+                  <Sun className='h-5 w-5 text-muted-foreground mr-4' />
                 ) : (
-                  <Moon className='h-5 w-5' />
+                  <Moon className='h-5 w-5 text-muted-foreground mr-4' />
                 )}
-                {t('theme')}
-              </span>
+                <span className='font-medium'>{t('theme')}</span>
+              </div>
               {mounted && (
                 <Switch
                   checked={theme === 'dark'}
@@ -154,109 +171,67 @@ export default function HamburgerMenu() {
                 />
               )}
             </div>
-          </div>
+          </section>
 
-          <Separator />
-
-          {/* User Specific Section */}
+          {/* Account */}
           {user && !user.isAnonymous && (
-            <nav className='flex flex-col space-y-2'>
-              <SheetClose asChild>
-                <LocalsLink
-                  href='/updates'
-                  className={cn(
-                    'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
-                    pathname.startsWith('/updates')
-                      ? 'text-primary bg-secondary'
-                      : 'text-muted-foreground'
-                  )}
-                >
-                  <Bell className='h-5 w-5' />
-                  <span>{t('updates.title')}</span>
-                </LocalsLink>
-              </SheetClose>
-            </nav>
+            <section className='space-y-2'>
+              <h3 className='text-sm font-semibold text-muted-foreground px-3'>
+                {t('settings.account')}
+              </h3>
+              <NavLink
+                href='/updates'
+                icon={Bell}
+                title={t('notifications.title')}
+              />
+            </section>
           )}
 
           {/* Admin Section */}
           {isSuperAdmin && (
-            <>
-              <Separator />
-              <p className='px-3 text-xs font-semibold text-muted-foreground tracking-wider uppercase'>
+            <section className='space-y-2'>
+              <h3 className='text-sm font-semibold text-muted-foreground px-3'>
                 {t('management')}
-              </p>
-              <nav className='flex flex-col space-y-1'>
-                <SheetClose asChild>
-                  <LocalsLink
-                    href='/dashboard/songs'
-                    className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
-                  >
-                    <Database className='h-5 w-5' />
-                    <span>{t('cloudSongs')}</span>
-                  </LocalsLink>
-                </SheetClose>
-                <SheetClose asChild>
-                  <LocalsLink
-                    href='/dashboard/user-uploads'
-                    className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
-                  >
-                    <Users className='h-5 w-5' />
-                    <span>{t('userUploads')}</span>
-                  </LocalsLink>
-                </SheetClose>
-                <SheetClose asChild>
-                  <LocalsLink
-                    href='/dashboard/notifications'
-                    className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
-                  >
-                    <MessageSquarePlus className='h-5 w-5' />
-                    <span>{t('notifications.title')}</span>
-                  </LocalsLink>
-                </SheetClose>
-                <SheetClose asChild>
-                  <LocalsLink
-                    href='/dashboard/users'
-                    className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
-                  >
-                    <Users className='h-5 w-5' />
-                    <span>{t('manageUsers')}</span>
-                  </LocalsLink>
-                </SheetClose>
-              </nav>
-            </>
+              </h3>
+              <NavLink
+                href='/dashboard/songs'
+                icon={Database}
+                title={t('cloudSongs')}
+              />
+              <NavLink
+                href='/dashboard/user-uploads'
+                icon={Users}
+                title={t('userUploads')}
+              />
+              <NavLink
+                href='/dashboard/notifications'
+                icon={MessageSquarePlus}
+                title={t('notifications.title')}
+              />
+              <NavLink
+                href='/dashboard/users'
+                icon={Users}
+                title={t('manageUsers')}
+              />
+            </section>
           )}
 
-          <Separator />
-
-          {/* General Links */}
-          <nav className='flex flex-col space-y-1'>
-            <SheetClose asChild>
-              <LocalsLink
-                href='/donate'
-                className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
-              >
-                <Heart className='h-5 w-5' />
-                <span>{t('donate.title')}</span>
-              </LocalsLink>
-            </SheetClose>
-            <SheetClose asChild>
-              <LocalsLink
-                href='/welcome'
-                className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
-              >
-                <Info className='h-5 w-5' />
-                <span>{t('aboutApp')}</span>
-              </LocalsLink>
-            </SheetClose>
-          </nav>
+          {/* Support & Info Section */}
+          <section className='space-y-2'>
+            <h3 className='text-sm font-semibold text-muted-foreground px-3'>
+              {t('settings.supportAndInfo')}
+            </h3>
+            <NavLink
+              href='/donate'
+              icon={Heart}
+              title={t('donate.title')}
+            />
+            <NavLink href='/welcome' icon={Info} title={t('aboutApp')} />
+          </section>
         </div>
         <div className='mt-auto p-4 border-t'>
-          {user ? (
-            <Button
-              onClick={logout}
-              variant='outline'
-              className='w-full'
-            >
+          {user && !user.isAnonymous ? (
+            <Button onClick={logout} variant='ghost' className='w-full'>
               <LogOut className='mr-2 h-4 w-4' />
               <span>{t('logout')}</span>
             </Button>
@@ -268,12 +243,10 @@ export default function HamburgerMenu() {
               <p className='text-sm text-muted-foreground mt-1 mb-4'>
                 {t('profile.unlockDesc')}
               </p>
-              <SheetClose asChild>
-                <Button onClick={signInWithGoogle} className='w-full'>
-                  <GoogleIcon className='mr-2 h-5 w-5' />
-                  {t('profile.signInGoogle')}
-                </Button>
-              </SheetClose>
+              <Button onClick={signInWithGoogle} className='w-full'>
+                <GoogleIcon className='mr-2 h-5 w-5' />
+                {t('profile.signInGoogle')}
+              </Button>
             </div>
           )}
         </div>
