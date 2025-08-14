@@ -18,6 +18,7 @@ import {
 import ProfileCard from './ProfileCard';
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Search } from 'lucide-react';
 
 export default function Header() {
   const t = useTranslations();
@@ -49,7 +50,7 @@ export default function Header() {
 
   return (
     <header className='sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-      <div className='flex h-16 items-center justify-between px-4'>
+      <div className='container mx-auto flex h-16 items-center justify-between px-4'>
         {/* Title */}
         <div className='flex items-center'>
           <LocalsLink href='/' className='flex items-center space-x-2'>
@@ -59,6 +60,12 @@ export default function Header() {
 
         {/* Right side actions */}
         <div className='flex items-center justify-end space-x-2'>
+          <Button variant='ghost' size='icon' asChild>
+            <LocalsLink href='/search'>
+              <Search className='h-5 w-5' />
+              <span className='sr-only'>Search</span>
+            </LocalsLink>
+          </Button>
           <NotificationBell />
           <Sheet open={isProfileOpen} onOpenChange={handleProfileOpenChange}>
             <SheetTrigger asChild>

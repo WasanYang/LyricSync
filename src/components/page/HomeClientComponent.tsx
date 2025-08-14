@@ -59,21 +59,6 @@ function HomeClientComponent() {
   );
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (searchFormRef.current) {
-        const { top } = searchFormRef.current.getBoundingClientRect();
-        // The threshold should be when the top of the search bar goes above 0.
-        setIsHeaderScrolled(top < 0);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
-  useEffect(() => {
     async function loadData() {
       setIsLoadingSetlists(true);
       setIsLoadingSongs(true);
@@ -121,63 +106,13 @@ function HomeClientComponent() {
 
   const featuredSongs = systemSongs.slice(0, 10); // Show more featured songs
 
-  const searchInput = (
-    <div className='relative w-full flex items-center gap-2 group'>
-      <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-black pointer-events-none' />
-      <Input
-        name='search-keyword'
-        id='search-keyword'
-        type='search'
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        placeholder={t('placeholder')}
-        className='w-full rounded-full border bg-white py-2 pl-8 text-base text-black placeholder:text-black placeholder:font-medium font-medium'
-      />
-      <span
-        className={cn(
-          'cursor-pointer text-emerald-500 transition-all duration-300 whitespace-nowrap overflow-hidden pr-4',
-          searchTerm.length > 0
-            ? 'max-w-[120px] opacity-100'
-            : 'max-w-0 opacity-0 pointer-events-none'
-        )}
-        onClick={() => setSearchTerm('')}
-      >
-        Cancel
-      </span>
-    </div>
-  );
-
   return (
     <>
       <div className='flex-grow flex flex-col'>
-        <div
-          className={cn(
-            'transition-opacity duration-300',
-            isHeaderScrolled ? 'opacity-0' : 'opacity-100'
-          )}
-        >
-          <Header />
-        </div>
-
-        {isHeaderScrolled && (
-          <header className='fixed top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-            <div className='flex h-16 items-center justify-between px-4'>
-              <form onSubmit={handleSearchSubmit} className='w-full'>
-                {searchInput}
-              </form>
-            </div>
-          </header>
-        )}
+        <Header />
 
         <main className='flex-grow container mx-auto px-4 space-y-4 pb-24 md:pb-12'>
           <WelcomeCard user={user} />
-          <form
-            ref={searchFormRef}
-            onSubmit={handleSearchSubmit}
-            className='w-full pt-4'
-          >
-            {searchInput}
-          </form>
 
           <RecentSetlists
             user={user}

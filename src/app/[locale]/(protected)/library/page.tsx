@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -6,11 +7,16 @@ import type { Song } from '@/lib/songs';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
 import Link from 'next/link';
-import { Music, PlusCircle, Search as SearchIcon } from 'lucide-react';
+import {
+  Music,
+  PlusCircle,
+  Search as SearchIcon,
+  Library,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { SearchInput, EmptyState } from '@/components/shared';
+import { EmptyState } from '@/components/shared';
 import {
   Pagination,
   PaginationContent,
@@ -21,8 +27,28 @@ import {
 } from '@/components/ui/pagination';
 import SongListItem from './_component/SongListItem';
 import LocalsLink from '@/components/ui/LocalsLink';
+import { Input } from '@/components/ui/input';
 
 const PAGE_SIZE = 10;
+
+function LoadingSkeleton() {
+  return (
+    <div className='flex-grow flex flex-col'>
+      <Header />
+      <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
+        <div className='space-y-4'>
+          <Skeleton className='h-8 w-48' />
+          <div className='space-y-2'>
+            <Skeleton className='h-12 w-full' />
+            <Skeleton className='h-12 w-full' />
+            <Skeleton className='h-12 w-full' />
+          </div>
+        </div>
+      </main>
+      <BottomNavBar />
+    </div>
+  );
+}
 
 export default function LibraryPage() {
   const [allSongs, setAllSongs] = useState<Song[]>([]);
@@ -149,22 +175,7 @@ export default function LibraryPage() {
   };
 
   if (authLoading || !user) {
-    return (
-      <div className='flex-grow flex flex-col'>
-        <Header />
-        <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
-          <div className='space-y-4'>
-            <Skeleton className='h-8 w-48' />
-            <div className='space-y-2'>
-              <Skeleton className='h-12 w-full' />
-              <Skeleton className='h-12 w-full' />
-              <Skeleton className='h-12 w-full' />
-            </div>
-          </div>
-        </main>
-        <BottomNavBar />
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   const isAnonymous = user.isAnonymous;
@@ -172,31 +183,39 @@ export default function LibraryPage() {
   return (
     <>
       <div className='flex-grow flex flex-col'>
-        <Header />
-        <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
-          <div className='space-y-8'>
-            <div className='flex justify-between items-center'>
-              <h1 className='text-3xl font-headline font-bold tracking-tight'>
+        <header className='sticky top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+          <div className='container mx-auto flex h-16 items-center justify-between px-4'>
+            <div className='flex items-center gap-2'>
+              <Library className='h-6 w-6' />
+              <h1 className='text-2xl font-bold font-headline tracking-tight'>
                 Library
               </h1>
-              {!isAnonymous && (
-                <Button variant='ghost' size='icon' asChild>
-                  <LocalsLink href='/song-editor'>
-                    <PlusCircle className='h-6 w-6' />
-                    <span className='sr-only'>Add new song</span>
-                  </LocalsLink>
-                </Button>
-              )}
             </div>
+            {!isAnonymous && (
+              <Button variant='ghost' size='icon' asChild>
+                <LocalsLink href='/song-editor'>
+                  <PlusCircle className='h-6 w-6' />
+                  <span className='sr-only'>Add new song</span>
+                </LocalsLink>
+              </Button>
+            )}
+          </div>
+        </header>
 
-            <SearchInput
-              value={searchTerm}
-              onChange={(val) => {
-                setSearchTerm(val);
-                setCurrentPage(1); // Reset page on new search
-              }}
-              placeholder='Search your library...'
-            />
+        <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
+          <div className='space-y-8'>
+            <div className='relative w-full'>
+              <SearchIcon className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none' />
+              <Input
+                placeholder='Search your library...'
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1); // Reset page on new search
+                }}
+                className='w-full rounded-full border bg-background py-2 pl-9 text-base'
+              />
+            </div>
 
             {isLoading ? (
               <div className='space-y-2'>
@@ -248,3 +267,4 @@ export default function LibraryPage() {
     </>
   );
 }
+
