@@ -240,14 +240,16 @@ export default function LibraryPage() {
     }
     if (isAnonymous) {
       return (
-        <div className='flex flex-col justify-center items-center h-full text-center'>
-          <p className='text-muted-foreground max-w-xs mx-auto mb-4'>
-            {commonT('unlockDesc')}
-          </p>
-          <Button onClick={signInWithGoogle} className='mt-4'>
-            <GoogleIcon className='mr-2 h-5 w-5' />
-            {commonT('signInGoogle')}
-          </Button>
+        <div className='flex-grow flex items-center justify-center'>
+          <div className='text-center border-2 border-dashed rounded-lg p-8 flex flex-col justify-center items-center'>
+            <p className='text-muted-foreground max-w-xs mx-auto mb-4'>
+              {commonT('unlockDesc')}
+            </p>
+            <Button onClick={signInWithGoogle} className='mt-4'>
+              <GoogleIcon className='mr-2 h-5 w-5' />
+              {commonT('signInGoogle')}
+            </Button>
+          </div>
         </div>
       );
     }
@@ -315,13 +317,11 @@ export default function LibraryPage() {
           </div>
         </header>
 
-        <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
-          <div className='space-y-8'>
-            {!isAnonymous && (
-              <div className='relative w-full'>{searchInput}</div>
-            )}
-            {renderContent()}
-          </div>
+        <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8 flex flex-col'>
+          {!isAnonymous && (
+            <div className='relative w-full mb-8'>{searchInput}</div>
+          )}
+          {renderContent()}
         </main>
         <Footer />
         <BottomNavBar />
