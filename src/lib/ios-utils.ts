@@ -156,11 +156,11 @@ export const iOSUtils = {
 
     // Log iOS-specific info
     if (this.isIOS()) {
-      console.log('iOS detected:', {
-        isIOSPWA: this.isIOSPWA(),
-        isSafari: this.isSafari(),
-        userAgent: navigator.userAgent,
-      });
+      // console.log('iOS detected:', {
+      //   isIOSPWA: this.isIOSPWA(),
+      //   isSafari: this.isSafari(),
+      //   userAgent: navigator.userAgent,
+      // });
 
       // Check for private mode
       this.isPrivateMode().then((isPrivate) => {

@@ -40,8 +40,8 @@ export default function SongListItem({ song }: { song: Song }) {
             !song.artist && 'flex items-center'
           )}
         >
-          <div>
-            <p className='font-normal font-headline text-sm truncate'>
+          <div className='w-full'>
+            <p className='font-normal font-headline text-sm truncate max-w-[90%]'>
               {song.title}
             </p>
             {song.artist && (

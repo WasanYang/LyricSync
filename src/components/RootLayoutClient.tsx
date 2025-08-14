@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useOnlineStatus } from '@/hooks/use-online-status';
@@ -9,17 +8,18 @@ import { IOSErrorBoundary } from '@/components/IOSErrorBoundary';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/context/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
+import { ClientOnly } from './shared/ClientOnly';
 
 interface RootLayoutClientProps {
   children: React.ReactNode;
 }
 
 export function RootLayoutClient({ children }: RootLayoutClientProps) {
-  const isOnline = useOnlineStatus();
+  // const isOnline = useOnlineStatus();
 
-  useEffect(() => {
-    document.documentElement.classList.toggle('is-offline', !isOnline);
-  }, [isOnline]);
+  // useEffect(() => {
+  //   document.documentElement.classList.toggle('is-offline', !isOnline);
+  // }, [isOnline]);
 
   useEffect(() => {
     // Initialize iOS-specific fixes
@@ -32,18 +32,20 @@ export function RootLayoutClient({ children }: RootLayoutClientProps) {
   }, []);
 
   return (
-    <IOSErrorBoundary>
-      <ThemeProvider
-        attribute='class'
-        defaultTheme='system'
-        enableSystem
-        disableTransitionOnChange
-      >
-        <AuthProvider>
-          {children}
-          <Toaster />
-        </AuthProvider>
-      </ThemeProvider>
-    </IOSErrorBoundary>
+    <ClientOnly>
+      <IOSErrorBoundary>
+        <ThemeProvider
+          attribute='class'
+          defaultTheme='system'
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            {children}
+            <Toaster />
+          </AuthProvider>
+        </ThemeProvider>
+      </IOSErrorBoundary>
+    </ClientOnly>
   );
 }

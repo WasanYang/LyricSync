@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { Search } from 'lucide-react';
 import { NotificationBell } from '../NotificationBell';
 import HamburgerMenu from '../HamburgerMenu';
+import { Input } from '../ui/input';
 
 const RecentSetlists = dynamic(
   () => import('@/components/RecentSetlists').then((mod) => mod.RecentSetlists),
@@ -123,19 +124,29 @@ function HomeClientComponent() {
   const featuredSongs = systemSongs.slice(0, 10); // Show more featured songs
 
   const searchInput = (
-    <input
-      type='search'
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-      placeholder={t('placeholder')}
-      className='w-full py-2 px-3 pl-10 text-base border rounded-full bg-white text-black placeholder:text-black focus:outline-none active:outline-none'
-      style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-search'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E")`,
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: '12px center',
-        backgroundSize: '20px',
-      }}
-    />
+    <div className='relative w-full flex items-center gap-2 group'>
+      <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-black pointer-events-none' />
+      <Input
+        name='search-keyword'
+        id='search-keyword'
+        type='search'
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder={t('placeholder')}
+        className='w-full rounded-full border bg-white py-2 pl-8 text-base text-black placeholder:text-black placeholder:font-medium font-medium'
+      />
+      <span
+        className={cn(
+          'cursor-pointer text-emerald-500 transition-all duration-300 whitespace-nowrap overflow-hidden pr-4',
+          searchTerm.length > 0
+            ? 'max-w-[120px] opacity-100'
+            : 'max-w-0 opacity-0 pointer-events-none'
+        )}
+        onClick={() => setSearchTerm('')}
+      >
+        Cancel
+      </span>
+    </div>
   );
 
   return (
@@ -160,12 +171,12 @@ function HomeClientComponent() {
           </header>
         )}
 
-        <main className='flex-grow container mx-auto px-4 py-4 space-y-4 pb-24 md:pb-12'>
+        <main className='flex-grow container mx-auto px-4 space-y-4 pb-24 md:pb-12'>
           <WelcomeCard user={user} />
           <form
             ref={searchFormRef}
             onSubmit={handleSearchSubmit}
-            className='w-full'
+            className='w-full pt-4'
           >
             {searchInput}
           </form>

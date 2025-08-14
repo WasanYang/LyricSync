@@ -1,4 +1,3 @@
-
 {
   "welcome": {
     "title": "Welcome to LyricSync",
@@ -62,7 +61,7 @@
   "cancel": "Cancel",
   "search": {
     "title": "Search",
-    "placeholder": "Search songs, artists, and public setlists...",
+    "placeholder": "What are you looking for?",
     "browseByLetter": "Browse by Letter (A-Z, ก-ฮ)"
   },
   "explore": {

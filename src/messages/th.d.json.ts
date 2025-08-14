@@ -64,7 +64,7 @@ declare const messages: {
   "cancel": "ยกเลิก",
   "search": {
     "title": "ค้นหา",
-    "placeholder": "ค้นหาเพลง, ศิลปิน, และเซ็ตลิสต์สาธารณะ...",
+    "placeholder": "กำลังมองหาเพลงอะไรอยู่?",
     "browseByLetter": "ค้นหาจากตัวอักษร (ก-ฮ, A-Z)"
   },
   "explore": {

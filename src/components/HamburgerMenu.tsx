@@ -16,7 +16,6 @@ import {
   Heart,
   Languages,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -30,10 +29,10 @@ import { Separator } from './ui/separator';
 import { useTheme } from 'next-themes';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import LocalsLink from './ui/LocalsLink';
 import { GoogleIcon } from './ui/GoogleIcon';
-import { Card } from './ui/card';
+import { usePathname, useRouter } from '@/i18n/navigation';
 
 const NavLink = ({
   href,
@@ -90,7 +89,7 @@ export default function HamburgerMenu() {
     } else {
       params.delete('panel');
     }
-    router.replace(`${pathname}?${params.toString()}`);
+    router.replace({ pathname, query: Object.fromEntries(params.entries()) });
   };
 
   const handleLanguageChange = (lang: string) => {
@@ -221,11 +220,7 @@ export default function HamburgerMenu() {
             <h3 className='text-sm font-semibold text-muted-foreground px-3'>
               {t('settings.supportAndInfo')}
             </h3>
-            <NavLink
-              href='/donate'
-              icon={Heart}
-              title={t('donate.title')}
-            />
+            <NavLink href='/donate' icon={Heart} title={t('donate.title')} />
             <NavLink href='/welcome' icon={Info} title={t('aboutApp')} />
           </section>
         </div>

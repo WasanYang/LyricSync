@@ -2,8 +2,14 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { viewport, metadata } from './metadata';
 import { use } from 'react';
+import { Inter } from 'next/font/google';
 
 export { viewport, metadata };
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800'], // <-- เพิ่มบรรทัดนี้
+});
 
 export default function RootLayout({
   children,
@@ -22,7 +28,8 @@ export default function RootLayout({
       </head>
       <body
         className={cn(
-          'font-body antialiased min-h-screen flex flex-col bg-background'
+          'font-body antialiased min-h-screen flex flex-col bg-background',
+          inter.className
         )}
       >
         <div className='w-full max-w-[768px] mx-auto flex-grow flex flex-col'>
