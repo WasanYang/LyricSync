@@ -2,14 +2,14 @@
 
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { ListMusic, Library, User, Search, Home } from 'lucide-react';
+import { ListMusic, Library, Compass, Home } from 'lucide-react';
 import LocalsLink from './ui/LocalsLink';
 
 const navLinks = [
-  { href: '/', label: 'Explore', icon: Home },
+  { href: '/', label: 'Home', icon: Home },
   { href: '/library', label: 'Library', icon: Library },
   { href: '/my-setlists', label: 'Setlists', icon: ListMusic },
-  { href: '/explore', label: 'Search', icon: Search },
+  { href: '/explore', label: 'Explore', icon: Compass },
 ];
 
 export default function BottomNavBar() {
