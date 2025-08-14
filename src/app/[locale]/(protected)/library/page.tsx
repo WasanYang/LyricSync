@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -6,12 +5,12 @@ import { getAllSavedSongs, toMillisSafe } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import Header from '@/components/Header';
 import BottomNavBar from '@/components/BottomNavBar';
-import Link from 'next/link';
 import {
   Music,
   PlusCircle,
   Search as SearchIcon,
   Library,
+  Search,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
@@ -28,6 +27,8 @@ import {
 import SongListItem from './_component/SongListItem';
 import LocalsLink from '@/components/ui/LocalsLink';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 const PAGE_SIZE = 10;
 
@@ -51,6 +52,7 @@ function LoadingSkeleton() {
 }
 
 export default function LibraryPage() {
+  const t = useTranslations('library');
   const [allSongs, setAllSongs] = useState<Song[]>([]);
   const [songsOnPage, setSongsOnPage] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -179,7 +181,31 @@ export default function LibraryPage() {
   }
 
   const isAnonymous = user.isAnonymous;
-
+  const searchInput = (
+    <div className='relative w-full flex items-center gap-2 group'>
+      <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2  pointer-events-none' />
+      <Input
+        name='search-lib'
+        id='search-lib'
+        type='search'
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder={'Search your library...'}
+        className='w-full rounded-full border py-2 pl-8 text-bas placeholder:font-medium font-medium'
+      />
+      <span
+        className={cn(
+          'cursor-pointer text-green-600 transition-all duration-300 whitespace-nowrap overflow-hidden pr-4',
+          searchTerm.length > 0
+            ? 'max-w-[120px] opacity-100'
+            : 'max-w-0 opacity-0 pointer-events-none'
+        )}
+        onClick={() => setSearchTerm('')}
+      >
+        Cancel
+      </span>
+    </div>
+  );
   return (
     <>
       <div className='flex-grow flex flex-col'>
@@ -204,18 +230,7 @@ export default function LibraryPage() {
 
         <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
           <div className='space-y-8'>
-            <div className='relative w-full'>
-              <SearchIcon className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none' />
-              <Input
-                placeholder='Search your library...'
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1); // Reset page on new search
-                }}
-                className='w-full rounded-full border bg-background py-2 pl-9 text-base'
-              />
-            </div>
+            <div className='relative w-full'>{searchInput}</div>
 
             {isLoading ? (
               <div className='space-y-2'>
@@ -267,4 +282,3 @@ export default function LibraryPage() {
     </>
   );
 }
-

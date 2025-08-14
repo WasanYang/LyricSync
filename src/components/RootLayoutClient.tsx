@@ -34,20 +34,20 @@ export function RootLayoutClient({ children }: RootLayoutClientProps) {
 
   return (
     <ClientOnly>
-      <IOSErrorBoundary>
-        <ThemeProvider
-          attribute='class'
-          defaultTheme='system'
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AuthProvider>
-            {children}
-            <Toaster />
-            <HamburgerMenu />
-          </AuthProvider>
-        </ThemeProvider>
-      </IOSErrorBoundary>
+      {/* <IOSErrorBoundary> */}
+      <ThemeProvider
+        attribute='class'
+        defaultTheme='system'
+        enableSystem
+        disableTransitionOnChange
+      >
+        <AuthProvider>
+          {children}
+          <Toaster />
+          <HamburgerMenu />
+        </AuthProvider>
+      </ThemeProvider>
+      {/* </IOSErrorBoundary> */}
     </ClientOnly>
   );
 }

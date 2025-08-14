@@ -5,7 +5,7 @@ import { getSetlists, type Setlist, getAllCloudSongs } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import Header from '@/components/Header';
 import { useAuth } from '@/context/AuthContext';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import Footer from '@/components/Footer';
 import RecommendedSongs from '@/components/RecommendedSongs';
 import WelcomeCard from '@/components/WelcomeCard';
@@ -13,8 +13,11 @@ import { HomeLoadingSkeleton } from '@/components/HomeLoadingSkeleton';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { Input } from '../ui/input';
+import { cn } from '@/lib/utils';
 import { Search } from 'lucide-react';
+import { NotificationBell } from '../NotificationBell';
+import HamburgerMenu from '../HamburgerMenu';
+import { Input } from '../ui/input';
 
 const RecentSetlists = dynamic(
   () => import('@/components/RecentSetlists').then((mod) => mod.RecentSetlists),
@@ -39,6 +42,8 @@ function HomeClientComponent() {
   const [isLoadingSongs, setIsLoadingSongs] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const t = useTranslations('search');
+  const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
+  const searchFormRef = useRef<HTMLFormElement>(null);
 
   const recentReleases = useMemo(
     () =>
@@ -54,6 +59,21 @@ function HomeClientComponent() {
     () => [...systemSongs].sort(() => 0.5 - Math.random()).slice(0, 10), // Show more popular hits
     [systemSongs]
   );
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (searchFormRef.current) {
+        const { top } = searchFormRef.current.getBoundingClientRect();
+        // The threshold should be when the top of the search bar goes above 0.
+        setIsHeaderScrolled(top < 0);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   useEffect(() => {
     async function loadData() {
@@ -103,24 +123,63 @@ function HomeClientComponent() {
 
   const featuredSongs = systemSongs.slice(0, 10); // Show more featured songs
 
+  const searchInput = (
+    <div className='relative w-full flex items-center gap-2 group'>
+      <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-black pointer-events-none' />
+      <Input
+        name='search-lib'
+        id='search-lib'
+        type='search'
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder={t('placeholder')}
+        className='w-full rounded-full border bg-white py-2 pl-8 text-base text-black placeholder:text-black placeholder:font-medium font-medium'
+      />
+      <span
+        className={cn(
+          'cursor-pointer text-green-500 transition-all duration-300 whitespace-nowrap overflow-hidden pr-4',
+          searchTerm.length > 0
+            ? 'max-w-[120px] opacity-100'
+            : 'max-w-0 opacity-0 pointer-events-none'
+        )}
+        onClick={() => setSearchTerm('')}
+      >
+        Cancel
+      </span>
+    </div>
+  );
+
   return (
     <>
       <div className='flex-grow flex flex-col'>
-        <Header />
+        <div
+          className={cn(
+            'transition-opacity duration-300',
+            isHeaderScrolled ? 'opacity-0' : 'opacity-100'
+          )}
+        >
+          <Header />
+        </div>
 
-        <main className='flex-grow container mx-auto px-4 space-y-8 pb-24 md:pb-12'>
-          <form onSubmit={handleSearchSubmit} className='relative'>
-            <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10' />
-            <Input
-              type='search'
-              placeholder={t('placeholder')}
-              className='w-full rounded-full border bg-background py-2 pl-10 text-base shadow-sm'
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </form>
+        {isHeaderScrolled && (
+          <header className='fixed top-0 z-40 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+            <div className='flex h-16 items-center justify-between px-4'>
+              <form onSubmit={handleSearchSubmit} className='w-full'>
+                {searchInput}
+              </form>
+            </div>
+          </header>
+        )}
 
+        <main className='flex-grow container mx-auto px-4 space-y-4 pb-24 md:pb-12'>
           <WelcomeCard user={user} />
+          <form
+            ref={searchFormRef}
+            onSubmit={handleSearchSubmit}
+            className='w-full pt-4'
+          >
+            {searchInput}
+          </form>
 
           <RecentSetlists
             user={user}
@@ -137,6 +196,7 @@ function HomeClientComponent() {
         </main>
         <Footer />
         <BottomNavBar />
+        <HamburgerMenu />
       </div>
     </>
   );
