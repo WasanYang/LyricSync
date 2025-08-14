@@ -1,3 +1,4 @@
+// src/app/[locale]/(protected)/my-setlists/[id]/player/page.tsx
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -51,7 +52,7 @@ const getTransposedKey = (transpose: number): string => {
 
 export default function SetlistPlayerPage() {
   const params = useParams();
-  const router = useRouter();
+  router = useRouter();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const [setlist, setSetlist] = useState<Setlist | null>(null);
@@ -59,6 +60,7 @@ export default function SetlistPlayerPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [transpose, _setTranspose] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  let router: any;
 
   useEffect(() => {
     async function loadSetlistAndSongs() {
