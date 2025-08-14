@@ -48,7 +48,8 @@
     "publicProfileDesc": "Allow other users to see your profile and public setlists.",
     "publicStatusUpdated": "Profile Status Updated",
     "nowPublicDesc": "Your profile is now public.",
-    "nowPrivateDesc": "Your profile is now private."
+    "nowPrivateDesc": "Your profile is now private.",
+    "settingsTitle": "Settings"
   },
   "settingsTitle": "Settings",
   "library": "Library",

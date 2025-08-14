@@ -50,7 +50,8 @@ declare const messages: {
     "publicProfileDesc": "อนุญาตให้ผู้ใช้อื่นเห็นโปรไฟล์และเซ็ตลิสต์สาธารณะของคุณ",
     "publicStatusUpdated": "อัปเดตสถานะโปรไฟล์แล้ว",
     "nowPublicDesc": "ขณะนี้โปรไฟล์ของคุณเป็นสาธารณะ",
-    "nowPrivateDesc": "ขณะนี้โปรไฟล์ของคุณเป็นส่วนตัว"
+    "nowPrivateDesc": "ขณะนี้โปรไฟล์ของคุณเป็นส่วนตัว",
+    "settingsTitle": "การตั้งค่า"
   },
   "settingsTitle": "การตั้งค่า",
   "library": "คลังเพลง",
