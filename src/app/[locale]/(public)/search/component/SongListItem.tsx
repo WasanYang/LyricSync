@@ -41,7 +41,7 @@ export default function SongListItem({ song }: { song: Song }) {
           )}
         >
           <div>
-            <p className='font-normal font-headline truncate text-sm'>
+            <p className='font-normal font-headline text-sm truncate'>
               {song.title}
             </p>
             {song.artist && (
