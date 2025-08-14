@@ -5,7 +5,7 @@ import { getSetlists, type Setlist, getAllCloudSongs } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import Header from '@/components/Header';
 import { useAuth } from '@/context/AuthContext';
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Footer from '@/components/Footer';
 import RecommendedSongs from '@/components/RecommendedSongs';
 import WelcomeCard from '@/components/WelcomeCard';
@@ -13,9 +13,8 @@ import { HomeLoadingSkeleton } from '@/components/HomeLoadingSkeleton';
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import { Search } from 'lucide-react';
 import { Input } from '../ui/input';
+import { Search } from 'lucide-react';
 
 const RecentSetlists = dynamic(
   () => import('@/components/RecentSetlists').then((mod) => mod.RecentSetlists),
@@ -40,8 +39,6 @@ function HomeClientComponent() {
   const [isLoadingSongs, setIsLoadingSongs] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const t = useTranslations('search');
-  const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
-  const searchFormRef = useRef<HTMLFormElement>(null);
 
   const recentReleases = useMemo(
     () =>
@@ -112,16 +109,8 @@ function HomeClientComponent() {
         <Header />
 
         <main className='flex-grow container mx-auto px-4 space-y-8 pb-24 md:pb-12'>
-          <form
-            ref={searchFormRef}
-            onSubmit={handleSearchSubmit}
-            className={cn(
-              'relative w-full transition-all duration-300',
-              isHeaderScrolled &&
-                'fixed top-2 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-lg'
-            )}
-          >
-            <Search className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground z-10' />
+          <form onSubmit={handleSearchSubmit} className='relative'>
+            <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10' />
             <Input
               type='search'
               placeholder={t('placeholder')}
