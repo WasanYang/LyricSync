@@ -8,14 +8,7 @@ import LocalsLink from './ui/LocalsLink';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from './ui/button';
-import { Menu } from 'lucide-react';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from './ui/sheet';
+import { User } from 'lucide-react';
 import HamburgerMenu from './HamburgerMenu';
 
 const OfflineIndicator = dynamic(
@@ -42,7 +35,21 @@ export default function Header() {
         {/* Right side actions */}
         <div className='flex items-center justify-end space-x-2'>
           <NotificationBell />
-          <HamburgerMenu />
+          <Button asChild variant='ghost' size='icon'>
+            <LocalsLink href='/profile'>
+              <Avatar className='h-8 w-8'>
+                {user && user.photoURL && <AvatarImage src={user.photoURL} />}
+                <AvatarFallback>
+                  {user && !user.isAnonymous ? (
+                    user.displayName?.[0].toUpperCase()
+                  ) : (
+                    <User className='h-4 w-4' />
+                  )}
+                </AvatarFallback>
+              </Avatar>
+              <span className='sr-only'>Profile</span>
+            </LocalsLink>
+          </Button>
         </div>
       </div>
     </header>

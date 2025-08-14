@@ -26,6 +26,7 @@ import {
   Loader2,
   Lock,
   Globe,
+  Settings,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GoogleIcon } from '@/components/ui/GoogleIcon';
@@ -35,6 +36,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import LocalsLink from '@/components/ui/LocalsLink';
+import HamburgerMenu from '@/components/HamburgerMenu';
 
 function StatCard({
   icon: Icon,
@@ -260,6 +262,9 @@ export default function ProfilePage() {
     <div className='flex-grow flex flex-col'>
       <Header />
       <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
+        <div className='absolute top-4 right-4'>
+          <HamburgerMenu />
+        </div>
         <div className='space-y-8 max-w-2xl mx-auto'>
           <div className='flex flex-col items-center text-center space-y-4 md:flex-row md:text-left md:space-y-0 md:space-x-6'>
             <Avatar className='h-24 w-24 text-4xl'>

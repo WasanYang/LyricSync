@@ -19,6 +19,7 @@ import {
   MessageSquarePlus,
   User,
   Search,
+  Settings,
 } from 'lucide-react';
 import { Heart as HeartIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -35,7 +36,6 @@ import { Separator } from './ui/separator';
 import { useTheme } from 'next-themes';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { useOnlineStatus } from '@/hooks/use-online-status';
 import Image from 'next/image';
 import LocalsLink from './ui/LocalsLink';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
@@ -56,7 +56,6 @@ export default function HamburgerMenu() {
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
-  const isOnline = useOnlineStatus();
   const t = useTranslations();
 
   useEffect(() => {
@@ -68,16 +67,7 @@ export default function HamburgerMenu() {
       <Sheet>
         <SheetTrigger asChild>
           <Button variant='ghost' size='icon'>
-            <Avatar className='h-8 w-8'>
-              {user && user.photoURL && <AvatarImage src={user.photoURL} />}
-              <AvatarFallback>
-                {user && !user.isAnonymous ? (
-                  user.displayName?.[0].toUpperCase()
-                ) : (
-                  <User className='h-4 w-4' />
-                )}
-              </AvatarFallback>
-            </Avatar>
+            <Settings className='h-5 w-5' />
             <span className='sr-only'>Open Menu</span>
           </Button>
         </SheetTrigger>
