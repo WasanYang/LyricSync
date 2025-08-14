@@ -406,6 +406,7 @@ export default function ProfileCard() {
 
       {/* Footer Links & Sign Out Button */}
       <div className='mt-auto space-y-6 pt-6'>
+        <Separator />
         <div className='flex items-center justify-center gap-6'>
           <FooterLink href='/donate'>{commonT('supportUs')}</FooterLink>
           <FooterLink href='/welcome'>{commonT('aboutApp')}</FooterLink>
