@@ -240,12 +240,8 @@ export default function LibraryPage() {
     }
     if (isAnonymous) {
       return (
-        <div className='text-center py-16 border-2 border-dashed rounded-lg flex flex-col justify-center items-center h-full'>
-          <LogIn className='h-12 w-12 text-muted-foreground mb-4' />
-          <h2 className='text-xl font-headline font-semibold'>
-            {commonT('unlockTitle')}
-          </h2>
-          <p className='text-muted-foreground max-w-xs mx-auto'>
+        <div className='flex flex-col justify-center items-center h-full text-center'>
+          <p className='text-muted-foreground max-w-xs mx-auto mb-4'>
             {commonT('unlockDesc')}
           </p>
           <Button onClick={signInWithGoogle} className='mt-4'>
