@@ -1,3 +1,4 @@
+// src/components/RootLayoutClient.tsx
 'use client';
 
 import { useOnlineStatus } from '@/hooks/use-online-status';
@@ -40,6 +41,7 @@ export function RootLayoutClient({ children }: RootLayoutClientProps) {
         defaultTheme='system'
         enableSystem
         disableTransitionOnChange
+        forcedTheme='dark'
       >
         <AuthProvider>
           {children}

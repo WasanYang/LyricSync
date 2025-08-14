@@ -153,7 +153,7 @@ export default function HamburgerMenu() {
                 </Button>
               </div>
             </div>
-            <div className='flex items-center p-3 justify-between'>
+            {/* <div className='flex items-center p-3 justify-between'>
               <div className='flex items-center'>
                 {theme === 'light' ? (
                   <Sun className='h-5 w-5 text-muted-foreground mr-4' />
@@ -169,7 +169,7 @@ export default function HamburgerMenu() {
                   aria-label='Toggle theme'
                 />
               )}
-            </div>
+            </div> */}
           </section>
 
           {/* Account */}

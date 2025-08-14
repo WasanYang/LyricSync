@@ -77,7 +77,7 @@ export function RecentSetlists({
         <h2 className='text-xl font-headline font-semibold'>
             {t('recentSetlists')}
         </h2>
-        <Button variant='link' asChild>
+        <Button variant='link' asChild style={{ color: '#1DB954' }}>
             <LocalsLink href='/my-setlists'>{t('viewAll')}</LocalsLink>
         </Button>
         </div>

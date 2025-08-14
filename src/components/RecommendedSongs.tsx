@@ -51,7 +51,7 @@ export default function RecommendedSongs({
             <h2 className='text-xl font-headline font-semibold'>
               {t('newReleases')}
             </h2>
-            <Button variant='link' asChild>
+            <Button variant='link' asChild style={{ color: '#1DB954' }}>
               <LocalsLink href='/songs/new'>{t('home.viewAll')}</LocalsLink>
             </Button>
           </div>
