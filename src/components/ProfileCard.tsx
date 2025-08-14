@@ -28,8 +28,6 @@ import {
   Settings,
   ArrowLeft,
   LogIn,
-  Heart,
-  Info,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GoogleIcon } from '@/components/ui/GoogleIcon';
@@ -135,18 +133,15 @@ function ProfileLoadingSkeleton() {
 const FooterLink = ({
   href,
   children,
-  icon: Icon,
 }: {
   href: string;
   children: React.ReactNode;
-  icon: React.ElementType;
 }) => (
   <LocalsLink
     href={href}
-    className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
+    className='block text-base text-muted-foreground transition-colors hover:text-primary'
   >
-    <Icon className='h-5 w-5' />
-    <span>{children}</span>
+    {children}
   </LocalsLink>
 );
 
@@ -303,163 +298,161 @@ export default function ProfileCard() {
         </Link>
       </div>
 
-      <div className='flex-grow overflow-y-auto space-y-8'>
-        <div className='flex flex-col items-center text-center space-y-4'>
-          <Avatar className='h-24 w-24 text-4xl'>
-            {user && !isAnonymous && user.photoURL && (
-              <AvatarImage
-                src={user.photoURL}
-                alt={user.displayName || 'User'}
-              />
+      <div className='flex flex-col items-center text-center space-y-4'>
+        <Avatar className='h-24 w-24 text-4xl'>
+          {user && !isAnonymous && user.photoURL && (
+            <AvatarImage
+              src={user.photoURL}
+              alt={user.displayName || 'User'}
+            />
+          )}
+          <AvatarFallback>
+            {user && !isAnonymous ? (
+              user.displayName?.[0].toUpperCase() || 'U'
+            ) : (
+              <User className='h-10 w-10' />
             )}
-            <AvatarFallback>
-              {user && !isAnonymous ? (
-                user.displayName?.[0].toUpperCase() || 'U'
-              ) : (
-                <User className='h-10 w-10' />
-              )}
-            </AvatarFallback>
-          </Avatar>
-          <div className='space-y-1'>
-            {isEditingName ? (
-              <div className='flex items-center gap-2'>
-                <Input
-                  ref={inputRef}
-                  value={newDisplayName}
-                  onChange={(e) => setNewDisplayName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
-                  disabled={isSavingName}
-                  className='h-9'
-                />
-                <Button
-                  size='icon'
-                  onClick={handleSaveName}
-                  disabled={isSavingName}
-                  className='h-9 w-9'
-                >
-                  {isSavingName ? (
-                    <Loader2 className='h-4 w-4 animate-spin' />
-                  ) : (
-                    <Save className='h-4 w-4' />
-                  )}
-                </Button>
+          </AvatarFallback>
+        </Avatar>
+        <div className='space-y-1'>
+          {isEditingName ? (
+            <div className='flex items-center gap-2'>
+              <Input
+                ref={inputRef}
+                value={newDisplayName}
+                onChange={(e) => setNewDisplayName(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
+                disabled={isSavingName}
+                className='h-9'
+              />
+              <Button
+                size='icon'
+                onClick={handleSaveName}
+                disabled={isSavingName}
+                className='h-9 w-9'
+              >
+                {isSavingName ? (
+                  <Loader2 className='h-4 w-4 animate-spin' />
+                ) : (
+                  <Save className='h-4 w-4' />
+                )}
+              </Button>
+              <Button
+                variant='ghost'
+                size='icon'
+                onClick={handleCancelEdit}
+                disabled={isSavingName}
+                className='h-9 w-9'
+              >
+                <X className='h-4 w-4' />
+              </Button>
+            </div>
+          ) : (
+            <div className='flex items-center gap-2 group'>
+              <h1 className='text-2xl font-bold font-headline'>
+                {user && !isAnonymous ? user.displayName : t('guestUser')}
+              </h1>
+              {user && !isAnonymous && (
                 <Button
                   variant='ghost'
                   size='icon'
-                  onClick={handleCancelEdit}
-                  disabled={isSavingName}
-                  className='h-9 w-9'
+                  onClick={handleEditName}
+                  className='h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity'
                 >
-                  <X className='h-4 w-4' />
+                  <Edit className='h-4 w-4 text-muted-foreground' />
                 </Button>
-              </div>
-            ) : (
-              <div className='flex items-center gap-2 group'>
-                <h1 className='text-2xl font-bold font-headline'>
-                  {user && !isAnonymous ? user.displayName : t('guestUser')}
-                </h1>
-                {user && !isAnonymous && (
-                  <Button
-                    variant='ghost'
-                    size='icon'
-                    onClick={handleEditName}
-                    className='h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity'
-                  >
-                    <Edit className='h-4 w-4 text-muted-foreground' />
-                  </Button>
-                )}
-              </div>
-            )}
-            {user && !isAnonymous && (
-              <p className='text-muted-foreground'>{user.email}</p>
-            )}
-          </div>
+              )}
+            </div>
+          )}
+          {user && !isAnonymous && (
+            <p className='text-muted-foreground'>{user.email}</p>
+          )}
         </div>
-
-        {user && !isAnonymous ? (
-          <>
-            <div>
-              <h2 className='text-lg font-semibold mb-4'>{t('myMusic')}</h2>
-              <div className='grid gap-3 md:grid-cols-1'>
-                <StatCard
-                  icon={Music}
-                  title={t('mySongs')}
-                  value={songCount}
-                  isLoading={isLoadingStats}
-                  href='/library'
-                />
-                <StatCard
-                  icon={ListMusic}
-                  title={t('mySetlists')}
-                  value={setlistCount}
-                  isLoading={isLoadingStats}
-                  href='/my-setlists'
-                />
-              </div>
-            </div>
-            <div>
-              <h2 className='text-lg font-semibold mb-4'>
-                {t('settingsTitle')}
-              </h2>
-              <Card>
-                <CardContent className='p-4 flex items-center justify-between'>
-                  <div className='space-y-0.5'>
-                    <Label
-                      htmlFor='public-profile-switch'
-                      className='flex items-center gap-2'
-                    >
-                      {isProfilePublic ? (
-                        <Globe className='h-4 w-4 text-blue-500' />
-                      ) : (
-                        <Lock className='h-4 w-4 text-yellow-500' />
-                      )}
-                      {t('publicProfileLabel')}
-                    </Label>
-                    <p className='text-sm text-muted-foreground'>
-                      {t('publicProfileDesc')}
-                    </p>
-                  </div>
-                  <Switch
-                    id='public-profile-switch'
-                    checked={isProfilePublic}
-                    onCheckedChange={handlePublicToggle}
-                    disabled={isUpdatingPublicStatus}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-          </>
-        ) : (
-          <Card className='bg-muted'>
-            <CardHeader>
-              <CardTitle className='font-headline text-center'>
-                {t('unlockTitle')}
-              </CardTitle>
-              <CardDescription className='text-center'>
-                {t('unlockDesc')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='flex justify-center'>
-              <Button onClick={signInWithGoogle} size='lg'>
-                <GoogleIcon className='mr-2 h-5 w-5' />
-                {t('signInGoogle')}
-              </Button>
-            </CardContent>
-          </Card>
-        )}
       </div>
 
-      <div className='mt-auto space-y-4'>
+      {user && !isAnonymous ? (
+        <>
+          <div>
+            <h2 className='text-lg font-semibold mb-4'>{t('myMusic')}</h2>
+            <div className='grid gap-3 md:grid-cols-1'>
+              <StatCard
+                icon={Music}
+                title={t('mySongs')}
+                value={songCount}
+                isLoading={isLoadingStats}
+                href='/library'
+              />
+              <StatCard
+                icon={ListMusic}
+                title={t('mySetlists')}
+                value={setlistCount}
+                isLoading={isLoadingStats}
+                href='/my-setlists'
+              />
+            </div>
+          </div>
+          <div>
+            <h2 className='text-lg font-semibold mb-4'>{t('title')}</h2>
+            <Card>
+              <CardContent className='p-4 flex items-center justify-between'>
+                <div className='space-y-0.5'>
+                  <Label
+                    htmlFor='public-profile-switch'
+                    className='flex items-center gap-2'
+                  >
+                    {isProfilePublic ? (
+                      <Globe className='h-4 w-4 text-blue-500' />
+                    ) : (
+                      <Lock className='h-4 w-4 text-yellow-500' />
+                    )}
+                    {t('publicProfileLabel')}
+                  </Label>
+                  <p className='text-sm text-muted-foreground'>
+                    {t('publicProfileDesc')}
+                  </p>
+                </div>
+                <Switch
+                  id='public-profile-switch'
+                  checked={isProfilePublic}
+                  onCheckedChange={handlePublicToggle}
+                  disabled={isUpdatingPublicStatus}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      ) : (
+        <Card className='bg-muted'>
+          <CardHeader>
+            <CardTitle className='font-headline text-center'>
+              {t('unlockTitle')}
+            </CardTitle>
+            <CardDescription className='text-center'>
+              {t('unlockDesc')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className='flex justify-center'>
+            <Button onClick={signInWithGoogle} size='lg'>
+              <GoogleIcon className='mr-2 h-5 w-5' />
+              {t('signInGoogle')}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className='mt-auto space-y-4 pt-4'>
         <div className='block md:hidden'>
           <Separator className='mb-4' />
-          <nav>
-            <FooterLink href='/donate' icon={Heart}>
-              {commonT('supportUs')}
+          <div className='space-y-3'>
+            <FooterLink href='/donate'>{commonT('supportUs')}</FooterLink>
+            <FooterLink href='/welcome'>{commonT('aboutApp')}</FooterLink>
+            <FooterLink href='/privacy-policy'>
+              {commonT('privacyPolicy')}
             </FooterLink>
-            <FooterLink href='/welcome' icon={Info}>
-              {commonT('aboutApp')}
+            <FooterLink href='/terms-of-use'>
+              {commonT('termsOfUse')}
             </FooterLink>
-          </nav>
+          </div>
         </div>
         {user && (
           <Button onClick={logout} variant='outline' className='w-full'>
