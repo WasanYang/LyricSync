@@ -27,6 +27,7 @@ import {
   Globe,
   Settings,
   ArrowLeft,
+  LogIn,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { GoogleIcon } from '@/components/ui/GoogleIcon';
@@ -260,8 +261,26 @@ export default function ProfileCard() {
     router.replace(`${pathname}?${params.toString()}`);
   };
 
-  if (authLoading || !user) {
+  if (authLoading) {
     return <ProfileLoadingSkeleton />;
+  }
+
+  if (!user) {
+    return (
+      <div className='p-4 space-y-8 h-full flex flex-col justify-center'>
+        <div className='text-center space-y-4'>
+          <LogIn className='h-12 w-12 text-muted-foreground mx-auto' />
+          <h2 className='text-2xl font-bold font-headline'>
+            {t('unlockTitle')}
+          </h2>
+          <p className='text-muted-foreground'>{t('unlockDesc')}</p>
+          <Button onClick={signInWithGoogle} size='lg' className='w-full max-w-xs mx-auto'>
+            <GoogleIcon className='mr-2 h-5 w-5' />
+            {t('signInGoogle')}
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   const isAnonymous = user.isAnonymous;
@@ -391,9 +410,7 @@ export default function ProfileCard() {
             </div>
           </div>
           <div>
-            <h2 className='text-lg font-semibold mb-4'>
-              {t('settingsTitle')}
-            </h2>
+            <h2 className='text-lg font-semibold mb-4'>{t('profile.title')}</h2>
             <Card>
               <CardContent className='p-4 flex items-center justify-between'>
                 <div className='space-y-0.5'>
