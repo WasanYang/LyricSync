@@ -8,7 +8,6 @@ import {
   PlusCircle,
   Search as SearchIcon,
   Library,
-  Search,
   LogIn,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,6 +28,8 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import { GoogleIcon } from '@/components/ui/GoogleIcon';
+import Footer from '@/components/Footer';
+import BottomNavBar from '@/components/BottomNavBar';
 
 const PAGE_SIZE = 10;
 
@@ -61,7 +62,8 @@ function LoadingSkeleton() {
           </div>
         </div>
       </main>
-      {/* <BottomNavBar /> */}
+      <Footer />
+      <BottomNavBar />
     </div>
   );
 }
@@ -325,6 +327,8 @@ export default function LibraryPage() {
             {renderContent()}
           </div>
         </main>
+        <Footer />
+        <BottomNavBar />
       </div>
     </>
   );
