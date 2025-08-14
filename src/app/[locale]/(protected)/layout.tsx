@@ -8,18 +8,18 @@ export default function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading } = useAuth();
-  const router = useRouter();
+  // const { user, loading } = useAuth();
+  // const router = useRouter();
 
-  useEffect(() => {
-    if (!loading && (!user || user.isAnonymous)) {
-      router.replace('/');
-    }
-  }, [user, loading, router]);
+  // useEffect(() => {
+  //   if (!loading && (!user || user.isAnonymous)) {
+  //     router.replace('/');
+  //   }
+  // }, [user, loading, router]);
 
-  if (loading || !user || user.isAnonymous) {
-    return null;
-  }
+  // if (loading || !user || user.isAnonymous) {
+  //   return null;
+  // }
 
   return <>{children}</>;
 }
