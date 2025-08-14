@@ -17,7 +17,7 @@ export default function BottomNavBar() {
 
   return (
     <footer className='fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-sm md:hidden pb-[calc(env(safe-area-inset-bottom))]'>
-      <nav className='flex items-center justify-around h-[5rem] max-w-[768px] mx-auto'>
+      <nav className='flex items-center justify-around h-[4.5rem] max-w-[768px] mx-auto'>
         {navLinks.map((link) => {
           const isActive =
             (pathname === '/' && link.href === '/') ||
@@ -35,7 +35,7 @@ export default function BottomNavBar() {
             >
               <IconComponent
                 className={cn(
-                  'h-6 w-6',
+                  'h-5 w-5',
                   isActive ? 'text-primary' : 'text-muted-foreground'
                 )}
                 strokeWidth={isActive ? 2.5 : 2}
