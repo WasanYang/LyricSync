@@ -5,7 +5,6 @@ import Image from 'next/image';
 import SongStatusButton from '@/components/SongStatusButton';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
-import { Download } from 'lucide-react';
 import LocalsLink from '@/components/ui/LocalsLink';
 
 export default function SongListItem({ song }: { song: Song }) {
@@ -36,15 +35,11 @@ export default function SongListItem({ song }: { song: Song }) {
           data-ai-hint='album cover'
         />
         <div className='min-w-0 flex-grow'>
-          <p className='font-semibold font-headline truncate'>{song.title}</p>
+          <p className='font-normal font-headline truncate text-sm'>
+            {song.title}
+          </p>
           <div className='flex items-center gap-4 text-sm text-muted-foreground truncate'>
             <p>{song.artist}</p>
-            {typeof song.downloadCount === 'number' && (
-              <div className='flex items-center gap-1'>
-                <Download className='h-3 w-3' />
-                <span>{song.downloadCount}</span>
-              </div>
-            )}
           </div>
         </div>
         <div
