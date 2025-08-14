@@ -10,7 +10,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from './ui/button';
 import { User, Settings } from 'lucide-react';
 import HamburgerMenu from './HamburgerMenu';
-import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from './ui/sheet';
 import ProfileCard from './ProfileCard';
 
 export default function Header() {
@@ -48,7 +48,11 @@ export default function Header() {
                 <span className='sr-only'>Profile</span>
               </Button>
             </SheetTrigger>
-            <SheetContent className='w-full max-w-md p-0' showCloseButton={false}>
+            <SheetContent
+              className='w-full max-w-md p-0'
+              showCloseButton={false}
+            >
+              <SheetTitle className='sr-only'>Profile</SheetTitle>
               <ProfileCard />
             </SheetContent>
           </Sheet>
