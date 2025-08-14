@@ -64,7 +64,7 @@
     "browseByLetter": "Browse by Letter (A-Z, ก-ฮ)"
   },
   "explore": {
-    "title": "Explore Setlists",
+    "title": "Explore",
     "description": "Discover setlists shared by the LyricSync community.",
     "placeholder": "Search public setlists...",
     "noResults": "No public setlists found matching \"{searchTerm}\".",
@@ -128,7 +128,7 @@
   "addAndEditSongs": "Add & Edit Songs",
   "longDesc": "LyricSync helps you organize songs, create setlists, and enjoy playing music for any occasion. It features an auto-scrolling player, chord management, and easy sharing for everyone.",
   "home": {
-    "title": "Home",
+    "title": "Explore",
     "recentSetlists": "Recent Setlists",
     "viewAll": "View All"
   },

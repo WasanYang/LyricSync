@@ -1,3 +1,4 @@
+// src/components/page/HomeClientComponent.tsx
 'use client';
 
 import { getSetlists, type Setlist, getAllCloudSongs } from '@/lib/db';
@@ -10,8 +11,8 @@ import RecommendedSongs from '@/components/RecommendedSongs';
 import WelcomeCard from '@/components/WelcomeCard';
 import { HomeLoadingSkeleton } from '@/components/HomeLoadingSkeleton';
 import dynamic from 'next/dynamic';
-import { SearchInput } from '../shared';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 
 const RecentSetlists = dynamic(
   () => import('@/components/RecentSetlists').then((mod) => mod.RecentSetlists),
@@ -29,13 +30,13 @@ const BottomNavBar = dynamic(
 
 function HomeClientComponent() {
   const { user, loading } = useAuth();
+  const router = useRouter();
   const [recentSetlists, setRecentSetlists] = useState<Setlist[]>([]);
   const [systemSongs, setSystemSongs] = useState<Song[]>([]);
   const [isLoadingSetlists, setIsLoadingSetlists] = useState(true);
   const [isLoadingSongs, setIsLoadingSongs] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const t = useTranslations('search');
-
 
   const recentReleases = useMemo(
     () =>
@@ -48,18 +49,16 @@ function HomeClientComponent() {
     [systemSongs]
   );
   const popularHits = useMemo(
-    () => [...systemSongs].sort(() => 0.5 - Math.random()).slice(0, 5),
+    () => [...systemSongs].sort(() => 0.5 - Math.random()).slice(0, 10), // Show more popular hits
     [systemSongs]
-  ); // Mock popularity with random sort for now
+  );
 
   useEffect(() => {
     async function loadData() {
-      // Load data regardless of login status
       setIsLoadingSetlists(true);
       setIsLoadingSongs(true);
 
       try {
-        // Always load system songs (public data)
         const allSongs = await getAllCloudSongs();
         const filteredSystemSongs = allSongs.filter(
           (song) => song.source === 'system'
@@ -82,9 +81,6 @@ function HomeClientComponent() {
         } catch (error) {
           console.error('Failed to load recent setlists', error);
         }
-      } else {
-        // Fetch public setlists for guests
-        // This part can be implemented if you want to show public setlists to guests
       }
       setIsLoadingSetlists(false);
     }
@@ -92,29 +88,47 @@ function HomeClientComponent() {
     loadData();
   }, [user]);
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
+
   if (loading) {
     return <HomeLoadingSkeleton />;
   }
 
-  const featuredSongs = systemSongs.slice(0, 5);
+  const featuredSongs = systemSongs.slice(0, 10); // Show more featured songs
 
   return (
     <>
       <div className='flex-grow flex flex-col'>
         <Header />
         <main className='flex-grow container mx-auto px-4 py-8 space-y-12 pb-24 md:pb-12'>
-          {/* <WelcomeCard user={user} /> */}
-          <SearchInput value={searchTerm} onChange={setSearchTerm} placeholder={t('placeholder')} />
+          <WelcomeCard user={user} />
+          <form onSubmit={handleSearchSubmit}>
+            <input
+              type='search'
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={t('placeholder')}
+              className='w-full p-3 pl-10 text-base border rounded-lg bg-muted focus:outline-none active:outline-none'
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-search'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: '10px center',
+                backgroundSize: '20px',
+              }}
+            />
+          </form>
 
-
-          {/* Recent Setlists - only for logged in users */}
           <RecentSetlists
             user={user}
             recentSetlists={recentSetlists}
             isLoadingSetlists={isLoadingSetlists}
           />
 
-          {/* Recommended Songs */}
           <RecommendedSongs
             featuredSongs={featuredSongs}
             popularHits={popularHits}

@@ -1,10 +1,13 @@
+// src/components/RecommendedSongs.tsx
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from './ui/skeleton';
 import { Song } from '@/lib/songs';
 import { useTranslations } from 'next-intl';
-import { SongCarousel } from './SongCarousel';
+import SongList from './SongList'; // Changed from SongCarousel
+import { Button } from './ui/button';
+import LocalsLink from './ui/LocalsLink';
 
 export default function RecommendedSongs({
   featuredSongs,
@@ -23,12 +26,18 @@ export default function RecommendedSongs({
       <div className='space-y-8'>
         <div className='space-y-4'>
           <Skeleton className='h-7 w-40' />
-          <SongCarousel songs={[]} isLoading={true} />
+          <div className='space-y-2'>
+            <Skeleton className='h-14 w-full' />
+            <Skeleton className='h-14 w-full' />
+          </div>
         </div>
         <div className='space-y-4'>
           <Skeleton className='h-7 w-32' />
           <Skeleton className='h-10 w-full max-w-xs' />
-          <SongCarousel songs={[]} isLoading={true} />
+          <div className='space-y-2'>
+            <Skeleton className='h-14 w-full' />
+            <Skeleton className='h-14 w-full' />
+          </div>
         </div>
       </div>
     );
@@ -38,10 +47,15 @@ export default function RecommendedSongs({
     <div className='space-y-8'>
       {recentReleases.length > 0 && (
         <section>
-          <h2 className='text-xl font-headline font-semibold mb-4'>
-            {t('newReleases')}
-          </h2>
-          <SongCarousel songs={recentReleases} />
+          <div className='flex items-center justify-between mb-2'>
+            <h2 className='text-xl font-headline font-semibold'>
+              {t('newReleases')}
+            </h2>
+            <Button variant='link' asChild>
+              <LocalsLink href='/songs/new'>{t('home.viewAll')}</LocalsLink>
+            </Button>
+          </div>
+          <SongList songs={recentReleases} />
         </section>
       )}
 
@@ -52,10 +66,10 @@ export default function RecommendedSongs({
             <TabsTrigger value='popular'>{t('popular')}</TabsTrigger>
           </TabsList>
           <TabsContent value='featured' className='pt-4'>
-            <SongCarousel songs={featuredSongs} />
+            <SongList songs={featuredSongs} />
           </TabsContent>
           <TabsContent value='popular' className='pt-4'>
-            <SongCarousel songs={popularHits} />
+            <SongList songs={popularHits} />
           </TabsContent>
         </Tabs>
       </section>
