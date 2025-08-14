@@ -28,6 +28,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from '@/components/ui/sheet';
+import { Switch } from '@/components/ui/switch';
 import { Separator } from './ui/separator';
 import { useTheme } from 'next-themes';
 import { useState, useEffect } from 'react';
@@ -92,7 +93,7 @@ export default function HamburgerMenu() {
         className='w-full md:max-w-sm p-0 flex flex-col'
         showCloseButton={false}
       >
-        <SheetHeader className='p-4 border-b flex flex-row items-center justify-between'>
+        <SheetHeader className='p-4 border-b flex flex-row items-center'>
           <Button
             variant='ghost'
             size='icon'
@@ -101,7 +102,7 @@ export default function HamburgerMenu() {
             <ArrowLeft className='h-5 w-5' />
             <span className='sr-only'>Back</span>
           </Button>
-          <SheetTitle className='text-lg font-semibold font-headline'>
+          <SheetTitle className='text-lg font-semibold font-headline mx-auto'>
             {t('settingsTitle')}
           </SheetTitle>
           <div className='w-8'></div>
