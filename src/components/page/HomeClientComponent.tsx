@@ -113,7 +113,7 @@ function HomeClientComponent() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={t('placeholder')}
-              className='w-full p-3 pl-10 text-base border rounded-full bg-white text-black placeholder:text-black focus:outline-none active:outline-none'
+              className='w-full py-2 px-3 pl-10 text-base border rounded-full bg-white text-black placeholder:text-black focus:outline-none active:outline-none'
               style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-search'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E")`,
                 backgroundRepeat: 'no-repeat',
