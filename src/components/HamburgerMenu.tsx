@@ -20,6 +20,7 @@ import {
   User,
   Search,
   Settings,
+  ArrowLeft,
 } from 'lucide-react';
 import { Heart as HeartIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -71,26 +72,21 @@ export default function HamburgerMenu() {
             <span className='sr-only'>Open Menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side='right' className='w-[300px] p-0'>
-          <SheetHeader className='p-4 border-b'>
-            <SheetTitle className='sr-only'>Main Menu</SheetTitle>
-            <LocalsLink href='/' className='flex items-center space-x-2'>
-              <Image
-                src='/icons/logo-72.webp'
-                alt='Logo'
-                width={50}
-                height={50}
-                className='rounded-md'
-              />
-              <div className='flex flex-col'>
-                <span className='font-bold font-headline text-lg leading-tight'>
-                  LyricSync
-                </span>
-                <span className='text-xs text-muted-foreground leading-tight'>
-                  {t('welcome.descShort')}
-                </span>
-              </div>
-            </LocalsLink>
+        <SheetContent
+          side='right'
+          className='w-full max-w-sm p-0'
+          showCloseButton={false}
+        >
+          <SheetHeader className='p-4 border-b flex flex-row items-center justify-between'>
+            <SheetClose asChild>
+              <Button variant='ghost' size='icon'>
+                <ArrowLeft className='h-5 w-5' />
+              </Button>
+            </SheetClose>
+            <SheetTitle className='text-lg font-semibold font-headline'>
+              {t('settingsTitle')}
+            </SheetTitle>
+            <div className='w-8'></div>
           </SheetHeader>
           <div
             className={cn(
