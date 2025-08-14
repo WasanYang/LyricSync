@@ -72,6 +72,20 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_SITE_URL: 'https://lyricsync.app',
   },
+  webpack: (config, { isServer }) => {
+    // This is the fix for the @grpc/proto-loader error
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        './util': false,
+        './resolver': false,
+        './path': false,
+        './package': false,
+      };
+    }
+    config.externals.push('original-fs');
+    return config;
+  },
 };
 
 export default withPWA(withNextIntl(nextConfig));
