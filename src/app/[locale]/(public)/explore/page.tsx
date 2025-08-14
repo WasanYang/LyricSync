@@ -263,7 +263,7 @@ export default function ExplorePage() {
             <div className='flex items-center gap-2'>
               <Search className='h-6 w-6' />
               <h1 className='text-2xl font-bold font-headline tracking-tight'>
-                {t('title')}
+                Explore
               </h1>
             </div>
           </div>

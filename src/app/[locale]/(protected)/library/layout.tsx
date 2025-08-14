@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'My Library | Lyricsync',
+  title: 'My Library | LyricSync',
   description: 'A collection of your saved songs',
 };
 
