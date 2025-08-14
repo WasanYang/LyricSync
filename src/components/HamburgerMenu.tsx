@@ -18,7 +18,7 @@ import {
   Bell,
   MessageSquarePlus,
   User,
-  Search
+  Search,
 } from 'lucide-react';
 import { Heart as HeartIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -38,6 +38,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useOnlineStatus } from '@/hooks/use-online-status';
 import Image from 'next/image';
 import LocalsLink from './ui/LocalsLink';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { GoogleIcon } from './ui/GoogleIcon';
 
 const navLinks = [
   { href: '/', key: 'explore.title', icon: Search },
@@ -48,7 +50,7 @@ const navLinks = [
 
 export default function HamburgerMenu() {
   const pathname = usePathname();
-  const { user, logout, isSuperAdmin } = useAuth();
+  const { user, logout, isSuperAdmin, signInWithGoogle } = useAuth();
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
   const toggleTheme = () => {
@@ -66,7 +68,16 @@ export default function HamburgerMenu() {
       <Sheet>
         <SheetTrigger asChild>
           <Button variant='ghost' size='icon'>
-            <Menu />
+            <Avatar className='h-8 w-8'>
+              {user && user.photoURL && <AvatarImage src={user.photoURL} />}
+              <AvatarFallback>
+                {user && !user.isAnonymous ? (
+                  user.displayName?.[0].toUpperCase()
+                ) : (
+                  <User className='h-4 w-4' />
+                )}
+              </AvatarFallback>
+            </Avatar>
             <span className='sr-only'>Open Menu</span>
           </Button>
         </SheetTrigger>
@@ -98,98 +109,119 @@ export default function HamburgerMenu() {
               'scrollbar-thin scrollbar-thumb-primary scrollbar-track-background'
             )}
           >
-            <nav className='flex flex-col space-y-2'>
-              {navLinks.map((link) => (
-                <SheetClose asChild key={link.href}>
-                  <LocalsLink
-                    href={link.href}
-                    className={cn(
-                      'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
-                      pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href))
-                        ? 'text-primary bg-secondary'
-                        : 'text-muted-foreground'
-                    )}
-                  >
-                    <link.icon className='h-5 w-5' />
-                    <span>{t(link.key)}</span>
-                  </LocalsLink>
-                </SheetClose>
-              ))}
-            </nav>
-            <Separator/>
-            <nav className='flex flex-col space-y-2'>
-                <SheetClose asChild>
+            {user && !user.isAnonymous ? (
+              <>
+                <nav className='flex flex-col space-y-2'>
+                  {navLinks.map((link) => (
+                    <SheetClose asChild key={link.href}>
+                      <LocalsLink
+                        href={link.href}
+                        className={cn(
+                          'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
+                          pathname === link.href ||
+                            (link.href !== '/' &&
+                              pathname.startsWith(link.href))
+                            ? 'text-primary bg-secondary'
+                            : 'text-muted-foreground'
+                        )}
+                      >
+                        <link.icon className='h-5 w-5' />
+                        <span>{t(link.key)}</span>
+                      </LocalsLink>
+                    </SheetClose>
+                  ))}
+                </nav>
+                <Separator />
+                <nav className='flex flex-col space-y-2'>
+                  <SheetClose asChild>
                     <LocalsLink
-                    href='/updates'
-                    className={cn(
+                      href='/updates'
+                      className={cn(
                         'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium transition-colors hover:text-primary',
                         pathname.startsWith('/updates')
-                        ? 'text-primary bg-secondary'
-                        : 'text-muted-foreground'
-                    )}
+                          ? 'text-primary bg-secondary'
+                          : 'text-muted-foreground'
+                      )}
                     >
-                    <Bell className='h-5 w-5' />
-                    <span>{t('updates.title')}</span>
+                      <Bell className='h-5 w-5' />
+                      <span>{t('updates.title')}</span>
                     </LocalsLink>
+                  </SheetClose>
+                </nav>
+              </>
+            ) : (
+              <div className='p-4 text-center bg-muted rounded-lg'>
+                <h3 className='font-semibold font-headline'>
+                  {t('profile.unlockTitle')}
+                </h3>
+                <p className='text-sm text-muted-foreground mt-1 mb-4'>
+                  {t('profile.unlockDesc')}
+                </p>
+                <SheetClose asChild>
+                  <Button onClick={signInWithGoogle} className='w-full'>
+                    <GoogleIcon className='mr-2 h-5 w-5' />
+                    {t('profile.signInGoogle')}
+                  </Button>
                 </SheetClose>
-            </nav>
+              </div>
+            )}
 
-
-            {user ? (
+            {isSuperAdmin && (
               <>
-                {isSuperAdmin && (
-                  <>
-                    <Separator />
-                    <p className='px-3 text-xs font-semibold text-muted-foreground tracking-wider uppercase'>
-                      Admin
-                    </p>
-                    <SheetClose asChild>
-                      <LocalsLink
-                        href='/dashboard/songs'
-                        className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
-                      >
-                        <Database className='h-5 w-5' />
-                        <span>{t('cloudSongs')}</span>
-                      </LocalsLink>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <LocalsLink
-                        href='/dashboard/user-uploads'
-                        className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
-                      >
-                        <Users className='h-5 w-5' />
-                        <span>{t('userUploads')}</span>
-                      </LocalsLink>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <LocalsLink
-                        href='/dashboard/user-setlists'
-                        className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
-                      >
-                        <ListMusic className='h-5 w-5' />
-                        <span>{t('userSetlists')}</span>
-                      </LocalsLink>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <LocalsLink
-                        href='/dashboard/notifications'
-                        className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
-                      >
-                        <MessageSquarePlus className='h-5 w-5' />
-                        <span>{t('notifications.title')}</span>
-                      </LocalsLink>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <LocalsLink
-                        href='/dashboard/users'
-                        className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
-                      >
-                        <Users className='h-5 w-5' />
-                        <span>{t('manageUsers')}</span>
-                      </LocalsLink>
-                    </SheetClose>
-                  </>
-                )}
+                <Separator />
+                <p className='px-3 text-xs font-semibold text-muted-foreground tracking-wider uppercase'>
+                  Admin
+                </p>
+                <SheetClose asChild>
+                  <LocalsLink
+                    href='/dashboard/songs'
+                    className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
+                  >
+                    <Database className='h-5 w-5' />
+                    <span>{t('cloudSongs')}</span>
+                  </LocalsLink>
+                </SheetClose>
+                <SheetClose asChild>
+                  <LocalsLink
+                    href='/dashboard/user-uploads'
+                    className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
+                  >
+                    <Users className='h-5 w-5' />
+                    <span>{t('userUploads')}</span>
+                  </LocalsLink>
+                </SheetClose>
+                <SheetClose asChild>
+                  <LocalsLink
+                    href='/dashboard/user-setlists'
+                    className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
+                  >
+                    <ListMusic className='h-5 w-5' />
+                    <span>{t('userSetlists')}</span>
+                  </LocalsLink>
+                </SheetClose>
+                <SheetClose asChild>
+                  <LocalsLink
+                    href='/dashboard/notifications'
+                    className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
+                  >
+                    <MessageSquarePlus className='h-5 w-5' />
+                    <span>{t('notifications.title')}</span>
+                  </LocalsLink>
+                </SheetClose>
+                <SheetClose asChild>
+                  <LocalsLink
+                    href='/dashboard/users'
+                    className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
+                  >
+                    <Users className='h-5 w-5' />
+                    <span>{t('manageUsers')}</span>
+                  </LocalsLink>
+                </SheetClose>
+              </>
+            )}
+
+            {user && (
+              <>
                 <Separator />
                 <SheetClose asChild>
                   <button
@@ -199,19 +231,6 @@ export default function HamburgerMenu() {
                     <LogOut className='h-5 w-5' />
                     <span>{t('logout')}</span>
                   </button>
-                </SheetClose>
-              </>
-            ) : (
-              <>
-                <Separator />
-                <SheetClose asChild>
-                  <LocalsLink
-                    href='/login'
-                    className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
-                  >
-                    <LogIn className='h-5 w-5' />
-                    <span>{t('login')}</span>
-                  </LocalsLink>
                 </SheetClose>
               </>
             )}
@@ -234,13 +253,13 @@ export default function HamburgerMenu() {
             </SheetClose>
 
             <SheetClose asChild>
-                  <LocalsLink
-                    href='/welcome'
-                    className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
-                  >
-                    <Info className='h-5 w-5' />
-                    <span>{t('aboutApp')}</span>
-                  </LocalsLink>
+              <LocalsLink
+                href='/welcome'
+                className='flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-primary'
+              >
+                <Info className='h-5 w-5' />
+                <span>{t('aboutApp')}</span>
+              </LocalsLink>
             </SheetClose>
 
             <div className='flex items-center justify-between rounded-md px-3 py-2 text-base font-medium text-muted-foreground'>
