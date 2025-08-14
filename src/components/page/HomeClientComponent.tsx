@@ -111,7 +111,26 @@ function HomeClientComponent() {
       <div className='flex-grow flex flex-col'>
         <Header />
 
-        <main className='flex-grow container mx-auto px-4 space-y-4 pb-24 md:pb-12'>
+        <main className='flex-grow container mx-auto px-4 space-y-8 pb-24 md:pb-12'>
+          <form
+            ref={searchFormRef}
+            onSubmit={handleSearchSubmit}
+            className={cn(
+              'relative w-full transition-all duration-300',
+              isHeaderScrolled &&
+                'fixed top-2 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-lg'
+            )}
+          >
+            <Search className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground z-10' />
+            <Input
+              type='search'
+              placeholder={t('placeholder')}
+              className='w-full rounded-full border bg-background py-2 pl-10 text-base shadow-sm'
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </form>
+
           <WelcomeCard user={user} />
 
           <RecentSetlists

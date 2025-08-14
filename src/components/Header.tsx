@@ -60,12 +60,6 @@ export default function Header() {
 
         {/* Right side actions */}
         <div className='flex items-center justify-end space-x-2'>
-          <Button variant='ghost' size='icon' asChild>
-            <LocalsLink href='/search'>
-              <Search className='h-5 w-5' />
-              <span className='sr-only'>Search</span>
-            </LocalsLink>
-          </Button>
           <NotificationBell />
           <Sheet open={isProfileOpen} onOpenChange={handleProfileOpenChange}>
             <SheetTrigger asChild>
