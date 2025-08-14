@@ -124,13 +124,6 @@ export default function SongListItem({
             {song.updatedAt && (
               <p>Updated: {new Date(song.updatedAt).toLocaleDateString()}</p>
             )}
-            {typeof song.downloadCount === 'number' &&
-              song.downloadCount > 0 && (
-                <div className='flex items-center gap-1'>
-                  <Download className='h-3 w-3' />
-                  <span>{song.downloadCount}</span>
-                </div>
-              )}
           </div>
         </div>
       </div>
