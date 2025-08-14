@@ -204,7 +204,7 @@ export default function LibraryPage() {
 
   const searchInput = (
     <div className='relative w-full flex items-center gap-2 group'>
-      <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2  pointer-events-none' />
+      <SearchIcon className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2  pointer-events-none' />
       <Input
         name='search-lib'
         id='search-lib'
