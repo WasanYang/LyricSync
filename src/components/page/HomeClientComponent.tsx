@@ -105,15 +105,15 @@ function HomeClientComponent() {
     <>
       <div className='flex-grow flex flex-col'>
         <Header />
-        <main className='flex-grow container mx-auto px-4 py-4 space-y-8 pb-24 md:pb-12'>
+        <main className='flex-grow container mx-auto px-4 py-4 space-y-4 pb-24 md:pb-12'>
           <WelcomeCard user={user} />
-          <form onSubmit={handleSearchSubmit} className='w-full max-w-sm mx-auto'>
+          <form onSubmit={handleSearchSubmit} className='w-full'>
             <input
               type='search'
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder={t('placeholder')}
-              className='w-full p-3 pl-10 text-base border rounded-full bg-white text-black focus:outline-none active:outline-none'
+              className='w-full p-3 pl-10 text-base border rounded-full bg-white text-black placeholder:text-black focus:outline-none active:outline-none'
               style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='lucide lucide-search'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E")`,
                 backgroundRepeat: 'no-repeat',
