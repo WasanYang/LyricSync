@@ -393,7 +393,7 @@ export default function ProfileCard() {
           </div>
           <div>
             <h2 className='text-lg font-semibold mb-4'>
-              {t('profile.title')}
+              {t('title')}
             </h2>
             <Card>
               <CardContent className='p-4 flex items-center justify-between'>
