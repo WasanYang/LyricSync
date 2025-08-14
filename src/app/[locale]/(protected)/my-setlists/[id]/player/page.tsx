@@ -52,7 +52,7 @@ const getTransposedKey = (transpose: number): string => {
 
 export default function SetlistPlayerPage() {
   const params = useParams();
-  router = useRouter();
+  const router = useRouter();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const [setlist, setSetlist] = useState<Setlist | null>(null);
@@ -60,7 +60,6 @@ export default function SetlistPlayerPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [transpose, _setTranspose] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  let router: any;
 
   useEffect(() => {
     async function loadSetlistAndSongs() {
@@ -148,11 +147,6 @@ export default function SetlistPlayerPage() {
                     <p className='font-bold truncate leading-tight text-xs sm:text-sm max-w-[100px] sm:max-w-none'>
                       {nextSong ? nextSong.title : 'End of list'}
                     </p>
-                    {/* {nextSong && (
-                      <p className='text-xs text-muted-foreground truncate sm:block'>
-                        {nextSong.artist}
-                      </p>
-                    )} */}
                   </div>
                   {nextSong && (
                     <div className='flex-shrink-0 text-center'>
