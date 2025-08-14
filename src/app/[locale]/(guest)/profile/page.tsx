@@ -3,7 +3,9 @@
 
 import BottomNavBar from '@/components/BottomNavBar';
 import ProfileCard from '@/components/ProfileCard';
-import { User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import LocalsLink from '@/components/ui/LocalsLink';
+import { Settings, User } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 export default function ProfilePage() {
@@ -18,6 +20,12 @@ export default function ProfilePage() {
               {t('title')}
             </h1>
           </div>
+          <Button variant='ghost' size='icon' asChild>
+            <LocalsLink href='?panel=settings'>
+              <Settings className='h-5 w-5' />
+              <span className='sr-only'>Settings</span>
+            </LocalsLink>
+          </Button>
         </div>
       </header>
       <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
