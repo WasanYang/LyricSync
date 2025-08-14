@@ -81,7 +81,6 @@ export default function HamburgerMenu() {
       params.set('panel', 'settings');
     } else {
       params.delete('panel');
-      params.set('panel', 'profile'); // Return to profile panel when closing settings
     }
     router.replace(`${pathname}?${params.toString()}`);
   };
@@ -97,12 +96,12 @@ export default function HamburgerMenu() {
         </SheetTrigger>
         <SheetContent
           side='right'
-          className='w-full max-w-sm p-0'
+          className='w-full md:max-w-sm p-0'
           showCloseButton={false}
         >
           <SheetHeader className='p-4 border-b flex flex-row items-center justify-between'>
             <SheetClose asChild>
-              <Button variant='ghost' size='icon'>
+              <Button variant='ghost' size='icon' onClick={()=> router.back()}>
                 <ArrowLeft className='h-5 w-5' />
               </Button>
             </SheetClose>

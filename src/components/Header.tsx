@@ -79,7 +79,7 @@ export default function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent
-              className='w-full max-w-md p-0'
+              className='w-full md:max-w-sm p-0'
               showCloseButton={false}
             >
               <SheetTitle className='sr-only'>Profile</SheetTitle>
