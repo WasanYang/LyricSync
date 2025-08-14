@@ -16,7 +16,7 @@ export default function SongListItem({ song }: { song: Song }) {
     // } else {
     //   setPreviewUrl('/lyrics/' + song.id);
     // }
-  }, [user]);
+  }, [user, song.id]);
 
   return (
     <div className={cn('group')}>
@@ -34,12 +34,21 @@ export default function SongListItem({ song }: { song: Song }) {
           className='rounded-md aspect-square object-cover'
           data-ai-hint='album cover'
         />
-        <div className='min-w-0 flex-grow'>
-          <p className='font-normal font-headline truncate text-sm'>
-            {song.title}
-          </p>
-          <div className='flex items-center gap-4 text-sm text-muted-foreground truncate'>
-            <p>{song.artist}</p>
+        <div
+          className={cn(
+            'min-w-0 flex-grow',
+            !song.artist && 'flex items-center'
+          )}
+        >
+          <div>
+            <p className='font-normal font-headline truncate text-sm'>
+              {song.title}
+            </p>
+            {song.artist && (
+              <div className='flex items-center gap-4 text-xs text-muted-foreground truncate'>
+                <p>{song.artist}</p>
+              </div>
+            )}
           </div>
         </div>
         <div
