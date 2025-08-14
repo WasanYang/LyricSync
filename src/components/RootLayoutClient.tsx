@@ -9,6 +9,7 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/context/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
 import { ClientOnly } from './shared/ClientOnly';
+import HamburgerMenu from './HamburgerMenu';
 
 interface RootLayoutClientProps {
   children: React.ReactNode;
@@ -43,6 +44,7 @@ export function RootLayoutClient({ children }: RootLayoutClientProps) {
           <AuthProvider>
             {children}
             <Toaster />
+            <HamburgerMenu />
           </AuthProvider>
         </ThemeProvider>
       </IOSErrorBoundary>

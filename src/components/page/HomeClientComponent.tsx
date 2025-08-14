@@ -15,8 +15,6 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Search } from 'lucide-react';
-import { NotificationBell } from '../NotificationBell';
-import HamburgerMenu from '../HamburgerMenu';
 import { Input } from '../ui/input';
 
 const RecentSetlists = dynamic(
@@ -196,7 +194,6 @@ function HomeClientComponent() {
         </main>
         <Footer />
         <BottomNavBar />
-        <HamburgerMenu />
       </div>
     </>
   );
