@@ -185,6 +185,7 @@ function HomeClientComponent() {
         </main>
         <Footer />
         <BottomNavBar />
+        <HamburgerMenu />
       </div>
     </>
   );

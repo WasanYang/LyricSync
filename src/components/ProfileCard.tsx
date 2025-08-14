@@ -36,7 +36,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import LocalsLink from '@/components/ui/LocalsLink';
-import HamburgerMenu from '@/components/HamburgerMenu';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -393,7 +392,7 @@ export default function ProfileCard() {
           </div>
           <div>
             <h2 className='text-lg font-semibold mb-4'>
-              {t('title')}
+              {t('settingsTitle')}
             </h2>
             <Card>
               <CardContent className='p-4 flex items-center justify-between'>
