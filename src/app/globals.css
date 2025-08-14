@@ -9,6 +9,9 @@
   --vh: 1vh;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
 /* Prevent zoom on input focus for iOS */
 input,
 select,
@@ -21,10 +24,6 @@ body {
   padding-top: env(safe-area-inset-top);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
-}
-
-/* Default scrolling for all devices */
-body {
   overflow-x: hidden;
   min-height: 100vh;
 }
