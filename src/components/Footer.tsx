@@ -1,3 +1,4 @@
+// src/components/Footer.tsx
 'use client';
 
 import Link from 'next/link';
@@ -29,7 +30,7 @@ const FooterLink = ({
 export default function Footer() {
   const t = useTranslations();
   return (
-    <footer className='w-full border-t mt-auto'>
+    <footer className='w-full border-t mt-auto hidden md:block'>
       <div className='max-w-7xl mx-auto px-8 py-12'>
         <div className='grid grid-cols-1 lg:grid-cols-5 gap-8'>
           <div className='lg:col-span-2'>
@@ -54,10 +55,6 @@ export default function Footer() {
               <ul className='space-y-3'>
                 <FooterLink href='/welcome'>{t('about')}</FooterLink>
                 <FooterLink href='/search'>{t('searchAndSetlists')}</FooterLink>
-                {/* <FooterLink href='/my-setlists'>{t('mySetlists')}</FooterLink> */}
-                {/* <FooterLink href='/library'>
-                  {t('welcome.myLibrary')}
-                </FooterLink> */}
               </ul>
             </div>
             <div>
