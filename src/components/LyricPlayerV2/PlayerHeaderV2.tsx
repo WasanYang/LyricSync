@@ -2,7 +2,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface PlayerHeaderV2Props {
@@ -32,7 +32,7 @@ export function PlayerHeaderV2({ title, artist, onClose, showControls = true }: 
       <div className='relative container mx-auto flex items-center justify-between h-14'>
         <div className='absolute left-2 top-1/2 -translate-y-1/2'>
           <Button variant='ghost' size='icon' onClick={handleBack}>
-            <ArrowLeft />
+            <LogOut />
             <span className='sr-only'>Back</span>
           </Button>
         </div>

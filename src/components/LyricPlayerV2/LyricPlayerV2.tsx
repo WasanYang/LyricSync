@@ -22,15 +22,15 @@ import {
   Settings,
   Minus,
   Plus,
-  ArrowLeft,
+  LogOut,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { SettingsSheetV2 } from './SettingsSheetV2';
 import FloatingSectionNavigator from '../FloatingSectionNavigator';
 import { useFloatingNavigator } from '@/hooks/use-floating-navigator';
 import { localStorageManager } from '@/lib/local-storage';
 import { useTheme } from 'next-themes';
 import { PlayerHeaderV2 } from './PlayerHeaderV2';
+import { useRouter } from 'next/navigation';
 
 interface PlayerState {
   isPlaying: boolean;
@@ -119,6 +119,7 @@ export function LyricPlayerV2({
   } = state;
 
   const { theme } = useTheme();
+  const router = useRouter();
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const animationFrameId = useRef<number>(0);
@@ -202,6 +203,14 @@ export function LyricPlayerV2({
     }
   };
 
+  const handleBack = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      router.back();
+    }
+  };
+
   const renderLine = (line: ParsedLyricLine, index: number) => {
     const key = `${line.type}-${index}`;
     if (line.type === 'section') {
@@ -242,7 +251,9 @@ export function LyricPlayerV2({
                 className={cn(
                   'inline-block rounded-sm px-1 py-0.5',
                   showChordHighlights &&
-                    (theme === 'dark' ? 'bg-primary/20' : 'bg-primary/10')
+                    (theme === 'dark'
+                      ? 'bg-primary/20'
+                      : 'bg-primary/10 text-primary-foreground')
                 )}
               >
                 {part.slice(1, -1)}
@@ -266,7 +277,9 @@ export function LyricPlayerV2({
     <div
       className={cn(
         'flex items-center justify-between gap-2 p-2 border-t',
-        theme === 'dark' ? 'bg-black border-gray-800' : 'bg-white border-gray-200'
+        theme === 'dark'
+          ? 'bg-black border-gray-800'
+          : 'bg-white border-gray-200'
       )}
     >
       <div className='flex items-center gap-2'>
@@ -318,7 +331,7 @@ export function LyricPlayerV2({
         </div>
         <div
           className={cn(
-            'flex items-center gap-1 rounded-md p-1 border',
+            'flex items-center gap-1 rounded-md p-1 border h-10',
             theme === 'dark'
               ? 'bg-gray-800 border-gray-700'
               : 'bg-white border-gray-300'
@@ -384,8 +397,6 @@ export function LyricPlayerV2({
         isVisible={floatingNavigator.isVisible}
       />
 
-      <PlayerHeaderV2 title={song.title} artist={song.artist} onClose={onClose} showControls={showControls} />
-      
       <div
         ref={scrollContainerRef}
         className='flex-grow w-full overflow-y-scroll scroll-smooth'
@@ -394,27 +405,103 @@ export function LyricPlayerV2({
           className='max-w-2xl mx-auto text-lg leading-relaxed px-4 pb-32 print:pb-4'
           style={{ fontSize: `${fontSize}px` }}
         >
-          {showControls && (
-            <div className='mb-4 pt-4 print:hidden'>
-              <h1 className='font-headline text-2xl font-bold'>{song.title}</h1>
-              <div
-                className={cn(
-                  'text-md',
-                  theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                )}
-              >
-                {song.artist && <div>{song.artist}</div>}
-                {song.originalKey && <div>Key: {song.originalKey}</div>}
-              </div>
+          <div className='mb-4 pt-4 print:hidden'>
+            <h1 className='font-headline text-2xl font-bold'>{song.title}</h1>
+            <div
+              className={cn(
+                'text-md',
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+              )}
+            >
+              {song.artist && <div>{song.artist}</div>}
+              {song.originalKey && <div>Key: {song.originalKey}</div>}
             </div>
-          )}
+          </div>
           {parsedLines.map(renderLine)}
         </div>
       </div>
 
       {showControls && (
-        <div className='flex-shrink-0 print:hidden'>
-          <Controls />
+        <div className='sticky bottom-0 left-0 right-0 z-10 print:hidden'>
+          <div
+            className={cn(
+              'flex items-center justify-between gap-2 p-2 border-t',
+              theme === 'dark'
+                ? 'bg-black border-gray-800'
+                : 'bg-white border-gray-200'
+            )}
+          >
+            <Button
+              variant='ghost'
+              size='icon'
+              className='h-10 w-10'
+              onClick={handleBack}
+            >
+              <LogOut className='h-5 w-5' />
+            </Button>
+            <div className='flex items-center gap-2'>
+              <Button
+                onClick={handleTogglePlay}
+                className={cn(
+                  'h-10 rounded-md font-semibold flex items-center gap-2',
+                  'bg-emerald-500 hover:bg-emerald-600 text-white'
+                )}
+              >
+                {isPlaying ? (
+                  <Pause className='h-4 w-4' />
+                ) : (
+                  <Play className='h-4 w-4' />
+                )}
+                Autoscroll
+              </Button>
+              <div
+                className={cn(
+                  'flex items-center gap-1 rounded-md p-1 border h-10',
+                  theme === 'dark'
+                    ? 'bg-gray-800 border-gray-700'
+                    : 'bg-white border-gray-300'
+                )}
+              >
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='h-8 w-8 rounded-md'
+                  onClick={() =>
+                    dispatch({
+                      type: 'SET_SCROLL_SPEED',
+                      payload: scrollSpeed - 0.1,
+                    })
+                  }
+                >
+                  <Minus className='h-4 w-4' />
+                </Button>
+                <span className='w-12 text-center text-sm font-semibold'>
+                  {scrollSpeed.toFixed(1)}x
+                </span>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='h-8 w-8 rounded-md'
+                  onClick={() =>
+                    dispatch({
+                      type: 'SET_SCROLL_SPEED',
+                      payload: scrollSpeed + 0.1,
+                    })
+                  }
+                >
+                  <Plus className='h-4 w-4' />
+                </Button>
+              </div>
+            </div>
+            <Button
+              variant='ghost'
+              size='icon'
+              className='h-10 w-10'
+              onClick={() => setIsSettingsOpen(true)}
+            >
+              <Settings className='h-5 w-5' />
+            </Button>
+          </div>
         </div>
       )}
 
