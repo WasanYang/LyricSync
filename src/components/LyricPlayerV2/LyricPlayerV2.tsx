@@ -172,8 +172,7 @@ export function LyricPlayerV2({
         ) {
           cancelAnimationFrame(animationFrameId.current);
           isAtEndRef.current = true;
-          // Use a separate function call to update state safely
-          setTimeout(() => handleTogglePlay(), 0);
+          handleTogglePlay();
           return; // Stop the animation loop
         }
       }
@@ -218,7 +217,7 @@ export function LyricPlayerV2({
         <p
           key={key}
           id={key}
-          className='pt-4 pb-2 text-sm font-bold uppercase tracking-wide'
+          className='pt-4 pb-2 text-sm font-bold uppercase tracking-wide font-headline'
         >
           [ {line.content} ]
         </p>
@@ -259,7 +258,7 @@ export function LyricPlayerV2({
                 {part.slice(1, -1)}
               </span>
             ) : (
-              <span key={i}>{part}</span>
+              <span>{part}</span>
             )
           )}
         </p>
@@ -288,19 +287,6 @@ export function LyricPlayerV2({
         isVisible={floatingNavigator.isVisible}
       />
 
-      {showControls && (
-        <div className='absolute top-4 right-4 z-20 print:hidden'>
-          <Button
-            variant='ghost'
-            size='icon'
-            className='h-10 w-10'
-            onClick={handleBack}
-          >
-            <LogOut className='h-5 w-5' />
-          </Button>
-        </div>
-      )}
-
       <div
         ref={scrollContainerRef}
         className='flex-grow w-full overflow-y-scroll scroll-smooth'
@@ -313,7 +299,7 @@ export function LyricPlayerV2({
             <h1 className='font-headline text-2xl font-bold'>{song.title}</h1>
             <div
               className={cn(
-                'text-md',
+                'text-md font-body',
                 theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
               )}
             >

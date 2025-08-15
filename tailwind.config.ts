@@ -12,7 +12,7 @@ export default {
       fontFamily: {
         body: ['var(--font-inter)', '"Noto Sans Thai"', 'sans-serif'],
         headline: ['var(--font-inter)', '"Noto Sans Thai"', 'sans-serif'],
-        code: ['monospace'],
+        code: ['"Noto Sans Thai"', 'monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
