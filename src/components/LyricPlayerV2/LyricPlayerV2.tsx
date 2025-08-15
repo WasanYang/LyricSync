@@ -16,8 +16,7 @@ import { ParsedLyricLine } from './types';
 import { parseLyricsV2 } from './parser';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
-import { Pause, Play, Printer, Settings } from 'lucide-react';
-import { Slider } from '../ui/slider';
+import { Pause, Play, Printer, Settings, Minus, Plus } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SettingsSheetV2 } from './SettingsSheetV2';
@@ -60,7 +59,9 @@ function playerReducer(state: PlayerState, action: Action): PlayerState {
     case 'TOGGLE_PLAY':
       return { ...state, isPlaying: !state.isPlaying };
     case 'SET_SCROLL_SPEED':
-      return { ...state, scrollSpeed: action.payload };
+      // Ensure speed is within bounds
+      const newSpeed = Math.max(0.1, Math.min(5.0, action.payload));
+      return { ...state, scrollSpeed: newSpeed };
     case 'SET_TRANSPOSE':
       return { ...state, transpose: action.payload };
     case 'SET_FONT_SIZE':
@@ -133,7 +134,7 @@ export function LyricPlayerV2({
 
       if (scrollContainerRef.current) {
         const container = scrollContainerRef.current;
-        const scrollAmount = (deltaTime / 100) * scrollSpeed;
+        const scrollAmount = (deltaTime / 50) * scrollSpeed; // Slower base speed
         container.scrollTop += scrollAmount;
         if (
           container.scrollTop >=
@@ -152,11 +153,13 @@ export function LyricPlayerV2({
 
   useEffect(() => {
     const container = scrollContainerRef.current;
-    if (!container || !headerRef.current) return;
+    const header = headerRef.current;
+    if (!container || !header) return;
+
     const handleScroll = () => {
-      const headerHeight = headerRef.current?.offsetHeight || 0;
-      setIsScrolled(container.scrollTop > headerHeight);
+      setIsScrolled(container.scrollTop > header.offsetHeight);
     };
+
     container.addEventListener('scroll', handleScroll);
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
@@ -191,12 +194,13 @@ export function LyricPlayerV2({
   };
 
   const renderLine = (line: ParsedLyricLine, index: number) => {
+    const key = `${line.type}-${index}`;
     if (line.type === 'section') {
       return (
         <p
-          key={`${line.type}-${index}`}
-          id={`${line.type}-${index}`}
-          className='pt-4 pb-2 text-sm font-bold uppercase tracking-wide text-black'
+          key={key}
+          id={key}
+          className='pt-4 pb-2 text-sm font-bold uppercase tracking-wide'
         >
           [ {line.content} ]
         </p>
@@ -204,7 +208,7 @@ export function LyricPlayerV2({
     }
 
     if (line.type === 'lyrics') {
-      return <p key={index}>{line.content}</p>;
+      return <p key={key}>{line.content}</p>;
     }
 
     if (line.type === 'chords' && showChords) {
@@ -213,10 +217,14 @@ export function LyricPlayerV2({
         (match, chord) => `[${transposeChord(chord, transpose)}]`
       );
       return (
-        <p key={index} className='font-bold whitespace-pre-wrap'>
+        <p
+          key={key}
+          className='font-bold whitespace-pre-wrap'
+          style={{ color: chordColor }}
+        >
           {transposedChords.split(/(\s+)/).map((part, i) =>
             /\[.*?\]/.test(part) ? (
-              <span key={i} className='inline-block rounded-sm px-1 py-0.5' style={{color: chordColor}}>
+              <span key={i} className='inline-block rounded-sm px-1 py-0.5'>
                 {part.slice(1, -1)}
               </span>
             ) : (
@@ -228,7 +236,7 @@ export function LyricPlayerV2({
     }
 
     if (line.type === 'empty') {
-      return <div key={index} className='h-4' />;
+      return <div key={key} className='h-4' />;
     }
 
     return null;
@@ -256,27 +264,31 @@ export function LyricPlayerV2({
           )}
           Autoscroll
         </Button>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant='outline'
-              className='rounded-full font-semibold bg-white border-gray-300'
-            >
-              Speed: {scrollSpeed.toFixed(1)}x
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className='w-40 p-2'>
-            <Slider
-              value={[scrollSpeed]}
-              min={0.1}
-              max={2}
-              step={0.1}
-              onValueChange={(value) =>
-                dispatch({ type: 'SET_SCROLL_SPEED', payload: value[0] })
-              }
-            />
-          </PopoverContent>
-        </Popover>
+        <div className='flex items-center gap-1 rounded-full p-1 bg-white border border-gray-300'>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-6 w-6 rounded-full'
+            onClick={() =>
+              dispatch({ type: 'SET_SCROLL_SPEED', payload: scrollSpeed - 0.1 })
+            }
+          >
+            <Minus className='h-4 w-4' />
+          </Button>
+          <span className='w-12 text-center text-sm font-semibold'>
+            {scrollSpeed.toFixed(1)}x
+          </span>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-6 w-6 rounded-full'
+            onClick={() =>
+              dispatch({ type: 'SET_SCROLL_SPEED', payload: scrollSpeed + 0.1 })
+            }
+          >
+            <Plus className='h-4 w-4' />
+          </Button>
+        </div>
       </div>
       <div className='flex items-center'>
         <Button
@@ -320,14 +332,14 @@ export function LyricPlayerV2({
               exit={{ y: -100, opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="max-w-2xl mx-auto px-4">
-                 <Controls isSticky />
+              <div className='max-w-2xl mx-auto px-4'>
+                <Controls isSticky />
               </div>
             </motion.div>
           )}
         </AnimatePresence>
         <div
-          className='max-w-2xl mx-auto font-mono text-lg leading-relaxed px-4 text-black pb-32'
+          className='max-w-2xl mx-auto text-lg leading-relaxed px-4 text-black pb-32'
           style={{ fontSize: `${fontSize}px` }}
         >
           <div ref={headerRef}>
