@@ -157,9 +157,9 @@ export function LyricPlayerV2({
       return (
         <p
           key={index}
-          className='pt-4 pb-2 text-sm font-bold text-muted-foreground uppercase tracking-wide'
+          className='pt-4 pb-2 text-sm font-bold text-black uppercase tracking-wide'
         >
-          {line.content}
+          [ {line.content} ]
         </p>
       );
     }
@@ -275,9 +275,8 @@ export function LyricPlayerV2({
             <div className='mb-4 pt-4'>
               <h1 className='font-headline text-2xl font-bold'>{song.title}</h1>
               <div className='text-md text-muted-foreground'>
-                {song.artist && <span>{song.artist}</span>}
-                {song.artist && song.originalKey && <span> • </span>}
-                {song.originalKey && <span>Key: {song.originalKey}</span>}
+                {song.artist && <div>{song.artist}</div>}
+                {song.originalKey && <div>Key: {song.originalKey}</div>}
               </div>
               <Separator className='my-2' />
             </div>

@@ -264,7 +264,7 @@ export default function SongCreatorV2() {
                 <DialogHeader className='sr-only'>
                   <DialogTitle>Song Preview</DialogTitle>
                 </DialogHeader>
-                <LyricPlayerV2 song={previewSong} onClose={() => setIsPreviewOpen(false)} showControls={false} />
+                <LyricPlayerV2 song={previewSong} onClose={() => setIsPreviewOpen(false)} />
               </DialogContent>
             </Dialog>
           </header>
