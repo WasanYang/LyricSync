@@ -13,6 +13,7 @@ interface UserPreferences {
   autoScroll: boolean;
   showChords: boolean;
   inlineCommentColor: string;
+  chordColor: string; // Added for V2 Player
   floatingControls: boolean;
   floatingNavigator: boolean;
   language: 'th' | 'en';
@@ -48,13 +49,14 @@ class LocalStorageManager {
   // Default values
   private readonly DEFAULT_PREFERENCES: UserPreferences = {
     theme: 'system',
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 400,
     highlightMode: 'line',
     defaultKey: 'C',
     autoScroll: true,
     showChords: true,
     inlineCommentColor: 'hsl(var(--destructive))',
+    chordColor: 'hsl(var(--primary))', // Default color
     floatingControls: true,
     floatingNavigator: true,
     language: 'th',
