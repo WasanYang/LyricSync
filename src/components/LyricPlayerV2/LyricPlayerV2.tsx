@@ -59,7 +59,7 @@ const getInitialState = (): PlayerState => {
     transpose: 0,
     fontSize: prefs.fontSize || 16,
     showChords: prefs.showChords !== false,
-    chordColor: prefs.chordColor || 'hsl(0 0% 0%)',
+    chordColor: prefs.chordColor || '#000000',
     showChordHighlights: prefs.showChordHighlights !== false,
   };
 };
@@ -258,7 +258,7 @@ export function LyricPlayerV2({
                 {part.slice(1, -1)}
               </span>
             ) : (
-              <span>{part}</span>
+              <span key={i}>{part}</span>
             )
           )}
         </p>
@@ -303,8 +303,10 @@ export function LyricPlayerV2({
                 theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
               )}
             >
-              {song.artist && <div>{song.artist}</div>}
-              {song.originalKey && <div>Key: {song.originalKey}</div>}
+              {song.artist && <div className='font-body'>{song.artist}</div>}
+              {song.originalKey && (
+                <div className='font-body'>Key: {song.originalKey}</div>
+              )}
             </div>
           </div>
           {parsedLines.map(renderLine)}
