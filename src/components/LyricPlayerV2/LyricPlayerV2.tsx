@@ -14,20 +14,27 @@ import { cn } from '@/lib/utils';
 import { transposeChord } from '@/lib/chords';
 import { ParsedLyricLine } from './types';
 import { parseLyricsV2 } from './parser';
-import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
-import { Pause, Play, Printer, Settings, Minus, Plus } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import {
+  Pause,
+  Play,
+  Printer,
+  Settings,
+  Minus,
+  Plus,
+  ArrowLeft,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SettingsSheetV2 } from './SettingsSheetV2';
 import FloatingSectionNavigator from '../FloatingSectionNavigator';
 import { useFloatingNavigator } from '@/hooks/use-floating-navigator';
-import { localStorageManager, type FontWeight } from '@/lib/local-storage';
+import { localStorageManager } from '@/lib/local-storage';
 import { useTheme } from 'next-themes';
+import { PlayerHeaderV2 } from './PlayerHeaderV2';
 
 interface PlayerState {
   isPlaying: boolean;
-  scrollSpeed: number; // 0.1 to 2.0
+  scrollSpeed: number; // 0.1 to 5.0
   transpose: number;
   fontSize: number;
   showChords: boolean;
@@ -117,8 +124,6 @@ export function LyricPlayerV2({
   const animationFrameId = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
   const isAtEndRef = useRef<boolean>(false);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const floatingNavigator = useFloatingNavigator();
 
@@ -167,19 +172,6 @@ export function LyricPlayerV2({
     },
     [isPlaying, scrollSpeed]
   );
-
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      if (!headerRef.current) return;
-      setIsScrolled(container.scrollTop > headerRef.current.offsetHeight);
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, []);
 
   useEffect(() => {
     if (isPlaying) {
@@ -249,7 +241,8 @@ export function LyricPlayerV2({
                 key={i}
                 className={cn(
                   'inline-block rounded-sm px-1 py-0.5',
-                  showChordHighlights && 'bg-primary/20'
+                  showChordHighlights &&
+                    (theme === 'dark' ? 'bg-primary/20' : 'bg-primary/10')
                 )}
               >
                 {part.slice(1, -1)}
@@ -269,22 +262,18 @@ export function LyricPlayerV2({
     return null;
   };
 
-  const Controls = ({ isSticky = false }: { isSticky?: boolean }) => (
+  const Controls = () => (
     <div
       className={cn(
-        'flex items-center justify-between gap-2 py-2',
-        isSticky
-          ? theme === 'dark'
-            ? 'bg-black border-b border-gray-800'
-            : 'bg-white border-b'
-          : 'bg-transparent'
+        'flex items-center justify-between gap-2 p-2 border-t',
+        theme === 'dark' ? 'bg-black border-gray-800' : 'bg-white border-gray-200'
       )}
     >
       <div className='flex items-center gap-2'>
         <Button
           onClick={handleTogglePlay}
           className={cn(
-            'rounded-full font-semibold flex items-center gap-2',
+            'h-10 rounded-md font-semibold flex items-center gap-2',
             'bg-emerald-500 hover:bg-emerald-600 text-white'
           )}
         >
@@ -297,7 +286,7 @@ export function LyricPlayerV2({
         </Button>
         <div
           className={cn(
-            'flex items-center gap-1 rounded-full p-1 border',
+            'flex items-center gap-1 rounded-md p-1 border',
             theme === 'dark'
               ? 'bg-gray-800 border-gray-700'
               : 'bg-white border-gray-300'
@@ -306,7 +295,7 @@ export function LyricPlayerV2({
           <Button
             variant='ghost'
             size='icon'
-            className='h-6 w-6 rounded-full'
+            className='h-8 w-8 rounded-md'
             onClick={() =>
               dispatch({ type: 'SET_SCROLL_SPEED', payload: scrollSpeed - 0.1 })
             }
@@ -319,9 +308,41 @@ export function LyricPlayerV2({
           <Button
             variant='ghost'
             size='icon'
-            className='h-6 w-6 rounded-full'
+            className='h-8 w-8 rounded-md'
             onClick={() =>
               dispatch({ type: 'SET_SCROLL_SPEED', payload: scrollSpeed + 0.1 })
+            }
+          >
+            <Plus className='h-4 w-4' />
+          </Button>
+        </div>
+        <div
+          className={cn(
+            'flex items-center gap-1 rounded-md p-1 border',
+            theme === 'dark'
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-300'
+          )}
+        >
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-8 w-8 rounded-md'
+            onClick={() =>
+              dispatch({ type: 'SET_TRANSPOSE', payload: transpose - 1 })
+            }
+          >
+            <Minus className='h-4 w-4' />
+          </Button>
+          <span className='w-12 text-center text-sm font-semibold'>
+            Key {transpose >= 0 ? `+${transpose}` : transpose}
+          </span>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-8 w-8 rounded-md'
+            onClick={() =>
+              dispatch({ type: 'SET_TRANSPOSE', payload: transpose + 1 })
             }
           >
             <Plus className='h-4 w-4' />
@@ -351,7 +372,7 @@ export function LyricPlayerV2({
   return (
     <div
       className={cn(
-        'flex flex-col h-full overflow-hidden',
+        'flex flex-col h-full overflow-hidden print:bg-white print:text-black',
         theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'
       )}
     >
@@ -362,31 +383,19 @@ export function LyricPlayerV2({
         onClose={floatingNavigator.toggleVisibility}
         isVisible={floatingNavigator.isVisible}
       />
+
+      <PlayerHeaderV2 title={song.title} artist={song.artist} onClose={onClose} showControls={showControls} />
+      
       <div
         ref={scrollContainerRef}
         className='flex-grow w-full overflow-y-scroll scroll-smooth'
       >
-        <AnimatePresence>
-          {isScrolled && showControls && (
-            <motion.div
-              className='sticky top-0 left-0 right-0 z-10'
-              initial={{ y: -100, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -100, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className='max-w-2xl mx-auto px-4'>
-                <Controls isSticky />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
         <div
-          className='max-w-2xl mx-auto text-lg leading-relaxed px-4 pb-32'
+          className='max-w-2xl mx-auto text-lg leading-relaxed px-4 pb-32 print:pb-4'
           style={{ fontSize: `${fontSize}px` }}
         >
-          <div ref={headerRef}>
-            <div className='mb-4 pt-4'>
+          {showControls && (
+            <div className='mb-4 pt-4 print:hidden'>
               <h1 className='font-headline text-2xl font-bold'>{song.title}</h1>
               <div
                 className={cn(
@@ -397,18 +406,18 @@ export function LyricPlayerV2({
                 {song.artist && <div>{song.artist}</div>}
                 {song.originalKey && <div>Key: {song.originalKey}</div>}
               </div>
-              <Separator
-                className={cn(
-                  'my-2',
-                  theme === 'dark' ? 'bg-gray-700' : 'bg-gray-300'
-                )}
-              />
             </div>
-            {showControls && <Controls />}
-          </div>
+          )}
           {parsedLines.map(renderLine)}
         </div>
       </div>
+
+      {showControls && (
+        <div className='flex-shrink-0 print:hidden'>
+          <Controls />
+        </div>
+      )}
+
       <SettingsSheetV2
         isOpen={isSettingsOpen}
         onOpenChange={setIsSettingsOpen}

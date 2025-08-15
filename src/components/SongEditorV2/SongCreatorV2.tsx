@@ -41,10 +41,9 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { LyricPlayerV2 } from '@/components/LyricPlayerV2/LyricPlayerV2';
-import { Play, Save, ArrowLeft, Expand, LogIn } from 'lucide-react';
+import { Play, Save, ArrowLeft, LogIn } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
-import { cn } from '@/lib/utils';
 import { LyricsHelpDialogV2 } from './LyricsHelpDialogV2';
 import {
   Dialog,
