@@ -172,7 +172,7 @@ export default function SongCreatorV2() {
       id: songId || 'preview',
       title: formData.title || 'Untitled',
       artist: formData.artist || 'Unknown Artist',
-      lyrics: formData.lyrics || '', // Keep as a string for V2 Player
+      lyrics: formData.lyrics, // Pass as a string for V2
       originalKey: formData.originalKey,
       source: 'user',
       updatedAt: Date.now(),
@@ -261,10 +261,10 @@ export default function SongCreatorV2() {
                 </Button>
               </DialogTrigger>
               <DialogContent className='max-w-full w-full h-screen max-h-screen p-0 m-0 border-0 flex flex-col bg-white text-black'>
-                <DialogHeader className='sr-only'>
+                 <DialogHeader className='sr-only'>
                   <DialogTitle>Song Preview</DialogTitle>
                 </DialogHeader>
-                <LyricPlayerV2 song={previewSong} onClose={() => setIsPreviewOpen(false)} />
+                <LyricPlayerV2 song={previewSong} onClose={() => setIsPreviewOpen(false)} showControls={false} />
               </DialogContent>
             </Dialog>
           </header>

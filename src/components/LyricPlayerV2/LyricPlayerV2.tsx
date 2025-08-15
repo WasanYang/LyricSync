@@ -17,7 +17,7 @@ import { ParsedLyricLine } from './types';
 import { parseLyricsV2 } from './parser';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
-import { Pause, Play } from 'lucide-react';
+import { Pause, Play, Settings } from 'lucide-react';
 import { Slider } from '../ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -75,6 +75,7 @@ export function LyricPlayerV2({
   const isAtEndRef = useRef<boolean>(false);
   const headerRef = useRef<HTMLDivElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const parsedLines = useMemo(() => {
     if (typeof song.lyrics === 'string') {
@@ -204,44 +205,49 @@ export function LyricPlayerV2({
   const Controls = ({ isSticky = false }: { isSticky?: boolean }) => (
     <div
       className={cn(
-        'flex items-center justify-start gap-2 py-4',
+        'flex items-center justify-between gap-2 py-2',
         isSticky
-          ? 'px-4 bg-background/80 backdrop-blur-sm border-b'
+          ? 'px-4 bg-white border-b'
           : 'bg-transparent'
       )}
     >
-      <Button
-        onClick={handleTogglePlay}
-        className={cn(
-          'rounded-full font-semibold flex items-center gap-2',
-          'bg-emerald-500 hover:bg-emerald-600 text-white'
-        )}
-      >
-        {isPlaying ? (
-          <Pause className='h-4 w-4' />
-        ) : (
-          <Play className='h-4 w-4' />
-        )}
-        Autoscroll
+      <div className='flex items-center gap-2'>
+        <Button
+          onClick={handleTogglePlay}
+          className={cn(
+            'rounded-full font-semibold flex items-center gap-2',
+            'bg-emerald-500 hover:bg-emerald-600 text-white'
+          )}
+        >
+          {isPlaying ? (
+            <Pause className='h-4 w-4' />
+          ) : (
+            <Play className='h-4 w-4' />
+          )}
+          Autoscroll
+        </Button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant='outline' className='rounded-full font-semibold'>
+              Speed: {scrollSpeed.toFixed(1)}x
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className='w-40 p-2'>
+            <Slider
+              value={[scrollSpeed]}
+              min={0.1}
+              max={2}
+              step={0.1}
+              onValueChange={(value) =>
+                dispatch({ type: 'SET_SCROLL_SPEED', payload: value[0] })
+              }
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+      <Button variant="ghost" size="icon" onClick={() => setIsSettingsOpen(true)}>
+        <Settings className='h-5 w-5' />
       </Button>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant='outline' className='rounded-full font-semibold'>
-            Speed: {scrollSpeed.toFixed(1)}x
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className='w-40 p-2'>
-          <Slider
-            value={[scrollSpeed]}
-            min={0.1}
-            max={2}
-            step={0.1}
-            onValueChange={(value) =>
-              dispatch({ type: 'SET_SCROLL_SPEED', payload: value[0] })
-            }
-          />
-        </PopoverContent>
-      </Popover>
     </div>
   );
 
@@ -260,7 +266,7 @@ export function LyricPlayerV2({
         <AnimatePresence>
           {isScrolled && showControls && (
             <motion.div
-              className='fixed top-14 left-0 right-0 z-10'
+              className='sticky top-0 left-0 right-0 z-10'
               initial={{ y: -100, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -100, opacity: 0 }}
@@ -278,7 +284,7 @@ export function LyricPlayerV2({
                 {song.artist && <div>{song.artist}</div>}
                 {song.originalKey && <div>Key: {song.originalKey}</div>}
               </div>
-              <Separator className='my-2' />
+              <Separator className='my-2 bg-gray-300' />
             </div>
             {showControls && <Controls />}
           </div>
