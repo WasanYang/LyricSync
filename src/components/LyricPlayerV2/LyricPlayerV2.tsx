@@ -12,7 +12,6 @@ import {
 import type { Song } from '@/lib/songs';
 import { cn } from '@/lib/utils';
 import { transposeChord } from '@/lib/chords';
-import { PlayerHeaderV2 } from './PlayerHeaderV2';
 import { ParsedLyricLine } from './types';
 import { parseLyricsV2 } from './parser';
 import { Separator } from '../ui/separator';
@@ -254,7 +253,10 @@ export function LyricPlayerV2({
         </Button>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant='outline' className='rounded-full font-semibold'>
+            <Button
+              variant='outline'
+              className='rounded-full font-semibold bg-white border-gray-300'
+            >
               Speed: {scrollSpeed.toFixed(1)}x
             </Button>
           </PopoverTrigger>
@@ -293,12 +295,6 @@ export function LyricPlayerV2({
 
   return (
     <div className='flex flex-col h-full overflow-hidden bg-white'>
-      <PlayerHeaderV2
-        title={song.title}
-        artist={song.artist}
-        onClose={onClose}
-        showControls={showControls}
-      />
       <FloatingSectionNavigator
         sections={sections}
         currentSection={null} // V2 player doesn't track current section based on time
