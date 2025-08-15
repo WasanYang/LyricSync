@@ -146,6 +146,14 @@ export function LyricPlayerV2({
       }));
   }, [parsedLines]);
 
+  const handleTogglePlay = useCallback(() => {
+    if (isAtEndRef.current) {
+      if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+      isAtEndRef.current = false;
+    }
+    dispatch({ type: 'TOGGLE_PLAY' });
+  }, []);
+
   const scroll = useCallback(
     (timestamp: number) => {
       if (!lastTimeRef.current) {
@@ -162,35 +170,26 @@ export function LyricPlayerV2({
           container.scrollTop >=
           container.scrollHeight - container.clientHeight - 1 // Add a 1px buffer
         ) {
-          // Wrap dispatch in setTimeout to avoid state update during render
-          setTimeout(() => dispatch({ type: 'TOGGLE_PLAY' }), 0);
+          cancelAnimationFrame(animationFrameId.current);
+          handleTogglePlay(); // Call the separate toggle function
           isAtEndRef.current = true;
+          return; // Stop the animation loop
         }
       }
-      if (isPlaying) {
-        animationFrameId.current = requestAnimationFrame(scroll);
-      }
+      animationFrameId.current = requestAnimationFrame(scroll);
     },
-    [isPlaying, scrollSpeed]
+    [scrollSpeed, handleTogglePlay]
   );
 
   useEffect(() => {
     if (isPlaying) {
+      lastTimeRef.current = 0; // Reset time on play
       animationFrameId.current = requestAnimationFrame(scroll);
     } else {
       cancelAnimationFrame(animationFrameId.current);
-      lastTimeRef.current = 0;
     }
     return () => cancelAnimationFrame(animationFrameId.current);
   }, [isPlaying, scroll]);
-
-  const handleTogglePlay = () => {
-    if (isAtEndRef.current) {
-      if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
-      isAtEndRef.current = false;
-    }
-    dispatch({ type: 'TOGGLE_PLAY' });
-  };
 
   const handleSectionJump = (sectionIndex: number) => {
     if (!scrollContainerRef.current) return;
@@ -300,9 +299,7 @@ export function LyricPlayerV2({
         <div
           className={cn(
             'flex items-center gap-1 rounded-md p-1 border h-10',
-            theme === 'dark'
-              ? 'bg-gray-800 border-gray-700'
-              : 'bg-white border-gray-300'
+            'bg-white border-gray-300'
           )}
         >
           <Button
@@ -332,9 +329,7 @@ export function LyricPlayerV2({
         <div
           className={cn(
             'flex items-center gap-1 rounded-md p-1 border h-10',
-            theme === 'dark'
-              ? 'bg-gray-800 border-gray-700'
-              : 'bg-white border-gray-300'
+            'bg-white border-gray-300'
           )}
         >
           <Button
@@ -459,9 +454,7 @@ export function LyricPlayerV2({
               <div
                 className={cn(
                   'flex items-center gap-1 rounded-md p-1 border h-10',
-                  theme === 'dark'
-                    ? 'bg-gray-800 border-gray-700'
-                    : 'bg-white border-gray-300'
+                  'bg-white border-gray-300'
                 )}
               >
                 <Button
@@ -477,7 +470,7 @@ export function LyricPlayerV2({
                 >
                   <Minus className='h-4 w-4' />
                 </Button>
-                <span className='w-12 text-center text-sm font-semibold'>
+                <span className='w-12 text-center text-sm font-semibold text-black'>
                   {scrollSpeed.toFixed(1)}x
                 </span>
                 <Button
@@ -497,9 +490,7 @@ export function LyricPlayerV2({
               <div
                 className={cn(
                   'flex items-center gap-1 rounded-md p-1 border h-10',
-                  theme === 'dark'
-                    ? 'bg-gray-800 border-gray-700'
-                    : 'bg-white border-gray-300'
+                  'bg-white border-gray-300'
                 )}
               >
                 <Button
@@ -515,7 +506,7 @@ export function LyricPlayerV2({
                 >
                   <Minus className='h-4 w-4' />
                 </Button>
-                <span className='w-12 text-center text-sm font-semibold'>
+                <span className='w-12 text-center text-sm font-semibold text-black'>
                   Key {transpose >= 0 ? `+${transpose}` : transpose}
                 </span>
                 <Button
