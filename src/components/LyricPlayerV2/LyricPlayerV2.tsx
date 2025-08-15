@@ -1,13 +1,13 @@
 // src/components/LyricPlayerV2/LyricPlayerV2.tsx
 'use client';
 
-import { useState, useEffect, useReducer, useRef, useCallback, useMemo } from 'react';
+import { useState, useReducer, useRef, useCallback, useMemo } from 'react';
 import type { Song } from '@/lib/songs';
 import { cn } from '@/lib/utils';
 import { transposeChord } from '@/lib/chords';
 import { PlayerControlsV2 } from './PlayerControlsV2';
 import { PlayerHeaderV2 } from './PlayerHeaderV2';
-import { LyricLine, ParsedLyricLine } from './types';
+import { ParsedLyricLine } from './types';
 import { parseLyricsV2 } from './parser';
 
 interface PlayerState {
@@ -152,7 +152,7 @@ export function LyricPlayerV2({ song, onClose }: LyricPlayerV2Props) {
   };
 
   return (
-    <div className='flex flex-col bg-background h-full overflow-hidden'>
+    <div className='flex flex-col h-full overflow-hidden'>
       <PlayerHeaderV2 title={song.title} artist={song.artist} onClose={onClose} />
       <div
         ref={scrollContainerRef}
