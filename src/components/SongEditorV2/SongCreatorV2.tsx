@@ -46,7 +46,13 @@ import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 import { LyricsHelpDialogV2 } from './LyricsHelpDialogV2';
-import { Dialog, DialogContent, DialogTrigger } from '../ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '../ui/dialog';
 import LocalsLink from '../ui/LocalsLink';
 
 const songFormSchema = z.object({
@@ -255,6 +261,9 @@ export default function SongCreatorV2() {
                 </Button>
               </DialogTrigger>
               <DialogContent className='max-w-full w-full h-screen max-h-screen p-0 m-0 border-0 flex flex-col'>
+                <DialogHeader className='sr-only'>
+                  <DialogTitle>Song Preview</DialogTitle>
+                </DialogHeader>
                 <LyricPlayerV2 song={previewSong} onClose={() => setIsPreviewOpen(false)} />
               </DialogContent>
             </Dialog>
