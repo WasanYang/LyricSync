@@ -1,7 +1,7 @@
 // src/components/LyricPlayerV2/LyricPlayerV2.tsx
 'use client';
 
-import { useState, useEffect, useReducer, useRef, useCallback } from 'react';
+import { useState, useEffect, useReducer, useRef, useCallback, useMemo } from 'react';
 import type { Song } from '@/lib/songs';
 import { cn } from '@/lib/utils';
 import { transposeChord } from '@/lib/chords';
