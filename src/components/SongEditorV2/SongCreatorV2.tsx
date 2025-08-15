@@ -260,7 +260,7 @@ export default function SongCreatorV2() {
                   <Play className='mr-2 h-4 w-4' /> Preview
                 </Button>
               </DialogTrigger>
-              <DialogContent className='max-w-full w-full h-screen max-h-screen p-0 m-0 border-0 flex flex-col'>
+              <DialogContent className='max-w-full w-full h-screen max-h-screen p-0 m-0 border-0 flex flex-col bg-white text-black'>
                 <DialogHeader className='sr-only'>
                   <DialogTitle>Song Preview</DialogTitle>
                 </DialogHeader>
