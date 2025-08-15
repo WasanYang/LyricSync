@@ -94,22 +94,6 @@ function LoadingScreen() {
   );
 }
 
-const parseLyricsFromString = (lyricString: string): any[] => {
-  return lyricString
-    .split('\n')
-    .map((line) => {
-      // Basic logic to assign measures if a line doesn't start with a number
-      if (!/^\d+\s*\|/.test(line)) {
-        return { measures: 4, text: line }; // Default to 4 measures
-      }
-      const parts = line.split('|');
-      const measures = parseInt(parts[0].trim(), 10);
-      const text = parts.slice(1).join('|').trim();
-      return { measures: isNaN(measures) ? 4 : measures, text };
-    })
-    .filter((line) => line.measures > 0 || line.text !== '');
-};
-
 export default function SongCreatorV2() {
   const { toast } = useToast();
   const router = useRouter();
@@ -192,10 +176,8 @@ export default function SongCreatorV2() {
       id: songId || 'preview',
       title: formData.title || 'Untitled',
       artist: formData.artist || 'Unknown Artist',
-      lyrics: parseLyricsFromString(formData.lyrics), // Convert to V1 format for V1 player
+      lyrics: formData.lyrics, // Use the raw string for V2 Player
       originalKey: formData.originalKey,
-      bpm: 120, // Add default BPM for preview
-      timeSignature: '4/4', // Add default time signature
       source: 'user',
       updatedAt: Date.now(),
     }),
@@ -299,9 +281,10 @@ export default function SongCreatorV2() {
                 <DialogHeader className='sr-only'>
                   <DialogTitle>Song Preview</DialogTitle>
                 </DialogHeader>
-                <LyricPlayer
+                <LyricPlayerV2
                   song={previewSong}
                   onClose={() => setIsPreviewOpen(false)}
+                  showControls={false}
                 />
               </DialogContent>
             </Dialog>
