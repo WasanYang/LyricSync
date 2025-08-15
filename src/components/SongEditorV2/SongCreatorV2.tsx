@@ -54,6 +54,7 @@ import {
   DialogTrigger,
 } from '../ui/dialog';
 import LocalsLink from '../ui/LocalsLink';
+import LyricPlayer from '../LyricPlayer';
 
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
@@ -93,6 +94,22 @@ function LoadingScreen() {
   );
 }
 
+const parseLyricsFromString = (lyricString: string): any[] => {
+  return lyricString
+    .split('\n')
+    .map((line) => {
+      // Basic logic to assign measures if a line doesn't start with a number
+      if (!/^\d+\s*\|/.test(line)) {
+        return { measures: 4, text: line }; // Default to 4 measures
+      }
+      const parts = line.split('|');
+      const measures = parseInt(parts[0].trim(), 10);
+      const text = parts.slice(1).join('|').trim();
+      return { measures: isNaN(measures) ? 4 : measures, text };
+    })
+    .filter((line) => line.measures > 0 || line.text !== '');
+};
+
 export default function SongCreatorV2() {
   const { toast } = useToast();
   const router = useRouter();
@@ -115,12 +132,15 @@ export default function SongCreatorV2() {
     },
   });
 
-  const adjustTextareaHeight = useCallback((element: HTMLTextAreaElement | null) => {
-    if (element) {
-      element.style.height = 'auto';
-      element.style.height = `${element.scrollHeight}px`;
-    }
-  }, []);
+  const adjustTextareaHeight = useCallback(
+    (element: HTMLTextAreaElement | null) => {
+      if (element) {
+        element.style.height = 'auto';
+        element.style.height = `${element.scrollHeight}px`;
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -172,8 +192,10 @@ export default function SongCreatorV2() {
       id: songId || 'preview',
       title: formData.title || 'Untitled',
       artist: formData.artist || 'Unknown Artist',
-      lyrics: formData.lyrics, // Pass as a string for V2
+      lyrics: parseLyricsFromString(formData.lyrics), // Convert to V1 format for V1 player
       originalKey: formData.originalKey,
+      bpm: 120, // Add default BPM for preview
+      timeSignature: '4/4', // Add default time signature
       source: 'user',
       updatedAt: Date.now(),
     }),
@@ -186,7 +208,10 @@ export default function SongCreatorV2() {
       return;
     }
 
-    const newSongData: Omit<Song, 'lyrics' | 'updatedAt'> & { lyrics: any; updatedAt: any } = {
+    const newSongData: Omit<Song, 'lyrics' | 'updatedAt'> & {
+      lyrics: any;
+      updatedAt: any;
+    } = {
       id: songId || uuidv4(),
       title: data.title,
       artist: data.artist,
@@ -236,7 +261,12 @@ export default function SongCreatorV2() {
             <div className='flex items-center gap-2'>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button type='button' variant='ghost' size='icon' disabled={!isDirty}>
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='icon'
+                    disabled={!isDirty}
+                  >
                     <ArrowLeft className='h-5 w-5' />
                   </Button>
                 </AlertDialogTrigger>
@@ -246,7 +276,12 @@ export default function SongCreatorV2() {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => router.back()} className='bg-destructive hover:bg-destructive/90'>Discard</AlertDialogAction>
+                    <AlertDialogAction
+                      onClick={() => router.back()}
+                      className='bg-destructive hover:bg-destructive/90'
+                    >
+                      Discard
+                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
@@ -261,10 +296,13 @@ export default function SongCreatorV2() {
                 </Button>
               </DialogTrigger>
               <DialogContent className='max-w-full w-full h-screen max-h-screen p-0 m-0 border-0 flex flex-col bg-white text-black'>
-                 <DialogHeader className='sr-only'>
+                <DialogHeader className='sr-only'>
                   <DialogTitle>Song Preview</DialogTitle>
                 </DialogHeader>
-                <LyricPlayerV2 song={previewSong} onClose={() => setIsPreviewOpen(false)} showControls={false} />
+                <LyricPlayer
+                  song={previewSong}
+                  onClose={() => setIsPreviewOpen(false)}
+                />
               </DialogContent>
             </Dialog>
           </header>
@@ -277,7 +315,9 @@ export default function SongCreatorV2() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Song Title</FormLabel>
-                    <FormControl><Input placeholder='Enter song title' {...field} /></FormControl>
+                    <FormControl>
+                      <Input placeholder='Enter song title' {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -288,7 +328,9 @@ export default function SongCreatorV2() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Artist Name</FormLabel>
-                    <FormControl><Input placeholder='Enter artist name' {...field} /></FormControl>
+                    <FormControl>
+                      <Input placeholder='Enter artist name' {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -299,12 +341,21 @@ export default function SongCreatorV2() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Original Key</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
                       <FormControl>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {ALL_NOTES.map((note) => <SelectItem key={note} value={note}>{note}</SelectItem>)}
+                        {ALL_NOTES.map((note) => (
+                          <SelectItem key={note} value={note}>
+                            {note}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

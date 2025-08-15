@@ -6,8 +6,8 @@ import {
   useReducer,
   useRef,
   useCallback,
-  useMemo,
   useEffect,
+  useMemo,
 } from 'react';
 import type { Song } from '@/lib/songs';
 import { cn } from '@/lib/utils';
@@ -17,7 +17,7 @@ import { ParsedLyricLine } from './types';
 import { parseLyricsV2 } from './parser';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
-import { Pause, Play, Settings } from 'lucide-react';
+import { Pause, Play, Settings, Printer } from 'lucide-react';
 import { Slider } from '../ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -271,18 +271,28 @@ export function LyricPlayerV2({
           </PopoverContent>
         </Popover>
       </div>
-      <Button
-        variant='ghost'
-        size='icon'
-        onClick={() => setIsSettingsOpen(true)}
-      >
-        <Settings className='h-5 w-5' />
-      </Button>
+      <div className='flex items-center'>
+        <Button
+          variant='ghost'
+          size='icon'
+          onClick={() => window.print()}
+          aria-label='Print lyrics'
+        >
+          <Printer className='h-5 w-5' />
+        </Button>
+        <Button
+          variant='ghost'
+          size='icon'
+          onClick={() => setIsSettingsOpen(true)}
+        >
+          <Settings className='h-5 w-5' />
+        </Button>
+      </div>
     </div>
   );
 
   return (
-    <div className='flex flex-col h-full overflow-hidden'>
+    <div className='flex flex-col h-full overflow-hidden bg-white'>
       <PlayerHeaderV2
         title={song.title}
         artist={song.artist}
@@ -313,11 +323,11 @@ export function LyricPlayerV2({
             </motion.div>
           )}
         </AnimatePresence>
-        <div className='max-w-2xl mx-auto font-mono text-lg leading-relaxed px-4'>
+        <div className='max-w-2xl mx-auto font-mono text-lg leading-relaxed px-4 text-black'>
           <div ref={headerRef}>
             <div className='mb-4 pt-4'>
               <h1 className='font-headline text-2xl font-bold'>{song.title}</h1>
-              <div className='text-md text-muted-foreground'>
+              <div className='text-md text-gray-600'>
                 {song.artist && <div>{song.artist}</div>}
                 {song.originalKey && <div>Key: {song.originalKey}</div>}
               </div>
