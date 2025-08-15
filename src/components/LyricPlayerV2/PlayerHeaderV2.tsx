@@ -9,9 +9,10 @@ interface PlayerHeaderV2Props {
   title: string;
   artist: string;
   onClose?: () => void;
+  showControls?: boolean;
 }
 
-export function PlayerHeaderV2({ title, artist, onClose }: PlayerHeaderV2Props) {
+export function PlayerHeaderV2({ title, artist, onClose, showControls = true }: PlayerHeaderV2Props) {
   const router = useRouter();
 
   const handleBack = () => {
@@ -21,6 +22,10 @@ export function PlayerHeaderV2({ title, artist, onClose }: PlayerHeaderV2Props) 
       router.back();
     }
   };
+
+  if (!showControls) {
+    return null;
+  }
 
   return (
     <header className='flex-shrink-0 z-10 bg-background/80 backdrop-blur-sm pointer-events-auto border-b'>

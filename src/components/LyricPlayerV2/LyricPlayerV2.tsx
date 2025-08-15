@@ -162,7 +162,7 @@ export function LyricPlayerV2({
             /\[.*?\]/.test(part) ? (
               <span
                 key={i}
-                className='inline-block bg-muted/50 text-foreground rounded-sm px-1 py-0.5 mx-1'
+                className='inline-block bg-neutral-200 text-neutral-800 rounded-sm px-1 py-0.5'
               >
                 {part.slice(1, -1)}
               </span>
@@ -183,16 +183,21 @@ export function LyricPlayerV2({
 
   return (
     <div className='flex flex-col h-full overflow-hidden'>
-      <PlayerHeaderV2
-        title={song.title}
-        artist={song.artist}
-        onClose={onClose}
-      />
+      {showControls && (
+        <PlayerHeaderV2 title={song.title} artist={song.artist} onClose={onClose} />
+      )}
       <div
         ref={scrollContainerRef}
         className='flex-grow w-full overflow-y-scroll scroll-smooth px-4 pt-4 pb-32'
       >
         <div className='max-w-2xl mx-auto font-mono text-lg leading-relaxed'>
+          {!showControls && (
+            <div className='mb-4'>
+              <h1 className='font-headline text-2xl font-bold'>{song.title}</h1>
+              <p className='text-md text-muted-foreground'>{song.artist}</p>
+              <hr className='my-2' />
+            </div>
+          )}
           {parsedLines.map(renderLine)}
         </div>
       </div>
