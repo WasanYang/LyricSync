@@ -23,6 +23,7 @@ import { SettingsSheetV2 } from './SettingsSheetV2';
 import FloatingSectionNavigator from '../FloatingSectionNavigator';
 import { useFloatingNavigator } from '@/hooks/use-floating-navigator';
 import { localStorageManager, type FontWeight } from '@/lib/local-storage';
+import { useTheme } from 'next-themes';
 
 interface PlayerState {
   isPlaying: boolean;
@@ -31,6 +32,7 @@ interface PlayerState {
   fontSize: number;
   showChords: boolean;
   chordColor: string;
+  showChordHighlights: boolean;
 }
 
 type Action =
@@ -40,6 +42,7 @@ type Action =
   | { type: 'SET_FONT_SIZE'; payload: number }
   | { type: 'TOGGLE_CHORDS' }
   | { type: 'SET_CHORD_COLOR'; payload: string }
+  | { type: 'TOGGLE_CHORD_HIGHLIGHTS' }
   | { type: 'RESET' };
 
 const getInitialState = (): PlayerState => {
@@ -48,9 +51,10 @@ const getInitialState = (): PlayerState => {
     isPlaying: false,
     scrollSpeed: 1.0,
     transpose: 0,
-    fontSize: prefs.fontSize || 20,
+    fontSize: prefs.fontSize || 16,
     showChords: prefs.showChords !== false,
-    chordColor: prefs.chordColor || 'hsl(var(--primary))',
+    chordColor: prefs.chordColor || 'hsl(0 0% 0%)',
+    showChordHighlights: prefs.showChordHighlights !== false,
   };
 };
 
@@ -59,7 +63,6 @@ function playerReducer(state: PlayerState, action: Action): PlayerState {
     case 'TOGGLE_PLAY':
       return { ...state, isPlaying: !state.isPlaying };
     case 'SET_SCROLL_SPEED':
-      // Ensure speed is within bounds
       const newSpeed = Math.max(0.1, Math.min(5.0, action.payload));
       return { ...state, scrollSpeed: newSpeed };
     case 'SET_TRANSPOSE':
@@ -73,6 +76,11 @@ function playerReducer(state: PlayerState, action: Action): PlayerState {
     case 'SET_CHORD_COLOR':
       localStorageManager.setUserPreferences({ chordColor: action.payload });
       return { ...state, chordColor: action.payload };
+    case 'TOGGLE_CHORD_HIGHLIGHTS':
+      localStorageManager.setUserPreferences({
+        showChordHighlights: !state.showChordHighlights,
+      });
+      return { ...state, showChordHighlights: !state.showChordHighlights };
     case 'RESET':
       localStorageManager.resetUserPreferences();
       return getInitialState();
@@ -93,8 +101,17 @@ export function LyricPlayerV2({
   showControls = true,
 }: LyricPlayerV2Props) {
   const [state, dispatch] = useReducer(playerReducer, getInitialState());
-  const { isPlaying, scrollSpeed, transpose, fontSize, showChords, chordColor } =
-    state;
+  const {
+    isPlaying,
+    scrollSpeed,
+    transpose,
+    fontSize,
+    showChords,
+    chordColor,
+    showChordHighlights,
+  } = state;
+
+  const { theme } = useTheme();
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const animationFrameId = useRef<number>(0);
@@ -134,7 +151,7 @@ export function LyricPlayerV2({
 
       if (scrollContainerRef.current) {
         const container = scrollContainerRef.current;
-        const scrollAmount = (deltaTime / 50) * scrollSpeed; // Slower base speed
+        const scrollAmount = (deltaTime / 50) * scrollSpeed;
         container.scrollTop += scrollAmount;
         if (
           container.scrollTop >=
@@ -153,11 +170,11 @@ export function LyricPlayerV2({
 
   useEffect(() => {
     const container = scrollContainerRef.current;
-    const header = headerRef.current;
-    if (!container || !header) return;
+    if (!container) return;
 
     const handleScroll = () => {
-      setIsScrolled(container.scrollTop > header.offsetHeight);
+      if (!headerRef.current) return;
+      setIsScrolled(container.scrollTop > headerRef.current.offsetHeight);
     };
 
     container.addEventListener('scroll', handleScroll);
@@ -208,7 +225,11 @@ export function LyricPlayerV2({
     }
 
     if (line.type === 'lyrics') {
-      return <p key={key}>{line.content}</p>;
+      return (
+        <p key={key} className='font-body'>
+          {line.content}
+        </p>
+      );
     }
 
     if (line.type === 'chords' && showChords) {
@@ -219,12 +240,18 @@ export function LyricPlayerV2({
       return (
         <p
           key={key}
-          className='font-bold whitespace-pre-wrap'
+          className='font-bold whitespace-pre-wrap font-code'
           style={{ color: chordColor }}
         >
           {transposedChords.split(/(\s+)/).map((part, i) =>
             /\[.*?\]/.test(part) ? (
-              <span key={i} className='inline-block rounded-sm px-1 py-0.5'>
+              <span
+                key={i}
+                className={cn(
+                  'inline-block rounded-sm px-1 py-0.5',
+                  showChordHighlights && 'bg-primary/20'
+                )}
+              >
                 {part.slice(1, -1)}
               </span>
             ) : (
@@ -246,7 +273,11 @@ export function LyricPlayerV2({
     <div
       className={cn(
         'flex items-center justify-between gap-2 py-2',
-        isSticky ? 'bg-white border-b' : 'bg-transparent'
+        isSticky
+          ? theme === 'dark'
+            ? 'bg-black border-b border-gray-800'
+            : 'bg-white border-b'
+          : 'bg-transparent'
       )}
     >
       <div className='flex items-center gap-2'>
@@ -264,7 +295,14 @@ export function LyricPlayerV2({
           )}
           Autoscroll
         </Button>
-        <div className='flex items-center gap-1 rounded-full p-1 bg-white border border-gray-300'>
+        <div
+          className={cn(
+            'flex items-center gap-1 rounded-full p-1 border',
+            theme === 'dark'
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-300'
+          )}
+        >
           <Button
             variant='ghost'
             size='icon'
@@ -311,7 +349,12 @@ export function LyricPlayerV2({
   );
 
   return (
-    <div className='flex flex-col h-full overflow-hidden bg-white'>
+    <div
+      className={cn(
+        'flex flex-col h-full overflow-hidden',
+        theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'
+      )}
+    >
       <FloatingSectionNavigator
         sections={sections}
         currentSection={null}
@@ -339,17 +382,27 @@ export function LyricPlayerV2({
           )}
         </AnimatePresence>
         <div
-          className='max-w-2xl mx-auto text-lg leading-relaxed px-4 text-black pb-32'
+          className='max-w-2xl mx-auto text-lg leading-relaxed px-4 pb-32'
           style={{ fontSize: `${fontSize}px` }}
         >
           <div ref={headerRef}>
             <div className='mb-4 pt-4'>
               <h1 className='font-headline text-2xl font-bold'>{song.title}</h1>
-              <div className='text-md text-gray-600'>
+              <div
+                className={cn(
+                  'text-md',
+                  theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                )}
+              >
                 {song.artist && <div>{song.artist}</div>}
                 {song.originalKey && <div>Key: {song.originalKey}</div>}
               </div>
-              <Separator className='my-2 bg-gray-300' />
+              <Separator
+                className={cn(
+                  'my-2',
+                  theme === 'dark' ? 'bg-gray-700' : 'bg-gray-300'
+                )}
+              />
             </div>
             {showControls && <Controls />}
           </div>
@@ -362,6 +415,7 @@ export function LyricPlayerV2({
         fontSize={fontSize}
         showChords={showChords}
         chordColor={chordColor}
+        showChordHighlights={showChordHighlights}
         dispatch={dispatch}
       />
     </div>

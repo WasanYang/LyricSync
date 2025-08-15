@@ -30,6 +30,7 @@ const FONT_SIZES = {
 
 const CHORD_COLORS = [
   { name: 'Black', value: 'hsl(0 0% 0%)' },
+  { name: 'White', value: 'hsl(0 0% 100%)' },
   { name: 'Red', value: 'hsl(0 72.2% 50.6%)' },
   { name: 'Blue', value: 'hsl(221.2 83.2% 53.3%)' },
   { name: 'Green', value: 'hsl(142.1 76.2% 36.3%)' },
@@ -43,6 +44,7 @@ interface SettingsSheetV2Props {
   fontSize: number;
   showChords: boolean;
   chordColor: string;
+  showChordHighlights: boolean;
   dispatch: Dispatch<any>;
 }
 
@@ -52,6 +54,7 @@ export function SettingsSheetV2({
   fontSize,
   showChords,
   chordColor,
+  showChordHighlights,
   dispatch,
 }: SettingsSheetV2Props) {
   const { theme, setTheme } = useTheme();
@@ -127,12 +130,22 @@ export function SettingsSheetV2({
               />
             </div>
             <div className='flex items-center justify-between'>
+              <Label htmlFor='highlight-chords-switch'>Highlight Chords</Label>
+              <Switch
+                id='highlight-chords-switch'
+                checked={showChordHighlights}
+                onCheckedChange={() =>
+                  dispatch({ type: 'TOGGLE_CHORD_HIGHLIGHTS' })
+                }
+              />
+            </div>
+            <div className='flex items-center justify-between'>
               <Label>Chord Color</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant='outline' className='h-8'>
                     <div
-                      className='w-4 h-4 rounded-full mr-2'
+                      className='w-4 h-4 rounded-full mr-2 border'
                       style={{ backgroundColor: chordColor }}
                     />
                     {CHORD_COLORS.find((c) => c.value === chordColor)?.name ||
@@ -154,7 +167,7 @@ export function SettingsSheetV2({
                         }
                       >
                         <div
-                          className='w-4 h-4 rounded-full mr-2'
+                          className='w-4 h-4 rounded-full mr-2 border'
                           style={{ backgroundColor: color.value }}
                         />
                         {color.name}
