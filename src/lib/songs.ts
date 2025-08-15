@@ -9,7 +9,7 @@ export type Song = {
   id: string;
   title: string;
   artist: string;
-  lyrics: LyricLine[];
+  lyrics: LyricLine[] | string; // Updated to allow simple string for V2
   updatedAt: number;
   originalKey?: string;
   bpm?: number;
