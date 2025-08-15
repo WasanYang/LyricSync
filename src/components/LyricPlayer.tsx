@@ -528,7 +528,7 @@ export default function LyricPlayer({
           <ul
             className={cn(
               'w-full max-w-3xl mx-auto px-4 md:px-12',
-              isSetlistMode ? 'pt-8 pb-32' : 'pt-20 pb-48 md:pb-24'
+              isSetlistMode ? 'pt-8 pb-32' : 'pt-20 pb-56 md:pb-32'
             )}
             style={{ fontSize: `${fontSize}px` }}
           >
