@@ -64,7 +64,7 @@ const songFormSchema = z.object({
 
 type SongFormValues = z.infer<typeof songFormSchema>;
 
-const formatLyricsToString = (lyrics: any[]): string => {
+const formatLyricsToString = (lyrics: any[] | string): string => {
   // This needs to be adapted to the new simple format if we are to edit old songs.
   // For now, we assume a simple text field.
   if (typeof lyrics === 'string') return lyrics;
@@ -172,7 +172,7 @@ export default function SongCreatorV2() {
       id: songId || 'preview',
       title: formData.title || 'Untitled',
       artist: formData.artist || 'Unknown Artist',
-      lyrics: (formData.lyrics || '').split('\n').map(text => ({text, measures: 0})), // Simplified for preview
+      lyrics: formData.lyrics || '', // Keep as a string for V2 Player
       originalKey: formData.originalKey,
       source: 'user',
       updatedAt: Date.now(),
