@@ -17,7 +17,7 @@ import { ParsedLyricLine } from './types';
 import { parseLyricsV2 } from './parser';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
-import { Pause, Play, Settings } from 'lucide-react';
+import { Pause, Play, Printer, Settings } from 'lucide-react';
 import { Slider } from '../ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -275,6 +275,14 @@ export function LyricPlayerV2({
         <Button
           variant='ghost'
           size='icon'
+          onClick={() => window.print()}
+          aria-label='Print'
+        >
+          <Printer className='h-5 w-5' />
+        </Button>
+        <Button
+          variant='ghost'
+          size='icon'
           onClick={() => setIsSettingsOpen(true)}
         >
           <Settings className='h-5 w-5' />
@@ -315,7 +323,7 @@ export function LyricPlayerV2({
             </motion.div>
           )}
         </AnimatePresence>
-        <div className='max-w-2xl mx-auto font-mono text-lg leading-relaxed px-4 text-black'>
+        <div className='max-w-2xl mx-auto font-mono text-lg leading-relaxed px-4 text-black pb-32'>
           <div ref={headerRef}>
             <div className='mb-4 pt-4'>
               <h1 className='font-headline text-2xl font-bold'>{song.title}</h1>
@@ -330,7 +338,10 @@ export function LyricPlayerV2({
           {parsedLines.map(renderLine)}
         </div>
       </div>
-      <SettingsSheetV2 isOpen={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
+      <SettingsSheetV2
+        isOpen={isSettingsOpen}
+        onOpenChange={setIsSettingsOpen}
+      />
     </div>
   );
 }

@@ -54,7 +54,6 @@ import {
   DialogTrigger,
 } from '../ui/dialog';
 import LocalsLink from '../ui/LocalsLink';
-import LyricPlayer from '../LyricPlayer';
 
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
@@ -284,7 +283,7 @@ export default function SongCreatorV2() {
                 <LyricPlayerV2
                   song={previewSong}
                   onClose={() => setIsPreviewOpen(false)}
-                  showControls={false}
+                  showControls={true}
                 />
               </DialogContent>
             </Dialog>
