@@ -34,6 +34,7 @@ const BottomNavBar = dynamic(
 );
 
 function HomeClientComponent() {
+  const t = useTranslations('search');
   const { user, loading } = useAuth();
   const router = useRouter();
   const [recentSetlists, setRecentSetlists] = useState<Setlist[]>([]);
@@ -41,7 +42,6 @@ function HomeClientComponent() {
   const [isLoadingSetlists, setIsLoadingSetlists] = useState(true);
   const [isLoadingSongs, setIsLoadingSongs] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const t = useTranslations('search');
   const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
   const searchFormRef = useRef<HTMLFormElement>(null);
 
@@ -127,8 +127,8 @@ function HomeClientComponent() {
     <div className='relative w-full flex items-center gap-2 group'>
       <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-black pointer-events-none' />
       <Input
-        name='search-lib'
-        id='search-lib'
+        name='search-term'
+        id='search-term'
         type='search'
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}

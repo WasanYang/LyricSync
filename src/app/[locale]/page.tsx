@@ -1,12 +1,11 @@
-import { HeaderWrapper } from '@/components/HeaderWrapper';
+import Header from '@/components/Header';
 import { HomeClientComponent } from '@/components/page/HomeClientComponent';
-import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
 
 export default function Home() {
   return (
     <>
-      <main className='flex-grow container mx-auto px-4 py-8'>
+      <Header title={'Explore'} />
+      <main className='flex-grow container mx-auto'>
         <HomeClientComponent />
       </main>
     </>

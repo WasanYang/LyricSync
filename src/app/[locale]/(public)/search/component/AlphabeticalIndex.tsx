@@ -84,11 +84,7 @@ export default function AlphabeticalIndex({
   };
 
   return (
-    <Collapsible
-      open={isOpen}
-      onOpenChange={setIsOpen}
-      className='w-full space-y-2'
-    >
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className='w-full'>
       <CollapsibleTrigger asChild>
         <Button variant='outline' className='w-full justify-between'>
           <div className='flex items-center gap-2'>

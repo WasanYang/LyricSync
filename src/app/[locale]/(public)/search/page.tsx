@@ -22,27 +22,29 @@ import LocalsLink from '@/components/ui/LocalsLink';
 function SetlistCard({ setlist }: { setlist: Setlist }) {
   const songCount = setlist.songIds.length;
   return (
-    <LocalsLink
-      href={`/shared/setlists/${setlist.firestoreId}`}
-      className='block'
-    >
-      <Card className='hover:bg-muted/50 transition-colors'>
-        <CardContent className='p-4 flex items-center gap-4'>
-          <div className='p-3 bg-muted rounded-md'>
-            <ListMusic className='h-6 w-6 text-muted-foreground' />
-          </div>
-          <div>
-            <p className='font-semibold font-headline truncate'>
-              {setlist.title}
-            </p>
-            <p className='text-sm text-muted-foreground truncate'>
-              {songCount} {songCount === 1 ? 'song' : 'songs'} • by{' '}
-              {setlist.authorName}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </LocalsLink>
+    <>
+      <LocalsLink
+        href={`/shared/setlists/${setlist.firestoreId}`}
+        className='block'
+      >
+        <Card className='hover:bg-muted/50 transition-colors'>
+          <CardContent className='p-4 flex items-center gap-4'>
+            <div className='p-3 bg-muted rounded-md'>
+              <ListMusic className='h-6 w-6 text-muted-foreground' />
+            </div>
+            <div>
+              <p className='font-semibold font-headline truncate'>
+                {setlist.title}
+              </p>
+              <p className='text-sm text-muted-foreground truncate'>
+                {songCount} {songCount === 1 ? 'song' : 'songs'} • by{' '}
+                {setlist.authorName}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </LocalsLink>
+    </>
   );
 }
 
@@ -257,35 +259,33 @@ export default function SearchPage() {
   return (
     <>
       <SEOHead config={pageSEOConfigs.search(searchTerm)} />
-      <div className='flex-grow flex flex-col'>
-        <Header />
-        <main className='flex-grow container mx-auto px-4 py-8 pb-24 md:pb-8'>
-          <div className='space-y-8'>
-            <div className='relative'>
-              <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10' />
-              <Input
-                type='search'
-                placeholder={t('placeholder')}
-                className='pl-10 text-base bg-muted focus-visible:ring-0 focus-visible:ring-offset-0'
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-              />
-            </div>
-
-            <AlphabeticalIndex
-              selectedChar={selectedChar}
-              onCharSelect={handleCharSelect}
+      <Header title='Explore' />
+      <main className='flex-grow container mx-auto px-4 pb-24 md:pb-8'>
+        <div className='space-y-4'>
+          <div className='relative'>
+            <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10' />
+            <Input
+              type='search'
+              placeholder={t('placeholder')}
+              className='pl-10 text-base bg-muted rounded-full'
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
             />
-
-            {showDiscovery
-              ? renderDiscoveryContent()
-              : searchTerm
-              ? renderSearchResults()
-              : renderCharacterFilterResults()}
           </div>
-        </main>
-        <BottomNavBar />
-      </div>
+
+          <AlphabeticalIndex
+            selectedChar={selectedChar}
+            onCharSelect={handleCharSelect}
+          />
+
+          {showDiscovery
+            ? renderDiscoveryContent()
+            : searchTerm
+            ? renderSearchResults()
+            : renderCharacterFilterResults()}
+        </div>
+      </main>
+      <BottomNavBar />
     </>
   );
 }
