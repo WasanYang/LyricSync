@@ -16,6 +16,7 @@ import { PlayerControlsV2 } from './PlayerControlsV2';
 import { PlayerHeaderV2 } from './PlayerHeaderV2';
 import { ParsedLyricLine } from './types';
 import { parseLyricsV2 } from './parser';
+import { Separator } from '../ui/separator';
 
 interface PlayerState {
   isPlaying: boolean;
@@ -183,9 +184,12 @@ export function LyricPlayerV2({
 
   return (
     <div className='flex flex-col h-full overflow-hidden'>
-      {showControls && (
-        <PlayerHeaderV2 title={song.title} artist={song.artist} onClose={onClose} />
-      )}
+      <PlayerHeaderV2
+        title={song.title}
+        artist={song.artist}
+        onClose={onClose}
+        showControls={showControls}
+      />
       <div
         ref={scrollContainerRef}
         className='flex-grow w-full overflow-y-scroll scroll-smooth px-4 pt-4 pb-32'
@@ -194,8 +198,12 @@ export function LyricPlayerV2({
           {!showControls && (
             <div className='mb-4'>
               <h1 className='font-headline text-2xl font-bold'>{song.title}</h1>
-              <p className='text-md text-muted-foreground'>{song.artist}</p>
-              <hr className='my-2' />
+              <div className='text-md text-muted-foreground'>
+                {song.artist && <span>{song.artist}</span>}
+                {song.artist && song.originalKey && <span> • </span>}
+                {song.originalKey && <span>Key: {song.originalKey}</span>}
+              </div>
+              <Separator className='my-2' />
             </div>
           )}
           {parsedLines.map(renderLine)}
