@@ -53,9 +53,14 @@ function playerReducer(state: PlayerState, action: Action): PlayerState {
 interface LyricPlayerV2Props {
   song: Song;
   onClose?: () => void;
+  showControls?: boolean;
 }
 
-export function LyricPlayerV2({ song, onClose }: LyricPlayerV2Props) {
+export function LyricPlayerV2({
+  song,
+  onClose,
+  showControls = true,
+}: LyricPlayerV2Props) {
   const [state, dispatch] = useReducer(playerReducer, initialState);
   const { isPlaying, scrollSpeed, transpose } = state;
 
@@ -192,15 +197,17 @@ export function LyricPlayerV2({ song, onClose }: LyricPlayerV2Props) {
         </div>
       </div>
 
-      <PlayerControlsV2
-        isPlaying={isPlaying}
-        scrollSpeed={scrollSpeed}
-        onTogglePlay={handleTogglePlay}
-        onSpeedChange={(val) =>
-          dispatch({ type: 'SET_SCROLL_SPEED', payload: val })
-        }
-        onTranspose={handleTranspose}
-      />
+      {showControls && (
+        <PlayerControlsV2
+          isPlaying={isPlaying}
+          scrollSpeed={scrollSpeed}
+          onTogglePlay={handleTogglePlay}
+          onSpeedChange={(val) =>
+            dispatch({ type: 'SET_SCROLL_SPEED', payload: val })
+          }
+          onTranspose={handleTranspose}
+        />
+      )}
     </div>
   );
 }
