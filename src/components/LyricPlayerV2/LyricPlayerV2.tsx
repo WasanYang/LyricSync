@@ -1,7 +1,14 @@
 // src/components/LyricPlayerV2/LyricPlayerV2.tsx
 'use client';
 
-import { useState, useReducer, useRef, useCallback, useMemo } from 'react';
+import {
+  useState,
+  useReducer,
+  useRef,
+  useCallback,
+  useMemo,
+  useEffect,
+} from 'react';
 import type { Song } from '@/lib/songs';
 import { cn } from '@/lib/utils';
 import { transposeChord } from '@/lib/chords';
@@ -65,30 +72,35 @@ export function LyricPlayerV2({ song, onClose }: LyricPlayerV2Props) {
     return [];
   }, [song.lyrics]);
 
-
-  const scroll = useCallback((timestamp: number) => {
-    if (!lastTimeRef.current) {
-      lastTimeRef.current = timestamp;
-    }
-
-    const deltaTime = timestamp - lastTimeRef.current;
-    lastTimeRef.current = timestamp;
-
-    if (scrollContainerRef.current) {
-      const container = scrollContainerRef.current;
-      const scrollAmount = (deltaTime / 100) * scrollSpeed;
-      container.scrollTop += scrollAmount;
-
-      if (container.scrollTop >= container.scrollHeight - container.clientHeight) {
-        dispatch({ type: 'TOGGLE_PLAY' }); // Stop playing
-        isAtEndRef.current = true;
+  const scroll = useCallback(
+    (timestamp: number) => {
+      if (!lastTimeRef.current) {
+        lastTimeRef.current = timestamp;
       }
-    }
 
-    if (isPlaying) {
-      animationFrameId.current = requestAnimationFrame(scroll);
-    }
-  }, [isPlaying, scrollSpeed]);
+      const deltaTime = timestamp - lastTimeRef.current;
+      lastTimeRef.current = timestamp;
+
+      if (scrollContainerRef.current) {
+        const container = scrollContainerRef.current;
+        const scrollAmount = (deltaTime / 100) * scrollSpeed;
+        container.scrollTop += scrollAmount;
+
+        if (
+          container.scrollTop >=
+          container.scrollHeight - container.clientHeight
+        ) {
+          dispatch({ type: 'TOGGLE_PLAY' }); // Stop playing
+          isAtEndRef.current = true;
+        }
+      }
+
+      if (isPlaying) {
+        animationFrameId.current = requestAnimationFrame(scroll);
+      }
+    },
+    [isPlaying, scrollSpeed]
+  );
 
   useEffect(() => {
     if (isPlaying) {
@@ -110,7 +122,7 @@ export function LyricPlayerV2({ song, onClose }: LyricPlayerV2Props) {
     }
     dispatch({ type: 'TOGGLE_PLAY' });
   };
-  
+
   const handleTranspose = (amount: number) => {
     dispatch({ type: 'SET_TRANSPOSE', payload: transpose + amount });
   };
@@ -118,34 +130,47 @@ export function LyricPlayerV2({ song, onClose }: LyricPlayerV2Props) {
   const renderLine = (line: ParsedLyricLine, index: number) => {
     if (line.type === 'section') {
       return (
-        <p key={index} className='pt-4 pb-2 text-sm font-bold text-muted-foreground uppercase tracking-wide'>
+        <p
+          key={index}
+          className='pt-4 pb-2 text-sm font-bold text-muted-foreground uppercase tracking-wide'
+        >
           {line.content}
         </p>
       );
     }
-    
+
     if (line.type === 'lyrics') {
-       return <p key={index}>{line.content}</p>
+      return <p key={index}>{line.content}</p>;
     }
 
     if (line.type === 'chords') {
-        const transposedChords = line.content.replace(/\[([^\]]+)\]/g, (match, chord) => {
-            return `[${transposeChord(chord, transpose)}]`;
-        });
+      const transposedChords = line.content.replace(
+        /\[([^\]]+)\]/g,
+        (match, chord) => {
+          return `[${transposeChord(chord, transpose)}]`;
+        }
+      );
 
-       return (
+      return (
         <p key={index} className='font-bold text-primary whitespace-pre-wrap'>
-            {transposedChords.split(/(\s+)/).map((part, i) => (
-                /\[.*?\]/.test(part) ? 
-                <span key={i} className='inline-block bg-muted/50 text-foreground rounded-sm px-1 py-0.5 mx-1'>{part.slice(1,-1)}</span>
-                : <span key={i}>{part}</span>
-            ))}
+          {transposedChords.split(/(\s+)/).map((part, i) =>
+            /\[.*?\]/.test(part) ? (
+              <span
+                key={i}
+                className='inline-block bg-muted/50 text-foreground rounded-sm px-1 py-0.5 mx-1'
+              >
+                {part.slice(1, -1)}
+              </span>
+            ) : (
+              <span key={i}>{part}</span>
+            )
+          )}
         </p>
-       )
+      );
     }
 
     if (line.type === 'empty') {
-      return <div key={index} className="h-4" />;
+      return <div key={index} className='h-4' />;
     }
 
     return null;
@@ -153,7 +178,11 @@ export function LyricPlayerV2({ song, onClose }: LyricPlayerV2Props) {
 
   return (
     <div className='flex flex-col h-full overflow-hidden'>
-      <PlayerHeaderV2 title={song.title} artist={song.artist} onClose={onClose} />
+      <PlayerHeaderV2
+        title={song.title}
+        artist={song.artist}
+        onClose={onClose}
+      />
       <div
         ref={scrollContainerRef}
         className='flex-grow w-full overflow-y-scroll scroll-smooth px-4 pt-4 pb-32'
@@ -167,7 +196,9 @@ export function LyricPlayerV2({ song, onClose }: LyricPlayerV2Props) {
         isPlaying={isPlaying}
         scrollSpeed={scrollSpeed}
         onTogglePlay={handleTogglePlay}
-        onSpeedChange={(val) => dispatch({ type: 'SET_SCROLL_SPEED', payload: val })}
+        onSpeedChange={(val) =>
+          dispatch({ type: 'SET_SCROLL_SPEED', payload: val })
+        }
         onTranspose={handleTranspose}
       />
     </div>
