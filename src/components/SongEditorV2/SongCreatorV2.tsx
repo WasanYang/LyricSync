@@ -186,7 +186,7 @@ export default function SongCreatorV2() {
       return;
     }
 
-    const newSongData: Omit<Song, 'lyrics' | 'updatedAt'> & { lyrics: any; updatedAt: any } = {
+    const newSongData: Omit<Song, 'lyrics' | 'updatedAt'> &amp; { lyrics: any; updatedAt: any } = {
       id: songId || uuidv4(),
       title: data.title,
       artist: data.artist,
@@ -264,7 +264,7 @@ export default function SongCreatorV2() {
                  <DialogHeader className='sr-only'>
                   <DialogTitle>Song Preview</DialogTitle>
                 </DialogHeader>
-                <LyricPlayerV2 song={previewSong} onClose={() => setIsPreviewOpen(false)} showControls={false} />
+                <LyricPlayerV2 song={previewSong} onClose={() => setIsPreviewOpen(false)} />
               </DialogContent>
             </Dialog>
           </header>
@@ -317,7 +317,7 @@ export default function SongCreatorV2() {
                 render={({ field }) => (
                   <FormItem className='flex flex-col flex-grow'>
                     <div className='flex items-center justify-between'>
-                      <FormLabel>Lyrics & Chords</FormLabel>
+                      <FormLabel>Lyrics &amp; Chords</FormLabel>
                       <LyricsHelpDialogV2 />
                     </div>
                     <FormControl>

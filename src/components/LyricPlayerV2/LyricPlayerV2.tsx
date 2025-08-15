@@ -21,6 +21,9 @@ import { Pause, Play, Settings } from 'lucide-react';
 import { Slider } from '../ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SettingsSheetV2 } from './SettingsSheetV2';
+import FloatingSectionNavigator from '../FloatingSectionNavigator';
+import { useFloatingNavigator } from '@/hooks/use-floating-navigator';
 
 interface PlayerState {
   isPlaying: boolean;
@@ -76,6 +79,7 @@ export function LyricPlayerV2({
   const headerRef = useRef<HTMLDivElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const floatingNavigator = useFloatingNavigator();
 
   const parsedLines = useMemo(() => {
     if (typeof song.lyrics === 'string') {
@@ -84,6 +88,18 @@ export function LyricPlayerV2({
     // Handle old format for backward compatibility if needed, otherwise return empty.
     return [];
   }, [song.lyrics]);
+
+  const sections = useMemo(() => {
+    return parsedLines
+      .map((line, index) => ({ ...line, uniqueKey: `${line.type}-${index}` }))
+      .filter((line) => line.type === 'section')
+      .map((line, index) => ({
+        name: line.content,
+        index: index, // This index is just for mapping, the key is what matters
+        uniqueKey: line.uniqueKey,
+        startTime: 0, // Not used in V2
+      }));
+  }, [parsedLines]);
 
   const scroll = useCallback(
     (timestamp: number) => {
@@ -153,11 +169,23 @@ export function LyricPlayerV2({
     dispatch({ type: 'TOGGLE_PLAY' });
   };
 
+  const handleSectionJump = (sectionIndex: number) => {
+    if (!scrollContainerRef.current) return;
+    const section = sections[sectionIndex];
+    if (section) {
+      const element = document.getElementById(section.uniqueKey);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  };
+
   const renderLine = (line: ParsedLyricLine, index: number) => {
     if (line.type === 'section') {
       return (
         <p
           key={index}
+          id={`${line.type}-${index}`}
           className='pt-4 pb-2 text-sm font-bold text-black uppercase tracking-wide'
         >
           [ {line.content} ]
@@ -206,9 +234,7 @@ export function LyricPlayerV2({
     <div
       className={cn(
         'flex items-center justify-between gap-2 py-2',
-        isSticky
-          ? 'px-4 bg-white border-b'
-          : 'bg-transparent'
+        isSticky ? 'px-4 bg-white border-b' : 'bg-transparent'
       )}
     >
       <div className='flex items-center gap-2'>
@@ -245,7 +271,11 @@ export function LyricPlayerV2({
           </PopoverContent>
         </Popover>
       </div>
-      <Button variant="ghost" size="icon" onClick={() => setIsSettingsOpen(true)}>
+      <Button
+        variant='ghost'
+        size='icon'
+        onClick={() => setIsSettingsOpen(true)}
+      >
         <Settings className='h-5 w-5' />
       </Button>
     </div>
@@ -258,6 +288,13 @@ export function LyricPlayerV2({
         artist={song.artist}
         onClose={onClose}
         showControls={showControls}
+      />
+      <FloatingSectionNavigator
+        sections={sections}
+        currentSection={null} // V2 player doesn't track current section based on time
+        onSectionJump={handleSectionJump}
+        onClose={floatingNavigator.toggleVisibility}
+        isVisible={floatingNavigator.isVisible}
       />
       <div
         ref={scrollContainerRef}
@@ -291,6 +328,7 @@ export function LyricPlayerV2({
           {parsedLines.map(renderLine)}
         </div>
       </div>
+      <SettingsSheetV2 isOpen={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
     </div>
   );
 }
