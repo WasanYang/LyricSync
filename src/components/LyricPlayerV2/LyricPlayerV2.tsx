@@ -29,7 +29,6 @@ import FloatingSectionNavigator from '../FloatingSectionNavigator';
 import { useFloatingNavigator } from '@/hooks/use-floating-navigator';
 import { localStorageManager } from '@/lib/local-storage';
 import { useTheme } from 'next-themes';
-import { PlayerHeaderV2 } from './PlayerHeaderV2';
 import { useRouter } from 'next/navigation';
 
 interface PlayerState {
@@ -161,9 +160,10 @@ export function LyricPlayerV2({
         container.scrollTop += scrollAmount;
         if (
           container.scrollTop >=
-          container.scrollHeight - container.clientHeight
+          container.scrollHeight - container.clientHeight - 1 // Add a 1px buffer
         ) {
-          dispatch({ type: 'TOGGLE_PLAY' });
+          // Wrap dispatch in setTimeout to avoid state update during render
+          setTimeout(() => dispatch({ type: 'TOGGLE_PLAY' }), 0);
           isAtEndRef.current = true;
         }
       }
@@ -299,7 +299,7 @@ export function LyricPlayerV2({
         </Button>
         <div
           className={cn(
-            'flex items-center gap-1 rounded-md p-1 border',
+            'flex items-center gap-1 rounded-md p-1 border h-10',
             theme === 'dark'
               ? 'bg-gray-800 border-gray-700'
               : 'bg-white border-gray-300'
@@ -431,14 +431,16 @@ export function LyricPlayerV2({
                 : 'bg-white border-gray-200'
             )}
           >
-            <Button
-              variant='ghost'
-              size='icon'
-              className='h-10 w-10'
-              onClick={handleBack}
-            >
-              <LogOut className='h-5 w-5' />
-            </Button>
+            <div className='w-10'>
+              <Button
+                variant='ghost'
+                size='icon'
+                className='h-10 w-10'
+                onClick={handleBack}
+              >
+                <LogOut className='h-5 w-5' />
+              </Button>
+            </div>
             <div className='flex items-center gap-2'>
               <Button
                 onClick={handleTogglePlay}
@@ -492,15 +494,55 @@ export function LyricPlayerV2({
                   <Plus className='h-4 w-4' />
                 </Button>
               </div>
+              <div
+                className={cn(
+                  'flex items-center gap-1 rounded-md p-1 border h-10',
+                  theme === 'dark'
+                    ? 'bg-gray-800 border-gray-700'
+                    : 'bg-white border-gray-300'
+                )}
+              >
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='h-8 w-8 rounded-md'
+                  onClick={() =>
+                    dispatch({
+                      type: 'SET_TRANSPOSE',
+                      payload: transpose - 1,
+                    })
+                  }
+                >
+                  <Minus className='h-4 w-4' />
+                </Button>
+                <span className='w-12 text-center text-sm font-semibold'>
+                  Key {transpose >= 0 ? `+${transpose}` : transpose}
+                </span>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  className='h-8 w-8 rounded-md'
+                  onClick={() =>
+                    dispatch({
+                      type: 'SET_TRANSPOSE',
+                      payload: transpose + 1,
+                    })
+                  }
+                >
+                  <Plus className='h-4 w-4' />
+                </Button>
+              </div>
             </div>
-            <Button
-              variant='ghost'
-              size='icon'
-              className='h-10 w-10'
-              onClick={() => setIsSettingsOpen(true)}
-            >
-              <Settings className='h-5 w-5' />
-            </Button>
+            <div className='flex items-center w-10 justify-end'>
+              <Button
+                variant='ghost'
+                size='icon'
+                className='h-10 w-10'
+                onClick={() => setIsSettingsOpen(true)}
+              >
+                <Settings className='h-5 w-5' />
+              </Button>
+            </div>
           </div>
         </div>
       )}
