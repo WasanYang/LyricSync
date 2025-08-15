@@ -171,8 +171,9 @@ export function LyricPlayerV2({
           container.scrollHeight - container.clientHeight - 1 // Add a 1px buffer
         ) {
           cancelAnimationFrame(animationFrameId.current);
-          handleTogglePlay(); // Call the separate toggle function
           isAtEndRef.current = true;
+          // Use a separate function call to update state safely
+          setTimeout(() => handleTogglePlay(), 0);
           return; // Stop the animation loop
         }
       }
@@ -252,7 +253,7 @@ export function LyricPlayerV2({
                   showChordHighlights &&
                     (theme === 'dark'
                       ? 'bg-primary/20'
-                      : 'bg-primary/10 text-primary-foreground')
+                      : 'bg-primary/10 text-primary')
                 )}
               >
                 {part.slice(1, -1)}
@@ -272,115 +273,10 @@ export function LyricPlayerV2({
     return null;
   };
 
-  const Controls = () => (
-    <div
-      className={cn(
-        'flex items-center justify-between gap-2 p-2 border-t',
-        theme === 'dark'
-          ? 'bg-black border-gray-800'
-          : 'bg-white border-gray-200'
-      )}
-    >
-      <div className='flex items-center gap-2'>
-        <Button
-          onClick={handleTogglePlay}
-          className={cn(
-            'h-10 rounded-md font-semibold flex items-center gap-2',
-            'bg-emerald-500 hover:bg-emerald-600 text-white'
-          )}
-        >
-          {isPlaying ? (
-            <Pause className='h-4 w-4' />
-          ) : (
-            <Play className='h-4 w-4' />
-          )}
-          Autoscroll
-        </Button>
-        <div
-          className={cn(
-            'flex items-center gap-1 rounded-md p-1 border h-10',
-            'bg-white border-gray-300'
-          )}
-        >
-          <Button
-            variant='ghost'
-            size='icon'
-            className='h-8 w-8 rounded-md'
-            onClick={() =>
-              dispatch({ type: 'SET_SCROLL_SPEED', payload: scrollSpeed - 0.1 })
-            }
-          >
-            <Minus className='h-4 w-4' />
-          </Button>
-          <span className='w-12 text-center text-sm font-semibold'>
-            {scrollSpeed.toFixed(1)}x
-          </span>
-          <Button
-            variant='ghost'
-            size='icon'
-            className='h-8 w-8 rounded-md'
-            onClick={() =>
-              dispatch({ type: 'SET_SCROLL_SPEED', payload: scrollSpeed + 0.1 })
-            }
-          >
-            <Plus className='h-4 w-4' />
-          </Button>
-        </div>
-        <div
-          className={cn(
-            'flex items-center gap-1 rounded-md p-1 border h-10',
-            'bg-white border-gray-300'
-          )}
-        >
-          <Button
-            variant='ghost'
-            size='icon'
-            className='h-8 w-8 rounded-md'
-            onClick={() =>
-              dispatch({ type: 'SET_TRANSPOSE', payload: transpose - 1 })
-            }
-          >
-            <Minus className='h-4 w-4' />
-          </Button>
-          <span className='w-12 text-center text-sm font-semibold'>
-            Key {transpose >= 0 ? `+${transpose}` : transpose}
-          </span>
-          <Button
-            variant='ghost'
-            size='icon'
-            className='h-8 w-8 rounded-md'
-            onClick={() =>
-              dispatch({ type: 'SET_TRANSPOSE', payload: transpose + 1 })
-            }
-          >
-            <Plus className='h-4 w-4' />
-          </Button>
-        </div>
-      </div>
-      <div className='flex items-center'>
-        <Button
-          variant='ghost'
-          size='icon'
-          onClick={() => window.print()}
-          aria-label='Print'
-        >
-          <Printer className='h-5 w-5' />
-        </Button>
-        <Button
-          variant='ghost'
-          size='icon'
-          onClick={() => setIsSettingsOpen(true)}
-        >
-          <Settings className='h-5 w-5' />
-        </Button>
-      </div>
-    </div>
-  );
-
   return (
     <div
       className={cn(
-        'flex flex-col h-full overflow-hidden print:bg-white print:text-black',
+        'relative flex flex-col h-full overflow-hidden print:bg-white print:text-black',
         theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'
       )}
     >
@@ -391,6 +287,19 @@ export function LyricPlayerV2({
         onClose={floatingNavigator.toggleVisibility}
         isVisible={floatingNavigator.isVisible}
       />
+
+      {showControls && (
+        <div className='absolute top-4 right-4 z-20 print:hidden'>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='h-10 w-10'
+            onClick={handleBack}
+          >
+            <LogOut className='h-5 w-5' />
+          </Button>
+        </div>
+      )}
 
       <div
         ref={scrollContainerRef}
@@ -420,22 +329,12 @@ export function LyricPlayerV2({
         <div className='sticky bottom-0 left-0 right-0 z-10 print:hidden'>
           <div
             className={cn(
-              'flex items-center justify-between gap-2 p-2 border-t',
+              'flex items-center justify-center gap-2 p-2 border-t',
               theme === 'dark'
                 ? 'bg-black border-gray-800'
                 : 'bg-white border-gray-200'
             )}
           >
-            <div className='w-10'>
-              <Button
-                variant='ghost'
-                size='icon'
-                className='h-10 w-10'
-                onClick={handleBack}
-              >
-                <LogOut className='h-5 w-5' />
-              </Button>
-            </div>
             <div className='flex items-center gap-2'>
               <Button
                 onClick={handleTogglePlay}
@@ -524,29 +423,27 @@ export function LyricPlayerV2({
                 </Button>
               </div>
             </div>
-            <div className='flex items-center w-10 justify-end'>
+            <div className='absolute right-2 top-1/2 -translate-y-1/2 flex items-center'>
               <Button
                 variant='ghost'
                 size='icon'
+                onClick={() => window.print()}
+                aria-label='Print'
                 className='h-10 w-10'
-                onClick={() => setIsSettingsOpen(true)}
               >
-                <Settings className='h-5 w-5' />
+                <Printer className='h-5 w-5' />
               </Button>
+              <SettingsSheetV2
+                fontSize={fontSize}
+                showChords={showChords}
+                chordColor={chordColor}
+                showChordHighlights={showChordHighlights}
+                dispatch={dispatch}
+              />
             </div>
           </div>
         </div>
       )}
-
-      <SettingsSheetV2
-        isOpen={isSettingsOpen}
-        onOpenChange={setIsSettingsOpen}
-        fontSize={fontSize}
-        showChords={showChords}
-        chordColor={chordColor}
-        showChordHighlights={showChordHighlights}
-        dispatch={dispatch}
-      />
     </div>
   );
 }

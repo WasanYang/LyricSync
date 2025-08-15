@@ -8,7 +8,9 @@ export { viewport, metadata };
 
 const inter = Inter({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800'], // <-- เพิ่มบรรทัดนี้
+  weight: ['300', '400', '500', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-inter',
 });
 
 export default function RootLayout({
@@ -29,7 +31,7 @@ export default function RootLayout({
       <body
         className={cn(
           'font-body antialiased min-h-screen flex flex-col bg-background',
-          inter.className
+          inter.variable
         )}
       >
         <div className='w-full max-w-[768px] mx-auto flex-grow flex flex-col'>

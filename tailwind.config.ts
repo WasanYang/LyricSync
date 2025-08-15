@@ -10,8 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['"Noto Sans Thai"', 'sans-serif'],
-        headline: ['"Noto Sans Thai"', 'sans-serif'],
+        body: ['var(--font-inter)', '"Noto Sans Thai"', 'sans-serif'],
+        headline: ['var(--font-inter)', '"Noto Sans Thai"', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
