@@ -17,7 +17,7 @@ import { ParsedLyricLine } from './types';
 import { parseLyricsV2 } from './parser';
 import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
-import { Pause, Play, Settings, Printer } from 'lucide-react';
+import { Pause, Play, Settings } from 'lucide-react';
 import { Slider } from '../ui/slider';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -186,7 +186,7 @@ export function LyricPlayerV2({
         <p
           key={index}
           id={`${line.type}-${index}`}
-          className='pt-4 pb-2 text-sm font-bold text-black uppercase tracking-wide'
+          className='pt-4 pb-2 text-sm font-bold uppercase tracking-wide text-black'
         >
           [ {line.content} ]
         </p>
@@ -272,14 +272,6 @@ export function LyricPlayerV2({
         </Popover>
       </div>
       <div className='flex items-center'>
-        <Button
-          variant='ghost'
-          size='icon'
-          onClick={() => window.print()}
-          aria-label='Print lyrics'
-        >
-          <Printer className='h-5 w-5' />
-        </Button>
         <Button
           variant='ghost'
           size='icon'
