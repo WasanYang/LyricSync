@@ -41,7 +41,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { LyricPlayerV2 } from '@/components/LyricPlayerV2/LyricPlayerV2';
-import { Play, Save, ArrowLeft, LogIn } from 'lucide-react';
+import { Play, Save, ArrowLeft, LogIn, Settings, Printer } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { LyricsHelpDialogV2 } from './LyricsHelpDialogV2';
@@ -53,17 +53,14 @@ import {
   DialogTrigger,
 } from '../ui/dialog';
 import LocalsLink from '../ui/LocalsLink';
+import { SettingsSheetV2 } from '../LyricPlayerV2/SettingsSheetV2';
 
 const songFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
   artist: z.string(),
   lyrics: z.string().min(1, 'Lyrics are required.'),
   originalKey: z.string().min(1, 'Key is required'),
-  bpm: z.coerce
-    .number()
-    .min(20, 'BPM must be at least 20')
-    .max(300, 'BPM must be at most 300')
-    .optional(),
+  speed: z.coerce.number().min(0.1).max(5.0).optional(),
 });
 
 type SongFormValues = z.infer<typeof songFormSchema>;
@@ -113,7 +110,7 @@ export default function SongCreatorV2() {
       artist: '',
       lyrics: '',
       originalKey: 'C',
-      bpm: 120,
+      speed: 0.5,
     },
   });
 
@@ -145,7 +142,7 @@ export default function SongCreatorV2() {
               artist: existingSong.artist,
               lyrics: formatLyricsToString(existingSong.lyrics),
               originalKey: existingSong.originalKey || 'C',
-              bpm: existingSong.bpm || 120,
+              speed: existingSong.bpm ? existingSong.bpm / 100 : 0.5,
             });
             setTimeout(() => adjustTextareaHeight(textareaRef.current), 0);
           } else {
@@ -180,7 +177,7 @@ export default function SongCreatorV2() {
       artist: formData.artist || 'Unknown Artist',
       lyrics: formData.lyrics,
       originalKey: formData.originalKey,
-      bpm: formData.bpm,
+      bpm: (formData.speed || 0.5) * 100,
       source: 'user',
       updatedAt: Date.now(),
     }),
@@ -193,16 +190,17 @@ export default function SongCreatorV2() {
       return;
     }
 
-    const newSongData: Omit<Song, 'lyrics' | 'updatedAt'> & {
+    const newSongData: Omit<Song, 'lyrics' | 'updatedAt' | 'bpm'> & {
       lyrics: any;
       updatedAt: any;
+      bpm: number;
     } = {
       id: songId || uuidv4(),
       title: data.title,
       artist: data.artist,
       lyrics: data.lyrics,
       originalKey: data.originalKey,
-      bpm: data.bpm,
+      bpm: (data.speed || 0.5) * 100,
       userId: user.uid,
       uploaderName: user.displayName,
       source: 'user',
@@ -234,7 +232,9 @@ export default function SongCreatorV2() {
       </div>
     );
   }
-
+  const speedOptions = Array.from({ length: 20 }, (_, i) =>
+    ((i + 1) * 0.1).toFixed(1)
+  );
   return (
     <div className='relative h-screen flex flex-col'>
       <Form {...form}>
@@ -352,20 +352,27 @@ export default function SongCreatorV2() {
                 />
                 <FormField
                   control={form.control}
-                  name='bpm'
+                  name='speed'
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>BPM (Scroll Speed)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type='number'
-                          placeholder='120'
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(parseInt(e.target.value, 10) || 0)
-                          }
-                        />
-                      </FormControl>
+                      <FormLabel>Speed</FormLabel>
+                      <Select
+                        onValueChange={(val) => field.onChange(parseFloat(val))}
+                        value={String(field.value || '0.5')}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {speedOptions.map((speed) => (
+                            <SelectItem key={speed} value={speed}>
+                              {speed}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
