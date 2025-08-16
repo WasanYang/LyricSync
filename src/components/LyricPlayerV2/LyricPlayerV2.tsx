@@ -8,6 +8,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  Dispatch,
 } from 'react';
 import type { Song } from '@/lib/songs';
 import { cn } from '@/lib/utils';
@@ -15,15 +16,7 @@ import { transposeChord } from '@/lib/chords';
 import { ParsedLyricLine } from './types';
 import { parseLyricsV2 } from './parser';
 import { Button } from '../ui/button';
-import {
-  Pause,
-  Play,
-  Printer,
-  Settings,
-  Minus,
-  Plus,
-  LogOut,
-} from 'lucide-react';
+import { Pause, Play, Printer, Settings, Minus, Plus } from 'lucide-react';
 import { SettingsSheetV2 } from './SettingsSheetV2';
 import FloatingSectionNavigator from '../FloatingSectionNavigator';
 import { useFloatingNavigator } from '@/hooks/use-floating-navigator';
@@ -59,7 +52,7 @@ const getInitialState = (): PlayerState => {
     transpose: 0,
     fontSize: prefs.fontSize || 16,
     showChords: prefs.showChords !== false,
-    chordColor: prefs.chordColor || '#000000',
+    chordColor: prefs.chordColor || 'hsl(0 0% 0%)',
     showChordHighlights: prefs.showChordHighlights !== false,
   };
 };
@@ -100,6 +93,35 @@ interface LyricPlayerV2Props {
   onClose?: () => void;
   showControls?: boolean;
 }
+
+const parseLineForGrid = (
+  line: string
+): Array<{ type: 'chord' | 'lyric'; content: string }> => {
+  const parts: Array<{ type: 'chord' | 'lyric'; content: string }> = [];
+  const regex = /\[([^\]]+)\]/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = regex.exec(line)) !== null) {
+    // Lyric part before the chord
+    if (match.index > lastIndex) {
+      parts.push({
+        type: 'lyric',
+        content: line.substring(lastIndex, match.index),
+      });
+    }
+    // The chord itself
+    parts.push({ type: 'chord', content: match[1] });
+    lastIndex = regex.lastIndex;
+  }
+
+  // Remaining lyric part
+  if (lastIndex < line.length) {
+    parts.push({ type: 'lyric', content: line.substring(lastIndex) });
+  }
+
+  return parts;
+};
 
 export function LyricPlayerV2({
   song,
@@ -154,36 +176,23 @@ export function LyricPlayerV2({
     dispatch({ type: 'TOGGLE_PLAY' });
   }, []);
 
-  const scroll = useCallback(
-    (timestamp: number) => {
-      if (!lastTimeRef.current) {
-        lastTimeRef.current = timestamp;
-      }
-      const deltaTime = timestamp - lastTimeRef.current;
-      lastTimeRef.current = timestamp;
+  const scroll = useCallback(() => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const scrollAmount = 0.5 * scrollSpeed;
+      container.scrollTop += scrollAmount;
 
-      if (scrollContainerRef.current) {
-        const container = scrollContainerRef.current;
-        const scrollAmount = (deltaTime / 50) * scrollSpeed;
-        container.scrollTop += scrollAmount;
-        if (
-          container.scrollTop >=
-          container.scrollHeight - container.clientHeight - 1 // Add a 1px buffer
-        ) {
-          cancelAnimationFrame(animationFrameId.current);
-          isAtEndRef.current = true;
-          handleTogglePlay();
-          return; // Stop the animation loop
-        }
+      if (container.scrollTop >= container.scrollHeight - container.clientHeight) {
+        isAtEndRef.current = true;
+        handleTogglePlay();
+        return;
       }
-      animationFrameId.current = requestAnimationFrame(scroll);
-    },
-    [scrollSpeed, handleTogglePlay]
-  );
+    }
+    animationFrameId.current = requestAnimationFrame(scroll);
+  }, [scrollSpeed, handleTogglePlay]);
 
   useEffect(() => {
     if (isPlaying) {
-      lastTimeRef.current = 0; // Reset time on play
       animationFrameId.current = requestAnimationFrame(scroll);
     } else {
       cancelAnimationFrame(animationFrameId.current);
@@ -225,43 +234,47 @@ export function LyricPlayerV2({
     }
 
     if (line.type === 'lyrics') {
+      const gridParts = parseLineForGrid(line.content);
       return (
-        <p key={key} className='font-body'>
-          {line.content}
-        </p>
-      );
-    }
-
-    if (line.type === 'chords' && showChords) {
-      const transposedChords = line.content.replace(
-        /\[([^\]]+)\]/g,
-        (match, chord) => `[${transposeChord(chord, transpose)}]`
-      );
-      return (
-        <p
-          key={key}
-          className='font-bold whitespace-pre-wrap font-code'
-          style={{ color: chordColor }}
-        >
-          {transposedChords.split(/(\s+)/).map((part, i) =>
-            /\[.*?\]/.test(part) ? (
-              <span
-                key={i}
-                className={cn(
-                  'inline-block rounded-sm px-1 py-0.5',
-                  showChordHighlights &&
-                    (theme === 'dark'
-                      ? 'bg-primary/20'
-                      : 'bg-primary/10 text-primary')
-                )}
-              >
-                {part.slice(1, -1)}
-              </span>
-            ) : (
-              <span key={i}>{part}</span>
-            )
+        <div key={key} className='grid' style={{ gridTemplateColumns: 'auto' }}>
+          {showChords && (
+            <div className='flex' style={{ color: chordColor }}>
+              {gridParts.map((part, partIndex) =>
+                part.type === 'chord' ? (
+                  <span
+                    key={`${key}-chord-${partIndex}`}
+                    className={cn(
+                      'font-bold font-code',
+                      showChordHighlights &&
+                        (theme === 'dark'
+                          ? 'bg-primary/20'
+                          : 'bg-primary/10 text-primary')
+                    )}
+                  >
+                    {transposeChord(part.content, transpose)}
+                  </span>
+                ) : (
+                  <span key={`${key}-lyric-pad-${partIndex}`} className='invisible'>
+                    {part.content}
+                  </span>
+                )
+              )}
+            </div>
           )}
-        </p>
+          <div className='flex'>
+            {gridParts.map((part, partIndex) =>
+              part.type === 'lyric' ? (
+                <span key={`${key}-lyric-${partIndex}`} className='font-body'>
+                  {part.content}
+                </span>
+              ) : (
+                <span key={`${key}-chord-pad-${partIndex}`} className='invisible font-bold font-code'>
+                  {transposeChord(part.content, transpose)}
+                </span>
+              )
+            )}
+          </div>
+        </div>
       );
     }
 
@@ -275,7 +288,7 @@ export function LyricPlayerV2({
   return (
     <div
       className={cn(
-        'relative flex flex-col h-full overflow-hidden print:bg-white print:text-black',
+        'relative flex flex-col h-full overflow-hidden print:bg-white print:text-black font-body',
         theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'
       )}
     >
@@ -292,7 +305,7 @@ export function LyricPlayerV2({
         className='flex-grow w-full overflow-y-scroll scroll-smooth'
       >
         <div
-          className='max-w-2xl mx-auto text-lg leading-relaxed px-4 pb-32 print:pb-4'
+          className='max-w-2xl mx-auto text-lg leading-relaxed px-4 print:pb-4 pb-32'
           style={{ fontSize: `${fontSize}px` }}
         >
           <div className='mb-4 pt-4 print:hidden'>
