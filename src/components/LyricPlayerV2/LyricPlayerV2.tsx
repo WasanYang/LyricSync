@@ -138,30 +138,22 @@ export function LyricPlayerV2({
   const floatingNavigator = useFloatingNavigator();
 
   const parsedLines = useMemo(() => {
-    if (typeof song.lyrics === 'string') {
+    if (typeof song.lyrics === 'string' && song.lyrics.trim()) {
       return parseLyricsV2(song.lyrics);
     }
     return [];
   }, [song.lyrics]);
 
-  const sections = useMemo(() => {
-    return parsedLines
-      .map((line, index) => ({ ...line, uniqueKey: `${line.type}-${index}` }))
-      .filter((line) => line.type === 'section')
-      .map((line, index) => ({
-        name: line.content,
-        index: parsedLines.findIndex((l) => l.uniqueKey === line.uniqueKey), // Use the original index
-        uniqueKey: line.uniqueKey,
-        startTime: 0,
-      }));
-  }, [parsedLines]);
-
   const stopScrolling = useCallback(() => {
-    cancelAnimationFrame(animationFrameId.current);
+    if (animationFrameId.current) {
+      cancelAnimationFrame(animationFrameId.current);
+      animationFrameId.current = 0;
+    }
     dispatch({ type: 'SET_IS_PLAYING', payload: false });
   }, []);
 
   const handleTogglePlay = useCallback(() => {
+    console.log('stopScrolling');
     if (isPlaying) {
       stopScrolling();
     } else {
@@ -176,42 +168,52 @@ export function LyricPlayerV2({
   }, [isPlaying, stopScrolling]);
 
   const scroll = useCallback(() => {
-    if (scrollContainerRef.current) {
-      const container = scrollContainerRef.current;
-      const scrollAmount = 0.5 * scrollSpeed;
-      container.scrollTop += scrollAmount;
-
-      if (
-        container.scrollTop >=
-        container.scrollHeight - container.clientHeight
-      ) {
-        isAtEndRef.current = true;
-        stopScrolling();
-        return;
-      }
+    const container = scrollContainerRef.current;
+    // ป้องกัน error insertBefore
+    if (!container || !container.isConnected || !parsedLines.length) {
+      stopScrolling();
+      return;
     }
-    animationFrameId.current = requestAnimationFrame(scroll);
-  }, [scrollSpeed, stopScrolling]);
+
+    const scrollAmount = 0.5 * scrollSpeed;
+    container.scrollTop += scrollAmount;
+
+    if (
+      container.scrollTop >=
+      container.scrollHeight - container.clientHeight
+    ) {
+      isAtEndRef.current = true;
+      stopScrolling();
+      return;
+    }
+
+    if (state.isPlaying) {
+      animationFrameId.current = requestAnimationFrame(scroll);
+    }
+  }, [scrollSpeed, stopScrolling, state.isPlaying, parsedLines.length]);
 
   useEffect(() => {
+    if (!parsedLines.length) {
+      stopScrolling();
+      return;
+    }
     if (isPlaying) {
       animationFrameId.current = requestAnimationFrame(scroll);
     } else {
-      cancelAnimationFrame(animationFrameId.current);
-    }
-    return () => cancelAnimationFrame(animationFrameId.current);
-  }, [isPlaying, scroll]);
-
-  const handleSectionJump = (sectionIndex: number) => {
-    if (!scrollContainerRef.current) return;
-    const section = sections.find((s) => s.index === sectionIndex);
-    if (section) {
-      const element = document.getElementById(section.uniqueKey);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+        animationFrameId.current = 0;
       }
     }
-  };
+    // รีเซ็ต frame เมื่อเพลงเปลี่ยนหรือ component unmount
+    return () => {
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+        animationFrameId.current = 0;
+      }
+      isAtEndRef.current = false;
+    };
+  }, [isPlaying, scroll, song.id, parsedLines.length]);
 
   const currentKey = useMemo(() => {
     const originalKeyIndex = ALL_NOTES.indexOf(song.originalKey || 'C');
@@ -282,14 +284,6 @@ export function LyricPlayerV2({
         theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'
       )}
     >
-      <FloatingSectionNavigator
-        sections={sections}
-        currentSection={null}
-        onSectionJump={handleSectionJump}
-        onClose={floatingNavigator.toggleVisibility}
-        isVisible={floatingNavigator.isVisible}
-      />
-
       <div
         ref={scrollContainerRef}
         className='flex-grow w-full overflow-y-scroll scroll-smooth'
@@ -349,8 +343,8 @@ export function LyricPlayerV2({
             <Button
               onClick={handleTogglePlay}
               className={cn(
-                'h-10 rounded-md font-semibold flex items-center gap-2',
-                'bg-white hover:bg-gray-200 text-black'
+                'h-10 rounded-full font-semibold flex items-center gap-2',
+                'bg-emerald-500 hover:bg-emerald-400 text-black'
               )}
             >
               {isPlaying ? (
