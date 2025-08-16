@@ -44,6 +44,7 @@ interface PlayerState {
 
 type Action =
   | { type: 'TOGGLE_PLAY' }
+  | { type: 'SET_IS_PLAYING'; payload: boolean }
   | { type: 'SET_SCROLL_SPEED'; payload: number }
   | { type: 'SET_TRANSPOSE'; payload: number }
   | { type: 'SET_FONT_SIZE'; payload: number }
@@ -69,6 +70,8 @@ function playerReducer(state: PlayerState, action: Action): PlayerState {
   switch (action.type) {
     case 'TOGGLE_PLAY':
       return { ...state, isPlaying: !state.isPlaying };
+    case 'SET_IS_PLAYING':
+      return { ...state, isPlaying: action.payload };
     case 'SET_SCROLL_SPEED':
       const newSpeed = Math.max(0.1, Math.min(5.0, action.payload));
       return { ...state, scrollSpeed: newSpeed };
@@ -101,21 +104,6 @@ interface LyricPlayerV2Props {
   onClose?: () => void;
   showControls?: boolean;
 }
-
-const parseChordLine = (line: string, transpose: number) => {
-    const regex = /(\[[^\]]+\])|(\S+)/g;
-    const parts: { type: 'chord' | 'text'; content: string }[] = [];
-    let match;
-  
-    while ((match = regex.exec(line)) !== null) {
-      if (match[1]) { // It's a chord
-        parts.push({ type: 'chord', content: transposeChord(match[1].slice(1, -1), transpose) });
-      } else if (match[2]) { // It's other text (like spaces or non-chord text)
-        parts.push({ type: 'text', content: match[2] });
-      }
-    }
-    return parts;
-  };
 
 export function LyricPlayerV2({
   song,
@@ -180,12 +168,13 @@ export function LyricPlayerV2({
       ) {
         cancelAnimationFrame(animationFrameId.current);
         isAtEndRef.current = true;
-        handleTogglePlay();
+        // Directly dispatch the state change instead of calling the toggle handler
+        dispatch({ type: 'SET_IS_PLAYING', payload: false });
         return;
       }
     }
     animationFrameId.current = requestAnimationFrame(scroll);
-  }, [scrollSpeed, handleTogglePlay]);
+  }, [scrollSpeed]);
 
   useEffect(() => {
     if (isPlaying) {
@@ -236,43 +225,43 @@ export function LyricPlayerV2({
           </pre>
         );
 
-        case 'chords':
-            if (!showChords) return null;
-            return (
-              <pre
-                key={key}
-                className='whitespace-pre-wrap font-code font-bold'
-                style={{
-                  color:
-                    theme === 'dark' && chordColor === 'hsl(0 0% 0%)'
-                      ? 'hsl(0 0% 100%)'
-                      : chordColor,
-                }}
-              >
-                {line.content.split(/(\[[^\]]+\])/g).map((part, partIndex) => {
-                  const partKey = `${key}-part-${partIndex}`;
-                  if (part.startsWith('[') && part.endsWith(']')) {
-                    const chord = part.slice(1, -1);
-                    const transposed = transposeChord(chord, transpose);
-                    return (
-                      <span
-                        key={partKey}
-                        className={cn(
-                          showChordHighlights && (
-                            theme === 'dark'
-                              ? 'bg-primary/20 text-white rounded-sm px-1'
-                              : 'bg-primary/10 text-primary rounded-sm px-1'
-                          )
-                        )}
-                      >
-                        {transposed}
-                      </span>
-                    );
-                  }
-                  return <span key={partKey}>{part}</span>;
-                })}
-              </pre>
-            );
+      case 'chords':
+        if (!showChords) return null;
+        return (
+          <pre
+            key={key}
+            className='whitespace-pre-wrap font-code font-bold'
+            style={{
+              color:
+                theme === 'dark' && chordColor === 'hsl(0 0% 0%)'
+                  ? 'hsl(0 0% 100%)'
+                  : chordColor,
+            }}
+          >
+            {line.content.split(/(\[[^\]]+\])/g).map((part, partIndex) => {
+              const partKey = `${key}-part-${partIndex}`;
+              if (part.startsWith('[') && part.endsWith(']')) {
+                const chord = part.slice(1, -1);
+                const transposed = transposeChord(chord, transpose);
+                return (
+                  <span
+                    key={partKey}
+                    className={cn(
+                      showChordHighlights && (
+                        theme === 'dark'
+                          ? 'bg-primary/20 text-white rounded-sm px-1'
+                          : 'bg-primary/10 text-primary rounded-sm px-1'
+                      )
+                    )}
+                  >
+                    {transposed}
+                  </span>
+                );
+              }
+              return <span key={partKey}>{part}</span>;
+            })}
+          </pre>
+        );
 
       case 'empty':
         return <div key={key} className='h-4' />;
