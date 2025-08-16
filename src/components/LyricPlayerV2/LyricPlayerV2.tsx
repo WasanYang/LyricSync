@@ -220,17 +220,6 @@ export function LyricPlayerV2({
     return ALL_NOTES[newKeyIndex];
   }, [transpose, song.originalKey]);
 
-  const handleKeyChange = (selectedKey: string) => {
-    const originalKeyIndex = ALL_NOTES.indexOf(song.originalKey || 'C');
-    const selectedKeyIndex = ALL_NOTES.indexOf(selectedKey);
-    if (originalKeyIndex !== -1 && selectedKeyIndex !== -1) {
-      let diff = selectedKeyIndex - originalKeyIndex;
-      if (diff > 6) diff -= 12;
-      if (diff < -6) diff += 12;
-      dispatch({ type: 'SET_TRANSPOSE', payload: diff });
-    }
-  };
-
   const renderLine = (line: ParsedLyricLine, index: number) => {
     const key = `${line.type}-${index}`;
     const chordColorStyle =
@@ -309,16 +298,36 @@ export function LyricPlayerV2({
           className='max-w-2xl mx-auto text-lg leading-relaxed px-4 print:pb-4 pb-32'
           style={{ fontSize: `${fontSize}px` }}
         >
-          <div className='mb-4 pt-8 print:hidden'>
-            <h1 className='font-headline text-2xl font-bold'>{song.title}</h1>
-            <div
-              className={cn(
-                'text-md',
-                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-              )}
-            >
-              {song.artist && <div className=''>{song.artist}</div>}
-              {song.originalKey && <div className=''>Key: {currentKey}</div>}
+          <div className='flex items-center justify-between border-b pb-4 mb-4 pt-8 print:hidden'>
+            <div>
+              <h1 className='font-headline text-2xl font-bold'>{song.title}</h1>
+              <div
+                className={cn(
+                  'text-md',
+                  theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                )}
+              >
+                {song.artist && <div className=''>{song.artist}</div>}
+                {song.originalKey && <div className=''>Key: {currentKey}</div>}
+              </div>
+            </div>
+            <div className='flex items-center'>
+              <Button
+                variant='ghost'
+                size='icon'
+                onClick={() => window.print()}
+                aria-label='Print'
+                className='h-10 w-10'
+              >
+                <Printer className='h-5 w-5' />
+              </Button>
+              <SettingsSheetV2
+                fontSize={fontSize}
+                showChords={showChords}
+                chordColor={chordColor}
+                showChordHighlights={showChordHighlights}
+                dispatch={dispatch}
+              />
             </div>
           </div>
           <div className='font-noto-thai font-medium'>
@@ -427,22 +436,6 @@ export function LyricPlayerV2({
                 <Plus className='h-4 w-4' />
               </Button>
             </div>
-            <Button
-              variant='ghost'
-              size='icon'
-              onClick={() => window.print()}
-              aria-label='Print'
-              className='h-10 w-10'
-            >
-              <Printer className='h-5 w-5' />
-            </Button>
-            <SettingsSheetV2
-              fontSize={fontSize}
-              showChords={showChords}
-              chordColor={chordColor}
-              showChordHighlights={showChordHighlights}
-              dispatch={dispatch}
-            />
           </div>
         </div>
       )}
