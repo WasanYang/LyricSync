@@ -102,33 +102,20 @@ interface LyricPlayerV2Props {
   showControls?: boolean;
 }
 
-const parseLineWithChords = (line: string, transpose: number) => {
-  const regex = /\[([^\]]+)\]/g;
-  const parts = [];
-  let lastIndex = 0;
-  let match;
-
-  while ((match = regex.exec(line)) !== null) {
-    // Text before the chord
-    if (match.index > lastIndex) {
-      parts.push({ type: 'lyric', content: line.substring(lastIndex, match.index) });
+const parseChordLine = (line: string, transpose: number) => {
+    const regex = /(\[[^\]]+\])|(\S+)/g;
+    const parts: { type: 'chord' | 'text'; content: string }[] = [];
+    let match;
+  
+    while ((match = regex.exec(line)) !== null) {
+      if (match[1]) { // It's a chord
+        parts.push({ type: 'chord', content: transposeChord(match[1].slice(1, -1), transpose) });
+      } else if (match[2]) { // It's other text (like spaces or non-chord text)
+        parts.push({ type: 'text', content: match[2] });
+      }
     }
-    // The chord itself
-    parts.push({
-      type: 'chord',
-      content: transposeChord(match[1], transpose),
-    });
-    lastIndex = regex.lastIndex;
-  }
-
-  // Remaining text
-  if (lastIndex < line.length) {
-    parts.push({ type: 'lyric', content: line.substring(lastIndex) });
-  }
-
-  return parts;
-};
-
+    return parts;
+  };
 
 export function LyricPlayerV2({
   song,
@@ -193,7 +180,7 @@ export function LyricPlayerV2({
       ) {
         cancelAnimationFrame(animationFrameId.current);
         isAtEndRef.current = true;
-        handleTogglePlay(); // This will safely toggle the play state
+        handleTogglePlay();
         return;
       }
     }
@@ -230,64 +217,69 @@ export function LyricPlayerV2({
 
   const renderLine = (line: ParsedLyricLine, index: number) => {
     const key = `${line.type}-${index}`;
-    if (line.type === 'section') {
-      return (
-        <p
-          key={key}
-          id={key}
-          className='pt-4 pb-2 text-sm font-bold uppercase tracking-wide font-headline'
-        >
-          [ {line.content} ]
-        </p>
-      );
+    switch (line.type) {
+      case 'section':
+        return (
+          <p
+            key={key}
+            id={key}
+            className='pt-4 pb-2 text-sm font-bold uppercase tracking-wide font-headline'
+          >
+            [ {line.content} ]
+          </p>
+        );
+
+      case 'lyrics':
+        return (
+          <pre key={key} className='whitespace-pre-wrap font-body'>
+            {line.content}
+          </pre>
+        );
+
+        case 'chords':
+            if (!showChords) return null;
+            return (
+              <pre
+                key={key}
+                className='whitespace-pre-wrap font-code font-bold'
+                style={{
+                  color:
+                    theme === 'dark' && chordColor === 'hsl(0 0% 0%)'
+                      ? 'hsl(0 0% 100%)'
+                      : chordColor,
+                }}
+              >
+                {line.content.split(/(\[[^\]]+\])/g).map((part, partIndex) => {
+                  const partKey = `${key}-part-${partIndex}`;
+                  if (part.startsWith('[') && part.endsWith(']')) {
+                    const chord = part.slice(1, -1);
+                    const transposed = transposeChord(chord, transpose);
+                    return (
+                      <span
+                        key={partKey}
+                        className={cn(
+                          showChordHighlights && (
+                            theme === 'dark'
+                              ? 'bg-primary/20 text-white rounded-sm px-1'
+                              : 'bg-primary/10 text-primary rounded-sm px-1'
+                          )
+                        )}
+                      >
+                        {transposed}
+                      </span>
+                    );
+                  }
+                  return <span key={partKey}>{part}</span>;
+                })}
+              </pre>
+            );
+
+      case 'empty':
+        return <div key={key} className='h-4' />;
+
+      default:
+        return null;
     }
-  
-    if (line.type === 'lyrics') {
-      const isChordLine = /\[[^\]]+\]/.test(line.content) && !/[a-zA-Z]/.test(line.content.replace(/\[[^\]]+\]|\s/g, ''));
-      if (isChordLine && !showChords) {
-        return null; // Hide chord-only lines when chords are off
-      }
-  
-      const parts = parseLineWithChords(line.content, transpose);
-  
-      return (
-        <pre key={key} className='whitespace-pre-wrap font-body'>
-          {parts.map((part, partIndex) => {
-            const partKey = `${key}-part-${partIndex}`;
-            if (part.type === 'chord' && showChords) {
-              return (
-                <span
-                  key={partKey}
-                  className={cn(
-                    'font-bold font-code',
-                    showChordHighlights && (
-                      theme === 'dark' ? 'bg-primary/20' : 'bg-primary/10 text-primary'
-                    )
-                  )}
-                  style={{
-                    color: showChordHighlights
-                      ? (theme === 'dark' ? 'hsl(0 0% 100%)' : 'hsl(var(--primary))')
-                      : (theme === 'dark' && chordColor === 'hsl(0 0% 0%)' ? 'hsl(0 0% 100%)' : chordColor)
-                  }}
-                >
-                  [{part.content}]
-                </span>
-              );
-            }
-            if (part.type === 'lyric') {
-              return <span key={partKey}>{part.content}</span>;
-            }
-            return null;
-          })}
-        </pre>
-      );
-    }
-  
-    if (line.type === 'empty') {
-      return <div key={key} className='h-4' />;
-    }
-  
-    return null;
   };
 
   return (
@@ -304,6 +296,21 @@ export function LyricPlayerV2({
         onClose={floatingNavigator.toggleVisibility}
         isVisible={floatingNavigator.isVisible}
       />
+
+      <header className='flex-shrink-0 z-10 bg-transparent pointer-events-auto'>
+        <div className='relative container mx-auto flex items-center justify-between h-14'>
+          <div />
+          <div className='absolute right-2 top-1/2 -translate-y-1/2'>
+            <SettingsSheetV2
+              fontSize={fontSize}
+              showChords={showChords}
+              chordColor={chordColor}
+              showChordHighlights={showChordHighlights}
+              dispatch={dispatch}
+            />
+          </div>
+        </div>
+      </header>
 
       <div
         ref={scrollContainerRef}
@@ -346,7 +353,7 @@ export function LyricPlayerV2({
                 onClick={handleTogglePlay}
                 className={cn(
                   'h-10 rounded-md font-semibold flex items-center gap-2',
-                  'bg-emerald-500 hover:bg-emerald-600 text-white'
+                  'bg-white hover:bg-gray-200 text-black'
                 )}
               >
                 {isPlaying ? (
@@ -443,13 +450,6 @@ export function LyricPlayerV2({
               >
                 <Printer className='h-5 w-5' />
               </Button>
-              <SettingsSheetV2
-                fontSize={fontSize}
-                showChords={showChords}
-                chordColor={chordColor}
-                showChordHighlights={showChordHighlights}
-                dispatch={dispatch}
-              />
             </div>
           </div>
         </div>
