@@ -71,7 +71,8 @@ type SongFormValues = z.infer<typeof songFormSchema>;
 const formatLyricsToString = (lyrics: any[] | string): string => {
   if (typeof lyrics === 'string') return lyrics;
   if (Array.isArray(lyrics)) {
-    return lyrics.map((line) => line.text || '').join('\n');
+    // This is for backward compatibility with the old lyric format
+    return lyrics.map((line) => `${line.measures} | ${line.text}`).join('\n');
   }
   return '';
 };
