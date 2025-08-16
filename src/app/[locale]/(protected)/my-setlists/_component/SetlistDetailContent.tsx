@@ -60,7 +60,6 @@ export function SetlistDetailContent({
 
   useEffect(() => {
     if (data) {
-      console.log(data);
       setSetlist(data);
       async function loadSongDetail() {
         const songIds = data.songIds || [];
