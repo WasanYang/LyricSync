@@ -59,16 +59,18 @@ const songFormSchema = z.object({
   artist: z.string(),
   lyrics: z.string().min(1, 'Lyrics are required.'),
   originalKey: z.string().min(1, 'Key is required'),
+  bpm: z.coerce
+    .number()
+    .min(20, 'BPM must be at least 20')
+    .max(300, 'BPM must be at most 300')
+    .optional(),
 });
 
 type SongFormValues = z.infer<typeof songFormSchema>;
 
 const formatLyricsToString = (lyrics: any[] | string): string => {
-  // This needs to be adapted to the new simple format if we are to edit old songs.
-  // For now, we assume a simple text field.
   if (typeof lyrics === 'string') return lyrics;
   if (Array.isArray(lyrics)) {
-    // A simple conversion for viewing, might not be perfect for editing.
     return lyrics.map((line) => line.text || '').join('\n');
   }
   return '';
@@ -82,7 +84,6 @@ function LoadingScreen() {
         <Skeleton className='h-9 w-28' />
       </header>
       <div className='flex-grow overflow-y-auto p-4 md:p-6 pb-24 w-full max-w-2xl mx-auto space-y-6'>
-        {/* Simplified skeleton */}
         <Skeleton className='h-10 w-full' />
         <Skeleton className='h-10 w-full' />
         <Skeleton className='h-10 w-1/2' />
@@ -111,6 +112,7 @@ export default function SongCreatorV2() {
       artist: '',
       lyrics: '',
       originalKey: 'C',
+      bpm: 120,
     },
   });
 
@@ -142,6 +144,7 @@ export default function SongCreatorV2() {
               artist: existingSong.artist,
               lyrics: formatLyricsToString(existingSong.lyrics),
               originalKey: existingSong.originalKey || 'C',
+              bpm: existingSong.bpm || 120,
             });
             setTimeout(() => adjustTextareaHeight(textareaRef.current), 0);
           } else {
@@ -174,8 +177,9 @@ export default function SongCreatorV2() {
       id: songId || 'preview',
       title: formData.title || 'Untitled',
       artist: formData.artist || 'Unknown Artist',
-      lyrics: formData.lyrics, // Use the raw string for V2 Player
+      lyrics: formData.lyrics,
       originalKey: formData.originalKey,
+      bpm: formData.bpm,
       source: 'user',
       updatedAt: Date.now(),
     }),
@@ -195,8 +199,9 @@ export default function SongCreatorV2() {
       id: songId || uuidv4(),
       title: data.title,
       artist: data.artist,
-      lyrics: data.lyrics, // Storing as a single string now
+      lyrics: data.lyrics,
       originalKey: data.originalKey,
+      bpm: data.bpm,
       userId: user.uid,
       uploaderName: user.displayName,
       source: 'user',
@@ -316,33 +321,56 @@ export default function SongCreatorV2() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name='originalKey'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Original Key</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
+              <div className='grid grid-cols-2 gap-4'>
+                <FormField
+                  control={form.control}
+                  name='originalKey'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Original Key</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {ALL_NOTES.map((note) => (
+                            <SelectItem key={note} value={note}>
+                              {note}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='bpm'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>BPM (Scroll Speed)</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
+                        <Input
+                          type='number'
+                          placeholder='120'
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value, 10) || 0)
+                          }
+                        />
                       </FormControl>
-                      <SelectContent>
-                        {ALL_NOTES.map((note) => (
-                          <SelectItem key={note} value={note}>
-                            {note}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <FormField
                 control={form.control}
                 name='lyrics'
