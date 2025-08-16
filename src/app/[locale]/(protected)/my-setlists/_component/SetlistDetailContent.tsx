@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import type { Setlist } from '@/lib/db';
+import { getCloudSongById, type Setlist } from '@/lib/db';
 import type { Song } from '@/lib/songs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -60,54 +60,32 @@ export function SetlistDetailContent({
 
   useEffect(() => {
     if (data) {
+      console.log(data);
       setSetlist(data);
+      async function loadSongDetail() {
+        const songIds = data.songIds || [];
+        const songPromises = songIds.map(getCloudSongById);
+        const loadedSongs = (await Promise.all(songPromises)).filter(
+          Boolean
+        ) as Song[];
+        if (loadedSongs.length === songIds.length) {
+          setSongs(loadedSongs);
+        } else {
+          console.log('loadedSongs', loadedSongs.length, songIds.length);
+          toast({
+            title: 'Error Loading Songs',
+            description:
+              'Some songs in this setlist could not be found and may have been deleted.',
+            variant: 'destructive',
+          });
+          setSongs(loadedSongs);
+        }
+      }
+      loadSongDetail();
     }
   }, [data]);
 
-  useEffect(() => {
-    // async function loadSetlist() {
-    //   if (!id || !user) return;
-    //   try {
-    //     setIsLoading(true);
-    //     const loadedSetlist = await getSetlistFromDb(id);
-    //     console.log('Loaded setlist:', loadedSetlist, id);
-    //     if (loadedSetlist && loadedSetlist.userId === user.uid) {
-    //       setSetlist(loadedSetlist);
-    //       const songIds = loadedSetlist.songIds || [];
-    //       const songPromises = songIds.map(getCloudSongById);
-    //       const loadedSongs = (await Promise.all(songPromises)).filter(
-    //         Boolean
-    //       ) as Song[];
-    //       if (loadedSongs.length === songIds.length) {
-    //         setSongs(loadedSongs);
-    //       } else {
-    //         console.log('loadedSongs', loadedSongs.length, songIds.length);
-    //         toast({
-    //           title: 'Error Loading Songs',
-    //           description:
-    //             'Some songs in this setlist could not be found and may have been deleted.',
-    //           variant: 'destructive',
-    //         });
-    //         setSongs(loadedSongs);
-    //       }
-    //     } else {
-    //       toast({
-    //         title: 'Not Found',
-    //         description: 'Setlist not found in your library.',
-    //         variant: 'destructive',
-    //       });
-    //       notFound();
-    //     }
-    //   } catch (err) {
-    //     console.error('Failed to load setlist', err);
-    //     return notFound();
-    //   } finally {
-    //     setIsLoading(false);
-    //   }
-    // }
-    // loadSetlist();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, user, router, toast]);
+  useEffect(() => {}, [id, user, router, toast]);
 
   if (isLoading) {
     return <LoadingSkeleton />;
@@ -216,7 +194,4 @@ export function SetlistDetailContent({
       </div>
     </div>
   );
-}
-function getSetlistById(id: string): { data: any } {
-  throw new Error('Function not implemented.');
 }

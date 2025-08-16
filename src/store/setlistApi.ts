@@ -64,7 +64,13 @@ export const setlistApi = createApi({
           const docRef = doc(db, 'setlists', id);
           const docSnap = await getDoc(docRef);
           if (!docSnap.exists()) return { error: 'Not found' };
-          return { data: docSnap.data() };
+          return {
+            data: {
+              id: docSnap.id,
+              updatedAt: toMillisSafe(docSnap.data().updatedAt),
+              ...docSnap.data(),
+            },
+          };
         } catch (error) {
           return {
             error: error instanceof Error ? error.message : String(error),
