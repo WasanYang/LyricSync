@@ -32,6 +32,13 @@ import { localStorageManager } from '@/lib/local-storage';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
 import { ALL_NOTES } from '@/lib/chords';
+import { Noto_Sans_Thai } from 'next/font/google';
+
+const notoSanThai = Noto_Sans_Thai({
+  subsets: ['thai', 'latin'],
+  display: 'swap',
+  variable: '--font-noto-sans-thai',
+});
 
 interface PlayerState {
   isPlaying: boolean;
@@ -149,18 +156,24 @@ export function LyricPlayerV2({
       }));
   }, [parsedLines]);
 
-  const handleTogglePlay = useCallback(() => {
-    if (isAtEndRef.current) {
-      if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
-      isAtEndRef.current = false;
-    }
-    dispatch({ type: 'TOGGLE_PLAY' });
-  }, []);
-
   const stopScrolling = useCallback(() => {
     cancelAnimationFrame(animationFrameId.current);
     dispatch({ type: 'SET_IS_PLAYING', payload: false });
   }, []);
+
+  const handleTogglePlay = useCallback(() => {
+    if (isPlaying) {
+      stopScrolling();
+    } else {
+      if (isAtEndRef.current) {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop = 0;
+        }
+        isAtEndRef.current = false;
+      }
+      dispatch({ type: 'SET_IS_PLAYING', payload: true });
+    }
+  }, [isPlaying, stopScrolling]);
 
   const scroll = useCallback(() => {
     if (scrollContainerRef.current) {
@@ -234,7 +247,7 @@ export function LyricPlayerV2({
 
       case 'lyrics':
         return (
-          <p key={key} className='whitespace-pre-wrap font-body font-noto-thai'>
+          <p key={key} className='whitespace-pre-wrap font-body'>
             {line.content}
           </p>
         );
@@ -244,7 +257,7 @@ export function LyricPlayerV2({
         return (
           <p
             key={key}
-            className='whitespace-pre-wrap font-code font-bold font-noto-thai'
+            className='whitespace-pre-wrap font-code font-bold'
             style={{
               color:
                 theme === 'dark' && chordColor === 'hsl(0 0% 0%)'
@@ -261,11 +274,10 @@ export function LyricPlayerV2({
                   <span
                     key={partKey}
                     className={cn(
-                      showChordHighlights && (
-                        theme === 'dark'
+                      showChordHighlights &&
+                        (theme === 'dark'
                           ? 'bg-primary/20 text-white rounded-sm px-1'
-                          : 'bg-primary/10 text-primary rounded-sm px-1'
-                      )
+                          : 'bg-primary/10 text-primary rounded-sm px-1')
                     )}
                   >
                     {transposed}
@@ -288,7 +300,8 @@ export function LyricPlayerV2({
   return (
     <div
       className={cn(
-        'relative flex flex-col h-full overflow-hidden print:bg-white print:text-black font-noto-thai',
+        'relative flex flex-col h-full overflow-hidden print:bg-white print:text-black',
+        notoSanThai.variable,
         theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'
       )}
     >
