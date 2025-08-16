@@ -31,6 +31,7 @@ import { useFloatingNavigator } from '@/hooks/use-floating-navigator';
 import { localStorageManager } from '@/lib/local-storage';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/navigation';
+import { ALL_NOTES } from '@/lib/chords';
 
 interface PlayerState {
   isPlaying: boolean;
@@ -156,6 +157,11 @@ export function LyricPlayerV2({
     dispatch({ type: 'TOGGLE_PLAY' });
   }, []);
 
+  const stopScrolling = useCallback(() => {
+    cancelAnimationFrame(animationFrameId.current);
+    dispatch({ type: 'SET_IS_PLAYING', payload: false });
+  }, []);
+
   const scroll = useCallback(() => {
     if (scrollContainerRef.current) {
       const container = scrollContainerRef.current;
@@ -166,15 +172,13 @@ export function LyricPlayerV2({
         container.scrollTop >=
         container.scrollHeight - container.clientHeight
       ) {
-        cancelAnimationFrame(animationFrameId.current);
         isAtEndRef.current = true;
-        // Directly dispatch the state change instead of calling the toggle handler
-        dispatch({ type: 'SET_IS_PLAYING', payload: false });
+        stopScrolling();
         return;
       }
     }
     animationFrameId.current = requestAnimationFrame(scroll);
-  }, [scrollSpeed]);
+  }, [scrollSpeed, stopScrolling]);
 
   useEffect(() => {
     if (isPlaying) {
@@ -196,11 +200,21 @@ export function LyricPlayerV2({
     }
   };
 
-  const handleBack = () => {
-    if (onClose) {
-      onClose();
-    } else {
-      router.back();
+  const currentKey = useMemo(() => {
+    const originalKeyIndex = ALL_NOTES.indexOf(song.originalKey || 'C');
+    if (originalKeyIndex === -1) return song.originalKey || 'C';
+    const newKeyIndex = (originalKeyIndex + transpose + 12 * 10) % 12;
+    return ALL_NOTES[newKeyIndex];
+  }, [transpose, song.originalKey]);
+
+  const handleKeyChange = (selectedKey: string) => {
+    const originalKeyIndex = ALL_NOTES.indexOf(song.originalKey || 'C');
+    const selectedKeyIndex = ALL_NOTES.indexOf(selectedKey);
+    if (originalKeyIndex !== -1 && selectedKeyIndex !== -1) {
+      let diff = selectedKeyIndex - originalKeyIndex;
+      if (diff > 6) diff -= 12;
+      if (diff < -6) diff += 12;
+      dispatch({ type: 'SET_TRANSPOSE', payload: diff });
     }
   };
 
@@ -220,17 +234,17 @@ export function LyricPlayerV2({
 
       case 'lyrics':
         return (
-          <pre key={key} className='whitespace-pre-wrap font-body'>
+          <p key={key} className='whitespace-pre-wrap font-body font-noto-thai'>
             {line.content}
-          </pre>
+          </p>
         );
 
       case 'chords':
         if (!showChords) return null;
         return (
-          <pre
+          <p
             key={key}
-            className='whitespace-pre-wrap font-code font-bold'
+            className='whitespace-pre-wrap font-code font-bold font-noto-thai'
             style={{
               color:
                 theme === 'dark' && chordColor === 'hsl(0 0% 0%)'
@@ -238,7 +252,7 @@ export function LyricPlayerV2({
                   : chordColor,
             }}
           >
-            {line.content.split(/(\[[^\]]+\])/g).map((part, partIndex) => {
+            {line.content.split(/(\[.*?\])/g).map((part, partIndex) => {
               const partKey = `${key}-part-${partIndex}`;
               if (part.startsWith('[') && part.endsWith(']')) {
                 const chord = part.slice(1, -1);
@@ -260,7 +274,7 @@ export function LyricPlayerV2({
               }
               return <span key={partKey}>{part}</span>;
             })}
-          </pre>
+          </p>
         );
 
       case 'empty':
@@ -274,7 +288,7 @@ export function LyricPlayerV2({
   return (
     <div
       className={cn(
-        'relative flex flex-col h-full overflow-hidden print:bg-white print:text-black font-body',
+        'relative flex flex-col h-full overflow-hidden print:bg-white print:text-black font-noto-thai',
         theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'
       )}
     >
@@ -313,13 +327,13 @@ export function LyricPlayerV2({
             <h1 className='font-headline text-2xl font-bold'>{song.title}</h1>
             <div
               className={cn(
-                'text-md font-body',
+                'text-md',
                 theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
               )}
             >
-              {song.artist && <div className='font-noto-thai'>{song.artist}</div>}
+              {song.artist && <div className=''>{song.artist}</div>}
               {song.originalKey && (
-                <div className='font-noto-thai'>Key: {song.originalKey}</div>
+                <div className=''>Key: {currentKey}</div>
               )}
             </div>
           </div>
