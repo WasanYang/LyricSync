@@ -157,8 +157,8 @@ export function LyricPlayerV2({
   }, [parsedLines]);
 
   const stopScrolling = useCallback(() => {
-    dispatch({ type: 'SET_IS_PLAYING', payload: false });
     cancelAnimationFrame(animationFrameId.current);
+    dispatch({ type: 'SET_IS_PLAYING', payload: false });
   }, []);
 
   const handleTogglePlay = useCallback(() => {
@@ -260,24 +260,22 @@ export function LyricPlayerV2({
           : '';
         return (
           <div key={key} className='whitespace-pre-wrap'>
-            {line.content
-              .split(/(\s+)/) // Split by spaces to keep them
-              .map((part, partIndex) => {
-                if (part.trim().startsWith('[') && part.trim().endsWith(']')) {
-                  const chord = part.trim().slice(1, -1);
-                  const transposed = transposeChord(chord, transpose);
-                  return (
-                    <span
-                      key={partIndex}
-                      className={highlightClass}
-                      style={{ color: chordColorStyle }}
-                    >
-                      {transposed}
-                    </span>
-                  );
-                }
-                return <span key={partIndex}>{part}</span>;
-              })}
+            {line.content.split(/(\s+)/).map((part, partIndex) => {
+              if (part.trim().startsWith('[') && part.trim().endsWith(']')) {
+                const chord = part.trim().slice(1, -1);
+                const transposed = transposeChord(chord, transpose);
+                return (
+                  <span
+                    key={partIndex}
+                    className={highlightClass}
+                    style={{ color: chordColorStyle }}
+                  >
+                    {transposed}
+                  </span>
+                );
+              }
+              return <span key={partIndex}>{part}</span>;
+            })}
           </div>
         );
       case 'empty':
@@ -303,12 +301,6 @@ export function LyricPlayerV2({
         isVisible={floatingNavigator.isVisible}
       />
 
-      <header className='flex-shrink-0 z-10 bg-transparent pointer-events-auto'>
-        <div className='relative container mx-auto flex items-center justify-between h-14'>
-          <div />
-        </div>
-      </header>
-
       <div
         ref={scrollContainerRef}
         className='flex-grow w-full overflow-y-scroll scroll-smooth'
@@ -317,7 +309,7 @@ export function LyricPlayerV2({
           className='max-w-2xl mx-auto text-lg leading-relaxed px-4 print:pb-4 pb-32'
           style={{ fontSize: `${fontSize}px` }}
         >
-          <div className='mb-4 pt-4 print:hidden'>
+          <div className='mb-4 pt-8 print:hidden'>
             <h1 className='font-headline text-2xl font-bold'>{song.title}</h1>
             <div
               className={cn(
@@ -339,122 +331,118 @@ export function LyricPlayerV2({
         <div className='sticky bottom-0 left-0 right-0 z-10 print:hidden'>
           <div
             className={cn(
-              'relative flex items-center justify-center gap-2 p-2 border-t',
+              'relative flex items-center justify-center gap-2 p-2 border-t flex-wrap',
               theme === 'dark'
                 ? 'bg-black border-gray-800'
                 : 'bg-white border-gray-200'
             )}
           >
-            <div className='flex items-center gap-2'>
-              <Button
-                onClick={handleTogglePlay}
-                className={cn(
-                  'h-10 rounded-md font-semibold flex items-center gap-2',
-                  'bg-white hover:bg-gray-200 text-black'
-                )}
-              >
-                {isPlaying ? (
-                  <Pause className='h-4 w-4' />
-                ) : (
-                  <Play className='h-4 w-4' />
-                )}
-                Autoscroll
-              </Button>
-              <div
-                className={cn(
-                  'flex items-center gap-1 rounded-md p-1 border h-10',
-                  theme === 'dark'
-                    ? 'bg-gray-800 border-gray-700'
-                    : 'bg-white border-gray-300'
-                )}
-              >
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='h-8 w-8 rounded-md'
-                  onClick={() =>
-                    dispatch({
-                      type: 'SET_SCROLL_SPEED',
-                      payload: scrollSpeed - 0.1,
-                    })
-                  }
-                >
-                  <Minus className='h-4 w-4' />
-                </Button>
-                <span className='w-12 text-center text-sm font-semibold'>
-                  {scrollSpeed.toFixed(1)}x
-                </span>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='h-8 w-8 rounded-md'
-                  onClick={() =>
-                    dispatch({
-                      type: 'SET_SCROLL_SPEED',
-                      payload: scrollSpeed + 0.1,
-                    })
-                  }
-                >
-                  <Plus className='h-4 w-4' />
-                </Button>
-              </div>
-              <div
-                className={cn(
-                  'flex items-center gap-1 rounded-md p-1 border h-10',
-                  theme === 'dark'
-                    ? 'bg-gray-800 border-gray-700'
-                    : 'bg-white border-gray-300'
-                )}
-              >
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='h-8 w-8 rounded-md'
-                  onClick={() =>
-                    dispatch({
-                      type: 'SET_TRANSPOSE',
-                      payload: transpose - 1,
-                    })
-                  }
-                >
-                  <Minus className='h-4 w-4' />
-                </Button>
-                <span className='w-12 text-center text-sm font-semibold'>
-                  Key {transpose >= 0 ? `+${transpose}` : transpose}
-                </span>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='h-8 w-8 rounded-md'
-                  onClick={() =>
-                    dispatch({
-                      type: 'SET_TRANSPOSE',
-                      payload: transpose + 1,
-                    })
-                  }
-                >
-                  <Plus className='h-4 w-4' />
-                </Button>
-              </div>
-            </div>
-            <div className='absolute right-2 top-1/2 -translate-y-1/2 flex items-center'>
+            <Button
+              onClick={handleTogglePlay}
+              className={cn(
+                'h-10 rounded-md font-semibold flex items-center gap-2',
+                'bg-white hover:bg-gray-200 text-black'
+              )}
+            >
+              {isPlaying ? (
+                <Pause className='h-4 w-4' />
+              ) : (
+                <Play className='h-4 w-4' />
+              )}
+              Autoscroll
+            </Button>
+            <div
+              className={cn(
+                'flex items-center gap-1 rounded-md p-1 border h-10',
+                theme === 'dark'
+                  ? 'bg-gray-800 border-gray-700'
+                  : 'bg-white border-gray-300'
+              )}
+            >
               <Button
                 variant='ghost'
                 size='icon'
-                onClick={() => window.print()}
-                aria-label='Print'
-                className='h-10 w-10'
+                className='h-8 w-8 rounded-md'
+                onClick={() =>
+                  dispatch({
+                    type: 'SET_SCROLL_SPEED',
+                    payload: scrollSpeed - 0.1,
+                  })
+                }
               >
-                <Printer className='h-5 w-5' />
+                <Minus className='h-4 w-4' />
               </Button>
-              <SettingsSheetV2
-                fontSize={fontSize}
-                showChords={showChords}
-                chordColor={chordColor}
-                showChordHighlights={showChordHighlights}
-                dispatch={dispatch}
-              />
+              <span className='w-12 text-center text-sm font-semibold'>
+                {scrollSpeed.toFixed(1)}x
+              </span>
+              <Button
+                variant='ghost'
+                size='icon'
+                className='h-8 w-8 rounded-md'
+                onClick={() =>
+                  dispatch({
+                    type: 'SET_SCROLL_SPEED',
+                    payload: scrollSpeed + 0.1,
+                  })
+                }
+              >
+                <Plus className='h-4 w-4' />
+              </Button>
             </div>
+            <div
+              className={cn(
+                'flex items-center gap-1 rounded-md p-1 border h-10',
+                theme === 'dark'
+                  ? 'bg-gray-800 border-gray-700'
+                  : 'bg-white border-gray-300'
+              )}
+            >
+              <Button
+                variant='ghost'
+                size='icon'
+                className='h-8 w-8 rounded-md'
+                onClick={() =>
+                  dispatch({
+                    type: 'SET_TRANSPOSE',
+                    payload: transpose - 1,
+                  })
+                }
+              >
+                <Minus className='h-4 w-4' />
+              </Button>
+              <span className='w-12 text-center text-sm font-semibold'>
+                Key {transpose >= 0 ? `+${transpose}` : transpose}
+              </span>
+              <Button
+                variant='ghost'
+                size='icon'
+                className='h-8 w-8 rounded-md'
+                onClick={() =>
+                  dispatch({
+                    type: 'SET_TRANSPOSE',
+                    payload: transpose + 1,
+                  })
+                }
+              >
+                <Plus className='h-4 w-4' />
+              </Button>
+            </div>
+            <Button
+              variant='ghost'
+              size='icon'
+              onClick={() => window.print()}
+              aria-label='Print'
+              className='h-10 w-10'
+            >
+              <Printer className='h-5 w-5' />
+            </Button>
+            <SettingsSheetV2
+              fontSize={fontSize}
+              showChords={showChords}
+              chordColor={chordColor}
+              showChordHighlights={showChordHighlights}
+              dispatch={dispatch}
+            />
           </div>
         </div>
       )}
