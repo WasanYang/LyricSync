@@ -244,18 +244,20 @@ export function LyricPlayerV2({
             [ {line.content} ]
           </p>
         );
-
       case 'lyrics':
         return (
-          <p key={key} className='whitespace-pre-wrap font-body'>
+          <pre
+            key={key}
+            className='whitespace-pre-wrap font-noto-thai font-medium'
+          >
             {line.content}
-          </p>
+          </pre>
         );
 
       case 'chords':
         if (!showChords) return null;
         return (
-          <p
+          <pre
             key={key}
             className='whitespace-pre-wrap font-code font-bold'
             style={{
@@ -265,9 +267,10 @@ export function LyricPlayerV2({
                   : chordColor,
             }}
           >
-            {line.content.split(/(\[.*?\])/g).map((part, partIndex) => {
+            {line.content.split(/(\s+)/).map((part, partIndex) => {
               const partKey = `${key}-part-${partIndex}`;
-              if (part.startsWith('[') && part.endsWith(']')) {
+              const isChord = /\[(.*?)\]/.test(part);
+              if (isChord) {
                 const chord = part.slice(1, -1);
                 const transposed = transposeChord(chord, transpose);
                 return (
@@ -280,13 +283,13 @@ export function LyricPlayerV2({
                           : 'bg-primary/10 text-primary rounded-sm px-1')
                     )}
                   >
-                    {transposed}
+                    [{transposed}]
                   </span>
                 );
               }
               return <span key={partKey}>{part}</span>;
             })}
-          </p>
+          </pre>
         );
 
       case 'empty':
