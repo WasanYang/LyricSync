@@ -102,34 +102,33 @@ interface LyricPlayerV2Props {
   showControls?: boolean;
 }
 
-const parseLineForGrid = (
-  line: string
-): Array<{ type: 'chord' | 'lyric'; content: string }> => {
-  const parts: Array<{ type: 'chord' | 'lyric'; content: string }> = [];
+const parseLineWithChords = (line: string, transpose: number) => {
   const regex = /\[([^\]]+)\]/g;
+  const parts = [];
   let lastIndex = 0;
   let match;
 
   while ((match = regex.exec(line)) !== null) {
-    // Lyric part before the chord
+    // Text before the chord
     if (match.index > lastIndex) {
-      parts.push({
-        type: 'lyric',
-        content: line.substring(lastIndex, match.index),
-      });
+      parts.push({ type: 'lyric', content: line.substring(lastIndex, match.index) });
     }
     // The chord itself
-    parts.push({ type: 'chord', content: match[1] });
+    parts.push({
+      type: 'chord',
+      content: transposeChord(match[1], transpose),
+    });
     lastIndex = regex.lastIndex;
   }
 
-  // Remaining lyric part
+  // Remaining text
   if (lastIndex < line.length) {
     parts.push({ type: 'lyric', content: line.substring(lastIndex) });
   }
 
   return parts;
 };
+
 
 export function LyricPlayerV2({
   song,
@@ -188,10 +187,13 @@ export function LyricPlayerV2({
       const scrollAmount = 0.5 * scrollSpeed;
       container.scrollTop += scrollAmount;
 
-      if (container.scrollTop >= container.scrollHeight - container.clientHeight) {
+      if (
+        container.scrollTop >=
+        container.scrollHeight - container.clientHeight
+      ) {
         cancelAnimationFrame(animationFrameId.current);
         isAtEndRef.current = true;
-        handleTogglePlay(); // Dispatch will be handled safely
+        handleTogglePlay(); // This will safely toggle the play state
         return;
       }
     }
@@ -239,77 +241,52 @@ export function LyricPlayerV2({
         </p>
       );
     }
-
+  
     if (line.type === 'lyrics') {
-      const gridParts = parseLineForGrid(line.content);
-
-      // A line with only chords but no text underneath
-      const isChordsOnlyLine =
-        gridParts.every((p) => p.type === 'chord') ||
-        (gridParts.every((p) => p.type === 'chord' || p.content.trim() === '') &&
-          gridParts.some((p) => p.type === 'chord'));
-
-      if (!showChords && isChordsOnlyLine) {
-        return null; // Don't render chords-only lines if chords are hidden
+      const isChordLine = /\[[^\]]+\]/.test(line.content) && !/[a-zA-Z]/.test(line.content.replace(/\[[^\]]+\]|\s/g, ''));
+      if (isChordLine && !showChords) {
+        return null; // Hide chord-only lines when chords are off
       }
-
+  
+      const parts = parseLineWithChords(line.content, transpose);
+  
       return (
-        <div key={key} className='grid'>
-          {showChords && (
-            <div
-              className='flex flex-wrap'
-              style={{
-                color:
-                  theme === 'dark' && chordColor === 'hsl(0 0% 0%)'
-                    ? 'hsl(0 0% 100%)'
-                    : chordColor,
-              }}
-            >
-              {gridParts.map((part, partIndex) => (
+        <pre key={key} className='whitespace-pre-wrap font-body'>
+          {parts.map((part, partIndex) => {
+            const partKey = `${key}-part-${partIndex}`;
+            if (part.type === 'chord' && showChords) {
+              return (
                 <span
-                  key={`${key}-chord-${partIndex}`}
+                  key={partKey}
                   className={cn(
-                    part.type === 'chord'
-                      ? 'font-bold font-code'
-                      : 'invisible font-body',
-                    part.type === 'chord' &&
-                      showChordHighlights &&
-                      (theme === 'dark'
-                        ? 'bg-primary/20'
-                        : 'bg-primary/10 text-primary')
+                    'font-bold font-code',
+                    showChordHighlights && (
+                      theme === 'dark' ? 'bg-primary/20' : 'bg-primary/10 text-primary'
+                    )
                   )}
+                  style={{
+                    color: showChordHighlights
+                      ? (theme === 'dark' ? 'hsl(0 0% 100%)' : 'hsl(var(--primary))')
+                      : (theme === 'dark' && chordColor === 'hsl(0 0% 0%)' ? 'hsl(0 0% 100%)' : chordColor)
+                  }}
                 >
-                  {part.type === 'chord'
-                    ? transposeChord(part.content, transpose)
-                    : part.content}
+                  [{part.content}]
                 </span>
-              ))}
-            </div>
-          )}
-          <p className='flex flex-wrap font-body'>
-            {gridParts.map((part, partIndex) => (
-              <span
-                key={`${key}-lyric-${partIndex}`}
-                className={cn(
-                  part.type === 'lyric'
-                    ? 'font-body'
-                    : 'invisible font-bold font-code'
-                )}
-              >
-                {part.type === 'lyric'
-                  ? part.content
-                  : transposeChord(part.content, transpose)}
-              </span>
-            ))}
-          </p>
-        </div>
+              );
+            }
+            if (part.type === 'lyric') {
+              return <span key={partKey}>{part.content}</span>;
+            }
+            return null;
+          })}
+        </pre>
       );
     }
-
+  
     if (line.type === 'empty') {
       return <div key={key} className='h-4' />;
     }
-
+  
     return null;
   };
 
@@ -344,9 +321,9 @@ export function LyricPlayerV2({
                 theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
               )}
             >
-              {song.artist && <div className='font-body'>{song.artist}</div>}
+              {song.artist && <div className='font-noto-thai'>{song.artist}</div>}
               {song.originalKey && (
-                <div className='font-body'>Key: {song.originalKey}</div>
+                <div className='font-noto-thai'>Key: {song.originalKey}</div>
               )}
             </div>
           </div>

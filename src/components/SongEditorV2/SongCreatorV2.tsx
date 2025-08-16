@@ -356,7 +356,7 @@ export default function SongCreatorV2() {
                       <Textarea
                         ref={textareaRef}
                         placeholder={'(Verse 1)\n[C]Lyrics and [G]chords go here...'}
-                        className='text-base font-mono resize-none overflow-y-auto flex-grow min-h-[24rem]'
+                        className='text-base font-noto-thai resize-none overflow-y-auto flex-grow min-h-[24rem]'
                         {...field}
                       />
                     </FormControl>
