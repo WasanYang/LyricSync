@@ -16,7 +16,15 @@ import { transposeChord } from '@/lib/chords';
 import { ParsedLyricLine } from './types';
 import { parseLyricsV2 } from './parser';
 import { Button } from '../ui/button';
-import { Pause, Play, Printer, Settings, Minus, Plus } from 'lucide-react';
+import {
+  Pause,
+  Play,
+  Printer,
+  Settings,
+  Minus,
+  Plus,
+  LogOut,
+} from 'lucide-react';
 import { SettingsSheetV2 } from './SettingsSheetV2';
 import FloatingSectionNavigator from '../FloatingSectionNavigator';
 import { useFloatingNavigator } from '@/hooks/use-floating-navigator';
@@ -144,9 +152,7 @@ export function LyricPlayerV2({
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const animationFrameId = useRef<number>(0);
-  const lastTimeRef = useRef<number>(0);
   const isAtEndRef = useRef<boolean>(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const floatingNavigator = useFloatingNavigator();
 
   const parsedLines = useMemo(() => {
@@ -183,8 +189,9 @@ export function LyricPlayerV2({
       container.scrollTop += scrollAmount;
 
       if (container.scrollTop >= container.scrollHeight - container.clientHeight) {
+        cancelAnimationFrame(animationFrameId.current);
         isAtEndRef.current = true;
-        handleTogglePlay();
+        handleTogglePlay(); // Dispatch will be handled safely
         return;
       }
     }
@@ -235,45 +242,66 @@ export function LyricPlayerV2({
 
     if (line.type === 'lyrics') {
       const gridParts = parseLineForGrid(line.content);
+
+      // A line with only chords but no text underneath
+      const isChordsOnlyLine =
+        gridParts.every((p) => p.type === 'chord') ||
+        (gridParts.every((p) => p.type === 'chord' || p.content.trim() === '') &&
+          gridParts.some((p) => p.type === 'chord'));
+
+      if (!showChords && isChordsOnlyLine) {
+        return null; // Don't render chords-only lines if chords are hidden
+      }
+
       return (
-        <div key={key} className='grid' style={{ gridTemplateColumns: 'auto' }}>
+        <div key={key} className='grid'>
           {showChords && (
-            <div className='flex' style={{ color: chordColor }}>
-              {gridParts.map((part, partIndex) =>
-                part.type === 'chord' ? (
-                  <span
-                    key={`${key}-chord-${partIndex}`}
-                    className={cn(
-                      'font-bold font-code',
+            <div
+              className='flex flex-wrap'
+              style={{
+                color:
+                  theme === 'dark' && chordColor === 'hsl(0 0% 0%)'
+                    ? 'hsl(0 0% 100%)'
+                    : chordColor,
+              }}
+            >
+              {gridParts.map((part, partIndex) => (
+                <span
+                  key={`${key}-chord-${partIndex}`}
+                  className={cn(
+                    part.type === 'chord'
+                      ? 'font-bold font-code'
+                      : 'invisible font-body',
+                    part.type === 'chord' &&
                       showChordHighlights &&
-                        (theme === 'dark'
-                          ? 'bg-primary/20'
-                          : 'bg-primary/10 text-primary')
-                    )}
-                  >
-                    {transposeChord(part.content, transpose)}
-                  </span>
-                ) : (
-                  <span key={`${key}-lyric-pad-${partIndex}`} className='invisible'>
-                    {part.content}
-                  </span>
-                )
-              )}
+                      (theme === 'dark'
+                        ? 'bg-primary/20'
+                        : 'bg-primary/10 text-primary')
+                  )}
+                >
+                  {part.type === 'chord'
+                    ? transposeChord(part.content, transpose)
+                    : part.content}
+                </span>
+              ))}
             </div>
           )}
-          <div className='flex'>
-            {gridParts.map((part, partIndex) =>
-              part.type === 'lyric' ? (
-                <span key={`${key}-lyric-${partIndex}`} className='font-body'>
-                  {part.content}
-                </span>
-              ) : (
-                <span key={`${key}-chord-pad-${partIndex}`} className='invisible font-bold font-code'>
-                  {transposeChord(part.content, transpose)}
-                </span>
-              )
-            )}
-          </div>
+          <p className='flex flex-wrap font-body'>
+            {gridParts.map((part, partIndex) => (
+              <span
+                key={`${key}-lyric-${partIndex}`}
+                className={cn(
+                  part.type === 'lyric'
+                    ? 'font-body'
+                    : 'invisible font-bold font-code'
+                )}
+              >
+                {part.type === 'lyric'
+                  ? part.content
+                  : transposeChord(part.content, transpose)}
+              </span>
+            ))}
+          </p>
         </div>
       );
     }
@@ -354,7 +382,9 @@ export function LyricPlayerV2({
               <div
                 className={cn(
                   'flex items-center gap-1 rounded-md p-1 border h-10',
-                  'bg-white border-gray-300'
+                  theme === 'dark'
+                    ? 'bg-gray-800 border-gray-700'
+                    : 'bg-white border-gray-300'
                 )}
               >
                 <Button
@@ -370,7 +400,7 @@ export function LyricPlayerV2({
                 >
                   <Minus className='h-4 w-4' />
                 </Button>
-                <span className='w-12 text-center text-sm font-semibold text-black'>
+                <span className='w-12 text-center text-sm font-semibold'>
                   {scrollSpeed.toFixed(1)}x
                 </span>
                 <Button
@@ -390,7 +420,9 @@ export function LyricPlayerV2({
               <div
                 className={cn(
                   'flex items-center gap-1 rounded-md p-1 border h-10',
-                  'bg-white border-gray-300'
+                  theme === 'dark'
+                    ? 'bg-gray-800 border-gray-700'
+                    : 'bg-white border-gray-300'
                 )}
               >
                 <Button
@@ -406,7 +438,7 @@ export function LyricPlayerV2({
                 >
                   <Minus className='h-4 w-4' />
                 </Button>
-                <span className='w-12 text-center text-sm font-semibold text-black'>
+                <span className='w-12 text-center text-sm font-semibold'>
                   Key {transpose >= 0 ? `+${transpose}` : transpose}
                 </span>
                 <Button
