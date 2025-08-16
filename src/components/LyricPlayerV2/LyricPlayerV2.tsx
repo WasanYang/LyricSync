@@ -231,74 +231,53 @@ export function LyricPlayerV2({
     }
   };
 
-  const renderLine = (line: ParsedLyricLine, index: number) => {
-    const key = `${line.type}-${index}`;
-    switch (line.type) {
-      case 'section':
-        return (
-          <p
-            key={key}
-            id={key}
-            className='pt-4 pb-2 text-sm font-bold uppercase tracking-wide font-headline'
-          >
-            [ {line.content} ]
-          </p>
-        );
-      case 'lyrics':
-        return (
-          <pre
-            key={key}
-            className='whitespace-pre-wrap font-noto-thai font-medium'
-          >
-            {line.content}
-          </pre>
-        );
+  const renderedHtml = useMemo(() => {
+    const chordColorStyle =
+      theme === 'dark' && chordColor === 'hsl(0 0% 0%)'
+        ? 'hsl(0 0% 100%)'
+        : chordColor;
 
-      case 'chords':
-        if (!showChords) return null;
-        return (
-          <pre
-            key={key}
-            className='whitespace-pre-wrap font-code font-bold'
-            style={{
-              color:
-                theme === 'dark' && chordColor === 'hsl(0 0% 0%)'
-                  ? 'hsl(0 0% 100%)'
-                  : chordColor,
-            }}
-          >
-            {line.content.split(/(\s+)/).map((part, partIndex) => {
-              const partKey = `${key}-part-${partIndex}`;
-              const isChord = /\[(.*?)\]/.test(part);
-              if (isChord) {
-                const chord = part.slice(1, -1);
-                const transposed = transposeChord(chord, transpose);
-                return (
-                  <span
-                    key={partKey}
-                    className={cn(
-                      showChordHighlights &&
-                        (theme === 'dark'
-                          ? 'bg-primary/20 text-white rounded-sm px-1'
-                          : 'bg-primary/10 text-primary rounded-sm px-1')
-                    )}
-                  >
-                    [{transposed}]
-                  </span>
-                );
-              }
-              return <span key={partKey}>{part}</span>;
-            })}
-          </pre>
-        );
-
-      case 'empty':
-        return <div key={key} className='h-4' />;
-
-      default:
-        return null;
-    }
-  };
+    return parsedLines
+      .map((line, index) => {
+        const key = `${line.type}-${index}`;
+        switch (line.type) {
+          case 'section':
+            return `<strong id="${key}" class="pt-4 pb-2 text-sm uppercase tracking-wide font-headline block">[ ${line.content} ]</strong>`;
+          case 'lyrics':
+            return line.content;
+          case 'chords':
+            if (!showChords) return '';
+            return line.content
+              .split(/(\\[.*?\\])/)
+              .map((part) => {
+                if (part.startsWith('[') && part.endsWith(']')) {
+                  const chord = part.slice(1, -1);
+                  const transposed = transposeChord(chord, transpose);
+                  const highlightClass = showChordHighlights
+                    ? theme === 'dark'
+                      ? 'bg-primary/20 text-white rounded-sm px-1'
+                      : 'bg-primary/10 text-primary rounded-sm px-1'
+                    : '';
+                  return `<span style="color: ${chordColorStyle}" class="${highlightClass}">${transposed}</span>`;
+                }
+                return part;
+              })
+              .join('');
+          case 'empty':
+            return '';
+          default:
+            return '';
+        }
+      })
+      .join('\n');
+  }, [
+    parsedLines,
+    showChords,
+    transpose,
+    chordColor,
+    theme,
+    showChordHighlights,
+  ]);
 
   return (
     <div
@@ -353,7 +332,10 @@ export function LyricPlayerV2({
               )}
             </div>
           </div>
-          {parsedLines.map(renderLine)}
+          <pre
+            className='whitespace-pre-wrap font-noto-thai font-medium'
+            dangerouslySetInnerHTML={{ __html: renderedHtml }}
+          />
         </div>
       </div>
 
