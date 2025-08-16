@@ -157,8 +157,8 @@ export function LyricPlayerV2({
   }, [parsedLines]);
 
   const stopScrolling = useCallback(() => {
-    cancelAnimationFrame(animationFrameId.current);
     dispatch({ type: 'SET_IS_PLAYING', payload: false });
+    cancelAnimationFrame(animationFrameId.current);
   }, []);
 
   const handleTogglePlay = useCallback(() => {
@@ -231,53 +231,61 @@ export function LyricPlayerV2({
     }
   };
 
-  const renderedHtml = useMemo(() => {
+  const renderLine = (line: ParsedLyricLine, index: number) => {
+    const key = `${line.type}-${index}`;
     const chordColorStyle =
       theme === 'dark' && chordColor === 'hsl(0 0% 0%)'
         ? 'hsl(0 0% 100%)'
         : chordColor;
 
-    return parsedLines
-      .map((line, index) => {
-        const key = `${line.type}-${index}`;
-        switch (line.type) {
-          case 'section':
-            return `<strong id="${key}" class="pt-4 pb-2 text-sm uppercase tracking-wide font-headline block">[ ${line.content} ]</strong>`;
-          case 'lyrics':
-            return line.content;
-          case 'chords':
-            if (!showChords) return '';
-            return line.content
-              .split(/(\\[.*?\\])/)
-              .map((part) => {
-                if (part.startsWith('[') && part.endsWith(']')) {
-                  const chord = part.slice(1, -1);
+    switch (line.type) {
+      case 'section':
+        return (
+          <strong
+            key={key}
+            id={key}
+            className='pt-4 pb-2 text-sm uppercase tracking-wide font-headline block'
+          >
+            [ {line.content} ]
+          </strong>
+        );
+      case 'lyrics':
+        return <div key={key}>{line.content || '\u00A0'}</div>;
+      case 'chords':
+        if (!showChords) return null;
+        const highlightClass = showChordHighlights
+          ? theme === 'dark'
+            ? 'bg-primary/20 text-white rounded-sm px-1'
+            : 'bg-primary/10 text-primary rounded-sm px-1'
+          : '';
+        return (
+          <div key={key} className='whitespace-pre-wrap'>
+            {line.content
+              .split(/(\s+)/) // Split by spaces to keep them
+              .map((part, partIndex) => {
+                if (part.trim().startsWith('[') && part.trim().endsWith(']')) {
+                  const chord = part.trim().slice(1, -1);
                   const transposed = transposeChord(chord, transpose);
-                  const highlightClass = showChordHighlights
-                    ? theme === 'dark'
-                      ? 'bg-primary/20 text-white rounded-sm px-1'
-                      : 'bg-primary/10 text-primary rounded-sm px-1'
-                    : '';
-                  return `<span style="color: ${chordColorStyle}" class="${highlightClass}">${transposed}</span>`;
+                  return (
+                    <span
+                      key={partIndex}
+                      className={highlightClass}
+                      style={{ color: chordColorStyle }}
+                    >
+                      {transposed}
+                    </span>
+                  );
                 }
-                return part;
-              })
-              .join('');
-          case 'empty':
-            return '';
-          default:
-            return '';
-        }
-      })
-      .join('\n');
-  }, [
-    parsedLines,
-    showChords,
-    transpose,
-    chordColor,
-    theme,
-    showChordHighlights,
-  ]);
+                return <span key={partIndex}>{part}</span>;
+              })}
+          </div>
+        );
+      case 'empty':
+        return <div key={key} className='h-4' />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div
@@ -298,15 +306,6 @@ export function LyricPlayerV2({
       <header className='flex-shrink-0 z-10 bg-transparent pointer-events-auto'>
         <div className='relative container mx-auto flex items-center justify-between h-14'>
           <div />
-          <div className='absolute right-2 top-1/2 -translate-y-1/2'>
-            <SettingsSheetV2
-              fontSize={fontSize}
-              showChords={showChords}
-              chordColor={chordColor}
-              showChordHighlights={showChordHighlights}
-              dispatch={dispatch}
-            />
-          </div>
         </div>
       </header>
 
@@ -327,15 +326,12 @@ export function LyricPlayerV2({
               )}
             >
               {song.artist && <div className=''>{song.artist}</div>}
-              {song.originalKey && (
-                <div className=''>Key: {currentKey}</div>
-              )}
+              {song.originalKey && <div className=''>Key: {currentKey}</div>}
             </div>
           </div>
-          <pre
-            className='whitespace-pre-wrap font-noto-thai font-medium'
-            dangerouslySetInnerHTML={{ __html: renderedHtml }}
-          />
+          <div className='font-noto-thai font-medium'>
+            {parsedLines.map(renderLine)}
+          </div>
         </div>
       </div>
 
@@ -343,7 +339,7 @@ export function LyricPlayerV2({
         <div className='sticky bottom-0 left-0 right-0 z-10 print:hidden'>
           <div
             className={cn(
-              'flex items-center justify-center gap-2 p-2 border-t',
+              'relative flex items-center justify-center gap-2 p-2 border-t',
               theme === 'dark'
                 ? 'bg-black border-gray-800'
                 : 'bg-white border-gray-200'
@@ -451,6 +447,13 @@ export function LyricPlayerV2({
               >
                 <Printer className='h-5 w-5' />
               </Button>
+              <SettingsSheetV2
+                fontSize={fontSize}
+                showChords={showChords}
+                chordColor={chordColor}
+                showChordHighlights={showChordHighlights}
+                dispatch={dispatch}
+              />
             </div>
           </div>
         </div>
